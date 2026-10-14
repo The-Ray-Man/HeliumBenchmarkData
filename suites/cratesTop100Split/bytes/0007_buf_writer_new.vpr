@@ -1,0 +1,153 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_buf$col$$col$writer$col$$col$Writer {
+    (forall B$0: Type ::
+      { inhabited(s_buf$col$$col$writer$col$$col$Writer_type(B$0)) }
+      inhabited(s_buf$col$$col$writer$col$$col$Writer_type(B$0)) ==
+      inhabited(B$0))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_buf$col$$col$writer$col$$col$Writer  {
+  
+  axiom s_buf$col$$col$writer$col$$col$Writer_Sized {
+    (forall B$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_buf$col$$col$writer$col$$col$Writer_type(B$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_buf$col$$col$writer$col$$col$Writer_type(B$0)))
+  }
+  
+  axiom s_buf$col$$col$writer$col$$col$Writer_MetaSized {
+    (forall B$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_buf$col$$col$writer$col$$col$Writer_type(B$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(B$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_buf$col$$col$writer$col$$col$Writer_type(B$0)))
+  }
+}
+
+function s_buf$col$$col$writer$col$$col$Writer_unreachable(B$0: Type): s_buf$col$$col$writer$col$$col$Writer
+  ensures false
+
+
+function s_buf$col$$col$writer$col$$col$Writer_field_0(self: Ref, B$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_buf$col$$col$writer$col$$col$Writer_snap(self: Ref, B$0: Type): s_buf$col$$col$writer$col$$col$Writer
+  requires acc(p_buf$col$$col$writer$col$$col$Writer(self, B$0), write)
+{
+  (unfolding acc(p_buf$col$$col$writer$col$$col$Writer(self, B$0), write) in
+    s_buf$col$$col$writer$col$$col$Writer_cons(p_Param_snap(s_buf$col$$col$writer$col$$col$Writer_field_0(self,
+    B$0), B$0)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+predicate p_buf$col$$col$writer$col$$col$Writer(self: Ref, B$0: Type) {
+  inhabited(B$0) &&
+  acc(p_Param(s_buf$col$$col$writer$col$$col$Writer_field_0(self, B$0), B$0), write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+method m_buf$col$$col$writer$col$$col$new(_0p: Ref, _1p: Ref, B$0: Type)
+  requires inhabited(B$0) && acc(p_Param(_1p, B$0), write)
+  ensures inhabited(s_buf$col$$col$writer$col$$col$Writer_type(B$0)) &&
+    acc(p_buf$col$$col$writer$col$$col$Writer(_0p, B$0), write)
+{
+  var _2p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  var _tmp1: s_Param
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(B$0)
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Param_snap(_1p, B$0)
+  exhale inhabited(B$0) && acc(p_Param(_1p, B$0), write)
+  p_Param_assign(_2p, B$0, _tmp0)
+  label _before_0_2
+  _tmp1 := p_Param_snap(_2p, B$0)
+  exhale inhabited(B$0) && acc(p_Param(_2p, B$0), write)
+  p_buf$col$$col$writer$col$$col$Writer_assign(_0p, B$0, s_buf$col$$col$writer$col$$col$Writer_cons(_tmp1))
+  label _before_0_3
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label package_post0
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label end
+}
+
+method p_buf$col$$col$writer$col$$col$Writer_assign(self: Ref, B$0: Type, value: s_buf$col$$col$writer$col$$col$Writer)
+  ensures acc(p_buf$col$$col$writer$col$$col$Writer(self, B$0), write)
+  ensures p_buf$col$$col$writer$col$$col$Writer_snap(self, B$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_buf$col$$col$writer$col$$col$Writer {
+  s_buf$col$$col$writer$col$$col$Writer_cons(s_buf$col$$col$writer$col$$col$Writer_0: s_Param)
+}
+
+adt Type {
+  s_buf$col$$col$writer$col$$col$Writer_type(s_buf$col$$col$writer$col$$col$Writer_typaram_B$0: Type)
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,162 @@
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_Never {
+    inhabited(s_Never_type()) == false
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_Never  {
+  
+  axiom s_Never_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Never_type())
+  }
+  
+  axiom s_Never_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Never_type())
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+function s_Never_unreachable(): s_Never
+  ensures false
+
+
+function s_Never_discr(self: s_Never): s_Int_isize
+  ensures false
+
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function p_Never_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Never_snap(self: Ref): s_Never
+  requires acc(p_Never(self), write)
+{
+  (unfolding acc(p_Never(self), write) in s_Never_unreachable())
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+predicate p_Never(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_Never_field_discr(self)), write) &&
+  (false && true)
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+method m_abort(_0p: Ref)
+  ensures inhabited(s_Never_type()) && acc(p_Never(_0p), write)
+{
+  var _1p: Ref
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_std$col$$col$process$col$$col$abort(_1p)
+  label post1
+  exhale false
+  inhale false
+  goto end
+  label bb_1
+  assert false
+  goto end
+  label end
+}
+
+method m_std$col$$col$process$col$$col$abort(_0p: Ref)
+  ensures inhabited(s_Never_type()) && acc(p_Never(_0p), write)
+
+
+method p_Never_assign(self: Ref, value: s_Never)
+  ensures acc(p_Never(self), write)
+  ensures p_Never_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Never {
+  s_Never_DummyConstructor()
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_Never_type()
+  Unknown_type(id: Int)
+}

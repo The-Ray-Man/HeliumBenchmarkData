@@ -1,0 +1,624 @@
+// ===== begin import: DaV/viper/dafny_book_examples/definitions.vpr =====
+/**
+ * This file contains auxiliary definitions that are used in multiple locations
+ */
+
+
+/**
+ * The Unit data type has a single value, `unit()`. We use it as the return value of
+ * translated lemmas. Viper does not provide a special syntax for defining lemmas.
+ * As lemmas need to be callable in a pure context, we translate them to functions
+ * with `Unit` as the return type. We could also use an arbitrary type like bool as
+ * the return type. We chose this way to express the fact that the return value is
+ * not important.
+ */
+adt Unit {
+  unit()
+}
+
+/**
+ * Viper sometimes has a problem where the postconditions of called functions are not
+ * added to the context. This function forces a condition to be checked, which will add 
+ * it, allowing us to use it in proofs.
+ */
+function asserting(x: Bool): Unit
+    requires x
+    decreases
+{
+    unit()
+}
+
+/**
+ * Viper does not have built-in support for tuples (pairs, triples, ...), so we
+ * need to define a pair type via a custom domain.
+ */
+domain Pair[T, G] {
+
+    /**
+     * The constructor takes two elements and returns a pair containing both of them.
+     */
+    function pair(T, G): Pair[T, G]
+
+    /**
+     * The destructors allow access to the elements of a pair.
+     */
+    function getLeft(Pair[T, G]): T
+    function getRight(Pair[T, G]): G
+
+    /**
+     * These axioms define the behavior of the functions above: If we create a pair 
+     * and then access its elements, we get the original elements back.
+     */
+    axiom axGetLeft {
+        forall x: T, y: G :: getLeft(pair(x, y)) == x
+    }
+
+    axiom axGetRight {
+        forall x: T, y: G :: getRight(pair(x, y)) == y
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/definitions.vpr =====
+
+// ===== begin import: <std>/decreases/declaration.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain WellFoundedOrder[T]{
+    // arg1 is smaller then arg2
+    function decreasing(arg1:T, arg2:T):Bool
+    function bounded(arg1:T):Bool
+}
+// ===== end import: <std>/decreases/declaration.vpr =====
+
+// ===== begin import: <std>/decreases/bool.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain BoolWellFoundedOrder{
+    //Booleans
+    axiom bool_ax_dec{
+        decreasing(false, true)
+    }
+    axiom bool_ax_bound{
+        forall bool1: Bool :: {bounded(bool1)}
+            bounded(bool1)
+    }
+}
+// ===== end import: <std>/decreases/bool.vpr =====
+
+// ===== begin import: <std>/decreases/int.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain IntWellFoundedOrder{
+	//Integers
+    axiom integer_ax_dec{
+        forall int1: Int, int2: Int :: {decreasing(int1, int2)}
+            (int1 < int2) ==> decreasing(int1, int2)
+    }
+    axiom integer_ax_bound{
+        forall int1: Int :: {bounded(int1)}
+            int1 >= 0 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/int.vpr =====
+
+// ===== begin import: <std>/decreases/multiset.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain MultiSetWellFoundedOrder[S]{
+    //MultiSet
+    axiom multiset_ax_dec{
+        forall mSet1: Multiset[S], mSet2: Multiset[S] :: {decreasing(mSet1, mSet2)}
+            (|mSet1| < |mSet2|) ==> decreasing(mSet1, mSet2)
+    }
+    axiom multiset_ax_bound{
+        forall mSet1: Multiset[S] :: {bounded(mSet1)}
+            bounded(mSet1)
+    }
+}
+// ===== end import: <std>/decreases/multiset.vpr =====
+
+// ===== begin import: <std>/predicateinstance/pi.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain PredicateInstance{}
+// ===== end import: <std>/predicateinstance/pi.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance_nested.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesNestedRelation{
+    function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance) : Bool
+
+    //Transitivity of the nested-Function
+    axiom nestedTrans{
+        forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance :: {nestedPredicates(l1, l2), nestedPredicates(l2, l3)}
+            nestedPredicates(l1,l2) && nestedPredicates(l2,l3) ==> nestedPredicates(l1,l3)
+    }
+
+    //A predicate cannot be nested inside itself
+    axiom nestedReflex{
+        forall l1: PredicateInstance ::
+            !nestedPredicates(l1, l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance_nested.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+// resolved: import "predicate_instance_nested.vpr"
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesWellFoundedOrder {
+    axiom predicate_instances_ax_dec{
+        forall l1: PredicateInstance, l2: PredicateInstance :: {nestedPredicates(l1,l2)}
+            decreasing(l1, l2) <==> nestedPredicates(l1,l2)
+    }
+
+    axiom predicate_instances_ax_bound{
+        forall l1: PredicateInstance :: {bounded(l1)}
+            bounded(l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance.vpr =====
+
+// ===== begin import: <std>/decreases/perm.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain PermWellFoundedOrder{
+	//Rationals
+    axiom rational_ax_dec{
+        forall int1: Perm, int2: Perm :: {decreasing(int1, int2)}
+            (int1 <= int2 - 1/1) ==> decreasing(int1, int2)
+    }
+    axiom rational_ax_bound{
+        forall int1: Perm :: {bounded(int1)}
+            int1 >= 0/1 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/perm.vpr =====
+
+// ===== begin import: <std>/decreases/ref.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain RefWellFoundedOrder{
+    //References
+	axiom ref_ax_dec{
+        forall ref1: Ref :: {decreasing(null,ref1)}
+            ref1 != null ==> decreasing(null, ref1)
+    }
+    axiom ref_ax_bound{
+        forall ref1: Ref :: {bounded(ref1)}
+            bounded(ref1)
+    }
+}
+// ===== end import: <std>/decreases/ref.vpr =====
+
+// ===== begin import: <std>/decreases/seq.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SeqWellFoundedOrder[S]{
+    //Sequences
+    axiom seq_ax_dec{
+        forall seq1: Seq[S], seq2: Seq[S] :: {decreasing(seq1,seq2)}
+            (|seq1| < |seq2|) ==> decreasing(seq1, seq2)
+    }
+    axiom seq_ax_bound{
+        forall seq1: Seq[S] :: {bounded(seq1)}
+            (|seq1| >= 0) ==> bounded(seq1)
+    }
+}
+// ===== end import: <std>/decreases/seq.vpr =====
+
+// ===== begin import: <std>/decreases/set.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SetWellFoundedOrder[S]{
+    //Sets
+    axiom set_ax_dec{
+        forall set1: Set[S], set2: Set[S] :: {decreasing(set1, set2)}
+            (|set1| < |set2|) ==> decreasing(set1, set2)
+    }
+    axiom set_ax_bound{
+        forall set1: Set[S] ::  {bounded(set1)}
+            bounded(set1)
+    }
+}
+// ===== end import: <std>/decreases/set.vpr =====
+
+// ===== begin import: <std>/decreases/all.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "bool.vpr"
+// resolved: import "int.vpr"
+// resolved: import "multiset.vpr"
+// resolved: import "predicate_instance.vpr"
+// resolved: import "perm.vpr"
+// resolved: import "ref.vpr"
+// resolved: import "seq.vpr"
+// resolved: import "set.vpr"
+// ===== end import: <std>/decreases/all.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_6/well-founded_order_List.vpr =====
+/**
+ * The List ADT is defined here.
+ */
+// resolved: import "examples-6.1.vpr"
+
+/** 
+ * This import is part of the termination plugin. It provides the definitions of the functions
+ * bounded and decreasing required to define a custom well-founded order for our abstract data type List.
+ */ 
+// resolved: import <decreases/all.vpr>
+
+/** 
+ * The ADT plugin of Viper does not automatically generate a well-founded order for ADTs.
+ * Therefore we have to define a well-founded order ourselves. This is needed to prove the
+ * termination of functions and methods involving the ADT. 
+ *
+ * To define a well-founded order, we need to define the functions bounded and decreasing.
+ * We do this inside of a domain, which allows us to define axioms.
+ * Domains can also be used to define new types, by introducing functions and axioms to describe the functions.
+ */
+domain ListWellFoundedOrder[T] {
+
+  /** 
+   * The function bounded is true when an element has a lower bound. The Nil-list is always
+   * a lower bound, so bounded is always true. 
+   * When using quantifiers like 'forall', it is better to provide explicit triggers, 
+   * here the bounded(y) in curly brackets is the trigger.
+   */
+  axiom {
+    forall y: List[T] :: {bounded(y)} bounded(y) 
+  }
+
+  /** 
+   * The function decreasing is true when the first argument is smaller than the second argument.
+   * We define our well-founded order over the structural inclusion of a list. This means that a
+   * list x is smaller than a list y if and only if x is a suffix of y.
+   *
+   * This is not the only way of defining a well-founded order on lists, we could have also defined 
+   * it over the length of a list. That would require us to have a length function. As we would want to
+   * prove termination on this function, we would have a circular problem.
+   */ 
+  axiom {
+    forall xs: List[T] , y: T :: 
+      decreasing(xs, Cons(y, xs)) 
+  }
+
+  /** 
+   * This axiom defines the transitivity of the well-founded order relation on
+   * List[T], so that if xs < ys and ys < zs, then xs < zs. This could also be
+   * proven in a lemma, but would require us to call it often throughout.
+   */
+  axiom {
+    forall xs: List[T], ys: List[T], zs: List[T] :: {decreasing(xs, ys), decreasing(ys, zs)}
+      decreasing(xs, ys) && decreasing(ys, zs) ==> decreasing(xs, zs)
+  }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_6/well-founded_order_List.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.1.vpr =====
+/**  
+ * The file definitions.vpr contains common definitions which are useful for translating
+ * the examples. 
+ */
+// resolved: import "../definitions.vpr"
+
+/**
+ * To prove the termination of functions using the List ADT defined below we define 
+ * a well-founded order on our data type in this file.
+ */
+// resolved: import "well-founded_order_List.vpr"
+
+/** 
+* We define a list in a standard way, Nil() represents the empty list and Cons(x, xs)
+* (from construct) represents a list with element x as its head and list xs as its tail. 
+* Note that while Viper supports generic ADTs, it does not support generic functions.
+* So all functions operating on this ADT will be defined for a specific type, in this
+* case Int.
+*/
+adt List[T] {
+  Nil()
+  Cons(value: T, tail: List[T])
+} 
+
+
+
+/** 
+ * A function in Viper represents a mathematical function and can be used 
+ * in specifications and annotations, unlike methods. Because of that,
+ * functions must be deterministic and side-effect-free.
+ *
+ * This function computes the length of a list recursively.
+ */
+function length(xs: List[Int]): Int
+  /** 
+   * Viper allows defining pre- and postconditions for functions. In this
+   * example, we only use postconditions, which are introduced with a 'ensures' 
+   * keyword. The verifier will attempt to prove that the postcondition holds. 
+   * To reference the return value of the function in a postcondition, we use the
+   * keyword 'result'.
+   */
+  ensures result >= 0                                     
+  ensures xs.isNil ==> result == 0                        
+  ensures (xs.isCons ==> result == length(xs.tail) + 1)   
+  /** 
+   * Unlike Dafny, Viper does not check for termination by default. To enable termination 
+   * checking, we use a decreases clause. Here we have to specify the list parameter xs as 
+   * the variable to prove termination upon. In each recursive call, the list gets one element
+   * shorter. For this proof to work, we need the well-founded order on lists imported above.
+   */
+  decreases xs
+{
+  /**
+   * Viper does not have a 'match' statement. All examples in Dafny that 
+   * use this feature are translated to use destructors instead.
+   */
+  xs.isNil ? 0 : (1 + length(xs.tail))
+}
+
+/** 
+ *  Snoc (cons backward) appends the element x to the back of the list xs. 
+ */
+function Snoc(xs: List[Int], x: Int): List[Int]
+  ensures xs.isNil ==> result == Cons(x, Nil())
+  ensures xs.isCons ==> result == Cons(xs.value, Snoc(xs.tail, x))
+  decreases xs
+{
+  xs.isNil ? Cons(x, Nil()) : Cons(xs.value, Snoc(xs.tail, x))
+}
+
+
+/** 
+ * There is no special syntax for lemmas in Viper. As lemmas need to be called in
+ * contexts sometimes, we use functions to model lemmas. The return
+ * type of the function will be set to Unit to not accidentally confuse a
+ * lemma function with an actual function. 
+ */
+function lemmaLengthSnoc(xs: List[Int], x: Int): Unit
+  ensures length(Snoc(xs, x)) == length(xs) + 1
+  decreases xs
+{
+  /** 
+   * Unlike Dafny, Viper does not offer automatic induction. Thus,
+   * we must explicitly state the induction as a recursive function.
+   * 
+   * The body of a Viper function consists of a single expression, so `if-else` statements
+   * cannot be used. Instead, we use conditional expressions using the ternary operator '?'.
+   */
+  xs.isNil ? unit() : lemmaLengthSnoc(xs.tail, x)
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.1.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.2.vpr =====
+/** 
+ * In order to use the functions and ADTs declared in Chapter 6.1, we have to import
+ * them.
+ * 
+ * Viper supports importing other files using relative and absolute paths.
+ * They are simply added for verification. Viper does however not support namespaces
+ * between the different files, so this can create name conflicts.
+ */
+// resolved: import "examples-6.1.vpr"
+
+/** 
+ * This function appends the two list parameters together into one list. 
+ */
+function append(xs: List[Int], ys: List[Int]): List[Int]
+  ensures xs.isNil ==> result == ys
+  ensures xs.isCons ==> result == Cons(xs.value, append(xs.tail, ys))
+  decreases xs
+{
+  xs.isNil ? ys : Cons(xs.value, append(xs.tail, ys))
+}
+
+/** 
+ * This lemma ensures that the length of the append of two lists is equal
+ * to the sum of the lengths of the individual lists.
+ */
+function lemmaLengthAppend(xs: List[Int], ys: List[Int]): Unit
+  ensures length(append(xs, ys)) == length(xs) + length(ys)
+  decreases xs
+{
+  /** 
+   * For this induction we make a distinction whether xs is equal to Nil. If so, the
+   * statement trivially holds. Otherwise, we continue the induction on the tail of xs.
+   */
+   xs.isNil ? unit() : (lemmaLengthAppend(xs.tail, ys))
+}
+
+/** 
+ * This lemma proves that appending an element y to a list xs with Snoc returns the same list 
+ * appending a list containing only y to xs.
+ */
+function lemmaSnocAppend(xs: List[Int], y: Int): Unit
+  ensures Snoc(xs, y) == append(xs, Cons(y, Nil()))
+  decreases xs
+{
+  (xs.isNil) ? unit() : lemmaSnocAppend(xs.tail, y)
+}
+
+/** 
+ * This lemma proves that appending a Nil list to a list xs returns xs unchanged.
+ */
+function lemmaAppendNil(xs: List[Int]): Unit
+  ensures append(xs, Nil()) == xs 
+  ensures append(Nil(), xs) == xs
+  decreases xs
+{
+  xs.isNil ? unit() : lemmaAppendNil(xs.tail)
+}
+
+/**
+ * This lemma proves that appending lists is an associative operation.
+ */
+function lemmaAppendAssociative(xs: List[Int], ys: List[Int], zs: List[Int]): Unit
+  ensures append(append(xs, ys), zs) == append(xs, append(ys, zs))
+  decreases xs
+{
+  xs.isNil ? unit() : lemmaAppendAssociative(xs.tail, ys, zs)
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.2.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.3.vpr =====
+// resolved: import "examples-6.2.vpr"
+
+/**
+ * The function Take takes a list xs an integer n and returns a list containing the
+ * first n elements of xs.
+ * 
+ * In Dafny, a parameter of type nat is used. There are no built-in natural numbers
+ * in Viper. We therefore use an integer and we require n >= 0 as a precondition.
+ * Without this precondition, the induction would fail, taking a negative number of 
+ * elements from a list is not possible anyways.
+ */
+function Take(xs: List[Int], n: Int): List[Int]
+  requires n >= 0 
+  requires n <= length(xs)
+  decreases xs
+{
+  (n==0) ? Nil() : Cons(xs.value, Take(xs.tail, n-1))
+}
+
+/**
+ * Drop drops the first n elements of the list and returns the last (length(xs) - n)
+ * elements of the original list xs.
+ *
+ * We again use a precondition to ensure that n is a natural number.
+ */
+function Drop(xs: List[Int], n: Int): List[Int]
+  requires n >= 0   
+  requires n <= length(xs)
+  decreases xs
+{
+  (n==0) ? xs : Drop(xs.tail, n-1)
+}
+
+/**
+ * This lemma shows that if we take n elements and drop n elements from a list
+ * and append the two, then we get the original list back.
+ */
+function lemmaAppendTakeDrop(xs: List[Int], n: Int): Unit
+  requires n >= 0
+  requires n <= length(xs)
+  ensures append(Take(xs, n), Drop(xs, n)) == xs
+  decreases xs
+{
+  (n==0) ? unit() : lemmaAppendTakeDrop(xs.tail, n-1)
+}
+
+/**
+ * This lemma proves that if we append two lists and drop the size of the first list
+ * number of elements, we will get the second list back.
+ */
+function lemmaTakeDropAppend(xs: List[Int], ys: List[Int]): Unit
+  /**
+   * So that the first precondition is well-defined, we need to know that length(xs) is less than
+   * length(append(xs, ys)). This is ensured by the lemma call in the let expression.
+   *
+   * More information about let expression in file exercises-6.2.vpr.
+   */
+  ensures let _ == (lemmaLengthAppend(xs, ys)) in Take(append(xs, ys), length(xs)) == xs
+  ensures Drop(append(xs, ys), length(xs)) == ys
+  decreases xs, ys
+{
+  (xs.isNil) ? unit() :  lemmaTakeDropAppend(xs.tail, ys)
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_6/examples-6.3.vpr =====
+
+// resolved: import "examples-6.3.vpr"
+
+//Exercise 6.8
+/**
+ * This function is very similar to Drop. The only difference is that the 
+ * second parameter of the function can be greater than the length of the 
+ * list. In this case, we will just recurse on the function DropLiberal
+ * until we are left with Nil().
+ */
+function DropLiberal(xs: List[Int], n: Int): List[Int]
+  requires n >= 0 
+  decreases xs
+{
+  xs.isNil ? Nil() : ((n==0) ? xs : DropLiberal(xs.tail, n-1))
+}
+
+/**
+ * This lemma proves that Drop and DropLiberal will both return the same
+ * result if they receive the same input arguments.
+ */
+function lemmaDropLiberal(xs: List[Int], n: Int): Unit
+  requires n >= 0
+  requires n <= length(xs)
+  ensures Drop(xs, n) == DropLiberal(xs, n)
+  decreases xs
+{
+  xs.isNil ? unit() : ((n==0) ? unit() : lemmaDropLiberal(xs.tail, n-1))
+}
+
+/**
+ * This function is a liberal version of Take, which allows us to provide an index
+ * that might exceed the length of the list.
+ */
+function TakeLiberal(xs: List[Int], n: Int): List[Int]
+  requires n >= 0  
+  decreases xs
+{
+  xs.isNil ? Nil() : ((n==0) ? Nil() : Cons(xs.value, TakeLiberal(xs.tail, n-1)))
+}
+
+/**
+ * This lemma proves that Take and TakeLiberal will both return the same
+ * result if they receive the same input arguments.
+ */
+function lemmaTakeLiberal(xs: List[Int], n: Int): Unit
+  requires n >= 0
+  requires n <= length(xs)
+  ensures Take(xs, n) == TakeLiberal(xs, n)
+  decreases xs
+{
+  xs.isNil ? unit() : ( (n==0) ? unit() : lemmaTakeLiberal(xs.tail, n-1))
+}
+
+//Exercise 6.9
+/**
+ * Automatic induction
+ */
+
+//Exercise 6.10
+/**
+ * Automatic induction
+ */
+
+//Exercise 6.11
+/**
+ * Automatic induction
+ */

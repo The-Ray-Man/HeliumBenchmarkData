@@ -1,0 +1,2225 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_core$col$$col$ptr$col$$col$NonNull {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) ==
+      inhabited(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_hashbrown$col$$col$raw$col$$col$RawTableInner {
+    inhabited(s_hashbrown$col$$col$raw$col$$col$RawTableInner_type()) ==
+    (inhabited(s_UInt_usize_type()) &&
+    inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_UInt_u8_type())) &&
+    (inhabited(s_UInt_usize_type()) && inhabited(s_UInt_usize_type())))
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_hashbrown$col$$col$raw$col$$col$RawTable {
+    (forall T$0: Type, A$1: Type ::
+      { inhabited(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) }
+      inhabited(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) ==
+      (inhabited(s_hashbrown$col$$col$raw$col$$col$RawTableInner_type()) &&
+      (inhabited(A$1) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))))
+  }
+  
+  axiom inhabited_2_Tuple {
+    (forall T$0: Type, U$1: Type ::
+      { inhabited(s_2_Tuple_type(T$0, U$1)) }
+      inhabited(s_2_Tuple_type(T$0, U$1)) ==
+      (inhabited(T$0) && inhabited(U$1)))
+  }
+  
+  axiom inhabited_hashbrown$col$$col$map$col$$col$HashMap {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { inhabited(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      inhabited(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) ==
+      (inhabited(S$2) &&
+      inhabited(s_hashbrown$col$$col$raw$col$$col$RawTable_type(s_2_Tuple_type(K$0, V$1), A$3))))
+  }
+  
+  axiom inhabited_alloc$col$$col$alloc$col$$col$Global {
+    inhabited(s_alloc$col$$col$alloc$col$$col$Global_type()) == true
+  }
+  
+  axiom inhabited_std$col$$col$collections$col$$col$HashMap {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) ==
+      inhabited(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, s_alloc$col$$col$alloc$col$$col$Global_type())))
+  }
+  
+  axiom inhabited_std$col$$col$hash$col$$col$RandomState {
+    inhabited(s_std$col$$col$hash$col$$col$RandomState_type()) ==
+    (inhabited(s_UInt_u64_type()) && inhabited(s_UInt_u64_type()))
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$ptr$col$$col$Unique {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      inhabited(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) ==
+      (inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0))))
+  }
+  
+  axiom inhabited_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit {
+    inhabited(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type()) ==
+    inhabited(s_UInt_usize_type())
+  }
+  
+  axiom inhabited_alloc$col$$col$raw_vec$col$$col$RawVecInner {
+    (forall A$0: Type ::
+      { inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)) }
+      inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)) ==
+      (inhabited(s_core$col$$col$ptr$col$$col$Unique_type(s_UInt_u8_type())) &&
+      (inhabited(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type()) &&
+      inhabited(A$0))))
+  }
+  
+  axiom inhabited_alloc$col$$col$raw_vec$col$$col$RawVec {
+    (forall T$0: Type, A$1: Type ::
+      { inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)) }
+      inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)) ==
+      (inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$1)) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0))))
+  }
+  
+  axiom inhabited_alloc$col$$col$collections$col$$col$VecDeque {
+    (forall T$0: Type, A$1: Type ::
+      { inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) ==
+      (inhabited(s_UInt_usize_type()) &&
+      (inhabited(s_UInt_usize_type()) &&
+      inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)))))
+  }
+  
+  axiom inhabited_limited_cache$col$$col$LimitedCache {
+    (forall K$0: Type, V$1: Type ::
+      { inhabited(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)) }
+      inhabited(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)) ==
+      (inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type())) &&
+      inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(K$0, s_alloc$col$$col$alloc$col$$col$Global_type()))))
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$default$col$$col$Default  {
+  
+  function core$col$$col$default$col$$col$Default_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug  {
+  
+  function core$col$$col$fmt$col$$col$Debug_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone  {
+  
+  function core$col$$col$clone$col$$col$Clone_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash  {
+  
+  function core$col$$col$hash$col$$col$Hash_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq  {
+  
+  function core$col$$col$cmp$col$$col$Eq_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq  {
+  
+  function core$col$$col$cmp$col$$col$PartialEq_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$FnPtr  {
+  
+  function core$col$$col$marker$col$$col$FnPtr_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy  {
+  
+  function core$col$$col$marker$col$$col$Copy_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Thin  {
+  
+  function core$col$$col$ptr$col$$col$Thin_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$alloc$col$$col$Allocator  {
+  
+  function core$col$$col$alloc$col$$col$Allocator_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$hash$col$$col$BuildHasher  {
+  
+  function core$col$$col$hash$col$$col$BuildHasher_assoc_type_core$col$$col$hash$col$$col$BuildHasher$col$$col$Hasher(arg0: Type): Type 
+  
+  function core$col$$col$hash$col$$col$BuildHasher_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_2_Tuple  {
+  
+  axiom s_2_Tuple_Sized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+  
+  axiom s_2_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+}
+
+domain sizedness_alloc$col$$col$alloc$col$$col$Global  {
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain sizedness_std$col$$col$hash$col$$col$RandomState  {
+  
+  axiom s_std$col$$col$hash$col$$col$RandomState_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+  
+  axiom s_std$col$$col$hash$col$$col$RandomState_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$ptr$col$$col$NonNull  {
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain sizedness_hashbrown$col$$col$raw$col$$col$RawTableInner  {
+  
+  axiom s_hashbrown$col$$col$raw$col$$col$RawTableInner_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_hashbrown$col$$col$raw$col$$col$RawTableInner_type())
+  }
+  
+  axiom s_hashbrown$col$$col$raw$col$$col$RawTableInner_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_hashbrown$col$$col$raw$col$$col$RawTableInner_type())
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_hashbrown$col$$col$raw$col$$col$RawTable  {
+  
+  axiom s_hashbrown$col$$col$raw$col$$col$RawTable_Sized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)))
+  }
+  
+  axiom s_hashbrown$col$$col$raw$col$$col$RawTable_MetaSized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)))
+  }
+}
+
+domain sizedness_hashbrown$col$$col$map$col$$col$HashMap  {
+  
+  axiom s_hashbrown$col$$col$map$col$$col$HashMap_Sized {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+  
+  axiom s_hashbrown$col$$col$map$col$$col$HashMap_MetaSized {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain sizedness_std$col$$col$collections$col$$col$HashMap  {
+  
+  axiom s_std$col$$col$collections$col$$col$HashMap_Sized {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+  
+  axiom s_std$col$$col$collections$col$$col$HashMap_MetaSized {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_core$col$$col$ptr$col$$col$Unique  {
+  
+  axiom s_core$col$$col$ptr$col$$col$Unique_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$ptr$col$$col$Unique_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit  {
+  
+  axiom s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+  
+  axiom s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain sizedness_alloc$col$$col$raw_vec$col$$col$RawVecInner  {
+  
+  axiom s_alloc$col$$col$raw_vec$col$$col$RawVecInner_Sized {
+    (forall A$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)))
+  }
+  
+  axiom s_alloc$col$$col$raw_vec$col$$col$RawVecInner_MetaSized {
+    (forall A$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(A$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$0)))
+  }
+}
+
+domain sizedness_alloc$col$$col$raw_vec$col$$col$RawVec  {
+  
+  axiom s_alloc$col$$col$raw_vec$col$$col$RawVec_Sized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)))
+  }
+  
+  axiom s_alloc$col$$col$raw_vec$col$$col$RawVec_MetaSized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)))
+  }
+}
+
+domain sizedness_alloc$col$$col$collections$col$$col$VecDeque  {
+  
+  axiom s_alloc$col$$col$collections$col$$col$VecDeque_Sized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+  
+  axiom s_alloc$col$$col$collections$col$$col$VecDeque_MetaSized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain sizedness_limited_cache$col$$col$LimitedCache  {
+  
+  axiom s_limited_cache$col$$col$LimitedCache_Sized {
+    (forall K$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)))
+  }
+  
+  axiom s_limited_cache$col$$col$LimitedCache_MetaSized {
+    (forall K$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)))
+  }
+}
+
+domain sizedness_Dyn  {
+  
+  axiom s_Dyn_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Dyn_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_std$col$$col$hash$col$$col$DefaultHasher  {
+  
+  axiom s_std$col$$col$hash$col$$col$DefaultHasher_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$hash$col$$col$DefaultHasher_type())
+  }
+  
+  axiom s_std$col$$col$hash$col$$col$DefaultHasher_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$hash$col$$col$DefaultHasher_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_Param_1139_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_Param_1139_condition {
+    (forall F$0: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(F$0) }
+      core$col$$col$marker$col$$col$FnPtr_impl(F$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(F$0) &&
+      (core$col$$col$marker$col$$col$Copy_impl(F$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(F$0)) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(F$0))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1167_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1167_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_Dyn_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1168_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1168_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_Dyn_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1169_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_Dyn_1169_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_Dyn_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_Param_2572_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_Param_2572_condition {
+    (forall F$0: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(F$0) }
+      core$col$$col$marker$col$$col$FnPtr_impl(F$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(F$0) &&
+      (core$col$$col$marker$col$$col$Copy_impl(F$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(F$0)) ==>
+      core$col$$col$hash$col$$col$Hash_impl(F$0))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_Param_300_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_Param_300_condition {
+    (forall F$0: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(F$0) }
+      core$col$$col$marker$col$$col$FnPtr_impl(F$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(F$0) &&
+      (core$col$$col$marker$col$$col$Copy_impl(F$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(F$0)) ==>
+      core$col$$col$cmp$col$$col$Eq_impl(F$0))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_Param_51_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_Param_51_condition {
+    (forall F$0: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(F$0, F$0) }
+      core$col$$col$marker$col$$col$FnPtr_impl(F$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(F$0) &&
+      (core$col$$col$marker$col$$col$Copy_impl(F$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(F$0)) ==>
+      core$col$$col$cmp$col$$col$PartialEq_impl(F$0, F$0))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$ptr$col$$col$Thin_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_impl(T$0) &&
+      (core$col$$col$marker$col$$col$MetaSized_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0) ==
+      s_0_Tuple_type()) ==>
+      core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_u64_1970_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_u64_1970_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_2_Tuple_2081_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_2_Tuple_2081_condition {
+    (forall U$0: Type, T$1: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_2_Tuple_type(U$0, T$1)) }
+      core$col$$col$default$col$$col$Default_impl(T$1) &&
+      core$col$$col$default$col$$col$Default_impl(U$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(T$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(U$0)) ==>
+      core$col$$col$default$col$$col$Default_impl(s_2_Tuple_type(U$0, T$1)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition {
+    core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_std_std$col$$col$collections$col$$col$HashMap_239_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_std_std$col$$col$collections$col$$col$HashMap_239_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$default$col$$col$Default_impl(S$2) &&
+      core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0)) ==>
+      core$col$$col$default$col$$col$Default_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_std_std$col$$col$hash$col$$col$RandomState_256_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_std_std$col$$col$hash$col$$col$RandomState_256_condition {
+    core$col$$col$default$col$$col$Default_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_hashbrown_hashbrown$col$$col$raw$col$$col$RawTable_148_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_hashbrown_hashbrown$col$$col$raw$col$$col$RawTable_148_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) }
+      core$col$$col$default$col$$col$Default_impl(A$1) &&
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$default$col$$col$Default_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_152_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_152_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$3) &&
+      (core$col$$col$default$col$$col$Default_impl(A$3) &&
+      core$col$$col$default$col$$col$Default_impl(S$2)) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$3) &&
+      core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0))) ==>
+      core$col$$col$default$col$$col$Default_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_1120_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_1120_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$ptr$col$$col$NonNull_1137_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$ptr$col$$col$NonNull_1137_condition {
+    (forall T$0: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$ptr$col$$col$Unique_1138_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$ptr$col$$col$Unique_1138_condition {
+    (forall T$0: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_UInt_u8_1302_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_UInt_u8_1302_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_UInt_u64_1305_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_UInt_u64_1305_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_UInt_usize_1307_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_UInt_usize_1307_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_RawPtr_immutable_1321_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_RawPtr_immutable_1321_condition {
+    (forall T$0: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$fmt$col$$col$Debug_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_2_Tuple_1333_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_2_Tuple_1333_condition {
+    (forall U$0: Type, T$1: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_2_Tuple_type(U$0, T$1)) }
+      core$col$$col$fmt$col$$col$Debug_impl(T$1) &&
+      core$col$$col$fmt$col$$col$Debug_impl(U$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(T$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(U$0)) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(s_2_Tuple_type(U$0, T$1)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$marker$col$$col$PhantomData_1337_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_core$col$$col$marker$col$$col$PhantomData_1337_condition {
+    (forall T$0: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_alloc_alloc$col$$col$alloc$col$$col$Global_166_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_alloc_alloc$col$$col$alloc$col$$col$Global_166_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_230_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_230_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      core$col$$col$fmt$col$$col$Debug_impl(T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$collections$col$$col$HashMap_14_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$collections$col$$col$HashMap_14_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$fmt$col$$col$Debug_impl(V$1) &&
+      core$col$$col$fmt$col$$col$Debug_impl(K$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0))) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$hash$col$$col$RandomState_63_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$hash$col$$col$RandomState_63_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_86_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_86_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$fmt$col$$col$Debug_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$3) &&
+      (core$col$$col$fmt$col$$col$Debug_impl(V$1) &&
+      core$col$$col$fmt$col$$col$Debug_impl(K$0)) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$3) &&
+      core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0))) ==>
+      core$col$$col$fmt$col$$col$Debug_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_652_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_652_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$NonNull_668_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$NonNull_668_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$Unique_669_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$Unique_669_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_usize_670_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_usize_670_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_u8_671_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_u8_671_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_u64_674_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_u64_674_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_RawPtr_immutable_689_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_RawPtr_immutable_689_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$marker$col$$col$PhantomData_703_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$marker$col$$col$PhantomData_703_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$alloc$col$$col$Global_55_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$alloc$col$$col$Global_55_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_95_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_95_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$clone$col$$col$Clone_impl(A$1) &&
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      (core$col$$col$clone$col$$col$Clone_impl(T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0))) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$collections$col$$col$HashMap_351_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$collections$col$$col$HashMap_351_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$clone$col$$col$Clone_impl(S$2) &&
+      (core$col$$col$clone$col$$col$Clone_impl(V$1) &&
+      core$col$$col$clone$col$$col$Clone_impl(K$0)) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0))) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$hash$col$$col$RandomState_369_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$hash$col$$col$RandomState_369_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_hashbrown_hashbrown$col$$col$raw$col$$col$RawTable_13_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_hashbrown_hashbrown$col$$col$raw$col$$col$RawTable_13_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)) }
+      core$col$$col$clone$col$$col$Clone_impl(A$1) &&
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      (core$col$$col$clone$col$$col$Clone_impl(T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0))) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_hashbrown$col$$col$raw$col$$col$RawTable_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_18_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_18_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$clone$col$$col$Clone_impl(A$3) &&
+      core$col$$col$alloc$col$$col$Allocator_impl(A$3) &&
+      (core$col$$col$clone$col$$col$Clone_impl(S$2) &&
+      core$col$$col$clone$col$$col$Clone_impl(V$1)) &&
+      (core$col$$col$clone$col$$col$Clone_impl(K$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(A$3) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0)))) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_2559_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_2559_condition {
+    core$col$$col$hash$col$$col$Hash_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$ptr$col$$col$NonNull_2571_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$ptr$col$$col$NonNull_2571_condition {
+    (forall T$0: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$hash$col$$col$Hash_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$marker$col$$col$PhantomData_2582_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_core$col$$col$marker$col$$col$PhantomData_2582_condition {
+    (forall T$0: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$hash$col$$col$Hash_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_UInt_u8_2614_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_UInt_u8_2614_condition {
+    core$col$$col$hash$col$$col$Hash_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_UInt_u64_2617_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_UInt_u64_2617_condition {
+    core$col$$col$hash$col$$col$Hash_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_UInt_usize_2618_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_UInt_usize_2618_condition {
+    core$col$$col$hash$col$$col$Hash_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_2_Tuple_2632_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_2_Tuple_2632_condition {
+    (forall T$0: Type, B$1: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(s_2_Tuple_type(T$0, B$1)) }
+      core$col$$col$hash$col$$col$Hash_impl(B$1) &&
+      core$col$$col$hash$col$$col$Hash_impl(T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(B$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$hash$col$$col$Hash_impl(s_2_Tuple_type(T$0, B$1)))
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_RawPtr_immutable_2646_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_RawPtr_immutable_2646_condition {
+    (forall T$0: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$hash$col$$col$Hash_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_492_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_492_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$hash$col$$col$Hash_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      core$col$$col$hash$col$$col$Hash_impl(T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$hash$col$$col$Hash_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_281_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_281_condition {
+    core$col$$col$cmp$col$$col$Eq_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$ptr$col$$col$NonNull_297_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$ptr$col$$col$NonNull_297_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$cmp$col$$col$Eq_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_RawPtr_immutable_298_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_RawPtr_immutable_298_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$cmp$col$$col$Eq_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_UInt_usize_306_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_UInt_usize_306_condition {
+    core$col$$col$cmp$col$$col$Eq_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_UInt_u8_307_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_UInt_u8_307_condition {
+    core$col$$col$cmp$col$$col$Eq_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_UInt_u64_310_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_UInt_u64_310_condition {
+    core$col$$col$cmp$col$$col$Eq_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$marker$col$$col$PhantomData_328_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_core$col$$col$marker$col$$col$PhantomData_328_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$cmp$col$$col$Eq_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_2_Tuple_396_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_2_Tuple_396_condition {
+    (forall U$0: Type, T$1: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_2_Tuple_type(U$0, T$1)) }
+      core$col$$col$cmp$col$$col$Eq_impl(T$1) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(T$1, T$1) &&
+      core$col$$col$cmp$col$$col$Eq_impl(U$0)) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(U$0, U$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(T$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(U$0))) ==>
+      core$col$$col$cmp$col$$col$Eq_impl(s_2_Tuple_type(U$0, T$1)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_306_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_306_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      core$col$$col$cmp$col$$col$Eq_impl(T$0) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(T$0, T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0))) ==>
+      core$col$$col$cmp$col$$col$Eq_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_std_std$col$$col$collections$col$$col$HashMap_746_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_std_std$col$$col$collections$col$$col$HashMap_746_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$hash$col$$col$BuildHasher_impl(S$2) &&
+      core$col$$col$cmp$col$$col$Eq_impl(V$1) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(V$1, V$1) &&
+      core$col$$col$hash$col$$col$Hash_impl(K$0)) &&
+      (core$col$$col$cmp$col$$col$Eq_impl(K$0) &&
+      core$col$$col$cmp$col$$col$PartialEq_impl(K$0, K$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0)))) ==>
+      core$col$$col$cmp$col$$col$Eq_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_82_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_82_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$cmp$col$$col$Eq_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$3) &&
+      core$col$$col$hash$col$$col$BuildHasher_impl(S$2) &&
+      (core$col$$col$cmp$col$$col$Eq_impl(V$1) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(V$1, V$1) &&
+      core$col$$col$hash$col$$col$Hash_impl(K$0))) &&
+      (core$col$$col$cmp$col$$col$Eq_impl(K$0) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(K$0, K$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(A$3)) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0)))) ==>
+      core$col$$col$cmp$col$$col$Eq_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_148_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_148_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_1550_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_1550_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$NonNull_1566_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$NonNull_1566_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$Unique_1567_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$Unique_1567_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$Unique_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_usize_1577_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_usize_1577_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_u8_1578_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_u8_1578_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_u64_1581_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_u64_1581_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_RawPtr_immutable_1595_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_RawPtr_immutable_1595_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$marker$col$$col$PhantomData_1599_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$marker$col$$col$PhantomData_1599_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_alloc_alloc$col$$col$alloc$col$$col$Global_52_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_alloc_alloc$col$$col$alloc$col$$col$Global_52_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_32_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_32_condition {
+    core$col$$col$cmp$col$$col$PartialEq_impl(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type(),
+    s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$ptr$col$$col$NonNull_48_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$ptr$col$$col$NonNull_48_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0),
+      s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0),
+      s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_RawPtr_immutable_49_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_RawPtr_immutable_49_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_RawPtr_immutable_type(T$0),
+      s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_RawPtr_immutable_type(T$0),
+      s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_usize_57_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_usize_57_condition {
+    core$col$$col$cmp$col$$col$PartialEq_impl(s_UInt_usize_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_u8_58_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_u8_58_condition {
+    core$col$$col$cmp$col$$col$PartialEq_impl(s_UInt_u8_type(), s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_u64_61_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_UInt_u64_61_condition {
+    core$col$$col$cmp$col$$col$PartialEq_impl(s_UInt_u64_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$marker$col$$col$PhantomData_85_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_core$col$$col$marker$col$$col$PhantomData_85_condition {
+    (forall T$0: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0),
+      s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0),
+      s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_2_Tuple_178_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_2_Tuple_178_condition {
+    (forall U$0: Type, T$1: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_2_Tuple_type(U$0, T$1),
+      s_2_Tuple_type(U$0, T$1)) }
+      core$col$$col$cmp$col$$col$PartialEq_impl(T$1, T$1) &&
+      core$col$$col$cmp$col$$col$PartialEq_impl(U$0, U$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(T$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(U$0)) ==>
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_2_Tuple_type(U$0, T$1), s_2_Tuple_type(U$0, T$1)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_383_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_alloc_alloc$col$$col$collections$col$$col$VecDeque_383_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1),
+      s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      core$col$$col$cmp$col$$col$PartialEq_impl(T$0, T$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1),
+      s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_std_std$col$$col$collections$col$$col$HashMap_841_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_std_std$col$$col$collections$col$$col$HashMap_841_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2),
+      s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)) }
+      core$col$$col$hash$col$$col$BuildHasher_impl(S$2) &&
+      core$col$$col$cmp$col$$col$PartialEq_impl(V$1, V$1) &&
+      (core$col$$col$hash$col$$col$Hash_impl(K$0) &&
+      core$col$$col$cmp$col$$col$Eq_impl(K$0)) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(K$0, K$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0))) ==>
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2),
+      s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, S$2)))
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_78_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_hashbrown_hashbrown$col$$col$map$col$$col$HashMap_78_condition {
+    (forall K$0: Type, V$1: Type, S$2: Type, A$3: Type ::
+      { core$col$$col$cmp$col$$col$PartialEq_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3),
+      s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)) }
+      core$col$$col$alloc$col$$col$Allocator_impl(A$3) &&
+      core$col$$col$hash$col$$col$BuildHasher_impl(S$2) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(V$1, V$1) &&
+      (core$col$$col$hash$col$$col$Hash_impl(K$0) &&
+      core$col$$col$cmp$col$$col$Eq_impl(K$0))) &&
+      (core$col$$col$cmp$col$$col$PartialEq_impl(K$0, K$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(A$3) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(K$0)))) ==>
+      core$col$$col$cmp$col$$col$PartialEq_impl(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3),
+      s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, A$3)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition {
+    core$col$$col$default$col$$col$Default_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_core_0_Tuple_1336_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_core_0_Tuple_1336_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$Hash_impl_core_0_Tuple_2630_condition  {
+  
+  axiom core$col$$col$hash$col$$col$Hash_impl_core_0_Tuple_2630_condition {
+    core$col$$col$hash$col$$col$Hash_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$Eq_impl_core_0_Tuple_303_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$Eq_impl_core_0_Tuple_303_condition {
+    core$col$$col$cmp$col$$col$Eq_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$alloc$col$$col$Allocator_impl_alloc_alloc$col$$col$alloc$col$$col$Global_256_condition  {
+  
+  axiom core$col$$col$alloc$col$$col$Allocator_impl_alloc_alloc$col$$col$alloc$col$$col$Global_256_condition {
+    core$col$$col$alloc$col$$col$Allocator_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$BuildHasher_impl_std_std$col$$col$hash$col$$col$RandomState_1695_condition  {
+  
+  axiom core$col$$col$hash$col$$col$BuildHasher_impl_std_std$col$$col$hash$col$$col$RandomState_1695_condition {
+    core$col$$col$hash$col$$col$BuildHasher_impl(s_std$col$$col$hash$col$$col$RandomState_type())
+  }
+}
+
+domain trait_core$col$$col$cmp$col$$col$PartialEq_impl_core_0_Tuple_54_condition  {
+  
+  axiom core$col$$col$cmp$col$$col$PartialEq_impl_core_0_Tuple_54_condition {
+    core$col$$col$cmp$col$$col$PartialEq_impl(s_0_Tuple_type(), s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_std_std$col$$col$hash$col$$col$DefaultHasher_255_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_std_std$col$$col$hash$col$$col$DefaultHasher_255_condition {
+    core$col$$col$default$col$$col$Default_impl(s_std$col$$col$hash$col$$col$DefaultHasher_type())
+  }
+}
+
+domain trait_core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$hash$col$$col$DefaultHasher_62_condition  {
+  
+  axiom core$col$$col$fmt$col$$col$Debug_impl_std_std$col$$col$hash$col$$col$DefaultHasher_62_condition {
+    core$col$$col$fmt$col$$col$Debug_impl(s_std$col$$col$hash$col$$col$DefaultHasher_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$hash$col$$col$DefaultHasher_370_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_std_std$col$$col$hash$col$$col$DefaultHasher_370_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_std$col$$col$hash$col$$col$DefaultHasher_type())
+  }
+}
+
+domain trait_core$col$$col$hash$col$$col$BuildHasher_impl_std_std$col$$col$hash$col$$col$RandomState_1695_$lt$std$col$$col$hash$col$$col$RandomState$sp$as$sp$core$col$$col$hash$col$$col$BuildHasher$gt$$col$$col$Hasher  {
+  
+  axiom core$col$$col$hash$col$$col$BuildHasher_impl_std_std$col$$col$hash$col$$col$RandomState_1695_assoc_type_$lt$std$col$$col$hash$col$$col$RandomState$sp$as$sp$core$col$$col$hash$col$$col$BuildHasher$gt$$col$$col$Hasher {
+    core$col$$col$hash$col$$col$BuildHasher_assoc_type_core$col$$col$hash$col$$col$BuildHasher$col$$col$Hasher(s_std$col$$col$hash$col$$col$RandomState_type()) ==
+    s_std$col$$col$hash$col$$col$DefaultHasher_type()
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+function s_limited_cache$col$$col$LimitedCache_unreachable(K$0: Type, V$1: Type): s_limited_cache$col$$col$LimitedCache
+  ensures false
+
+
+function s_limited_cache$col$$col$LimitedCache_field_0(self: Ref, K$0: Type,
+  V$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_limited_cache$col$$col$LimitedCache_field_1(self: Ref, K$0: Type,
+  V$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$collections$col$$col$HashMap_unreachable(K$0: Type,
+  V$1: Type, S$2: Type): s_std$col$$col$collections$col$$col$HashMap
+  ensures false
+
+
+function s_std$col$$col$collections$col$$col$HashMap_field_0(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$map$col$$col$HashMap_unreachable(K$0: Type, V$1: Type,
+  S$2: Type, A$3: Type): s_hashbrown$col$$col$map$col$$col$HashMap
+  ensures false
+
+
+function s_hashbrown$col$$col$map$col$$col$HashMap_field_0(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type, A$3: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$map$col$$col$HashMap_field_1(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type, A$3: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTable_unreachable(T$0: Type, A$1: Type): s_hashbrown$col$$col$raw$col$$col$RawTable
+  ensures false
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTable_field_0(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTable_field_1(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTable_field_2(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTableInner_unreachable(): s_hashbrown$col$$col$raw$col$$col$RawTableInner
+  ensures false
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_2(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_3(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_unreachable(T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function s_alloc$col$$col$collections$col$$col$VecDeque_unreachable(T$0: Type,
+  A$1: Type): s_alloc$col$$col$collections$col$$col$VecDeque
+  ensures false
+
+
+function s_alloc$col$$col$collections$col$$col$VecDeque_field_0(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$collections$col$$col$VecDeque_field_1(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$collections$col$$col$VecDeque_field_2(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVec_unreachable(T$0: Type, A$1: Type): s_alloc$col$$col$raw_vec$col$$col$RawVec
+  ensures false
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVec_field_0(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVec_field_1(self: Ref, T$0: Type,
+  A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVecInner_unreachable(A$0: Type): s_alloc$col$$col$raw_vec$col$$col$RawVecInner
+  ensures false
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_0(self: Ref, A$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_1(self: Ref, A$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_2(self: Ref, A$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$ptr$col$$col$Unique_unreachable(T$0: Type): s_core$col$$col$ptr$col$$col$Unique
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$Unique_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$ptr$col$$col$Unique_field_1(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_unreachable(): s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit
+  ensures false
+
+
+function s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_limited_cache$col$$col$LimitedCache_snap(self: Ref, K$0: Type, V$1: Type): s_limited_cache$col$$col$LimitedCache
+  requires acc(p_limited_cache$col$$col$LimitedCache(self, K$0, V$1), write)
+{
+  (unfolding acc(p_limited_cache$col$$col$LimitedCache(self, K$0, V$1), write) in
+    s_limited_cache$col$$col$LimitedCache_cons(p_std$col$$col$collections$col$$col$HashMap_snap(s_limited_cache$col$$col$LimitedCache_field_0(self,
+    K$0, V$1), K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type()), p_alloc$col$$col$collections$col$$col$VecDeque_snap(s_limited_cache$col$$col$LimitedCache_field_1(self,
+    K$0, V$1), K$0, s_alloc$col$$col$alloc$col$$col$Global_type())))
+}
+
+function p_std$col$$col$collections$col$$col$HashMap_snap(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type): s_std$col$$col$collections$col$$col$HashMap
+  requires acc(p_std$col$$col$collections$col$$col$HashMap(self, K$0, V$1, S$2), write)
+{
+  (unfolding acc(p_std$col$$col$collections$col$$col$HashMap(self, K$0, V$1,
+    S$2), write) in
+    s_std$col$$col$collections$col$$col$HashMap_cons(p_hashbrown$col$$col$map$col$$col$HashMap_snap(s_std$col$$col$collections$col$$col$HashMap_field_0(self,
+    K$0, V$1, S$2), K$0, V$1, S$2, s_alloc$col$$col$alloc$col$$col$Global_type())))
+}
+
+function p_hashbrown$col$$col$map$col$$col$HashMap_snap(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type, A$3: Type): s_hashbrown$col$$col$map$col$$col$HashMap
+  requires acc(p_hashbrown$col$$col$map$col$$col$HashMap(self, K$0, V$1, S$2,
+    A$3), write)
+{
+  (unfolding acc(p_hashbrown$col$$col$map$col$$col$HashMap(self, K$0, V$1, S$2,
+    A$3), write) in
+    s_hashbrown$col$$col$map$col$$col$HashMap_cons(p_Param_snap(s_hashbrown$col$$col$map$col$$col$HashMap_field_0(self,
+    K$0, V$1, S$2, A$3), S$2), p_hashbrown$col$$col$raw$col$$col$RawTable_snap(s_hashbrown$col$$col$map$col$$col$HashMap_field_1(self,
+    K$0, V$1, S$2, A$3), s_2_Tuple_type(K$0, V$1), A$3)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_hashbrown$col$$col$raw$col$$col$RawTable_snap(self: Ref, T$0: Type,
+  A$1: Type): s_hashbrown$col$$col$raw$col$$col$RawTable
+  requires acc(p_hashbrown$col$$col$raw$col$$col$RawTable(self, T$0, A$1), write)
+{
+  (unfolding acc(p_hashbrown$col$$col$raw$col$$col$RawTable(self, T$0, A$1), write) in
+    s_hashbrown$col$$col$raw$col$$col$RawTable_cons(p_hashbrown$col$$col$raw$col$$col$RawTableInner_snap(s_hashbrown$col$$col$raw$col$$col$RawTable_field_0(self,
+    T$0, A$1)), p_Param_snap(s_hashbrown$col$$col$raw$col$$col$RawTable_field_1(self,
+    T$0, A$1), A$1), p_core$col$$col$marker$col$$col$PhantomData_snap(s_hashbrown$col$$col$raw$col$$col$RawTable_field_2(self,
+    T$0, A$1), T$0)))
+}
+
+function p_hashbrown$col$$col$raw$col$$col$RawTableInner_snap(self: Ref): s_hashbrown$col$$col$raw$col$$col$RawTableInner
+  requires acc(p_hashbrown$col$$col$raw$col$$col$RawTableInner(self), write)
+{
+  (unfolding acc(p_hashbrown$col$$col$raw$col$$col$RawTableInner(self), write) in
+    s_hashbrown$col$$col$raw$col$$col$RawTableInner_cons(p_UInt_usize_snap(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_0(self)), p_core$col$$col$ptr$col$$col$NonNull_snap(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_1(self),
+    s_UInt_u8_type()), p_UInt_usize_snap(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_2(self)), p_UInt_usize_snap(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_3(self))))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_core$col$$col$ptr$col$$col$NonNull_snap(self: Ref, T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  requires acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write) in
+    s_core$col$$col$ptr$col$$col$NonNull_cons(p_RawPtr_immutable_snap(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+    T$0), T$0)))
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+function p_alloc$col$$col$collections$col$$col$VecDeque_snap(self: Ref, T$0: Type,
+  A$1: Type): s_alloc$col$$col$collections$col$$col$VecDeque
+  requires acc(p_alloc$col$$col$collections$col$$col$VecDeque(self, T$0, A$1), write)
+{
+  (unfolding acc(p_alloc$col$$col$collections$col$$col$VecDeque(self, T$0, A$1), write) in
+    s_alloc$col$$col$collections$col$$col$VecDeque_cons(p_UInt_usize_snap(s_alloc$col$$col$collections$col$$col$VecDeque_field_0(self,
+    T$0, A$1)), p_UInt_usize_snap(s_alloc$col$$col$collections$col$$col$VecDeque_field_1(self,
+    T$0, A$1)), p_alloc$col$$col$raw_vec$col$$col$RawVec_snap(s_alloc$col$$col$collections$col$$col$VecDeque_field_2(self,
+    T$0, A$1), T$0, A$1)))
+}
+
+function p_alloc$col$$col$raw_vec$col$$col$RawVec_snap(self: Ref, T$0: Type,
+  A$1: Type): s_alloc$col$$col$raw_vec$col$$col$RawVec
+  requires acc(p_alloc$col$$col$raw_vec$col$$col$RawVec(self, T$0, A$1), write)
+{
+  (unfolding acc(p_alloc$col$$col$raw_vec$col$$col$RawVec(self, T$0, A$1), write) in
+    s_alloc$col$$col$raw_vec$col$$col$RawVec_cons(p_alloc$col$$col$raw_vec$col$$col$RawVecInner_snap(s_alloc$col$$col$raw_vec$col$$col$RawVec_field_0(self,
+    T$0, A$1), A$1), p_core$col$$col$marker$col$$col$PhantomData_snap(s_alloc$col$$col$raw_vec$col$$col$RawVec_field_1(self,
+    T$0, A$1), T$0)))
+}
+
+function p_alloc$col$$col$raw_vec$col$$col$RawVecInner_snap(self: Ref, A$0: Type): s_alloc$col$$col$raw_vec$col$$col$RawVecInner
+  requires acc(p_alloc$col$$col$raw_vec$col$$col$RawVecInner(self, A$0), write)
+{
+  (unfolding acc(p_alloc$col$$col$raw_vec$col$$col$RawVecInner(self, A$0), write) in
+    s_alloc$col$$col$raw_vec$col$$col$RawVecInner_cons(p_core$col$$col$ptr$col$$col$Unique_snap(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_0(self,
+    A$0), s_UInt_u8_type()), p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_snap(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_1(self,
+    A$0)), p_Param_snap(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_2(self,
+    A$0), A$0)))
+}
+
+function p_core$col$$col$ptr$col$$col$Unique_snap(self: Ref, T$0: Type): s_core$col$$col$ptr$col$$col$Unique
+  requires acc(p_core$col$$col$ptr$col$$col$Unique(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$ptr$col$$col$Unique(self, T$0), write) in
+    s_core$col$$col$ptr$col$$col$Unique_cons(p_core$col$$col$ptr$col$$col$NonNull_snap(s_core$col$$col$ptr$col$$col$Unique_field_0(self,
+    T$0), T$0), p_core$col$$col$marker$col$$col$PhantomData_snap(s_core$col$$col$ptr$col$$col$Unique_field_1(self,
+    T$0), T$0)))
+}
+
+function p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_snap(self: Ref): s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit
+  requires acc(p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit(self), write)
+{
+  (unfolding acc(p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit(self), write) in
+    s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_cons(p_UInt_usize_snap(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_field_0(self))))
+}
+
+predicate p_limited_cache$col$$col$LimitedCache(self: Ref, K$0: Type, V$1: Type) {
+  inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type())) &&
+  acc(p_std$col$$col$collections$col$$col$HashMap(s_limited_cache$col$$col$LimitedCache_field_0(self,
+  K$0, V$1), K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type()), write) &&
+  (inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(K$0, s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+  acc(p_alloc$col$$col$collections$col$$col$VecDeque(s_limited_cache$col$$col$LimitedCache_field_1(self,
+  K$0, V$1), K$0, s_alloc$col$$col$alloc$col$$col$Global_type()), write))
+}
+
+predicate p_std$col$$col$collections$col$$col$HashMap(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type) {
+  inhabited(s_hashbrown$col$$col$map$col$$col$HashMap_type(K$0, V$1, S$2, s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+  acc(p_hashbrown$col$$col$map$col$$col$HashMap(s_std$col$$col$collections$col$$col$HashMap_field_0(self,
+  K$0, V$1, S$2), K$0, V$1, S$2, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+}
+
+predicate p_hashbrown$col$$col$map$col$$col$HashMap(self: Ref, K$0: Type, V$1: Type,
+  S$2: Type, A$3: Type) {
+  inhabited(S$2) &&
+  acc(p_Param(s_hashbrown$col$$col$map$col$$col$HashMap_field_0(self, K$0, V$1,
+  S$2, A$3), S$2), write) &&
+  (inhabited(s_hashbrown$col$$col$raw$col$$col$RawTable_type(s_2_Tuple_type(K$0, V$1), A$3)) &&
+  acc(p_hashbrown$col$$col$raw$col$$col$RawTable(s_hashbrown$col$$col$map$col$$col$HashMap_field_1(self,
+  K$0, V$1, S$2, A$3), s_2_Tuple_type(K$0, V$1), A$3), write))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_hashbrown$col$$col$raw$col$$col$RawTable(self: Ref, T$0: Type, A$1: Type) {
+  inhabited(s_hashbrown$col$$col$raw$col$$col$RawTableInner_type()) &&
+  acc(p_hashbrown$col$$col$raw$col$$col$RawTableInner(s_hashbrown$col$$col$raw$col$$col$RawTable_field_0(self,
+  T$0, A$1)), write) &&
+  (inhabited(A$1) &&
+  acc(p_Param(s_hashbrown$col$$col$raw$col$$col$RawTable_field_1(self, T$0,
+  A$1), A$1), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_hashbrown$col$$col$raw$col$$col$RawTable_field_2(self,
+  T$0, A$1), T$0), write)))
+}
+
+predicate p_hashbrown$col$$col$raw$col$$col$RawTableInner(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_0(self)), write) &&
+  (inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_UInt_u8_type())) &&
+  acc(p_core$col$$col$ptr$col$$col$NonNull(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_1(self),
+  s_UInt_u8_type()), write)) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_2(self)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_hashbrown$col$$col$raw$col$$col$RawTableInner_field_3(self)), write)))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_core$col$$col$ptr$col$$col$NonNull(self: Ref, T$0: Type) {
+  inhabited(s_RawPtr_immutable_type(T$0)) &&
+  acc(p_RawPtr_immutable(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_alloc$col$$col$collections$col$$col$VecDeque(self: Ref, T$0: Type,
+  A$1: Type) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_alloc$col$$col$collections$col$$col$VecDeque_field_0(self,
+  T$0, A$1)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_alloc$col$$col$collections$col$$col$VecDeque_field_1(self,
+  T$0, A$1)), write) &&
+  (inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVec_type(T$0, A$1)) &&
+  acc(p_alloc$col$$col$raw_vec$col$$col$RawVec(s_alloc$col$$col$collections$col$$col$VecDeque_field_2(self,
+  T$0, A$1), T$0, A$1), write)))
+}
+
+predicate p_alloc$col$$col$raw_vec$col$$col$RawVec(self: Ref, T$0: Type, A$1: Type) {
+  inhabited(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(A$1)) &&
+  acc(p_alloc$col$$col$raw_vec$col$$col$RawVecInner(s_alloc$col$$col$raw_vec$col$$col$RawVec_field_0(self,
+  T$0, A$1), A$1), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_alloc$col$$col$raw_vec$col$$col$RawVec_field_1(self,
+  T$0, A$1), T$0), write))
+}
+
+predicate p_alloc$col$$col$raw_vec$col$$col$RawVecInner(self: Ref, A$0: Type) {
+  inhabited(s_core$col$$col$ptr$col$$col$Unique_type(s_UInt_u8_type())) &&
+  acc(p_core$col$$col$ptr$col$$col$Unique(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_0(self,
+  A$0), s_UInt_u8_type()), write) &&
+  (inhabited(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type()) &&
+  acc(p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_1(self,
+  A$0)), write) &&
+  (inhabited(A$0) &&
+  acc(p_Param(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_field_2(self, A$0),
+  A$0), write)))
+}
+
+predicate p_core$col$$col$ptr$col$$col$Unique(self: Ref, T$0: Type) {
+  inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) &&
+  acc(p_core$col$$col$ptr$col$$col$NonNull(s_core$col$$col$ptr$col$$col$Unique_field_0(self,
+  T$0), T$0), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_core$col$$col$ptr$col$$col$Unique_field_1(self,
+  T$0), T$0), write))
+}
+
+predicate p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_field_0(self)), write)
+}
+
+method m_limited_cache$col$$col$LimitedCache$col$$col$$lt$K$com$$sp$V$gt$$col$$col$new(_0p: Ref,
+  _1p: Ref, K$0: Type, V$1: Type)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  ensures inhabited(s_limited_cache$col$$col$LimitedCache_type(K$0, V$1)) &&
+    acc(p_limited_cache$col$$col$LimitedCache(_0p, K$0, V$1), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_UInt_usize
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_std$col$$col$collections$col$$col$HashMap
+  var _tmp3: s_alloc$col$$col$collections$col$$col$VecDeque
+  label start
+  inhale core$col$$col$default$col$$col$Default_impl(V$1)
+  inhale core$col$$col$fmt$col$$col$Debug_impl(K$0)
+  inhale core$col$$col$clone$col$$col$Clone_impl(K$0)
+  inhale core$col$$col$hash$col$$col$Hash_impl(K$0)
+  inhale core$col$$col$cmp$col$$col$Eq_impl(K$0)
+  inhale core$col$$col$cmp$col$$col$PartialEq_impl(K$0, K$0)
+  inhale core$col$$col$marker$col$$col$Sized_impl(V$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(K$0)
+  _from_bb1_to_bb2 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_UInt_usize_snap(_1p)
+  p_UInt_usize_assign(_3p, _tmp0)
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_std$col$$col$collections$col$$col$HashMap$col$$col$$lt$K$com$$sp$V$gt$$col$$col$with_capacity(_2p,
+    _3p, K$0, V$1)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  _tmp1 := p_UInt_usize_snap(_1p)
+  p_UInt_usize_assign(_5p, _tmp1)
+  label _before_1_4
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_alloc$col$$col$collections$col$$col$VecDeque$col$$col$$lt$T$gt$$col$$col$with_capacity(_4p,
+    _5p, K$0)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  _tmp2 := p_std$col$$col$collections$col$$col$HashMap_snap(_2p, K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type())
+  exhale inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type())) &&
+    acc(p_std$col$$col$collections$col$$col$HashMap(_2p, K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type()), write)
+  _tmp3 := p_alloc$col$$col$collections$col$$col$VecDeque_snap(_4p, K$0, s_alloc$col$$col$alloc$col$$col$Global_type())
+  exhale inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(K$0, s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+    acc(p_alloc$col$$col$collections$col$$col$VecDeque(_4p, K$0, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+  p_limited_cache$col$$col$LimitedCache_assign(_0p, K$0, V$1, s_limited_cache$col$$col$LimitedCache_cons(_tmp2, _tmp3))
+  label _before_2_2
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  label package_post4
+  goto end
+  label bb_5
+  assert false
+  goto end
+  label bb_6
+  assert false
+  goto end
+  label end
+}
+
+method m_std$col$$col$collections$col$$col$HashMap$col$$col$$lt$K$com$$sp$V$gt$$col$$col$with_capacity(_0p: Ref,
+  _1p: Ref, K$0: Type, V$1: Type)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  ensures inhabited(s_std$col$$col$collections$col$$col$HashMap_type(K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type())) &&
+    acc(p_std$col$$col$collections$col$$col$HashMap(_0p, K$0, V$1, s_std$col$$col$hash$col$$col$RandomState_type()), write)
+
+
+method m_alloc$col$$col$collections$col$$col$VecDeque$col$$col$$lt$T$gt$$col$$col$with_capacity(_0p: Ref,
+  _1p: Ref, T$0: Type)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  ensures inhabited(s_alloc$col$$col$collections$col$$col$VecDeque_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+    acc(p_alloc$col$$col$collections$col$$col$VecDeque(_0p, T$0, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+
+
+method p_limited_cache$col$$col$LimitedCache_assign(self: Ref, K$0: Type, V$1: Type,
+  value: s_limited_cache$col$$col$LimitedCache)
+  ensures acc(p_limited_cache$col$$col$LimitedCache(self, K$0, V$1), write)
+  ensures p_limited_cache$col$$col$LimitedCache_snap(self, K$0, V$1) ==
+    value
+
+
+method p_std$col$$col$collections$col$$col$HashMap_assign(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type, value: s_std$col$$col$collections$col$$col$HashMap)
+  ensures acc(p_std$col$$col$collections$col$$col$HashMap(self, K$0, V$1, S$2), write)
+  ensures p_std$col$$col$collections$col$$col$HashMap_snap(self, K$0, V$1, S$2) ==
+    value
+
+
+method p_hashbrown$col$$col$map$col$$col$HashMap_assign(self: Ref, K$0: Type,
+  V$1: Type, S$2: Type, A$3: Type, value: s_hashbrown$col$$col$map$col$$col$HashMap)
+  ensures acc(p_hashbrown$col$$col$map$col$$col$HashMap(self, K$0, V$1, S$2,
+    A$3), write)
+  ensures p_hashbrown$col$$col$map$col$$col$HashMap_snap(self, K$0, V$1, S$2,
+    A$3) ==
+    value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_hashbrown$col$$col$raw$col$$col$RawTable_assign(self: Ref, T$0: Type,
+  A$1: Type, value: s_hashbrown$col$$col$raw$col$$col$RawTable)
+  ensures acc(p_hashbrown$col$$col$raw$col$$col$RawTable(self, T$0, A$1), write)
+  ensures p_hashbrown$col$$col$raw$col$$col$RawTable_snap(self, T$0, A$1) ==
+    value
+
+
+method p_hashbrown$col$$col$raw$col$$col$RawTableInner_assign(self: Ref, value: s_hashbrown$col$$col$raw$col$$col$RawTableInner)
+  ensures acc(p_hashbrown$col$$col$raw$col$$col$RawTableInner(self), write)
+  ensures p_hashbrown$col$$col$raw$col$$col$RawTableInner_snap(self) ==
+    value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_core$col$$col$ptr$col$$col$NonNull_assign(self: Ref, T$0: Type, value: s_core$col$$col$ptr$col$$col$NonNull)
+  ensures acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+  ensures p_core$col$$col$ptr$col$$col$NonNull_snap(self, T$0) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method p_alloc$col$$col$collections$col$$col$VecDeque_assign(self: Ref, T$0: Type,
+  A$1: Type, value: s_alloc$col$$col$collections$col$$col$VecDeque)
+  ensures acc(p_alloc$col$$col$collections$col$$col$VecDeque(self, T$0, A$1), write)
+  ensures p_alloc$col$$col$collections$col$$col$VecDeque_snap(self, T$0, A$1) ==
+    value
+
+
+method p_alloc$col$$col$raw_vec$col$$col$RawVec_assign(self: Ref, T$0: Type,
+  A$1: Type, value: s_alloc$col$$col$raw_vec$col$$col$RawVec)
+  ensures acc(p_alloc$col$$col$raw_vec$col$$col$RawVec(self, T$0, A$1), write)
+  ensures p_alloc$col$$col$raw_vec$col$$col$RawVec_snap(self, T$0, A$1) ==
+    value
+
+
+method p_alloc$col$$col$raw_vec$col$$col$RawVecInner_assign(self: Ref, A$0: Type,
+  value: s_alloc$col$$col$raw_vec$col$$col$RawVecInner)
+  ensures acc(p_alloc$col$$col$raw_vec$col$$col$RawVecInner(self, A$0), write)
+  ensures p_alloc$col$$col$raw_vec$col$$col$RawVecInner_snap(self, A$0) ==
+    value
+
+
+method p_core$col$$col$ptr$col$$col$Unique_assign(self: Ref, T$0: Type, value: s_core$col$$col$ptr$col$$col$Unique)
+  ensures acc(p_core$col$$col$ptr$col$$col$Unique(self, T$0), write)
+  ensures p_core$col$$col$ptr$col$$col$Unique_snap(self, T$0) == value
+
+
+method p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_assign(self: Ref,
+  value: s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit)
+  ensures acc(p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit(self), write)
+  ensures p_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_snap(self) ==
+    value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_limited_cache$col$$col$LimitedCache {
+  s_limited_cache$col$$col$LimitedCache_cons(s_limited_cache$col$$col$LimitedCache_0: s_std$col$$col$collections$col$$col$HashMap,
+  s_limited_cache$col$$col$LimitedCache_1: s_alloc$col$$col$collections$col$$col$VecDeque)
+}
+
+adt s_std$col$$col$collections$col$$col$HashMap {
+  s_std$col$$col$collections$col$$col$HashMap_cons(s_std$col$$col$collections$col$$col$HashMap_0: s_hashbrown$col$$col$map$col$$col$HashMap)
+}
+
+adt s_hashbrown$col$$col$map$col$$col$HashMap {
+  s_hashbrown$col$$col$map$col$$col$HashMap_cons(s_hashbrown$col$$col$map$col$$col$HashMap_0: s_Param,
+  s_hashbrown$col$$col$map$col$$col$HashMap_1: s_hashbrown$col$$col$raw$col$$col$RawTable)
+}
+
+adt s_hashbrown$col$$col$raw$col$$col$RawTable {
+  s_hashbrown$col$$col$raw$col$$col$RawTable_cons(s_hashbrown$col$$col$raw$col$$col$RawTable_0: s_hashbrown$col$$col$raw$col$$col$RawTableInner,
+  s_hashbrown$col$$col$raw$col$$col$RawTable_1: s_Param, s_hashbrown$col$$col$raw$col$$col$RawTable_2: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_hashbrown$col$$col$raw$col$$col$RawTableInner {
+  s_hashbrown$col$$col$raw$col$$col$RawTableInner_cons(s_hashbrown$col$$col$raw$col$$col$RawTableInner_0: s_UInt_usize,
+  s_hashbrown$col$$col$raw$col$$col$RawTableInner_1: s_core$col$$col$ptr$col$$col$NonNull,
+  s_hashbrown$col$$col$raw$col$$col$RawTableInner_2: s_UInt_usize, s_hashbrown$col$$col$raw$col$$col$RawTableInner_3: s_UInt_usize)
+}
+
+adt s_core$col$$col$ptr$col$$col$NonNull {
+  s_core$col$$col$ptr$col$$col$NonNull_cons(s_core$col$$col$ptr$col$$col$NonNull_0: s_RawPtr_immutable)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt s_alloc$col$$col$collections$col$$col$VecDeque {
+  s_alloc$col$$col$collections$col$$col$VecDeque_cons(s_alloc$col$$col$collections$col$$col$VecDeque_0: s_UInt_usize,
+  s_alloc$col$$col$collections$col$$col$VecDeque_1: s_UInt_usize, s_alloc$col$$col$collections$col$$col$VecDeque_2: s_alloc$col$$col$raw_vec$col$$col$RawVec)
+}
+
+adt s_alloc$col$$col$raw_vec$col$$col$RawVec {
+  s_alloc$col$$col$raw_vec$col$$col$RawVec_cons(s_alloc$col$$col$raw_vec$col$$col$RawVec_0: s_alloc$col$$col$raw_vec$col$$col$RawVecInner,
+  s_alloc$col$$col$raw_vec$col$$col$RawVec_1: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_alloc$col$$col$raw_vec$col$$col$RawVecInner {
+  s_alloc$col$$col$raw_vec$col$$col$RawVecInner_cons(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_0: s_core$col$$col$ptr$col$$col$Unique,
+  s_alloc$col$$col$raw_vec$col$$col$RawVecInner_1: s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit,
+  s_alloc$col$$col$raw_vec$col$$col$RawVecInner_2: s_Param)
+}
+
+adt s_core$col$$col$ptr$col$$col$Unique {
+  s_core$col$$col$ptr$col$$col$Unique_cons(s_core$col$$col$ptr$col$$col$Unique_0: s_core$col$$col$ptr$col$$col$NonNull,
+  s_core$col$$col$ptr$col$$col$Unique_1: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit {
+  s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_cons(s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_0: s_UInt_usize)
+}
+
+adt Type {
+  s_UInt_u8_type()
+  s_2_Tuple_type(s_2_Tuple_typaram_T$0: Type, s_2_Tuple_typaram_U$1: Type)
+  s_alloc$col$$col$alloc$col$$col$Global_type()
+  s_std$col$$col$hash$col$$col$RandomState_type()
+  s_UInt_usize_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_core$col$$col$ptr$col$$col$NonNull_type(s_core$col$$col$ptr$col$$col$NonNull_typaram_T$0: Type)
+  s_hashbrown$col$$col$raw$col$$col$RawTableInner_type()
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_hashbrown$col$$col$raw$col$$col$RawTable_type(s_hashbrown$col$$col$raw$col$$col$RawTable_typaram_T$0: Type,
+  s_hashbrown$col$$col$raw$col$$col$RawTable_typaram_A$1: Type)
+  s_hashbrown$col$$col$map$col$$col$HashMap_type(s_hashbrown$col$$col$map$col$$col$HashMap_typaram_K$0: Type,
+  s_hashbrown$col$$col$map$col$$col$HashMap_typaram_V$1: Type, s_hashbrown$col$$col$map$col$$col$HashMap_typaram_S$2: Type,
+  s_hashbrown$col$$col$map$col$$col$HashMap_typaram_A$3: Type)
+  s_std$col$$col$collections$col$$col$HashMap_type(s_std$col$$col$collections$col$$col$HashMap_typaram_K$0: Type,
+  s_std$col$$col$collections$col$$col$HashMap_typaram_V$1: Type, s_std$col$$col$collections$col$$col$HashMap_typaram_S$2: Type)
+  s_UInt_u64_type()
+  s_core$col$$col$ptr$col$$col$Unique_type(s_core$col$$col$ptr$col$$col$Unique_typaram_T$0: Type)
+  s_core$col$$col$num$col$$col$niche_types$col$$col$UsizeNoHighBit_type()
+  s_alloc$col$$col$raw_vec$col$$col$RawVecInner_type(s_alloc$col$$col$raw_vec$col$$col$RawVecInner_typaram_A$0: Type)
+  s_alloc$col$$col$raw_vec$col$$col$RawVec_type(s_alloc$col$$col$raw_vec$col$$col$RawVec_typaram_T$0: Type,
+  s_alloc$col$$col$raw_vec$col$$col$RawVec_typaram_A$1: Type)
+  s_alloc$col$$col$collections$col$$col$VecDeque_type(s_alloc$col$$col$collections$col$$col$VecDeque_typaram_T$0: Type,
+  s_alloc$col$$col$collections$col$$col$VecDeque_typaram_A$1: Type)
+  s_limited_cache$col$$col$LimitedCache_type(s_limited_cache$col$$col$LimitedCache_typaram_K$0: Type,
+  s_limited_cache$col$$col$LimitedCache_typaram_V$1: Type)
+  s_Dyn_type()
+  s_0_Tuple_type()
+  s_std$col$$col$hash$col$$col$DefaultHasher_type()
+  Unknown_type(id: Int)
+}

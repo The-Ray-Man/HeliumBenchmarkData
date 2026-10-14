@@ -1,0 +1,3502 @@
+domain MetadataCast  {
+  
+  function metadata_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom metadata_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { metadata_cast(input, same, same) }
+      metadata_cast(input, same, same) == input)
+  }
+}
+
+domain UnsizeValueCast  {
+  
+  function unsize_value_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom unsize_value_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { unsize_value_cast(input, same, same) }
+      unsize_value_cast(input, same, same) == input)
+  }
+}
+
+domain MetadataCastArraySlice  {
+  
+  axiom metadata_cast_array_slice {
+    (forall input: s_Param, U$1: Type, M$0: s_UInt_usize ::
+      { metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) }
+      metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) ==
+      make_generic_s_UInt_usize(M$0))
+  }
+}
+
+domain UnsizeValueCastArraySlice  {
+  
+  axiom unsize_value_cast_array_slice {
+    (forall arr: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { unsize_value_cast(make_generic_s_Array(arr, U$1, M$0), s_Array_type(U$1, M$0),
+      s_Slice_type(U$1)) }
+      (forall idx: Int ::
+        { s_Array_index(arr, idx) }
+        s_Array_index(arr, idx) ==
+        s_Slice_index(unsize_value_cast(make_generic_s_Array(arr, U$1, M$0),
+        s_Array_type(U$1, M$0), s_Slice_type(U$1)).make_concrete_s_Slice, idx)))
+  }
+}
+
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u32  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u32 {
+    (forall x: s_UInt_u32 ::
+      { make_generic_s_UInt_u32(x) }
+      s_Param_typ(make_generic_s_UInt_u32(x)) == s_UInt_u32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u32, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u32_type() ==>
+      make_generic_s_UInt_u32(p.make_concrete_s_UInt_u32) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Array  {
+  
+  axiom s_Param_typ_def_make_generic_s_Array {
+    (forall x: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { make_generic_s_Array(x, U$1, M$0) }
+      s_Param_typ(make_generic_s_Array(x, U$1, M$0)) ==
+      s_Array_type(U$1, M$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Array {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Array, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Array_type(s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==>
+      make_generic_s_Array(p.make_concrete_s_Array, s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Slice  {
+  
+  axiom s_Param_typ_def_make_generic_s_Slice {
+    (forall x: s_Slice, T$0: Type ::
+      { make_generic_s_Slice(x, T$0) }
+      s_Param_typ(make_generic_s_Slice(x, T$0)) == s_Slice_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Slice {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Slice, s_Param_typ(p) }
+      s_Param_typ(p) == s_Slice_type(s_Param_typ(p).s_Slice_typaram_T$0) ==>
+      make_generic_s_Slice(p.make_concrete_s_Slice, s_Param_typ(p).s_Slice_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Bool  {
+  
+  axiom s_Param_typ_def_make_generic_s_Bool {
+    (forall x: Bool ::
+      { make_generic_s_Bool(x) }
+      s_Param_typ(make_generic_s_Bool(x)) == s_Bool_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Bool {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Bool, s_Param_typ(p) }
+      s_Param_typ(p) == s_Bool_type() ==>
+      make_generic_s_Bool(p.make_concrete_s_Bool) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  axiom s_Param_typ_def_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall x: s_core$col$$col$mem$col$$col$MaybeUninit, T$0: Type ::
+      { make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(x, T$0) }
+      s_Param_typ(make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(x, T$0)) ==
+      s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_core$col$$col$mem$col$$col$MaybeUninit_type(s_Param_typ(p).s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0) ==>
+      make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p.make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit, s_Param_typ(p).s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_num_fmt$col$$col$StackStr  {
+  
+  axiom s_Param_typ_def_make_generic_s_num_fmt$col$$col$StackStr {
+    (forall x: s_num_fmt$col$$col$StackStr, MAX_LEN$0: s_UInt_usize ::
+      { make_generic_s_num_fmt$col$$col$StackStr(x, MAX_LEN$0) }
+      s_Param_typ(make_generic_s_num_fmt$col$$col$StackStr(x, MAX_LEN$0)) ==
+      s_num_fmt$col$$col$StackStr_type(MAX_LEN$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_num_fmt$col$$col$StackStr {
+    (forall p: s_Param ::
+      { p.make_concrete_s_num_fmt$col$$col$StackStr, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_num_fmt$col$$col$StackStr_type(s_Param_typ(p).s_num_fmt$col$$col$StackStr_constparam_MAX_LEN$0) ==>
+      make_generic_s_num_fmt$col$$col$StackStr(p.make_concrete_s_num_fmt$col$$col$StackStr, s_Param_typ(p).s_num_fmt$col$$col$StackStr_constparam_MAX_LEN$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Ref_immutable  {
+  
+  axiom s_Param_typ_def_make_generic_s_Ref_immutable {
+    (forall x: s_Ref_immutable, U$1: Type ::
+      { make_generic_s_Ref_immutable(x, U$1) }
+      s_Param_typ(make_generic_s_Ref_immutable(x, U$1)) ==
+      s_Ref_immutable_type(U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Ref_immutable {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Ref_immutable, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Ref_immutable_type(s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==>
+      make_generic_s_Ref_immutable(p.make_concrete_s_Ref_immutable, s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Ref_mutable  {
+  
+  axiom s_Param_typ_def_make_generic_s_Ref_mutable {
+    (forall x: s_Ref_mutable, U$1: Type ::
+      { make_generic_s_Ref_mutable(x, U$1) }
+      s_Param_typ(make_generic_s_Ref_mutable(x, U$1)) ==
+      s_Ref_mutable_type(U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Ref_mutable {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Ref_mutable, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Ref_mutable_type(s_Param_typ(p).s_Ref_mutable_typaram_U$1) ==>
+      make_generic_s_Ref_mutable(p.make_concrete_s_Ref_mutable, s_Param_typ(p).s_Ref_mutable_typaram_U$1) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe  {
+  
+  axiom s_Param_typ_def_make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+    (forall x: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe, T$0: Type ::
+      { make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(x, T$0) }
+      s_Param_typ(make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(x, T$0)) ==
+      s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+    (forall p: s_Param ::
+      { p.make_concrete_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe,
+      s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_Param_typ(p).s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_typaram_T$0) ==>
+      make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(p.make_concrete_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe, s_Param_typ(p).s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_typaram_T$0) ==
+      p)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_Slice  {
+  
+  function s_Slice_index(arg0: s_Slice, arg1: Int): s_Param 
+  
+  function s_Slice_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+    (forall T$0: Type ::
+      { inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_deranged$col$$col$RangedU32 {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) ==
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u32_type())))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_deranged$col$$col$RangedU8 {
+    (forall MIN$0: s_UInt_u8, MAX$1: s_UInt_u8 ::
+      { inhabited(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) }
+      inhabited(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) ==
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u8_type())))
+  }
+  
+  axiom inhabited_time$col$$col$Padding {
+    inhabited(s_time$col$$col$Padding_type()) == true
+  }
+  
+  axiom inhabited_time$col$$col$Time {
+    inhabited(s_time$col$$col$Time_type()) ==
+    (inhabited(s_deranged$col$$col$RangedU32_type(s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))) &&
+    inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(59))) &&
+    (inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(59))) &&
+    (inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(23))) &&
+    inhabited(s_time$col$$col$Padding_type()))))
+  }
+  
+  axiom inhabited_Ref_mutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_mutable_type(U$1)) }
+      inhabited(s_Ref_mutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) == true)
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+  
+  axiom inhabited_0_Tuple {
+    inhabited(s_0_Tuple_type()) == true
+  }
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_RawPtr_mutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_mutable_type(T$0)) }
+      inhabited(s_RawPtr_mutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_Slice {
+    (forall T$0: Type ::
+      { inhabited(s_Slice_type(T$0)) }
+      inhabited(s_Slice_type(T$0)) == true)
+  }
+  
+  axiom inhabited_2_Tuple {
+    (forall T$0: Type, U$1: Type ::
+      { inhabited(s_2_Tuple_type(T$0, U$1)) }
+      inhabited(s_2_Tuple_type(T$0, U$1)) ==
+      (inhabited(T$0) && inhabited(U$1)))
+  }
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_num_fmt$col$$col$StackStr {
+    (forall MAX_LEN$0: s_UInt_usize ::
+      { inhabited(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      inhabited(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) ==
+      (inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), MAX_LEN$0)) &&
+      inhabited(s_UInt_usize_type())))
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref  {
+  
+  function core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(arg0: Type): Type 
+  
+  function core$col$$col$ops$col$$col$Deref_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe  {
+  
+  axiom s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+  
+  axiom s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+}
+
+domain sizedness_deranged$col$$col$RangedU32  {
+  
+  axiom s_deranged$col$$col$RangedU32_Sized {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)))
+  }
+  
+  axiom s_deranged$col$$col$RangedU32_MetaSized {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)))
+  }
+}
+
+domain sizedness_deranged$col$$col$RangedU8  {
+  
+  axiom s_deranged$col$$col$RangedU8_Sized {
+    (forall MIN$0: s_UInt_u8, MAX$1: s_UInt_u8 ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)))
+  }
+  
+  axiom s_deranged$col$$col$RangedU8_MetaSized {
+    (forall MIN$0: s_UInt_u8, MAX$1: s_UInt_u8 ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)))
+  }
+}
+
+domain sizedness_time$col$$col$Padding  {
+  
+  axiom s_time$col$$col$Padding_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_time$col$$col$Padding_type())
+  }
+  
+  axiom s_time$col$$col$Padding_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_time$col$$col$Padding_type())
+  }
+}
+
+domain sizedness_time$col$$col$Time  {
+  
+  axiom s_time$col$$col$Time_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_time$col$$col$Time_type())
+  }
+  
+  axiom s_time$col$$col$Time_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_time$col$$col$Time_type())
+  }
+}
+
+domain sizedness_Ref_mutable  {
+  
+  axiom s_Ref_mutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)))
+  }
+  
+  axiom s_Ref_mutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)))
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  axiom s_core$col$$col$mem$col$$col$MaybeUninit_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$mem$col$$col$MaybeUninit_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)))
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_RawPtr_mutable  {
+  
+  axiom s_RawPtr_mutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_mutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_mutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_mutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_mutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_mutable_type(T$0)))
+  }
+}
+
+domain sizedness_Slice  {
+  
+  axiom s_Slice_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)))
+  }
+}
+
+domain sizedness_2_Tuple  {
+  
+  axiom s_2_Tuple_Sized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+  
+  axiom s_2_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_num_fmt$col$$col$StackStr  {
+  
+  axiom s_num_fmt$col$$col$StackStr_Sized {
+    (forall MAX_LEN$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)))
+  }
+  
+  axiom s_num_fmt$col$$col$StackStr_MetaSized {
+    (forall MAX_LEN$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)))
+  }
+}
+
+domain trait_fns_core$col$$col$ops$col$$col$Deref_core$col$$col$ops$col$$col$Deref$col$$col$deref  {
+  
+  function core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(arg0: s_Ref_immutable,
+  arg1: Type): Bool 
+  
+  function core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(arg0: s_Ref_immutable,
+  arg1: s_Ref_immutable, arg2: Type): Bool 
+  
+  axiom core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref_base {
+    (forall _1s: s_Ref_immutable, Self$0: Type ::
+      { core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      Self$0) }
+      true ==>
+      core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      Self$0))
+  }
+  
+  axiom core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref_base {
+    (forall _0s: s_Ref_immutable, _1s: s_Ref_immutable, Self$0: Type ::
+      { core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, Self$0) }
+      core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_condition  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_condition {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_impl(s_Ref_immutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_impl(s_Ref_immutable_type(T$1)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_condition  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_condition {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_impl(s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_impl(s_Ref_mutable_type(T$1)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_condition  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_condition {
+    (forall T$0: Type ::
+      { core$col$$col$ops$col$$col$Deref_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$ops$col$$col$Deref_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_condition  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_condition {
+    (forall MAX_LEN$0: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$Deref_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      core$col$$col$ops$col$$col$Deref_impl(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_$lt$$amp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_assoc_type_$lt$$amp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_immutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_immutable_type(T$1)) ==
+      T$1)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_assoc_type_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_mutable_type(T$1)) ==
+      T$1)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_$lt$deranged$col$$col$unsafe_wrapper$col$$col$Unsafe$lt$T$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_assoc_type_$lt$deranged$col$$col$unsafe_wrapper$col$$col$Unsafe$lt$T$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target {
+    (forall T$0: Type ::
+      { core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) ==
+      T$0)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_$lt$num_fmt$col$$col$StackStr$lt$MAX_LEN$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_assoc_type_$lt$num_fmt$col$$col$StackStr$lt$MAX_LEN$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target {
+    (forall MAX_LEN$0: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) ==
+      s_Str_type())
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_$lt$$amp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_fn_pre_$lt$$amp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$1: Type, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_Ref_immutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      true ==>
+      core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_Ref_immutable_type(T$1)))
+  }
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_immutable_7614_fn_post_$lt$$amp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$1: Type, _0s: s_Ref_immutable, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_Ref_immutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_Ref_immutable_type(T$1)) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_fn_pre_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$1: Type, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      true ==>
+      core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_Ref_mutable_type(T$1)))
+  }
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_fn_post_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$1: Type, _0s: s_Ref_immutable, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_Ref_mutable_type(T$1)) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_$lt$deranged$col$$col$unsafe_wrapper$col$$col$Unsafe$lt$T$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_fn_pre_$lt$deranged$col$$col$unsafe_wrapper$col$$col$Unsafe$lt$T$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$0: Type, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      true ==>
+      core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_deranged_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_212_fn_post_$lt$deranged$col$$col$unsafe_wrapper$col$$col$Unsafe$lt$T$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall T$0: Type, _0s: s_Ref_immutable, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_$lt$num_fmt$col$$col$StackStr$lt$MAX_LEN$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_fn_pre_$lt$num_fmt$col$$col$StackStr$lt$MAX_LEN$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall MAX_LEN$0: s_UInt_usize, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      true ==>
+      core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(_1s,
+      s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)))
+  }
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_time_num_fmt$col$$col$StackStr_207_fn_post_$lt$num_fmt$col$$col$StackStr$lt$MAX_LEN$gt$$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$deref {
+    (forall MAX_LEN$0: s_UInt_usize, _0s: s_Ref_immutable, _1s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) }
+      core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0s,
+      _1s, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)) ==>
+      true)
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_UInt_u32_val: s_UInt_u32
+
+field p_UInt_u8_val: s_UInt_u8
+
+field p_Ref_mutable_addr: Ref
+
+field p_Ref_mutable_metadata: s_Param
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+field p_RawPtr_mutable_addr: Ref
+
+field p_RawPtr_mutable_metadata: s_Param
+
+field p_Bool_val: Bool
+
+function mir_binop_AddWithOverflow_UInt_usize_UInt_usize(arg1: s_UInt_usize,
+  arg2: s_UInt_usize): s_2_Tuple
+{
+  (let val ==
+    (s_UInt_usize_value(arg1) + s_UInt_usize_value(arg2)) in
+    (let wrapped_val ==
+      (val % 18446744073709551616) in
+      s_2_Tuple_cons(make_generic_s_UInt_usize(s_UInt_usize_cons(wrapped_val)), make_generic_s_Bool(wrapped_val !=
+      val))))
+}
+
+function mir_binop_Lt_UInt_usize_UInt_usize(arg1: s_UInt_usize, arg2: s_UInt_usize): Bool
+{
+  s_UInt_usize_value(arg1) < s_UInt_usize_value(arg2)
+}
+
+function mir_cast_unsize_Ref_mutable_to_Ref_mutable(arg: s_Ref_mutable, U$0: Type,
+  V$1: Type): s_Ref_mutable
+{
+  s_Ref_mutable_cons(arg.s_Ref_mutable_0, metadata_cast(arg.s_Ref_mutable_1,
+  U$0, V$1), unsize_value_cast(arg.s_Ref_mutable_2, U$0, V$1))
+}
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_time$col$$col$Time_unreachable(): s_time$col$$col$Time
+  ensures false
+
+
+function s_time$col$$col$Time_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time$col$$col$Time_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time$col$$col$Time_field_2(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time$col$$col$Time_field_3(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time$col$$col$Time_field_4(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deranged$col$$col$RangedU32_unreachable(MIN$0: s_UInt_u32, MAX$1: s_UInt_u32): s_deranged$col$$col$RangedU32
+  ensures false
+
+
+function s_deranged$col$$col$RangedU32_field_0(self: Ref, MIN$0: s_UInt_u32,
+  MAX$1: s_UInt_u32): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_unreachable(T$0: Type): s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe
+  ensures false
+
+
+function s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self: Ref,
+  T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_deranged$col$$col$RangedU8_unreachable(MIN$0: s_UInt_u8, MAX$1: s_UInt_u8): s_deranged$col$$col$RangedU8
+  ensures false
+
+
+function s_deranged$col$$col$RangedU8_field_0(self: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_time$col$$col$Padding_unreachable(): s_time$col$$col$Padding
+  ensures false
+
+
+function s_time$col$$col$Padding_discr(self: s_time$col$$col$Padding): s_UInt_u8
+{
+  s_UInt_u8_cons(0)
+}
+
+function s_Ref_mutable_unreachable(U$1: Type): s_Ref_mutable
+  ensures false
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_RawPtr_mutable_unreachable(T$0: Type): s_RawPtr_mutable
+  ensures false
+
+
+function s_Slice_unreachable(T$0: Type): s_Slice
+  ensures false
+
+
+function s_2_Tuple_unreachable(T$0: Type, U$1: Type): s_2_Tuple
+  ensures false
+
+
+function s_2_Tuple_field_0(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_2_Tuple_field_1(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_core$col$$col$mem$col$$col$MaybeUninit_unreachable(T$0: Type): s_core$col$$col$mem$col$$col$MaybeUninit
+  ensures false
+
+
+function s_num_fmt$col$$col$StackStr_unreachable(MAX_LEN$0: s_UInt_usize): s_num_fmt$col$$col$StackStr
+  ensures false
+
+
+function s_num_fmt$col$$col$StackStr_field_0(self: Ref, MAX_LEN$0: s_UInt_usize): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_num_fmt$col$$col$StackStr_field_1(self: Ref, MAX_LEN$0: s_UInt_usize): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_time$col$$col$Time_snap(self: Ref): s_time$col$$col$Time
+  requires acc(p_time$col$$col$Time(self), write)
+{
+  (unfolding acc(p_time$col$$col$Time(self), write) in
+    s_time$col$$col$Time_cons(p_deranged$col$$col$RangedU32_snap(s_time$col$$col$Time_field_0(self),
+    s_UInt_u32_cons(0), s_UInt_u32_cons(999999999)), p_deranged$col$$col$RangedU8_snap(s_time$col$$col$Time_field_1(self),
+    s_UInt_u8_cons(0), s_UInt_u8_cons(59)), p_deranged$col$$col$RangedU8_snap(s_time$col$$col$Time_field_2(self),
+    s_UInt_u8_cons(0), s_UInt_u8_cons(59)), p_deranged$col$$col$RangedU8_snap(s_time$col$$col$Time_field_3(self),
+    s_UInt_u8_cons(0), s_UInt_u8_cons(23)), p_time$col$$col$Padding_snap(s_time$col$$col$Time_field_4(self))))
+}
+
+function p_deranged$col$$col$RangedU32_snap(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32): s_deranged$col$$col$RangedU32
+  requires acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write)
+{
+  (unfolding acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write) in
+    s_deranged$col$$col$RangedU32_cons(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(s_deranged$col$$col$RangedU32_field_0(self,
+    MIN$0, MAX$1), s_UInt_u32_type())))
+}
+
+function p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self: Ref,
+  T$0: Type): s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe
+  requires acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+{
+  (unfolding acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write) in
+    s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_cons(p_Param_snap(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self,
+    T$0), T$0)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_deranged$col$$col$RangedU8_snap(self: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8): s_deranged$col$$col$RangedU8
+  requires acc(p_deranged$col$$col$RangedU8(self, MIN$0, MAX$1), write)
+{
+  (unfolding acc(p_deranged$col$$col$RangedU8(self, MIN$0, MAX$1), write) in
+    s_deranged$col$$col$RangedU8_cons(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(s_deranged$col$$col$RangedU8_field_0(self,
+    MIN$0, MAX$1), s_UInt_u8_type())))
+}
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_time$col$$col$Padding_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_time$col$$col$Padding_snap(self: Ref): s_time$col$$col$Padding
+  requires acc(p_time$col$$col$Padding(self), write)
+{
+  (unfolding acc(p_time$col$$col$Padding(self), write) in
+    (p_UInt_u8_snap(p_time$col$$col$Padding_field_discr(self)) ==
+    s_UInt_u8_cons(0) ?
+      (unfolding acc(p_time$col$$col$Padding_0_owned(self), write) in
+        s_time$col$$col$Padding_0_cons()) :
+      s_time$col$$col$Padding_unreachable()))
+}
+
+function p_Ref_mutable_arbitrary_value(r: Ref, metadata: s_Param, U$1: Type): s_Ref_mutable
+  ensures result.s_Ref_mutable_0 == r
+  ensures result.s_Ref_mutable_1 == metadata
+
+
+function p_Ref_mutable_snap(self: Ref, U$1: Type): s_Ref_mutable
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_mutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+{
+  (unfolding acc(p_Ref_mutable(self, U$1), write) in
+    p_Ref_mutable_arbitrary_value(self.p_Ref_mutable_addr, self.p_Ref_mutable_metadata,
+    U$1))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+function p_0_Tuple_snap(self: Ref): s_0_Tuple
+  requires acc(p_0_Tuple(self), write)
+{
+  (unfolding acc(p_0_Tuple(self), write) in s_0_Tuple_cons())
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_RawPtr_mutable_snap(self: Ref, T$0: Type): s_RawPtr_mutable
+  requires acc(p_RawPtr_mutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_mutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_mutable(self, T$0), write) in
+    s_RawPtr_mutable_cons(self.p_RawPtr_mutable_addr, self.p_RawPtr_mutable_metadata))
+}
+
+function p_Slice_index_frame(self: Ref, index: Int, T$0: Type): s_Slice
+  requires acc(p_Slice_index(self, index, T$0), write)
+
+
+function p_Slice_snap(self: Ref, T$0: Type): s_Slice
+  requires acc(p_Slice(self, T$0), write)
+
+
+function p_2_Tuple_snap(self: Ref, T$0: Type, U$1: Type): s_2_Tuple
+  requires acc(p_2_Tuple(self, T$0, U$1), write)
+{
+  (unfolding acc(p_2_Tuple(self, T$0, U$1), write) in
+    s_2_Tuple_cons(p_Param_snap(s_2_Tuple_field_0(self, T$0, U$1), T$0), p_Param_snap(s_2_Tuple_field_1(self,
+    T$0, U$1), U$1)))
+}
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_core$col$$col$mem$col$$col$MaybeUninit_snap(self: Ref, T$0: Type): s_core$col$$col$mem$col$$col$MaybeUninit
+  requires acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+
+
+function p_num_fmt$col$$col$StackStr_snap(self: Ref, MAX_LEN$0: s_UInt_usize): s_num_fmt$col$$col$StackStr
+  requires acc(p_num_fmt$col$$col$StackStr(self, MAX_LEN$0), write)
+{
+  (unfolding acc(p_num_fmt$col$$col$StackStr(self, MAX_LEN$0), write) in
+    s_num_fmt$col$$col$StackStr_cons(p_Array_snap(s_num_fmt$col$$col$StackStr_field_0(self,
+    MAX_LEN$0), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    MAX_LEN$0), p_UInt_usize_snap(s_num_fmt$col$$col$StackStr_field_1(self,
+    MAX_LEN$0))))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_time$col$$col$Time(self: Ref) {
+  inhabited(s_deranged$col$$col$RangedU32_type(s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))) &&
+  acc(p_deranged$col$$col$RangedU32(s_time$col$$col$Time_field_0(self), s_UInt_u32_cons(0),
+  s_UInt_u32_cons(999999999)), write) &&
+  (inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(59))) &&
+  acc(p_deranged$col$$col$RangedU8(s_time$col$$col$Time_field_1(self), s_UInt_u8_cons(0),
+  s_UInt_u8_cons(59)), write)) &&
+  (inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(59))) &&
+  acc(p_deranged$col$$col$RangedU8(s_time$col$$col$Time_field_2(self), s_UInt_u8_cons(0),
+  s_UInt_u8_cons(59)), write) &&
+  (inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(23))) &&
+  acc(p_deranged$col$$col$RangedU8(s_time$col$$col$Time_field_3(self), s_UInt_u8_cons(0),
+  s_UInt_u8_cons(23)), write) &&
+  (inhabited(s_time$col$$col$Padding_type()) &&
+  acc(p_time$col$$col$Padding(s_time$col$$col$Time_field_4(self)), write))))
+}
+
+predicate p_deranged$col$$col$RangedU32(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32) {
+  inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u32_type())) &&
+  acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(s_deranged$col$$col$RangedU32_field_0(self,
+  MIN$0, MAX$1), s_UInt_u32_type()), write)
+}
+
+predicate p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_deranged$col$$col$RangedU8(self: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8) {
+  inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u8_type())) &&
+  acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(s_deranged$col$$col$RangedU8_field_0(self,
+  MIN$0, MAX$1), s_UInt_u8_type()), write)
+}
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_time$col$$col$Padding_0_owned(self: Ref) {
+  true
+}
+
+predicate p_time$col$$col$Padding(self: Ref) {
+  inhabited(s_UInt_u8_type()) &&
+  acc(p_UInt_u8(p_time$col$$col$Padding_field_discr(self)), write) &&
+  (p_UInt_u8_snap(p_time$col$$col$Padding_field_discr(self)) ==
+  s_UInt_u8_cons(0) &&
+  (p_UInt_u8_snap(p_time$col$$col$Padding_field_discr(self)) ==
+  s_UInt_u8_cons(0) ==>
+  true && acc(p_time$col$$col$Padding_0_owned(self), write)))
+}
+
+predicate p_Ref_mutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_mutable_addr, write) &&
+  (acc(self.p_Ref_mutable_metadata, write) &&
+  s_Param_typ(self.p_Ref_mutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1))
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Str(self: Ref) 
+
+predicate p_0_Tuple(self: Ref) {
+  true
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_RawPtr_mutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_mutable_addr, write) &&
+  (acc(self.p_RawPtr_mutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_mutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_Slice(self: Ref, T$0: Type) 
+
+predicate p_Slice_index(self: Ref, index: Int, T$0: Type) 
+
+predicate p_2_Tuple(self: Ref, T$0: Type, U$1: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_2_Tuple_field_0(self, T$0, U$1), T$0), write) &&
+  (inhabited(U$1) &&
+  acc(p_Param(s_2_Tuple_field_1(self, T$0, U$1), U$1), write))
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type) 
+
+predicate p_num_fmt$col$$col$StackStr(self: Ref, MAX_LEN$0: s_UInt_usize) {
+  inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), MAX_LEN$0)) &&
+  acc(p_Array(s_num_fmt$col$$col$StackStr_field_0(self, MAX_LEN$0), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+  MAX_LEN$0), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_num_fmt$col$$col$StackStr_field_1(self, MAX_LEN$0)), write))
+}
+
+method m_time$col$$col$Time$col$$col$fmt_into_buffer(_0p: Ref, _1p: Ref, _2p: Ref)
+  requires inhabited(s_time$col$$col$Time_type()) &&
+    acc(p_time$col$$col$Time(_1p), write)
+  requires inhabited(s_Ref_mutable_type(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))) &&
+    acc(p_Ref_mutable(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  requires inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))) &&
+    acc(p_Param(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  ensures inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+  ensures inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))) &&
+    acc(p_Param(old(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))).s_Ref_mutable_0,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _13p: Ref
+  var _14p: Ref
+  var _15p: Ref
+  var _16p: Ref
+  var _17p: Ref
+  var _18p: Ref
+  var _19p: Ref
+  var _20p: Ref
+  var _21p: Ref
+  var _22p: Ref
+  var _23p: Ref
+  var _24p: Ref
+  var _25p: Ref
+  var _26p: Ref
+  var _27p: Ref
+  var _28p: Ref
+  var _29p: Ref
+  var _30p: Ref
+  var _31p: Ref
+  var _32p: Ref
+  var _33p: Ref
+  var _34p: Ref
+  var _35p: Ref
+  var _36p: Ref
+  var _37p: Ref
+  var _38p: Ref
+  var _39p: Ref
+  var _40p: Ref
+  var _41p: Ref
+  var _42p: Ref
+  var _43p: Ref
+  var _44p: Ref
+  var _45p: Ref
+  var _46p: Ref
+  var _47p: Ref
+  var _48p: Ref
+  var _49p: Ref
+  var _50p: Ref
+  var _51p: Ref
+  var _52p: Ref
+  var _53p: Ref
+  var _54p: Ref
+  var _55p: Ref
+  var _56p: Ref
+  var _57p: Ref
+  var _58p: Ref
+  var _59p: Ref
+  var _60p: Ref
+  var _61p: Ref
+  var _62p: Ref
+  var _63p: Ref
+  var _64p: Ref
+  var _65p: Ref
+  var _66p: Ref
+  var _67p: Ref
+  var _68p: Ref
+  var _69p: Ref
+  var _70p: Ref
+  var _71p: Ref
+  var _72p: Ref
+  var _73p: Ref
+  var _74p: Ref
+  var _75p: Ref
+  var _76p: Ref
+  var _77p: Ref
+  var _78p: Ref
+  var _79p: Ref
+  var _80p: Ref
+  var _81p: Ref
+  var _82p: Ref
+  var _83p: Ref
+  var _84p: Ref
+  var _85p: Ref
+  var _86p: Ref
+  var _87p: Ref
+  var _88p: Ref
+  var _from_bb28_to_bb29: Bool
+  var _from_bb35_to_bb36: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb5_to_bb6: Bool
+  var _from_bb9_to_bb10: Bool
+  var _from_bb50_to_bb51: Bool
+  var _from_bb36_to_bb37: Bool
+  var _from_bb1_to_bb2: Bool
+  var _from_bb15_to_bb16: Bool
+  var _from_bb54_to_bb55: Bool
+  var _from_bb43_to_bb44: Bool
+  var _from_bb16_to_bb17: Bool
+  var _from_bb26_to_bb27: Bool
+  var _from_bb4_to_bb5: Bool
+  var _from_bb24_to_bb25: Bool
+  var _from_bb51_to_bb52: Bool
+  var _from_bb18_to_bb19: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb14_to_bb15: Bool
+  var _from_bb40_to_bb41: Bool
+  var _from_bb45_to_bb46: Bool
+  var _from_bb19_to_bb20: Bool
+  var _from_bb23_to_bb24: Bool
+  var _from_bb7_to_bb8: Bool
+  var _from_bb27_to_bb28: Bool
+  var _from_bb46_to_bb47: Bool
+  var _from_bb49_to_bb50: Bool
+  var _from_bb21_to_bb22: Bool
+  var _from_bb42_to_bb43: Bool
+  var _from_bb53_to_bb54: Bool
+  var _from_bb6_to_bb7: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb12_to_bb13: Bool
+  var _from_bb22_to_bb23: Bool
+  var _from_bb10_to_bb11: Bool
+  var _from_bb30_to_bb31: Bool
+  var _from_bb41_to_bb42: Bool
+  var _from_bb39_to_bb40: Bool
+  var _from_bb47_to_bb48: Bool
+  var _from_bb17_to_bb18: Bool
+  var _from_bb11_to_bb12: Bool
+  var _from_bb29_to_bb30: Bool
+  var _from_bb34_to_bb35: Bool
+  var _from_bb48_to_bb49: Bool
+  var _from_bb44_to_bb45: Bool
+  var _from_bb13_to_bb14: Bool
+  var _from_bb25_to_bb26: Bool
+  var _from_bb32_to_bb33: Bool
+  var _from_bb20_to_bb21: Bool
+  var _from_bb31_to_bb32: Bool
+  var _from_bb8_to_bb9: Bool
+  var _from_bb37_to_bb38: Bool
+  var _from_bb33_to_bb34: Bool
+  var _from_bb38_to_bb39: Bool
+  var _from_bb52_to_bb53: Bool
+  var _tmp0: s_time$col$$col$Time
+  var _tmp1: s_Ref_mutable
+  var _tmp2: s_UInt_usize
+  var _tmp3: s_UInt_usize
+  var _tmp4: s_UInt_usize
+  var _tmp5: Bool
+  var _tmp6: s_UInt_usize
+  var _tmp7: Ref
+  var _tmp8: s_UInt_usize
+  var _tmp9: s_UInt_usize
+  var _tmp10: Bool
+  var _tmp11: s_core$col$$col$mem$col$$col$MaybeUninit
+  var _tmp12: s_UInt_usize
+  var _tmp13: Bool
+  var _tmp14: s_UInt_usize
+  var _tmp15: s_time$col$$col$Time
+  var _tmp16: s_Ref_mutable
+  var _tmp17: s_UInt_usize
+  var _tmp18: Ref
+  var _tmp19: s_UInt_usize
+  var _tmp20: Bool
+  var _tmp21: s_UInt_usize
+  var _tmp22: Ref
+  var _tmp23: s_UInt_usize
+  var _tmp24: s_UInt_usize
+  var _tmp25: Bool
+  var _tmp26: s_core$col$$col$mem$col$$col$MaybeUninit
+  var _tmp27: s_UInt_usize
+  var _tmp28: Bool
+  var _tmp29: s_UInt_usize
+  var _tmp30: s_time$col$$col$Time
+  var _tmp31: s_Ref_mutable
+  var _tmp32: s_UInt_usize
+  var _tmp33: Ref
+  var _tmp34: s_UInt_usize
+  var _tmp35: Bool
+  var _tmp36: s_UInt_usize
+  var _tmp37: Ref
+  var _tmp38: s_UInt_usize
+  var _tmp39: s_UInt_usize
+  var _tmp40: Bool
+  var _tmp41: s_core$col$$col$mem$col$$col$MaybeUninit
+  var _tmp42: s_UInt_usize
+  var _tmp43: Bool
+  var _tmp44: s_UInt_usize
+  var _tmp45: s_time$col$$col$Time
+  var _tmp46: s_Ref_mutable
+  var _tmp47: s_UInt_usize
+  var _tmp48: s_UInt_usize
+  var _tmp49: s_UInt_usize
+  var _tmp50: Bool
+  var _tmp51: s_UInt_usize
+  var _tmp52: s_UInt_usize
+  label start
+  _from_bb28_to_bb29 := false
+  _from_bb35_to_bb36 := false
+  _from_bb3_to_bb4 := false
+  _from_bb5_to_bb6 := false
+  _from_bb9_to_bb10 := false
+  _from_bb50_to_bb51 := false
+  _from_bb36_to_bb37 := false
+  _from_bb1_to_bb2 := false
+  _from_bb15_to_bb16 := false
+  _from_bb54_to_bb55 := false
+  _from_bb43_to_bb44 := false
+  _from_bb16_to_bb17 := false
+  _from_bb26_to_bb27 := false
+  _from_bb4_to_bb5 := false
+  _from_bb24_to_bb25 := false
+  _from_bb51_to_bb52 := false
+  _from_bb18_to_bb19 := false
+  _from_bb0_to_bb1 := false
+  _from_bb14_to_bb15 := false
+  _from_bb40_to_bb41 := false
+  _from_bb45_to_bb46 := false
+  _from_bb19_to_bb20 := false
+  _from_bb23_to_bb24 := false
+  _from_bb7_to_bb8 := false
+  _from_bb27_to_bb28 := false
+  _from_bb46_to_bb47 := false
+  _from_bb49_to_bb50 := false
+  _from_bb21_to_bb22 := false
+  _from_bb42_to_bb43 := false
+  _from_bb53_to_bb54 := false
+  _from_bb6_to_bb7 := false
+  _from_bb2_to_bb3 := false
+  _from_bb12_to_bb13 := false
+  _from_bb22_to_bb23 := false
+  _from_bb10_to_bb11 := false
+  _from_bb30_to_bb31 := false
+  _from_bb41_to_bb42 := false
+  _from_bb39_to_bb40 := false
+  _from_bb47_to_bb48 := false
+  _from_bb17_to_bb18 := false
+  _from_bb11_to_bb12 := false
+  _from_bb29_to_bb30 := false
+  _from_bb34_to_bb35 := false
+  _from_bb48_to_bb49 := false
+  _from_bb44_to_bb45 := false
+  _from_bb13_to_bb14 := false
+  _from_bb25_to_bb26 := false
+  _from_bb32_to_bb33 := false
+  _from_bb20_to_bb21 := false
+  _from_bb31_to_bb32 := false
+  _from_bb8_to_bb9 := false
+  _from_bb37_to_bb38 := false
+  _from_bb33_to_bb34 := false
+  _from_bb38_to_bb39 := false
+  _from_bb52_to_bb53 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  p_UInt_usize_assign(_3p, s_UInt_usize_cons(0))
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  label _before_0_5
+  label _before_0_6
+  label _before_0_7
+  label _before_0_8
+  _tmp0 := p_time$col$$col$Time_snap(_1p)
+  p_time$col$$col$Time_assign(_8p, _tmp0)
+  label _before_0_9
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_time$col$$col$Time$col$$col$hour(_7p, _8p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_6p,
+    _7p, s_UInt_u8_cons(0), s_UInt_u8_cons(23))
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  goto bb_term_2
+  label bb_term_2
+  label pre4
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$expand(_5p,
+    _6p, s_UInt_u8_cons(0), s_UInt_u8_cons(23), s_UInt_u8_cons(0), s_UInt_u8_cons(99))
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  goto bb_term_3
+  label bb_term_3
+  label pre6
+  m_num_fmt$col$$col$one_to_two_digits_no_padding(_4p, _5p)
+  label post7
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  label _before_4_2
+  label _before_4_3
+  label _before_4_4
+  label _before_4_5
+  p_Ref_immutable_assign(_11p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_4_6
+  goto bb_term_4
+  label bb_term_4
+  label pre8
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_ptr(_10p, _11p)
+  label post9
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _before_5_1
+  label _before_5_2
+  label _before_5_3
+  label _before_5_4
+  label _before_5_5
+  label _before_5_6
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Ref_mutable_assign(_16p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    make_generic_s_0_Tuple(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_1.make_concrete_s_0_Tuple),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))))
+  make_generic_Array(p_Ref_mutable_snap(_16p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_5_7
+  _tmp1 := p_Ref_mutable_snap(_16p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))) &&
+    acc(p_Ref_mutable(_16p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  mir_unsize_Ref_mutable_to_Ref_mutable(_tmp1, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  p_Ref_mutable_assign(_15p, s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    mir_cast_unsize_Ref_mutable_to_Ref_mutable(_tmp1, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))))
+  label _before_5_8
+  label _before_5_9
+  goto bb_term_5
+  label bb_term_5
+  label pre10
+  m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_mut_ptr(_14p,
+    _15p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post11
+  label _after_5
+  _from_bb5_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  mir_undo_unsize_Ref_mutable_to_Ref_mutable(old[_before_5_7](p_Ref_mutable_snap(_16p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  make_concrete_Array(old[_before_5_7](p_Ref_mutable_snap(old[_before_5_7](_16p),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0),
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_6_1
+  label _before_6_2
+  _tmp2 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_17p, _tmp2)
+  label _before_6_3
+  goto bb_term_6
+  label bb_term_6
+  label pre12
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$add(_13p,
+    _14p, _17p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post13
+  label _after_6
+  _from_bb6_to_bb7 := true
+  goto bb_7
+  label bb_7
+  label _before_7_0
+  label _before_7_1
+  label _before_7_2
+  goto bb_term_7
+  label bb_term_7
+  label pre14
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$cast(_12p,
+    _13p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_u8_type())
+  label post15
+  label _after_7
+  _from_bb7_to_bb8 := true
+  goto bb_8
+  label bb_8
+  label _before_8_0
+  label _before_8_1
+  label _before_8_2
+  label _before_8_3
+  p_Ref_immutable_assign(_19p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_8_4
+  goto bb_term_8
+  label bb_term_8
+  label pre16
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$len(_18p, _19p)
+  label post17
+  label _after_8
+  _from_bb8_to_bb9 := true
+  goto bb_9
+  label bb_9
+  label _before_9_0
+  label _before_9_1
+  goto bb_term_9
+  label bb_term_9
+  label pre18
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$copy_to_nonoverlapping(_9p,
+    _10p, _12p, _18p, s_UInt_u8_type())
+  label post19
+  label _after_9
+  _from_bb9_to_bb10 := true
+  goto bb_10
+  label bb_10
+  label _before_10_0
+  label _before_10_1
+  label _before_10_2
+  label _before_10_3
+  label _before_10_4
+  label _before_10_5
+  label _before_10_6
+  p_Ref_immutable_assign(_21p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_4p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_10_7
+  goto bb_term_10
+  label bb_term_10
+  label pre20
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$len(_20p, _21p)
+  label post21
+  label _after_10
+  _from_bb10_to_bb11 := true
+  goto bb_11
+  label bb_11
+  label _before_11_0
+  label _before_11_1
+  _tmp3 := p_UInt_usize_snap(_3p)
+  _tmp4 := p_UInt_usize_snap(_20p)
+  p_2_Tuple_assign(_22p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp3,
+    _tmp4))
+  label _before_11_2
+  unfold acc(p_2_Tuple(_22p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_22p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_22p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp5 := p_Bool_snap(s_2_Tuple_field_1(_22p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_22p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp5 == false
+  label _after_11
+  _from_bb11_to_bb12 := true
+  goto bb_12
+  label bb_12
+  label _before_12_0
+  _tmp6 := p_UInt_usize_snap(s_2_Tuple_field_0(_22p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_22p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp6)
+  label _before_12_1
+  label _before_12_2
+  label _before_12_3
+  goto bb_term_12
+  label bb_term_12
+  p_UInt_u8_assign(_tmp7, s_UInt_u8_cons(58))
+  label pre22
+  make_generic_UInt_u8(_tmp7)
+  m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$new(_23p,
+    _tmp7, s_UInt_u8_type())
+  label post23
+  label _after_12
+  _from_bb12_to_bb13 := true
+  goto bb_13
+  label bb_13
+  label _before_13_0
+  label _before_13_1
+  _tmp8 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_24p, _tmp8)
+  label _before_13_2
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_13_3
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  _tmp9 := p_UInt_usize_snap(_24p)
+  p_Bool_assign(_25p, mir_binop_Lt_UInt_usize_UInt_usize(_tmp9, s_UInt_usize_cons(18)))
+  label _before_13_4
+  _tmp10 := p_Bool_snap(_25p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_25p), write)
+  exhale _tmp10 == true
+  label _after_13
+  _from_bb13_to_bb14 := true
+  goto bb_14
+  label bb_14
+  label _before_14_0
+  _tmp11 := p_core$col$$col$mem$col$$col$MaybeUninit_snap(_23p, s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_23p, s_UInt_u8_type()), write)
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Array_unfold_index(s_UInt_usize_value(p_UInt_usize_snap(_24p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_concrete_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_24p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_24p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type()), write)
+  p_core$col$$col$mem$col$$col$MaybeUninit_assign(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_24p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type(), _tmp11)
+  label _before_14_1
+  make_generic_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_24p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  p_Array_fold_index(s_UInt_usize_value(p_UInt_usize_snap(_24p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_14_2
+  label _before_14_3
+  _tmp12 := p_UInt_usize_snap(_3p)
+  p_2_Tuple_assign(_26p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp12,
+    s_UInt_usize_cons(1)))
+  label _before_14_4
+  unfold acc(p_2_Tuple(_26p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_26p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_26p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp13 := p_Bool_snap(s_2_Tuple_field_1(_26p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_26p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp13 == false
+  label _after_14
+  _from_bb14_to_bb15 := true
+  goto bb_15
+  label bb_15
+  label _before_15_0
+  _tmp14 := p_UInt_usize_snap(s_2_Tuple_field_0(_26p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_26p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp14)
+  label _before_15_1
+  label _before_15_2
+  label _before_15_3
+  label _before_15_4
+  label _before_15_5
+  label _before_15_6
+  label _before_15_7
+  label _before_15_8
+  label _before_15_9
+  _tmp15 := p_time$col$$col$Time_snap(_1p)
+  p_time$col$$col$Time_assign(_34p, _tmp15)
+  label _before_15_10
+  goto bb_term_15
+  label bb_term_15
+  label pre24
+  m_time$col$$col$Time$col$$col$minute(_33p, _34p)
+  label post25
+  label _after_15
+  _from_bb15_to_bb16 := true
+  goto bb_16
+  label bb_16
+  label _before_16_0
+  label _before_16_1
+  goto bb_term_16
+  label bb_term_16
+  label pre26
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_32p,
+    _33p, s_UInt_u8_cons(0), s_UInt_u8_cons(59))
+  label post27
+  label _after_16
+  _from_bb16_to_bb17 := true
+  goto bb_17
+  label bb_17
+  label _before_17_0
+  label _before_17_1
+  goto bb_term_17
+  label bb_term_17
+  label pre28
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$expand(_31p,
+    _32p, s_UInt_u8_cons(0), s_UInt_u8_cons(59), s_UInt_u8_cons(0), s_UInt_u8_cons(99))
+  label post29
+  label _after_17
+  _from_bb17_to_bb18 := true
+  goto bb_18
+  label bb_18
+  label _before_18_0
+  label _before_18_1
+  goto bb_term_18
+  label bb_term_18
+  label pre30
+  m_num_fmt$col$$col$two_digits_zero_padded(_30p, _31p)
+  label post31
+  label _after_18
+  _from_bb18_to_bb19 := true
+  goto bb_19
+  label bb_19
+  label _before_19_0
+  p_Ref_immutable_assign(_29p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_30p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_30p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_30p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_19_1
+  label _before_19_2
+  goto bb_term_19
+  label bb_term_19
+  label pre32
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_ptr(_28p, _29p)
+  label post33
+  label _after_19
+  _from_bb19_to_bb20 := true
+  goto bb_20
+  label bb_20
+  label _before_20_0
+  label _before_20_1
+  label _before_20_2
+  label _before_20_3
+  label _before_20_4
+  label _before_20_5
+  label _before_20_6
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Ref_mutable_assign(_39p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    make_generic_s_0_Tuple(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_1.make_concrete_s_0_Tuple),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))))
+  make_generic_Array(p_Ref_mutable_snap(_39p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_20_7
+  _tmp16 := p_Ref_mutable_snap(_39p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))) &&
+    acc(p_Ref_mutable(_39p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  mir_unsize_Ref_mutable_to_Ref_mutable(_tmp16, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  p_Ref_mutable_assign(_38p, s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    mir_cast_unsize_Ref_mutable_to_Ref_mutable(_tmp16, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))))
+  label _before_20_8
+  label _before_20_9
+  goto bb_term_20
+  label bb_term_20
+  label pre34
+  m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_mut_ptr(_37p,
+    _38p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post35
+  label _after_20
+  _from_bb20_to_bb21 := true
+  goto bb_21
+  label bb_21
+  label _before_21_0
+  mir_undo_unsize_Ref_mutable_to_Ref_mutable(old[_before_20_7](p_Ref_mutable_snap(_39p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  make_concrete_Array(old[_before_20_7](p_Ref_mutable_snap(old[_before_20_7](_39p),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0),
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_21_1
+  label _before_21_2
+  _tmp17 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_40p, _tmp17)
+  label _before_21_3
+  goto bb_term_21
+  label bb_term_21
+  label pre36
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$add(_36p,
+    _37p, _40p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post37
+  label _after_21
+  _from_bb21_to_bb22 := true
+  goto bb_22
+  label bb_22
+  label _before_22_0
+  label _before_22_1
+  label _before_22_2
+  goto bb_term_22
+  label bb_term_22
+  label pre38
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$cast(_35p,
+    _36p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_u8_type())
+  label post39
+  label _after_22
+  _from_bb22_to_bb23 := true
+  goto bb_23
+  label bb_23
+  label _before_23_0
+  label _before_23_1
+  goto bb_term_23
+  label bb_term_23
+  p_UInt_usize_assign(_tmp18, s_UInt_usize_cons(2))
+  label pre40
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$copy_to_nonoverlapping(_27p,
+    _28p, _35p, _tmp18, s_UInt_u8_type())
+  label post41
+  label _after_23
+  _from_bb23_to_bb24 := true
+  goto bb_24
+  label bb_24
+  label _before_24_0
+  label _before_24_1
+  label _before_24_2
+  label _before_24_3
+  label _before_24_4
+  _tmp19 := p_UInt_usize_snap(_3p)
+  p_2_Tuple_assign(_41p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp19,
+    s_UInt_usize_cons(2)))
+  label _before_24_5
+  unfold acc(p_2_Tuple(_41p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_41p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_41p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp20 := p_Bool_snap(s_2_Tuple_field_1(_41p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_41p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp20 == false
+  label _after_24
+  _from_bb24_to_bb25 := true
+  goto bb_25
+  label bb_25
+  label _before_25_0
+  _tmp21 := p_UInt_usize_snap(s_2_Tuple_field_0(_41p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_41p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp21)
+  label _before_25_1
+  label _before_25_2
+  goto bb_term_25
+  label bb_term_25
+  p_UInt_u8_assign(_tmp22, s_UInt_u8_cons(58))
+  label pre42
+  make_generic_UInt_u8(_tmp22)
+  m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$new(_42p,
+    _tmp22, s_UInt_u8_type())
+  label post43
+  label _after_25
+  _from_bb25_to_bb26 := true
+  goto bb_26
+  label bb_26
+  label _before_26_0
+  label _before_26_1
+  _tmp23 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_43p, _tmp23)
+  label _before_26_2
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_26_3
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  _tmp24 := p_UInt_usize_snap(_43p)
+  p_Bool_assign(_44p, mir_binop_Lt_UInt_usize_UInt_usize(_tmp24, s_UInt_usize_cons(18)))
+  label _before_26_4
+  _tmp25 := p_Bool_snap(_44p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_44p), write)
+  exhale _tmp25 == true
+  label _after_26
+  _from_bb26_to_bb27 := true
+  goto bb_27
+  label bb_27
+  label _before_27_0
+  _tmp26 := p_core$col$$col$mem$col$$col$MaybeUninit_snap(_42p, s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_42p, s_UInt_u8_type()), write)
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Array_unfold_index(s_UInt_usize_value(p_UInt_usize_snap(_43p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_concrete_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_43p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_43p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type()), write)
+  p_core$col$$col$mem$col$$col$MaybeUninit_assign(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_43p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type(), _tmp26)
+  label _before_27_1
+  make_generic_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_43p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  p_Array_fold_index(s_UInt_usize_value(p_UInt_usize_snap(_43p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_27_2
+  label _before_27_3
+  _tmp27 := p_UInt_usize_snap(_3p)
+  p_2_Tuple_assign(_45p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp27,
+    s_UInt_usize_cons(1)))
+  label _before_27_4
+  unfold acc(p_2_Tuple(_45p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_45p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_45p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp28 := p_Bool_snap(s_2_Tuple_field_1(_45p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_45p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp28 == false
+  label _after_27
+  _from_bb27_to_bb28 := true
+  goto bb_28
+  label bb_28
+  label _before_28_0
+  _tmp29 := p_UInt_usize_snap(s_2_Tuple_field_0(_45p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_45p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp29)
+  label _before_28_1
+  label _before_28_2
+  label _before_28_3
+  label _before_28_4
+  label _before_28_5
+  label _before_28_6
+  label _before_28_7
+  label _before_28_8
+  label _before_28_9
+  _tmp30 := p_time$col$$col$Time_snap(_1p)
+  p_time$col$$col$Time_assign(_53p, _tmp30)
+  label _before_28_10
+  goto bb_term_28
+  label bb_term_28
+  label pre44
+  m_time$col$$col$Time$col$$col$second(_52p, _53p)
+  label post45
+  label _after_28
+  _from_bb28_to_bb29 := true
+  goto bb_29
+  label bb_29
+  label _before_29_0
+  label _before_29_1
+  goto bb_term_29
+  label bb_term_29
+  label pre46
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_51p,
+    _52p, s_UInt_u8_cons(0), s_UInt_u8_cons(59))
+  label post47
+  label _after_29
+  _from_bb29_to_bb30 := true
+  goto bb_30
+  label bb_30
+  label _before_30_0
+  label _before_30_1
+  goto bb_term_30
+  label bb_term_30
+  label pre48
+  m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$expand(_50p,
+    _51p, s_UInt_u8_cons(0), s_UInt_u8_cons(59), s_UInt_u8_cons(0), s_UInt_u8_cons(99))
+  label post49
+  label _after_30
+  _from_bb30_to_bb31 := true
+  goto bb_31
+  label bb_31
+  label _before_31_0
+  label _before_31_1
+  goto bb_term_31
+  label bb_term_31
+  label pre50
+  m_num_fmt$col$$col$two_digits_zero_padded(_49p, _50p)
+  label post51
+  label _after_31
+  _from_bb31_to_bb32 := true
+  goto bb_32
+  label bb_32
+  label _before_32_0
+  p_Ref_immutable_assign(_48p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_49p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_49p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_49p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_32_1
+  label _before_32_2
+  goto bb_term_32
+  label bb_term_32
+  label pre52
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_ptr(_47p, _48p)
+  label post53
+  label _after_32
+  _from_bb32_to_bb33 := true
+  goto bb_33
+  label bb_33
+  label _before_33_0
+  label _before_33_1
+  label _before_33_2
+  label _before_33_3
+  label _before_33_4
+  label _before_33_5
+  label _before_33_6
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Ref_mutable_assign(_58p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    make_generic_s_0_Tuple(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_1.make_concrete_s_0_Tuple),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))))
+  make_generic_Array(p_Ref_mutable_snap(_58p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_33_7
+  _tmp31 := p_Ref_mutable_snap(_58p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))) &&
+    acc(p_Ref_mutable(_58p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  mir_unsize_Ref_mutable_to_Ref_mutable(_tmp31, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  p_Ref_mutable_assign(_57p, s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    mir_cast_unsize_Ref_mutable_to_Ref_mutable(_tmp31, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))))
+  label _before_33_8
+  label _before_33_9
+  goto bb_term_33
+  label bb_term_33
+  label pre54
+  m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_mut_ptr(_56p,
+    _57p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post55
+  label _after_33
+  _from_bb33_to_bb34 := true
+  goto bb_34
+  label bb_34
+  label _before_34_0
+  mir_undo_unsize_Ref_mutable_to_Ref_mutable(old[_before_33_7](p_Ref_mutable_snap(_58p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  make_concrete_Array(old[_before_33_7](p_Ref_mutable_snap(old[_before_33_7](_58p),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0),
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_34_1
+  label _before_34_2
+  _tmp32 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_59p, _tmp32)
+  label _before_34_3
+  goto bb_term_34
+  label bb_term_34
+  label pre56
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$add(_55p,
+    _56p, _59p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post57
+  label _after_34
+  _from_bb34_to_bb35 := true
+  goto bb_35
+  label bb_35
+  label _before_35_0
+  label _before_35_1
+  label _before_35_2
+  goto bb_term_35
+  label bb_term_35
+  label pre58
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$cast(_54p,
+    _55p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_u8_type())
+  label post59
+  label _after_35
+  _from_bb35_to_bb36 := true
+  goto bb_36
+  label bb_36
+  label _before_36_0
+  label _before_36_1
+  goto bb_term_36
+  label bb_term_36
+  p_UInt_usize_assign(_tmp33, s_UInt_usize_cons(2))
+  label pre60
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$copy_to_nonoverlapping(_46p,
+    _47p, _54p, _tmp33, s_UInt_u8_type())
+  label post61
+  label _after_36
+  _from_bb36_to_bb37 := true
+  goto bb_37
+  label bb_37
+  label _before_37_0
+  label _before_37_1
+  label _before_37_2
+  label _before_37_3
+  label _before_37_4
+  _tmp34 := p_UInt_usize_snap(_3p)
+  p_2_Tuple_assign(_60p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp34,
+    s_UInt_usize_cons(2)))
+  label _before_37_5
+  unfold acc(p_2_Tuple(_60p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_60p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_60p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp35 := p_Bool_snap(s_2_Tuple_field_1(_60p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_60p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp35 == false
+  label _after_37
+  _from_bb37_to_bb38 := true
+  goto bb_38
+  label bb_38
+  label _before_38_0
+  _tmp36 := p_UInt_usize_snap(s_2_Tuple_field_0(_60p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_60p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp36)
+  label _before_38_1
+  label _before_38_2
+  goto bb_term_38
+  label bb_term_38
+  p_UInt_u8_assign(_tmp37, s_UInt_u8_cons(46))
+  label pre62
+  make_generic_UInt_u8(_tmp37)
+  m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$new(_61p,
+    _tmp37, s_UInt_u8_type())
+  label post63
+  label _after_38
+  _from_bb38_to_bb39 := true
+  goto bb_39
+  label bb_39
+  label _before_39_0
+  label _before_39_1
+  _tmp38 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_62p, _tmp38)
+  label _before_39_2
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_39_3
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  _tmp39 := p_UInt_usize_snap(_62p)
+  p_Bool_assign(_63p, mir_binop_Lt_UInt_usize_UInt_usize(_tmp39, s_UInt_usize_cons(18)))
+  label _before_39_4
+  _tmp40 := p_Bool_snap(_63p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_63p), write)
+  exhale _tmp40 == true
+  label _after_39
+  _from_bb39_to_bb40 := true
+  goto bb_40
+  label bb_40
+  label _before_40_0
+  _tmp41 := p_core$col$$col$mem$col$$col$MaybeUninit_snap(_61p, s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_61p, s_UInt_u8_type()), write)
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Array_unfold_index(s_UInt_usize_value(p_UInt_usize_snap(_62p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_concrete_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_62p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_62p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type()), write)
+  p_core$col$$col$mem$col$$col$MaybeUninit_assign(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_62p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type(), _tmp41)
+  label _before_40_1
+  make_generic_core$col$$col$mem$col$$col$MaybeUninit(s_Array_index_ref(p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_UInt_usize_value(p_UInt_usize_snap(_62p)), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  p_Array_fold_index(s_UInt_usize_value(p_UInt_usize_snap(_62p)), p_Ref_mutable_snap(_2p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_40_2
+  label _before_40_3
+  _tmp42 := p_UInt_usize_snap(_3p)
+  p_2_Tuple_assign(_64p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp42,
+    s_UInt_usize_cons(1)))
+  label _before_40_4
+  unfold acc(p_2_Tuple(_64p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_64p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_64p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp43 := p_Bool_snap(s_2_Tuple_field_1(_64p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_64p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp43 == false
+  label _after_40
+  _from_bb40_to_bb41 := true
+  goto bb_41
+  label bb_41
+  label _before_41_0
+  _tmp44 := p_UInt_usize_snap(s_2_Tuple_field_0(_64p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_64p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp44)
+  label _before_41_1
+  label _before_41_2
+  label _before_41_3
+  label _before_41_4
+  label _before_41_5
+  _tmp45 := p_time$col$$col$Time_snap(_1p)
+  p_time$col$$col$Time_assign(_68p, _tmp45)
+  label _before_41_6
+  goto bb_term_41
+  label bb_term_41
+  label pre64
+  m_time$col$$col$Time$col$$col$nanosecond(_67p, _68p)
+  label post65
+  label _after_41
+  _from_bb41_to_bb42 := true
+  goto bb_42
+  label bb_42
+  label _before_42_0
+  label _before_42_1
+  goto bb_term_42
+  label bb_term_42
+  label pre66
+  m_deranged$col$$col$RangedU32$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_66p,
+    _67p, s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))
+  label post67
+  label _after_42
+  _from_bb42_to_bb43 := true
+  goto bb_43
+  label bb_43
+  label _before_43_0
+  label _before_43_1
+  goto bb_term_43
+  label bb_term_43
+  label pre68
+  m_num_fmt$col$$col$truncated_subsecond_from_nanos(_65p, _66p)
+  label post69
+  label _after_43
+  _from_bb43_to_bb44 := true
+  goto bb_44
+  label bb_44
+  label _before_44_0
+  label _before_44_1
+  label _before_44_2
+  label _before_44_3
+  label _before_44_4
+  label _before_44_5
+  label _before_44_6
+  label _before_44_7
+  p_Ref_immutable_assign(_73p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)),
+    s_Ref_immutable_cons(_65p, make_generic_s_0_Tuple(s_0_Tuple_cons()), make_generic_s_num_fmt$col$$col$StackStr(p_num_fmt$col$$col$StackStr_snap(_65p,
+    s_UInt_usize_cons(9)), s_UInt_usize_cons(9))))
+  label _before_44_8
+  goto bb_term_44
+  label bb_term_44
+  label pre70
+  core$col$$col$ops$col$$col$Deref_fn_stub_core$col$$col$ops$col$$col$Deref$col$$col$deref(_72p,
+    _73p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)))
+  label post71
+  label _after_44
+  _from_bb44_to_bb45 := true
+  goto bb_45
+  label bb_45
+  label _before_45_0
+  p_Ref_immutable_assign(_71p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_72p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_72p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_72p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_45_1
+  label _before_45_2
+  goto bb_term_45
+  label bb_term_45
+  label pre72
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_ptr(_70p, _71p)
+  label post73
+  label _after_45
+  _from_bb45_to_bb46 := true
+  goto bb_46
+  label bb_46
+  label _before_46_0
+  label _before_46_1
+  label _before_46_2
+  label _before_46_3
+  label _before_46_4
+  label _before_46_5
+  label _before_46_6
+  make_concrete_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  p_Ref_mutable_assign(_78p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    make_generic_s_0_Tuple(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_1.make_concrete_s_0_Tuple),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))))
+  make_generic_Array(p_Ref_mutable_snap(_78p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_46_7
+  _tmp46 := p_Ref_mutable_snap(_78p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))) &&
+    acc(p_Ref_mutable(_78p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))), write)
+  mir_unsize_Ref_mutable_to_Ref_mutable(_tmp46, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  p_Ref_mutable_assign(_77p, s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())),
+    mir_cast_unsize_Ref_mutable_to_Ref_mutable(_tmp46, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))))
+  label _before_46_8
+  label _before_46_9
+  goto bb_term_46
+  label bb_term_46
+  label pre74
+  m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_mut_ptr(_76p,
+    _77p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post75
+  label _after_46
+  _from_bb46_to_bb47 := true
+  goto bb_47
+  label bb_47
+  label _before_47_0
+  mir_undo_unsize_Ref_mutable_to_Ref_mutable(old[_before_46_7](p_Ref_mutable_snap(_78p,
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)))),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18)),
+    s_Slice_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())))
+  make_concrete_Array(old[_before_46_7](p_Ref_mutable_snap(old[_before_46_7](_78p),
+    s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0),
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  make_generic_Array(p_Ref_mutable_snap(_2p, s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))).s_Ref_mutable_0,
+    s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(18))
+  label _before_47_1
+  label _before_47_2
+  _tmp47 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_79p, _tmp47)
+  label _before_47_3
+  goto bb_term_47
+  label bb_term_47
+  label pre76
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$add(_75p,
+    _76p, _79p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()))
+  label post77
+  label _after_47
+  _from_bb47_to_bb48 := true
+  goto bb_48
+  label bb_48
+  label _before_48_0
+  label _before_48_1
+  label _before_48_2
+  goto bb_term_48
+  label bb_term_48
+  label pre78
+  m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$cast(_74p,
+    _75p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_u8_type())
+  label post79
+  label _after_48
+  _from_bb48_to_bb49 := true
+  goto bb_49
+  label bb_49
+  label _before_49_0
+  label _before_49_1
+  label _before_49_2
+  label _before_49_3
+  label _before_49_4
+  label _before_49_5
+  p_Ref_immutable_assign(_83p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)),
+    s_Ref_immutable_cons(_65p, make_generic_s_0_Tuple(s_0_Tuple_cons()), make_generic_s_num_fmt$col$$col$StackStr(p_num_fmt$col$$col$StackStr_snap(_65p,
+    s_UInt_usize_cons(9)), s_UInt_usize_cons(9))))
+  label _before_49_6
+  goto bb_term_49
+  label bb_term_49
+  label pre80
+  core$col$$col$ops$col$$col$Deref_fn_stub_core$col$$col$ops$col$$col$Deref$col$$col$deref(_82p,
+    _83p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)))
+  label post81
+  label _after_49
+  _from_bb49_to_bb50 := true
+  goto bb_50
+  label bb_50
+  label _before_50_0
+  p_Ref_immutable_assign(_81p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_82p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_82p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_82p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_50_1
+  label _before_50_2
+  goto bb_term_50
+  label bb_term_50
+  label pre82
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$len(_80p, _81p)
+  label post83
+  label _after_50
+  _from_bb50_to_bb51 := true
+  goto bb_51
+  label bb_51
+  label _before_51_0
+  label _before_51_1
+  goto bb_term_51
+  label bb_term_51
+  label pre84
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$copy_to_nonoverlapping(_69p,
+    _70p, _74p, _80p, s_UInt_u8_type())
+  label post85
+  label _after_51
+  _from_bb51_to_bb52 := true
+  goto bb_52
+  label bb_52
+  label _before_52_0
+  label _before_52_1
+  label _before_52_2
+  label _before_52_3
+  label _before_52_4
+  label _before_52_5
+  label _before_52_6
+  label _before_52_7
+  label _before_52_8
+  label _before_52_9
+  label _before_52_10
+  p_Ref_immutable_assign(_87p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)),
+    s_Ref_immutable_cons(_65p, make_generic_s_0_Tuple(s_0_Tuple_cons()), make_generic_s_num_fmt$col$$col$StackStr(p_num_fmt$col$$col$StackStr_snap(_65p,
+    s_UInt_usize_cons(9)), s_UInt_usize_cons(9))))
+  label _before_52_11
+  goto bb_term_52
+  label bb_term_52
+  label pre86
+  core$col$$col$ops$col$$col$Deref_fn_stub_core$col$$col$ops$col$$col$Deref$col$$col$deref(_86p,
+    _87p, s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9)))
+  label post87
+  label _after_52
+  _from_bb52_to_bb53 := true
+  goto bb_53
+  label bb_53
+  label _before_53_0
+  p_Ref_immutable_assign(_85p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_86p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_86p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_86p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_53_1
+  label _before_53_2
+  goto bb_term_53
+  label bb_term_53
+  label pre88
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$len(_84p, _85p)
+  label post89
+  label _after_53
+  _from_bb53_to_bb54 := true
+  goto bb_54
+  label bb_54
+  label _before_54_0
+  label _before_54_1
+  _tmp48 := p_UInt_usize_snap(_3p)
+  _tmp49 := p_UInt_usize_snap(_84p)
+  p_2_Tuple_assign(_88p, s_UInt_usize_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_usize_UInt_usize(_tmp48,
+    _tmp49))
+  label _before_54_2
+  unfold acc(p_2_Tuple(_88p, s_UInt_usize_type(), s_Bool_type()), write)
+  make_concrete_UInt_usize(s_2_Tuple_field_0(_88p, s_UInt_usize_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_88p, s_UInt_usize_type(), s_Bool_type()))
+  _tmp50 := p_Bool_snap(s_2_Tuple_field_1(_88p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_88p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale _tmp50 == false
+  label _after_54
+  _from_bb54_to_bb55 := true
+  goto bb_55
+  label bb_55
+  label _before_55_0
+  _tmp51 := p_UInt_usize_snap(s_2_Tuple_field_0(_88p, s_UInt_usize_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_usize_type()) &&
+    acc(p_UInt_usize(s_2_Tuple_field_0(_88p, s_UInt_usize_type(), s_Bool_type())), write)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  p_UInt_usize_assign(_3p, _tmp51)
+  label _before_55_1
+  label _before_55_2
+  label _before_55_3
+  _tmp52 := p_UInt_usize_snap(_3p)
+  p_UInt_usize_assign(_0p, _tmp52)
+  label _before_55_4
+  label _before_55_5
+  label _before_55_6
+  label _before_55_7
+  label package_post90
+  goto end
+  label bb_56
+  assert false
+  goto end
+  label end
+}
+
+method m_time$col$$col$Time$col$$col$hour(_0p: Ref, _1p: Ref)
+  requires inhabited(s_time$col$$col$Time_type()) &&
+    acc(p_time$col$$col$Time(_1p), write)
+  ensures inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_0p), write)
+
+
+method m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_0p: Ref,
+  _1p: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8)
+  requires inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_1p), write)
+  ensures inhabited(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) &&
+    acc(p_deranged$col$$col$RangedU8(_0p, MIN$0, MAX$1), write)
+
+
+method m_deranged$col$$col$RangedU8$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$expand(_0p: Ref,
+  _1p: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8, NEW_MIN$2: s_UInt_u8, NEW_MAX$3: s_UInt_u8)
+  requires inhabited(s_deranged$col$$col$RangedU8_type(MIN$0, MAX$1)) &&
+    acc(p_deranged$col$$col$RangedU8(_1p, MIN$0, MAX$1), write)
+  ensures inhabited(s_deranged$col$$col$RangedU8_type(NEW_MIN$2, NEW_MAX$3)) &&
+    acc(p_deranged$col$$col$RangedU8(_0p, NEW_MIN$2, NEW_MAX$3), write)
+
+
+method m_num_fmt$col$$col$one_to_two_digits_no_padding(_0p: Ref, _1p: Ref)
+  requires inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(99))) &&
+    acc(p_deranged$col$$col$RangedU8(_1p, s_UInt_u8_cons(0), s_UInt_u8_cons(99)), write)
+  ensures inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+
+
+method m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_ptr(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  ensures inhabited(s_RawPtr_immutable_type(s_UInt_u8_type())) &&
+    acc(p_RawPtr_immutable(_0p, s_UInt_u8_type()), write)
+
+
+method m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_mut_ptr(_0p: Ref,
+  _1p: Ref, T$0: Type)
+  requires inhabited(s_Ref_mutable_type(s_Slice_type(T$0))) &&
+    acc(p_Ref_mutable(_1p, s_Slice_type(T$0)), write)
+  requires inhabited(s_Slice_type(T$0)) &&
+    acc(p_Param(p_Ref_mutable_snap(_1p, s_Slice_type(T$0)).s_Ref_mutable_0,
+    s_Slice_type(T$0)), write)
+  ensures inhabited(s_RawPtr_mutable_type(T$0)) &&
+    acc(p_RawPtr_mutable(_0p, T$0), write)
+  ensures inhabited(s_Slice_type(T$0)) &&
+    acc(p_Param(old(p_Ref_mutable_snap(_1p, s_Slice_type(T$0))).s_Ref_mutable_0,
+    s_Slice_type(T$0)), write)
+
+
+method m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$add(_0p: Ref,
+  _1p: Ref, _2p: Ref, T$0: Type)
+  requires inhabited(s_RawPtr_mutable_type(T$0)) &&
+    acc(p_RawPtr_mutable(_1p, T$0), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  ensures inhabited(s_RawPtr_mutable_type(T$0)) &&
+    acc(p_RawPtr_mutable(_0p, T$0), write)
+
+
+method m_core$col$$col$ptr$col$$col$mut_ptr$col$$col$$lt$impl$sp$$as$mut$sp$T$gt$$col$$col$cast(_0p: Ref,
+  _1p: Ref, T$0: Type, U$1: Type)
+  requires inhabited(s_RawPtr_mutable_type(T$0)) &&
+    acc(p_RawPtr_mutable(_1p, T$0), write)
+  ensures inhabited(s_RawPtr_mutable_type(U$1)) &&
+    acc(p_RawPtr_mutable(_0p, U$1), write)
+
+
+method m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$len(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  ensures inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+
+
+method m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$copy_to_nonoverlapping(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref, T$0: Type)
+  requires inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_1p, T$0), write)
+  requires inhabited(s_RawPtr_mutable_type(T$0)) &&
+    acc(p_RawPtr_mutable(_2p, T$0), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_3p), write)
+  ensures inhabited(s_0_Tuple_type()) && acc(p_0_Tuple(_0p), write)
+
+
+method m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$new(_0p: Ref,
+  _1p: Ref, T$0: Type)
+  requires inhabited(T$0) && acc(p_Param(_1p, T$0), write)
+  ensures inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_0p, T$0), write)
+
+
+method m_time$col$$col$Time$col$$col$minute(_0p: Ref, _1p: Ref)
+  requires inhabited(s_time$col$$col$Time_type()) &&
+    acc(p_time$col$$col$Time(_1p), write)
+  ensures inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_0p), write)
+
+
+method m_num_fmt$col$$col$two_digits_zero_padded(_0p: Ref, _1p: Ref)
+  requires inhabited(s_deranged$col$$col$RangedU8_type(s_UInt_u8_cons(0), s_UInt_u8_cons(99))) &&
+    acc(p_deranged$col$$col$RangedU8(_1p, s_UInt_u8_cons(0), s_UInt_u8_cons(99)), write)
+  ensures inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+
+
+method m_time$col$$col$Time$col$$col$second(_0p: Ref, _1p: Ref)
+  requires inhabited(s_time$col$$col$Time_type()) &&
+    acc(p_time$col$$col$Time(_1p), write)
+  ensures inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_0p), write)
+
+
+method m_time$col$$col$Time$col$$col$nanosecond(_0p: Ref, _1p: Ref)
+  requires inhabited(s_time$col$$col$Time_type()) &&
+    acc(p_time$col$$col$Time(_1p), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+
+
+method m_deranged$col$$col$RangedU32$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$new_unchecked(_0p: Ref,
+  _1p: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32)
+  requires inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_1p), write)
+  ensures inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) &&
+    acc(p_deranged$col$$col$RangedU32(_0p, MIN$0, MAX$1), write)
+
+
+method m_num_fmt$col$$col$truncated_subsecond_from_nanos(_0p: Ref, _1p: Ref)
+  requires inhabited(s_deranged$col$$col$RangedU32_type(s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))) &&
+    acc(p_deranged$col$$col$RangedU32(_1p, s_UInt_u32_cons(0), s_UInt_u32_cons(999999999)), write)
+  ensures inhabited(s_num_fmt$col$$col$StackStr_type(s_UInt_usize_cons(9))) &&
+    acc(p_num_fmt$col$$col$StackStr(_0p, s_UInt_usize_cons(9)), write)
+
+
+method mir_unsize_Ref_mutable_to_Ref_mutable(src: s_Ref_mutable, U$0: Type,
+  V$1: Type)
+  requires inhabited(U$0) && acc(p_Param(src.s_Ref_mutable_0, U$0), write)
+  ensures inhabited(V$1) && acc(p_Param(src.s_Ref_mutable_0, V$1), write)
+  ensures p_Param_snap(src.s_Ref_mutable_0, V$1) ==
+    unsize_value_cast(old(p_Param_snap(src.s_Ref_mutable_0, U$0)), U$0, V$1)
+
+
+method mir_undo_unsize_Ref_mutable_to_Ref_mutable(src: s_Ref_mutable, U$0: Type,
+  V$1: Type)
+  requires inhabited(V$1) && acc(p_Param(src.s_Ref_mutable_0, V$1), write)
+  ensures inhabited(U$0) && acc(p_Param(src.s_Ref_mutable_0, U$0), write)
+  ensures old(p_Param_snap(src.s_Ref_mutable_0, V$1)) ==
+    unsize_value_cast(p_Param_snap(src.s_Ref_mutable_0, U$0), U$0, V$1)
+
+
+method make_generic_UInt_u32(self: Ref)
+  requires acc(p_UInt_u32(self), write)
+  ensures acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures old(make_generic_s_UInt_u32(p_UInt_u32_snap(self))) ==
+    p_Param_snap(self, s_UInt_u32_type())
+
+
+method make_concrete_UInt_u32(self: Ref)
+  requires acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures acc(p_UInt_u32(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u32_type())) ==
+    make_generic_s_UInt_u32(p_UInt_u32_snap(self))
+
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method make_generic_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures old(make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)) ==
+    p_Param_snap(self, s_Array_type(U$1, M$0))
+
+
+method make_concrete_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures old(p_Param_snap(self, s_Array_type(U$1, M$0))) ==
+    make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)
+
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method make_generic_Slice(self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures old(make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)) ==
+    p_Param_snap(self, s_Slice_type(T$0))
+
+
+method make_concrete_Slice(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures old(p_Param_snap(self, s_Slice_type(T$0))) ==
+    make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)
+
+
+method make_generic_UInt_usize(self: Ref)
+  requires acc(p_UInt_usize(self), write)
+  ensures acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures old(make_generic_s_UInt_usize(p_UInt_usize_snap(self))) ==
+    p_Param_snap(self, s_UInt_usize_type())
+
+
+method make_concrete_UInt_usize(self: Ref)
+  requires acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures acc(p_UInt_usize(self), write)
+  ensures old(p_Param_snap(self, s_UInt_usize_type())) ==
+    make_generic_s_UInt_usize(p_UInt_usize_snap(self))
+
+
+method make_generic_Bool(self: Ref)
+  requires acc(p_Bool(self), write)
+  ensures acc(p_Param(self, s_Bool_type()), write)
+  ensures old(make_generic_s_Bool(p_Bool_snap(self))) ==
+    p_Param_snap(self, s_Bool_type())
+
+
+method make_concrete_Bool(self: Ref)
+  requires acc(p_Param(self, s_Bool_type()), write)
+  ensures acc(p_Bool(self), write)
+  ensures old(p_Param_snap(self, s_Bool_type())) ==
+    make_generic_s_Bool(p_Bool_snap(self))
+
+
+method make_generic_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type)
+  requires acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures acc(p_Param(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)), write)
+  ensures old(make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p_core$col$$col$mem$col$$col$MaybeUninit_snap(self,
+    T$0), T$0)) ==
+    p_Param_snap(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))
+
+
+method make_concrete_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)), write)
+  ensures acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures old(p_Param_snap(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))) ==
+    make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p_core$col$$col$mem$col$$col$MaybeUninit_snap(self,
+    T$0), T$0)
+
+
+method make_generic_num_fmt$col$$col$StackStr(self: Ref, MAX_LEN$0: s_UInt_usize)
+  requires acc(p_num_fmt$col$$col$StackStr(self, MAX_LEN$0), write)
+  ensures acc(p_Param(self, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)), write)
+  ensures old(make_generic_s_num_fmt$col$$col$StackStr(p_num_fmt$col$$col$StackStr_snap(self,
+    MAX_LEN$0), MAX_LEN$0)) ==
+    p_Param_snap(self, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0))
+
+
+method make_concrete_num_fmt$col$$col$StackStr(self: Ref, MAX_LEN$0: s_UInt_usize)
+  requires acc(p_Param(self, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0)), write)
+  ensures acc(p_num_fmt$col$$col$StackStr(self, MAX_LEN$0), write)
+  ensures old(p_Param_snap(self, s_num_fmt$col$$col$StackStr_type(MAX_LEN$0))) ==
+    make_generic_s_num_fmt$col$$col$StackStr(p_num_fmt$col$$col$StackStr_snap(self,
+    MAX_LEN$0), MAX_LEN$0)
+
+
+method make_generic_Ref_immutable(self: Ref, U$1: Type)
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures acc(p_Param(self, s_Ref_immutable_type(U$1)), write)
+  ensures old(make_generic_s_Ref_immutable(p_Ref_immutable_snap(self, U$1), U$1)) ==
+    p_Param_snap(self, s_Ref_immutable_type(U$1))
+
+
+method make_concrete_Ref_immutable(self: Ref, U$1: Type)
+  requires acc(p_Param(self, s_Ref_immutable_type(U$1)), write)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures old(p_Param_snap(self, s_Ref_immutable_type(U$1))) ==
+    make_generic_s_Ref_immutable(p_Ref_immutable_snap(self, U$1), U$1)
+
+
+method make_generic_Ref_mutable(self: Ref, U$1: Type)
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures acc(p_Param(self, s_Ref_mutable_type(U$1)), write)
+  ensures old(make_generic_s_Ref_mutable(p_Ref_mutable_snap(self, U$1), U$1)) ==
+    p_Param_snap(self, s_Ref_mutable_type(U$1))
+
+
+method make_concrete_Ref_mutable(self: Ref, U$1: Type)
+  requires acc(p_Param(self, s_Ref_mutable_type(U$1)), write)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures old(p_Param_snap(self, s_Ref_mutable_type(U$1))) ==
+    make_generic_s_Ref_mutable(p_Ref_mutable_snap(self, U$1), U$1)
+
+
+method make_generic_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self: Ref,
+  T$0: Type)
+  requires acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+  ensures acc(p_Param(self, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)), write)
+  ensures old(make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self,
+    T$0), T$0)) ==
+    p_Param_snap(self, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0))
+
+
+method make_concrete_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self: Ref,
+  T$0: Type)
+  requires acc(p_Param(self, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)), write)
+  ensures acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+  ensures old(p_Param_snap(self, s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0))) ==
+    make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self,
+    T$0), T$0)
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_time$col$$col$Time_assign(self: Ref, value: s_time$col$$col$Time)
+  ensures acc(p_time$col$$col$Time(self), write)
+  ensures p_time$col$$col$Time_snap(self) == value
+
+
+method p_deranged$col$$col$RangedU32_assign(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32,
+  value: s_deranged$col$$col$RangedU32)
+  ensures acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write)
+  ensures p_deranged$col$$col$RangedU32_snap(self, MIN$0, MAX$1) == value
+
+
+method p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_assign(self: Ref,
+  T$0: Type, value: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+  ensures acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+  ensures p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self, T$0) ==
+    value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_deranged$col$$col$RangedU8_assign(self: Ref, MIN$0: s_UInt_u8, MAX$1: s_UInt_u8,
+  value: s_deranged$col$$col$RangedU8)
+  ensures acc(p_deranged$col$$col$RangedU8(self, MIN$0, MAX$1), write)
+  ensures p_deranged$col$$col$RangedU8_snap(self, MIN$0, MAX$1) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_time$col$$col$Padding_assign(self: Ref, value: s_time$col$$col$Padding)
+  ensures acc(p_time$col$$col$Padding(self), write)
+  ensures p_time$col$$col$Padding_snap(self) == value
+
+
+method p_Ref_mutable_assign(self: Ref, U$1: Type, value: s_Ref_mutable)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures p_Ref_mutable_snap(self, U$1) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method p_0_Tuple_assign(self: Ref, value: s_0_Tuple)
+  ensures acc(p_0_Tuple(self), write)
+  ensures p_0_Tuple_snap(self) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_RawPtr_mutable_assign(self: Ref, T$0: Type, value: s_RawPtr_mutable)
+  ensures acc(p_RawPtr_mutable(self, T$0), write)
+  ensures p_RawPtr_mutable_snap(self, T$0) == value
+
+
+method p_Slice_assign(self: Ref, T$0: Type, value: s_Slice)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures p_Slice_snap(self, T$0) == value
+
+
+method p_Slice_fold_index(index: Int, self: Ref, T$0: Type)
+  requires inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  requires acc(p_Slice_index(self, index, T$0), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures (forall idx: Int ::
+      { s_Slice_index(p_Slice_snap(self, T$0), idx) }
+      s_Slice_index(p_Slice_snap(self, T$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0)) :
+        old(s_Slice_index(p_Slice_index_frame(self, index, T$0), idx))))
+
+
+method p_Slice_unfold_index(index: Int, self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  ensures acc(p_Slice_index(self, index, T$0), write)
+  ensures p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0) ==
+    old(s_Slice_index(p_Slice_snap(self, T$0), index))
+  ensures p_Slice_index_frame(self, index, T$0) ==
+    old(p_Slice_snap(self, T$0))
+
+
+method p_2_Tuple_assign(self: Ref, T$0: Type, U$1: Type, value: s_2_Tuple)
+  ensures acc(p_2_Tuple(self, T$0, U$1), write)
+  ensures p_2_Tuple_snap(self, T$0, U$1) == value
+
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_core$col$$col$mem$col$$col$MaybeUninit_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$mem$col$$col$MaybeUninit)
+  ensures acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures p_core$col$$col$mem$col$$col$MaybeUninit_snap(self, T$0) == value
+
+
+method p_num_fmt$col$$col$StackStr_assign(self: Ref, MAX_LEN$0: s_UInt_usize,
+  value: s_num_fmt$col$$col$StackStr)
+  ensures acc(p_num_fmt$col$$col$StackStr(self, MAX_LEN$0), write)
+  ensures p_num_fmt$col$$col$StackStr_snap(self, MAX_LEN$0) == value
+
+
+method core$col$$col$ops$col$$col$Deref_fn_stub_core$col$$col$ops$col$$col$Deref$col$$col$deref(_0p: Ref,
+  _1p: Ref, Self$0: Type)
+  requires inhabited(s_Ref_immutable_type(Self$0)) &&
+    acc(p_Ref_immutable(_1p, Self$0), write)
+  requires core$col$$col$ops$col$$col$Deref_fn_pre_core$col$$col$ops$col$$col$Deref$col$$col$deref(p_Ref_immutable_snap(_1p,
+    Self$0), Self$0)
+  ensures inhabited(s_Ref_immutable_type(core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(Self$0))) &&
+    acc(p_Ref_immutable(_0p, core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(Self$0)), write)
+  ensures core$col$$col$ops$col$$col$Deref_fn_post_core$col$$col$ops$col$$col$Deref$col$$col$deref(p_Ref_immutable_snap(_0p,
+    core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(Self$0)),
+    old(p_Ref_immutable_snap(_1p, Self$0)), Self$0)
+
+
+adt s_Param {
+  make_generic_s_UInt_u32(make_concrete_s_UInt_u32: s_UInt_u32)
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  make_generic_s_Array(make_concrete_s_Array: s_Array, make_generic_s_Array_typaram_U$1: Type,
+  make_generic_s_Array_constparam_M$0: s_UInt_usize)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_Slice(make_concrete_s_Slice: s_Slice, make_generic_s_Slice_typaram_T$0: Type)
+  make_generic_s_Bool(make_concrete_s_Bool: Bool)
+  make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit: s_core$col$$col$mem$col$$col$MaybeUninit,
+  make_generic_s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0: Type)
+  make_generic_s_num_fmt$col$$col$StackStr(make_concrete_s_num_fmt$col$$col$StackStr: s_num_fmt$col$$col$StackStr,
+  make_generic_s_num_fmt$col$$col$StackStr_constparam_MAX_LEN$0: s_UInt_usize)
+  make_generic_s_Ref_immutable(make_concrete_s_Ref_immutable: s_Ref_immutable,
+  make_generic_s_Ref_immutable_typaram_U$1: Type)
+  make_generic_s_Ref_mutable(make_concrete_s_Ref_mutable: s_Ref_mutable, make_generic_s_Ref_mutable_typaram_U$1: Type)
+  make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(make_concrete_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe,
+  make_generic_s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_typaram_T$0: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_time$col$$col$Time {
+  s_time$col$$col$Time_cons(s_time$col$$col$Time_0: s_deranged$col$$col$RangedU32,
+  s_time$col$$col$Time_1: s_deranged$col$$col$RangedU8, s_time$col$$col$Time_2: s_deranged$col$$col$RangedU8,
+  s_time$col$$col$Time_3: s_deranged$col$$col$RangedU8, s_time$col$$col$Time_4: s_time$col$$col$Padding)
+}
+
+adt s_deranged$col$$col$RangedU32 {
+  s_deranged$col$$col$RangedU32_cons(s_deranged$col$$col$RangedU32_0: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+}
+
+adt s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+  s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_cons(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_0: s_Param)
+}
+
+adt s_deranged$col$$col$RangedU8 {
+  s_deranged$col$$col$RangedU8_cons(s_deranged$col$$col$RangedU8_0: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+}
+
+adt s_time$col$$col$Padding {
+  s_time$col$$col$Padding_0_cons()
+}
+
+adt s_Ref_mutable {
+  s_Ref_mutable_cons(s_Ref_mutable_0: Ref, s_Ref_mutable_1: s_Param, s_Ref_mutable_2: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_RawPtr_mutable {
+  s_RawPtr_mutable_cons(s_RawPtr_mutable_0: Ref, s_RawPtr_mutable_1: s_Param)
+}
+
+adt s_2_Tuple {
+  s_2_Tuple_cons(s_2_Tuple_0: s_Param, s_2_Tuple_1: s_Param)
+}
+
+adt s_num_fmt$col$$col$StackStr {
+  s_num_fmt$col$$col$StackStr_cons(s_num_fmt$col$$col$StackStr_0: s_Array, s_num_fmt$col$$col$StackStr_1: s_UInt_usize)
+}
+
+adt Type {
+  s_UInt_usize_type()
+  s_UInt_u32_type()
+  s_UInt_u8_type()
+  s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_typaram_T$0: Type)
+  s_deranged$col$$col$RangedU32_type(s_deranged$col$$col$RangedU32_constparam_MIN$0: s_UInt_u32,
+  s_deranged$col$$col$RangedU32_constparam_MAX$1: s_UInt_u32)
+  s_deranged$col$$col$RangedU8_type(s_deranged$col$$col$RangedU8_constparam_MIN$0: s_UInt_u8,
+  s_deranged$col$$col$RangedU8_constparam_MAX$1: s_UInt_u8)
+  s_time$col$$col$Padding_type()
+  s_time$col$$col$Time_type()
+  s_Ref_mutable_type(s_Ref_mutable_typaram_U$1: Type)
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_core$col$$col$mem$col$$col$MaybeUninit_type(s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0: Type)
+  s_0_Tuple_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Str_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_RawPtr_mutable_type(s_RawPtr_mutable_typaram_T$0: Type)
+  s_Slice_type(s_Slice_typaram_T$0: Type)
+  s_2_Tuple_type(s_2_Tuple_typaram_T$0: Type, s_2_Tuple_typaram_U$1: Type)
+  s_Bool_type()
+  s_num_fmt$col$$col$StackStr_type(s_num_fmt$col$$col$StackStr_constparam_MAX_LEN$0: s_UInt_usize)
+  Unknown_type(id: Int)
+}

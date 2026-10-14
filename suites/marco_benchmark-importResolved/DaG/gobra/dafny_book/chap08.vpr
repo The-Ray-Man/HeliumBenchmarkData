@@ -1,0 +1,3904 @@
+domain ADT$List_9bd3b639_T  {
+  
+  function ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA: Int, tailA: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T 
+  
+  unique function ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag(): Int 
+  
+  function ADT$List_9bd3b639_T_Nil_9bd3b639_F(): ADT$List_9bd3b639_T 
+  
+  unique function ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag(): Int 
+  
+  function ADT$List_9bd3b639_T_dflt(): ADT$List_9bd3b639_T 
+  
+  function ADT$List_9bd3b639_T_headA(t: ADT$List_9bd3b639_T): Int 
+  
+  function ADT$List_9bd3b639_T_tag(t: ADT$List_9bd3b639_T): Int 
+  
+  function ADT$List_9bd3b639_T_tailA(t: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T 
+  
+  function rank$ADT$List_9bd3b639_T(x: ADT$List_9bd3b639_T): Int 
+  
+  axiom {
+    (forall headA: Int, tailA: ADT$List_9bd3b639_T ::
+      { ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA, tailA) }
+      ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA, tailA)) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      ADT$List_9bd3b639_T_headA(ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA, tailA)) ==
+      headA &&
+      ADT$List_9bd3b639_T_tailA(ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA, tailA)) ==
+      tailA)
+  }
+  
+  axiom {
+    (forall headA: Int, tailA: ADT$List_9bd3b639_T ::
+      { rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA,
+      tailA)) }
+      rank$ADT$List_9bd3b639_T(tailA) <
+      rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_Cons_9bd3b639_F(headA, tailA)))
+  }
+  
+  axiom {
+    (forall t: ADT$List_9bd3b639_T ::
+      { ADT$List_9bd3b639_T_headA(t) }
+      { ADT$List_9bd3b639_T_tailA(t) }
+      ADT$List_9bd3b639_T_tag(t) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() ==>
+      t ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F(ADT$List_9bd3b639_T_headA(t), ADT$List_9bd3b639_T_tailA(t)))
+  }
+  
+  axiom {
+    (forall t: ADT$List_9bd3b639_T ::
+      { ADT$List_9bd3b639_T_tag(t) }
+      t ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F(ADT$List_9bd3b639_T_headA(t), ADT$List_9bd3b639_T_tailA(t)) ||
+      t == ADT$List_9bd3b639_T_Nil_9bd3b639_F())
+  }
+  
+  axiom {
+    (forall x: ADT$List_9bd3b639_T ::
+      { rank$ADT$List_9bd3b639_T(x) }
+      0 <= rank$ADT$List_9bd3b639_T(x))
+  }
+  
+  axiom {
+    ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_Nil_9bd3b639_F()) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+}
+
+domain String  {
+  
+  function strConcat(l: Int, r: Int): Int 
+  
+  function strLen(id: Int): Int 
+  
+  unique function stringLit(): Int 
+  
+  axiom {
+    (forall l: Int, r: Int ::
+      { strLen(strConcat(l, r)) }
+      strLen(strConcat(l, r)) == strLen(l) + strLen(r))
+  }
+  
+  axiom {
+    (forall str: Int :: { strLen(str) } 0 <= strLen(str))
+  }
+  
+  axiom {
+    strLen(stringLit()) == 0
+  }
+}
+
+domain Tuple0  {
+  
+  function tuple0(): Tuple0 
+}
+
+domain Tuple2[T0, T1]  {
+  
+  function get0of2(p: Tuple2[T0, T1]): T0 
+  
+  function get1of2(p: Tuple2[T0, T1]): T1 
+  
+  function tuple2(t0: T0, t1: T1): Tuple2[T0, T1] 
+  
+  axiom getter_over_tuple2 {
+    (forall t0: T0, t1: T1 ::
+      { (tuple2(t0, t1): Tuple2[T0, T1]) }
+      (get0of2((tuple2(t0, t1): Tuple2[T0, T1])): T0) == t0 &&
+      (get1of2((tuple2(t0, t1): Tuple2[T0, T1])): T1) == t1)
+  }
+  
+  axiom tuple2_over_getter {
+    (forall p: Tuple2[T0, T1] ::
+      { (get0of2(p): T0) }
+      { (get1of2(p): T1) }
+      (tuple2((get0of2(p): T0), (get1of2(p): T1)): Tuple2[T0, T1]) == p)
+  }
+}
+
+domain Types  {
+  
+  function behavioral_subtype_Types(l: Types, r: Types): Bool 
+  
+  function comparableType_Types(t: Types): Bool 
+  
+  function empty_interface_Types(): Types 
+  
+  unique function empty_interface_Types_tag(): Int 
+  
+  function nil_Types(): Types 
+  
+  unique function nil_Types_tag(): Int 
+  
+  function tag_Types(t: Types): Int 
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, a) }
+      behavioral_subtype_Types(a, a))
+  }
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, empty_interface_Types()) }
+      behavioral_subtype_Types(a, empty_interface_Types()))
+  }
+  
+  axiom {
+    (forall a: Types, b: Types, c: Types ::
+      { behavioral_subtype_Types(a, b), behavioral_subtype_Types(b, c) }
+      behavioral_subtype_Types(a, b) && behavioral_subtype_Types(b, c) ==>
+      behavioral_subtype_Types(a, c))
+  }
+  
+  axiom {
+    comparableType_Types(empty_interface_Types()) == false
+  }
+  
+  axiom {
+    comparableType_Types(nil_Types()) == true
+  }
+  
+  axiom {
+    tag_Types(empty_interface_Types()) == empty_interface_Types_tag()
+  }
+  
+  axiom {
+    tag_Types(nil_Types()) == nil_Types_tag()
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function bounded(arg1: T): Bool 
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AppendAssociative_9bd3b639_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  zs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Append_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), zs_V0) ==
+    Append_9bd3b639_MList(xs_V0, Append_9bd3b639_MList(ys_V0, zs_V0))
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          AppendAssociative_9bd3b639_F(tail_V1, ys_V0, zs_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(a_V0)
+function AppendDecomposition_9bd3b639_F(a_V0: ADT$List_9bd3b639_T, b_V0: ADT$List_9bd3b639_T,
+  c_V0: ADT$List_9bd3b639_T, d_V0: ADT$List_9bd3b639_T): Tuple0
+  requires Length_9bd3b639_MList(a_V0) == Length_9bd3b639_MList(c_V0)
+  requires Append_9bd3b639_MList(a_V0, b_V0) ==
+    Append_9bd3b639_MList(c_V0, d_V0)
+  ensures a_V0 == c_V0 && b_V0 == d_V0
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(a_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(a_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(a_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(a_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_9bd3b639_T_tailA(a_V0)) in
+        AppendDecomposition_9bd3b639_F(tail_V1, b_V0, ADT$List_9bd3b639_T_tailA(c_V0),
+        d_V0)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AppendNil_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Append_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F()) ==
+    xs_V0
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          AppendNil_9bd3b639_MList(tail_V1))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AppendTakeDrop_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+  ensures Append_9bd3b639_MList(Take_9bd3b639_MList(xs_V0, n_V0), Drop_9bd3b639_MList(xs_V0,
+    n_V0)) ==
+    xs_V0
+{
+  (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    AppendTakeDrop_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Append_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+  ensures Length_9bd3b639_MList(result) ==
+    Length_9bd3b639_MList(xs_V0) + Length_9bd3b639_MList(ys_V0)
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ys_V0 :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, Append_9bd3b639_MList(tail_V1,
+          ys_V0)))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AtAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  requires i_V0 <
+    Length_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0))
+  ensures At_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), i_V0) ==
+    (i_V0 < Length_9bd3b639_MList(xs_V0) ?
+      At_9bd3b639_MList(xs_V0, i_V0) :
+      At_9bd3b639_MList(ys_V0, i_V0 - Length_9bd3b639_MList(xs_V0)))
+{
+  (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  i_V0 == 0 ?
+    tuple0() :
+    AtAppend_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), ys_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AtDropHead_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  requires i_V0 < Length_9bd3b639_MList(xs_V0)
+  ensures At_9bd3b639_MList(xs_V0, i_V0) ==
+    ADT$List_9bd3b639_T_headA(Drop_9bd3b639_MList(xs_V0, i_V0))
+{
+  (i_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    AtDropHead_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), i_V0 - 1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function AtFind_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int): Tuple0
+  ensures Find_9bd3b639_MList(xs_V0, y_V0) == Length_9bd3b639_MList(xs_V0) ||
+    At_9bd3b639_MList(xs_V0, Find_9bd3b639_MList(xs_V0, y_V0)) == y_V0
+{
+  (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_headA(xs_V0) == y_V0 ?
+    tuple0() :
+    AtFind_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), y_V0))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function At_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, i_V0: Int): Int
+  requires i_V0 >= 0
+  requires i_V0 < Length_9bd3b639_MList(xs_V0)
+{
+  (i_V0 == 0 ?
+    ADT$List_9bd3b639_T_headA(xs_V0) :
+    At_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), i_V0 - 1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function BeforeFind_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  ensures i_V0 < Find_9bd3b639_MList(xs_V0, y_V0) ==>
+    !(At_9bd3b639_MList(xs_V0, i_V0) == y_V0)
+{
+  (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_headA(xs_V0) == y_V0 ||
+  i_V0 == 0 ||
+  i_V0 >= Length_9bd3b639_MList(xs_V0) ?
+    tuple0() :
+    BeforeFind_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), y_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Count_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, p_V0: Int): Int
+  ensures result >= 0
+{
+  assertArg2_Int(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    0 :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (head_V1 == p_V0 ? 1 : 0) + Count_9eae4def_F(tail_V1, p_V0))) :
+      0)))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Drop_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): ADT$List_9bd3b639_T
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  (n_V0 == 0 ?
+    xs_V0 :
+    Drop_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1))
+}
+
+function F_9bd3b639_F(x_V0: Int, y_V0: Int): Int
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function FindAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  y_V0: Int): Tuple0
+  ensures Find_9bd3b639_MList(xs_V0, y_V0) == Length_9bd3b639_MList(xs_V0) ||
+    Find_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), y_V0) ==
+    Find_9bd3b639_MList(xs_V0, y_V0)
+{
+  (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    FindAppend_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), ys_V0, y_V0))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function FindDrop_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  ensures i_V0 <= Find_9bd3b639_MList(xs_V0, y_V0) ==>
+    Find_9bd3b639_MList(xs_V0, y_V0) ==
+    Find_9bd3b639_MList(Drop_9bd3b639_MList(xs_V0, i_V0), y_V0) + i_V0
+{
+  (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  i_V0 == 0 ?
+    tuple0() :
+    FindDrop_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), y_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Find_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int): Int
+  ensures result >= 0
+  ensures result <= Length_9bd3b639_MList(xs_V0)
+{
+  assertArg2_Int(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    0 :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (head_V1 == y_V0 ? 0 : 1 + Find_9bd3b639_MList(tail_V1, y_V0)))) :
+      0)))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Insert_9eae4def_F(y_V0: Int, xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F()) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (y_V0 < head_V1 ?
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0, xs_V0) :
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, Insert_9eae4def_F(y_V0,
+            tail_V1))))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function InsertionSort_9eae4def_F(xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          Insert_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1)))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+function IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]): Bool
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+
+
+// decreases _
+function L_9bd3b639_F(): Int
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0)) ==
+    Length_9bd3b639_MList(xs_V0) + Length_9bd3b639_MList(ys_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          LengthAppend_9bd3b639_MList(tail_V1, ys_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthEqualsLengthPrime_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(xs_V0) == LengthPrime_9bd3b639_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+        LengthEqualsLengthPrime_9bd3b639_MList(tail_V1)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthPrime_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Int
+{
+  (xs_V0 == ADT$List_9bd3b639_T_Nil_9bd3b639_F() ?
+    0 :
+    1 + LengthPrime_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0)))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthReverseAlternative_9bd3b639_F(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(Reverse_9bd3b639_MList(xs_V0)) ==
+    Length_9bd3b639_MList(xs_V0)
+{
+  LengthReverseAux_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F())
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthReverseAux_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ac_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(ReverseAux_9bd3b639_MList(xs_V0, ac_V0)) ==
+    Length_9bd3b639_MList(xs_V0) + Length_9bd3b639_MList(ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (LengthReverseAux_9bd3b639_MList(tail_V1, ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+            ac_V0))) in
+            asserting_9bd3b639_F(Length_9bd3b639_MList(ReverseAux_9bd3b639_MList(tail_V1,
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, ac_V0))) ==
+            Length_9bd3b639_MList(tail_V1) +
+            Length_9bd3b639_MList(ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+            ac_V0)))))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthReverse_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(Reverse_9bd3b639_MList(xs_V0)) ==
+    Length_9bd3b639_MList(xs_V0)
+{
+  (let __V1 ==
+    (ReverseCorrect_9bd3b639_MList(xs_V0)) in
+    LengthSlowReverse_9bd3b639_MList(xs_V0))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthSlowReverse_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Length_9bd3b639_MList(SlowReverse_9bd3b639_MList(xs_V0)) ==
+    Length_9bd3b639_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (LengthSnoc_9bd3b639_MList(SlowReverse_9bd3b639_MList(tail_V1),
+            head_V1)) in
+            LengthSlowReverse_9bd3b639_MList(tail_V1)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LengthSnoc_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, x_V0: Int): Tuple0
+  ensures Length_9bd3b639_MList(Snoc_9bd3b639_MList(xs_V0, x_V0)) ==
+    Length_9bd3b639_MList(xs_V0) + 1
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+        LengthSnoc_9bd3b639_MList(tail_V1, x_V0)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Length_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Int
+  ensures result >= 0
+{
+  assertArg2_Int(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    0 :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+        1 + Length_9bd3b639_MList(tail_V1)) :
+      0)))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LiberalDrop_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): ADT$List_9bd3b639_T
+  requires n_V0 >= 0
+{
+  (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    xs_V0 :
+    LiberalDrop_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function LiberalTake_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): ADT$List_9bd3b639_T
+  requires n_V0 >= 0
+{
+  (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F(ADT$List_9bd3b639_T_headA(xs_V0), LiberalTake_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0),
+    n_V0 - 1)))
+}
+
+// decreases length_V0
+function MergeSortAux_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, length_V0: Int): ADT$List_9bd3b639_T
+  requires length_V0 >= 0
+  requires length_V0 == Length_9bd3b639_MList(xs_V0)
+{
+  (length_V0 < 2 ?
+    xs_V0 :
+    (let lr_V3 ==
+      (Split_9eae4def_F(xs_V0, length_V0 / 2)) in
+      (let left_V1 ==
+        ((get0of2(lr_V3): ADT$List_9bd3b639_T)) in
+        (let right_V2 ==
+          ((get1of2(lr_V3): ADT$List_9bd3b639_T)) in
+          Merge_9eae4def_F(MergeSortAux_9eae4def_F(left_V1, length_V0 / 2),
+          MergeSortAux_9eae4def_F(right_V2, length_V0 - length_V0 / 2))))))
+}
+
+// decreases Length_9bd3b639_MList(xs_V0)
+function MergeSortPrime_9eae4def_F(xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  (Length_9bd3b639_MList(xs_V0) < 2 ?
+    xs_V0 :
+    (let pair_V1 ==
+      (SplitPrime_9eae4def_F(xs_V0, xs_V0)) in
+      Merge_9eae4def_F(MergeSortPrime_9eae4def_F((get0of2(pair_V1): ADT$List_9bd3b639_T)),
+      MergeSortPrime_9eae4def_F((get1of2(pair_V1): ADT$List_9bd3b639_T)))))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function MergeSort_9eae4def_F(xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  MergeSortAux_9eae4def_F(xs_V0, Length_9bd3b639_MList(xs_V0))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0) + rank$ADT$List_9bd3b639_T(ys_V0)
+function Merge_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(ys_V0) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+    ADT$List_9bd3b639_T_tag(ys_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true, (ADT$List_9bd3b639_T_tag(ys_V0) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+      (ADT$List_9bd3b639_T_tag(ys_V0) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      true &&
+      true ?
+        ys_V0 :
+        ADT$List_9bd3b639_T_dflt()))) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let x_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let xtail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(ys_V0) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+          ADT$List_9bd3b639_T_tag(ys_V0) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+          true &&
+          true, (ADT$List_9bd3b639_T_tag(ys_V0) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+            xs_V0 :
+            (ADT$List_9bd3b639_T_tag(ys_V0) ==
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+            true &&
+            true ?
+              (let y_V2 ==
+                (ADT$List_9bd3b639_T_headA(ys_V0)) in
+                (let ytail_V2 ==
+                  (ADT$List_9bd3b639_T_tailA(ys_V0)) in
+                  (x_V1 <= y_V2 ?
+                    ADT$List_9bd3b639_T_Cons_9bd3b639_F(x_V1, Merge_9eae4def_F(xtail_V1,
+                    ys_V0)) :
+                    ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V2, Merge_9eae4def_F(xs_V0,
+                    ytail_V2))))) :
+              ADT$List_9bd3b639_T_dflt()))))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Ordered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T): Bool
+{
+  assertArg2_Bool(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  (ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true), (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    true :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        true) :
+      (ADT$List_9bd3b639_T_tag(xs_V0) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      true &&
+      (ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      true &&
+      true) ?
+        (let head_V2 ==
+          (ADT$List_9bd3b639_T_headA(xs_V0)) in
+          (let y_V2 ==
+            (ADT$List_9bd3b639_T_headA(ADT$List_9bd3b639_T_tailA(xs_V0))) in
+            head_V2 <= y_V2 &&
+            Ordered_9eae4def_F(ADT$List_9bd3b639_T_tailA(xs_V0)))) :
+        false))))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Project_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, p_V0: Int): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (head_V1 == p_V0 ?
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, Project_9eae4def_F(tail_V1,
+            p_V0)) :
+            Project_9eae4def_F(tail_V1, p_V0)))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases _
+function R_9bd3b639_F(): Int
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Reverse_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0)) ==
+    Append_9bd3b639_MList(Reverse_9bd3b639_MList(ys_V0), Reverse_9bd3b639_MList(xs_V0))
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    (let __V1 ==
+      (AppendNil_9bd3b639_MList(ys_V0)) in
+      AppendNil_9bd3b639_MList(Reverse_9bd3b639_MList(ys_V0))) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V2 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V2 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          ReverseAuxAppend_9bd3b639_MList(xs_V0, ys_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F()))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseAuxAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  ac_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures ReverseAux_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), ac_V0) ==
+    Append_9bd3b639_MList(Reverse_9bd3b639_MList(ys_V0), ReverseAux_9bd3b639_MList(xs_V0,
+    ac_V0))
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ReverseAuxCorrect_9bd3b639_MList(ys_V0, ac_V0) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          ReverseAuxAppend_9bd3b639_MList(tail_V1, ys_V0, ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+          ac_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseAuxCorrect_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ac_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures ReverseAux_9bd3b639_MList(xs_V0, ac_V0) ==
+    Append_9bd3b639_MList(Reverse_9bd3b639_MList(xs_V0), ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (ReverseAuxSlowCorrect_9bd3b639_MList(xs_V0, ac_V0)) in
+            ReverseCorrect_9bd3b639_MList(xs_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseAuxSlowCorrect_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ac_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures ReverseAux_9bd3b639_MList(xs_V0, ac_V0) ==
+    Append_9bd3b639_MList(SlowReverse_9bd3b639_MList(xs_V0), ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          (let __V4 ==
+            (SnocAppend_9bd3b639_MList(SlowReverse_9bd3b639_MList(tail_V1),
+            head_V1)) in
+            (let __V3 ==
+              (asserting_9bd3b639_F(ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+              Append_9bd3b639_MList(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), ac_V0)) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, ac_V0))) in
+              (let __V2 ==
+                (AppendAssociative_9bd3b639_F(SlowReverse_9bd3b639_MList(tail_V1),
+                ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, ADT$List_9bd3b639_T_Nil_9bd3b639_F()),
+                ac_V0)) in
+                ReverseAuxSlowCorrect_9bd3b639_MList(tail_V1, ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+                ac_V0))))))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseAux_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ac_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ac_V0 :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          ReverseAux_9bd3b639_MList(tail_V1, ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+          ac_V0)))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function ReverseCorrect_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Reverse_9bd3b639_MList(xs_V0) ==
+    SlowReverse_9bd3b639_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+        (let __V2 ==
+          (ReverseAuxSlowCorrect_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F())) in
+          AppendNil_9bd3b639_MList(SlowReverse_9bd3b639_MList(xs_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Reverse_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  ReverseAux_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F())
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function SameValueDrop_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  ensures n_V0 <= Length_9bd3b639_MList(xs_V0) ==>
+    Drop_9bd3b639_MList(xs_V0, n_V0) ==
+    LiberalDrop_9bd3b639_MList(xs_V0, n_V0)
+{
+  (!(n_V0 == 0) &&
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() ?
+    SameValueDrop_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1) :
+    tuple0())
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function SameValueTake_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  ensures n_V0 <= Length_9bd3b639_MList(xs_V0) ==>
+    Take_9bd3b639_MList(xs_V0, n_V0) ==
+    LiberalTake_9bd3b639_MList(xs_V0, n_V0)
+{
+  (!(n_V0 == 0) &&
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() ?
+    SameValueTake_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1) :
+    tuple0())
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function SlowReverse_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          Snoc_9bd3b639_MList(SlowReverse_9bd3b639_MList(tail_V1), head_V1))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function SnocAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int): Tuple0
+  ensures Snoc_9bd3b639_MList(xs_V0, y_V0) ==
+    Append_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F()))
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          SnocAppend_9bd3b639_MList(tail_V1, y_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Snoc_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, y_V0: Int): ADT$List_9bd3b639_T
+{
+  assertArg2_ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F()) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, Snoc_9bd3b639_MList(tail_V1,
+          y_V0)))) :
+      ADT$List_9bd3b639_T_dflt())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(nn_V0) + rank$ADT$List_9bd3b639_T(xs_V0)
+function SplitPrime_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, nn_V0: ADT$List_9bd3b639_T): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+  requires Length_9bd3b639_MList(nn_V0) <= Length_9bd3b639_MList(xs_V0)
+  ensures (let n_V1 ==
+      (Length_9bd3b639_MList(nn_V0) / 2) in
+      Length_9bd3b639_MList((get0of2(result): ADT$List_9bd3b639_T)) == n_V1 &&
+      Length_9bd3b639_MList((get1of2(result): ADT$List_9bd3b639_T)) ==
+      Length_9bd3b639_MList(xs_V0) - n_V1 &&
+      Append_9bd3b639_MList((get0of2(result): ADT$List_9bd3b639_T), (get1of2(result): ADT$List_9bd3b639_T)) ==
+      xs_V0)
+{
+  assertArg2_Tuple2_ADT$List_9bd3b639_TADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    assertArg2_Tuple2_ADT$List_9bd3b639_TADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(nn_V0) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+    ADT$List_9bd3b639_T_tag(nn_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true, (ADT$List_9bd3b639_T_tag(nn_V0) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+      (tuple2(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), xs_V0): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]) :
+      (ADT$List_9bd3b639_T_tag(nn_V0) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      true &&
+      true ?
+        (let n_V2 ==
+          (ADT$List_9bd3b639_T_headA(nn_V0)) in
+          (let ntail_V2 ==
+            (ADT$List_9bd3b639_T_tailA(nn_V0)) in
+            (tuple2(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), nn_V0): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]))) :
+        (tuple2(ADT$List_9bd3b639_T_dflt(), ADT$List_9bd3b639_T_dflt()): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T])))) :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let x_V3 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let xtail_V3 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          assertArg2_Tuple2_ADT$List_9bd3b639_TADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tag(nn_V0) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+          ADT$List_9bd3b639_T_tag(nn_V0) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+          true &&
+          (ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+          true &&
+          true) ||
+          ADT$List_9bd3b639_T_tag(nn_V0) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+          true &&
+          ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag(), (ADT$List_9bd3b639_T_tag(nn_V0) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+            (tuple2(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), xs_V0): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]) :
+            (ADT$List_9bd3b639_T_tag(nn_V0) ==
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+            true &&
+            (ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+            true &&
+            true) ?
+              (let n_V4 ==
+                (ADT$List_9bd3b639_T_headA(nn_V0)) in
+                (let nPrime_V4 ==
+                  (ADT$List_9bd3b639_T_headA(ADT$List_9bd3b639_T_tailA(nn_V0))) in
+                  (let ntail_V4 ==
+                    (ADT$List_9bd3b639_T_tailA(ADT$List_9bd3b639_T_tailA(nn_V0))) in
+                    (let __V7 ==
+                      (Length_9bd3b639_MList(ADT$List_9bd3b639_T_Cons_9bd3b639_F(nPrime_V4,
+                      ntail_V4)) +
+                      1 ==
+                      Length_9bd3b639_MList(nn_V0)) in
+                      (let __V6 ==
+                        (Length_9bd3b639_MList(xtail_V3) <=
+                        Length_9bd3b639_MList(ntail_V4)) in
+                        (let pair_V5 ==
+                          (SplitPrime_9eae4def_F(xtail_V3, ntail_V4)) in
+                          (tuple2(ADT$List_9bd3b639_T_Cons_9bd3b639_F(x_V3,
+                          (get0of2(pair_V5): ADT$List_9bd3b639_T)), (get1of2(pair_V5): ADT$List_9bd3b639_T)): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]))))))) :
+              (ADT$List_9bd3b639_T_tag(nn_V0) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+              true &&
+              ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+              ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+                (let n_V8 ==
+                  (ADT$List_9bd3b639_T_headA(nn_V0)) in
+                  (tuple2(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), xs_V0): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T])) :
+                (tuple2(ADT$List_9bd3b639_T_dflt(), ADT$List_9bd3b639_T_dflt()): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]))))))) :
+      (tuple2(ADT$List_9bd3b639_T_dflt(), ADT$List_9bd3b639_T_dflt()): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]))))
+}
+
+// decreases n_V0
+function Split_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+  ensures (let left_V1 ==
+      ((get0of2(result): ADT$List_9bd3b639_T)) in
+      (let right_V2 ==
+        ((get1of2(result): ADT$List_9bd3b639_T)) in
+        Length_9bd3b639_MList(left_V1) == n_V0 &&
+        Length_9bd3b639_MList(right_V2) ==
+        Length_9bd3b639_MList(xs_V0) - n_V0 &&
+        Append_9bd3b639_MList(left_V1, right_V2) == xs_V0))
+{
+  (n_V0 == 0 ?
+    (tuple2(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), xs_V0): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]) :
+    (let lr_V5 ==
+      (Split_9eae4def_F(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1)) in
+      (let l_V3 ==
+        ((get0of2(lr_V5): ADT$List_9bd3b639_T)) in
+        (let r_V4 ==
+          ((get1of2(lr_V5): ADT$List_9bd3b639_T)) in
+          (tuple2(ADT$List_9bd3b639_T_Cons_9bd3b639_F(ADT$List_9bd3b639_T_headA(xs_V0),
+          l_V3), r_V4): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T])))))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function TakeDropAppend_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T): Tuple0
+  ensures Take_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), Length_9bd3b639_MList(xs_V0)) ==
+    xs_V0
+  ensures Drop_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0), Length_9bd3b639_MList(xs_V0)) ==
+    ys_V0
+{
+  assertArg2_Tuple0(ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  true &&
+  true, (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ?
+    tuple0() :
+    (ADT$List_9bd3b639_T_tag(xs_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_9bd3b639_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_9bd3b639_T_tailA(xs_V0)) in
+          TakeDropAppend_9bd3b639_MList(tail_V1, ys_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+function Take_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T, n_V0: Int): ADT$List_9bd3b639_T
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  (n_V0 == 0 ?
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F() :
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F(ADT$List_9bd3b639_T_headA(xs_V0), Take_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0),
+    n_V0 - 1)))
+}
+
+// decreases 
+function assertArg2_ADT$List_9bd3b639_T(b: Bool, y: ADT$List_9bd3b639_T): ADT$List_9bd3b639_T
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Bool(b: Bool, y: Bool): Bool
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Int(b: Bool, y: Int): Int
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Tuple0(b: Bool, y: Tuple0): Tuple0
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Tuple2_ADT$List_9bd3b639_TADT$List_9bd3b639_T(b: Bool, y: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]): Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+  requires b
+{
+  y
+}
+
+// decreases 
+function asserting_9bd3b639_F(b_V0: Bool): Tuple0
+  requires b_V0
+{
+  tuple0()
+}
+
+predicate ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]) 
+
+method $IMPORTS_9eae4def_9bd3b639()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_9eae4def_9eae4def()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_9eae4def_758683d4()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_9eae4def_7c04fc03()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_9eae4def_929ce3dc()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_9eae4def_bf98bd9f()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_9eae4def_d49369af()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AllOrdered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, i_V0: Int, j_V0: Int)
+  requires i_V0 >= 0 && j_V0 >= 0
+  requires Ordered_9eae4def_F(xs_V0) && i_V0 <= j_V0 &&
+    j_V0 < Length_9bd3b639_MList(xs_V0)
+  ensures At_9bd3b639_MList(xs_V0, i_V0) <= At_9bd3b639_MList(xs_V0, j_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, i_V0_CN1: int°°, j_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var i_V0_CN1: Int
+    var j_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init i_V0_CN1
+    inhale i_V0_CN1 == 0
+    
+    // init j_V0_CN2
+    inhale j_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // i_V0_CN1 = i_V0
+    i_V0_CN1 := i_V0
+    
+    // j_V0_CN2 = j_V0
+    j_V0_CN2 := j_V0
+    
+    // decl 
+    
+    // if(i_V0_CN1 != 0) {...} else {...}
+    if (!(i_V0_CN1 == 0)) {
+      
+      // decl 
+      
+      // AllOrdered_9eae4def_F(xs_V0_CN0.fieldtailA: List_9bd3b639_T°, i_V0_CN1 - 1, j_V0_CN2 - 1)
+      assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)),
+        old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+        rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)) ==
+        old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+        false
+      AllOrdered_9eae4def_F(ADT$List_9bd3b639_T_tailA(xs_V0_CN0), i_V0_CN1 -
+        1, j_V0_CN2 - 1)
+    } else {
+      
+      // if(i_V0_CN1 != j_V0_CN2) {...} else {...}
+      if (!(i_V0_CN1 == j_V0_CN2)) {
+        
+        // decl 
+        
+        // AllOrdered_9eae4def_F(xs_V0_CN0.fieldtailA: List_9bd3b639_T°, 0, j_V0_CN2 - 1)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)),
+          old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+          rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)) ==
+          old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+          false
+        AllOrdered_9eae4def_F(ADT$List_9bd3b639_T_tailA(xs_V0_CN0), 0, j_V0_CN2 -
+          1)
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AppendAssociative_9bd3b639_F_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T, zs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(a_V0)
+method AppendDecomposition_9bd3b639_F_termination_proof(a_V0: ADT$List_9bd3b639_T,
+  b_V0: ADT$List_9bd3b639_T, c_V0: ADT$List_9bd3b639_T, d_V0: ADT$List_9bd3b639_T)
+  requires Length_9bd3b639_MList(a_V0) == Length_9bd3b639_MList(c_V0)
+  requires Append_9bd3b639_MList(a_V0, b_V0) ==
+    Append_9bd3b639_MList(c_V0, d_V0)
+{
+  if (ADT$List_9bd3b639_T_tag(a_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(a_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var tail_V1: ADT$List_9bd3b639_T
+      inhale tail_V1 == ADT$List_9bd3b639_T_tailA(a_V0)
+      assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(a_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_9bd3b639_T(a_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AppendNil_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AppendProject_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  p_V0: Int)
+  ensures Append_9bd3b639_MList(Project_9eae4def_F(xs_V0, p_V0), Project_9eae4def_F(ys_V0,
+    p_V0)) ==
+    Project_9eae4def_F(Append_9bd3b639_MList(xs_V0, ys_V0), p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, ys_V0_CN1: List_9bd3b639_T°°, p_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var ys_V0_CN1: ADT$List_9bd3b639_T
+    var p_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init ys_V0_CN1
+    inhale ys_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // ys_V0_CN1 = ys_V0
+    ys_V0_CN1 := ys_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {_,tail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          tail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // AppendProject_9eae4def_F(tail_V1, ys_V0_CN1, p_V0_CN2)
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+            rank$ADT$List_9bd3b639_T(tail_V1) ==
+            old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+            false
+          AppendProject_9eae4def_F(tail_V1, ys_V0_CN1, p_V0_CN2)
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AppendTakeDrop_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  if (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Append_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AtAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T, i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 <
+    Length_9bd3b639_MList(Append_9bd3b639_MList(xs_V0, ys_V0))
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AtDropHead_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 < Length_9bd3b639_MList(xs_V0)
+{
+  if (i_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method AtFind_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, y_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_headA(xs_V0) == y_V0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method At_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 < Length_9bd3b639_MList(xs_V0)
+{
+  if (i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method BeforeFind_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  y_V0: Int, i_V0: Int)
+  requires i_V0 >= 0
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  ADT$List_9bd3b639_T_headA(xs_V0) == y_V0 ||
+  i_V0 == 0 ||
+  i_V0 >= Length_9bd3b639_MList(xs_V0)) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Count_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T, p_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Drop_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  if (n_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Duplicate_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==>
+    acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Error_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  returns (P0_PO0: Int)
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method FindAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T, y_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method FindDrop_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  y_V0: Int, i_V0: Int)
+  requires i_V0 >= 0
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() ||
+  i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Find_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, y_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        if (head_V1 == y_V0) {
+        } else {
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertDiffPreservesProjection_9eae4def_F(xs_V0: ADT$List_9bd3b639_T,
+  y_V0: Int, p_V0: Int)
+  requires !(y_V0 == p_V0)
+  ensures Project_9eae4def_F(Insert_9eae4def_F(y_V0, xs_V0), p_V0) ==
+    Project_9eae4def_F(xs_V0, p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, y_V0_CN1: int°°, p_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var y_V0_CN1: Int
+    var p_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {head_V1,tail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var head_V1: Int
+        var tail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          head_V1 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          tail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // if(y_V0_CN1 >= head_V1) {...} else {...}
+          if (y_V0_CN1 >= head_V1) {
+            
+            // decl 
+            
+            // InsertDiffPreservesProjection_9eae4def_F(tail_V1, y_V0_CN1, p_V0_CN2)
+            assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+              (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+              rank$ADT$List_9bd3b639_T(tail_V1) ==
+              old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+              false
+            InsertDiffPreservesProjection_9eae4def_F(tail_V1, y_V0_CN1, p_V0_CN2)
+          }
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertOrdered_9eae4def_F(y_V0: Int, xs_V0: ADT$List_9bd3b639_T)
+  requires Ordered_9eae4def_F(xs_V0)
+  ensures Ordered_9eae4def_F(Insert_9eae4def_F(y_V0, xs_V0))
+{
+  
+  // decl y_V0_CN0: int°°, xs_V0_CN1: List_9bd3b639_T°°
+  {
+    var y_V0_CN0: Int
+    var xs_V0_CN1: ADT$List_9bd3b639_T
+    
+    
+    
+    // init y_V0_CN0
+    inhale y_V0_CN0 == 0
+    
+    // init xs_V0_CN1
+    inhale xs_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // y_V0_CN0 = y_V0
+    y_V0_CN0 := y_V0
+    
+    // xs_V0_CN1 = xs_V0
+    xs_V0_CN1 := xs_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN1 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {head_V1,tail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN1) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var head_V1: Int
+        var tail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN1) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          head_V1 := ADT$List_9bd3b639_T_headA(xs_V0_CN1)
+          tail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN1)
+          
+          // InsertOrdered_9eae4def_F(y_V0_CN0, tail_V1)
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+            rank$ADT$List_9bd3b639_T(tail_V1) ==
+            old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+            false
+          InsertOrdered_9eae4def_F(y_V0_CN0, tail_V1)
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertSameElements_9eae4def_F(y_V0: Int, xs_V0: ADT$List_9bd3b639_T,
+  p_V0: Int)
+  ensures Project_9eae4def_F(ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0, xs_V0),
+    p_V0) ==
+    Project_9eae4def_F(Insert_9eae4def_F(y_V0, xs_V0), p_V0)
+{
+  
+  // decl y_V0_CN0: int°°, xs_V0_CN1: List_9bd3b639_T°°, p_V0_CN2: int°°
+  {
+    var y_V0_CN0: Int
+    var xs_V0_CN1: ADT$List_9bd3b639_T
+    var p_V0_CN2: Int
+    
+    
+    
+    // init y_V0_CN0
+    inhale y_V0_CN0 == 0
+    
+    // init xs_V0_CN1
+    inhale xs_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // y_V0_CN0 = y_V0
+    y_V0_CN0 := y_V0
+    
+    // xs_V0_CN1 = xs_V0
+    xs_V0_CN1 := xs_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // if(y_V0_CN0 == p_V0_CN2) {...} else {...}
+    if (y_V0_CN0 == p_V0_CN2) {
+      
+      // decl 
+      
+      // if(xs_V0_CN1.Cons_9bd3b639_F && y_V0_CN0 >= xs_V0_CN1.fieldheadA: int°) {...} else {...}
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN1) ==
+      ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+      y_V0_CN0 >= ADT$List_9bd3b639_T_headA(xs_V0_CN1)) {
+        
+        // decl 
+        
+        // assert y_V0_CN0 == p_V0_CN2 ==> Project_9eae4def_F(Cons_9bd3b639_F{y_V0_CN0, xs_V0_CN1}, p_V0_CN2) == Cons_9bd3b639_F{y_V0_CN0, Project_9eae4def_F(xs_V0_CN1, p_V0_CN2)}
+        assert y_V0_CN0 == p_V0_CN2 ==>
+          Project_9eae4def_F(ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0_CN0, xs_V0_CN1),
+          p_V0_CN2) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0_CN0, Project_9eae4def_F(xs_V0_CN1,
+          p_V0_CN2))
+        
+        // InsertSameElements_9eae4def_F(y_V0_CN0, xs_V0_CN1.fieldtailA: List_9bd3b639_T°, p_V0_CN2)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN1)),
+          old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+          rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0_CN1)) ==
+          old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+          false
+        InsertSameElements_9eae4def_F(y_V0_CN0, ADT$List_9bd3b639_T_tailA(xs_V0_CN1),
+          p_V0_CN2)
+      }
+    } else {
+      
+      // decl 
+      
+      // assert Project_9eae4def_F(Cons_9bd3b639_F{y_V0_CN0, xs_V0_CN1}, p_V0_CN2) == Project_9eae4def_F(xs_V0_CN1, p_V0_CN2)
+      assert Project_9eae4def_F(ADT$List_9bd3b639_T_Cons_9bd3b639_F(y_V0_CN0,
+        xs_V0_CN1), p_V0_CN2) ==
+        Project_9eae4def_F(xs_V0_CN1, p_V0_CN2)
+      
+      // InsertDiffPreservesProjection_9eae4def_F(xs_V0_CN1, y_V0_CN0, p_V0_CN2)
+      InsertDiffPreservesProjection_9eae4def_F(xs_V0_CN1, y_V0_CN0, p_V0_CN2)
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Insert_9eae4def_F_termination_proof(y_V0: Int, xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        if (y_V0 < head_V1) {
+        } else {
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertionSortOrdered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T)
+  ensures Ordered_9eae4def_F(InsertionSort_9eae4def_F(xs_V0))
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {head_V1,tail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var head_V1: Int
+        var tail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          head_V1 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          tail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // assert Ordered_9eae4def_F(InsertionSort_9eae4def_F(xs_V0_CN0)) == Ordered_9eae4def_F(Insert_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1)))
+          assert Ordered_9eae4def_F(InsertionSort_9eae4def_F(xs_V0_CN0)) ==
+            Ordered_9eae4def_F(Insert_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1)))
+          
+          // InsertionSortOrdered_9eae4def_F(tail_V1)
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+            rank$ADT$List_9bd3b639_T(tail_V1) ==
+            old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+            false
+          InsertionSortOrdered_9eae4def_F(tail_V1)
+          
+          // InsertOrdered_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1))
+          InsertOrdered_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1))
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertionSortSameElements_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, p_V0: Int)
+  ensures Project_9eae4def_F(xs_V0, p_V0) ==
+    Project_9eae4def_F(InsertionSort_9eae4def_F(xs_V0), p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, p_V0_CN1: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var p_V0_CN1: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN1
+    inhale p_V0_CN1 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // p_V0_CN1 = p_V0
+    p_V0_CN1 := p_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {head_V1,tail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var head_V1: Int
+        var tail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          head_V1 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          tail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // InsertionSortSameElements_9eae4def_F(tail_V1, p_V0_CN1)
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) ||
+            rank$ADT$List_9bd3b639_T(tail_V1) ==
+            old(rank$ADT$List_9bd3b639_T(xs_V0)) &&
+            false
+          InsertionSortSameElements_9eae4def_F(tail_V1, p_V0_CN1)
+          
+          // InsertSameElements_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1), p_V0_CN1)
+          InsertSameElements_9eae4def_F(head_V1, InsertionSort_9eae4def_F(tail_V1),
+            p_V0_CN1)
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method InsertionSort_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e__pres_termination_proof(thisItf: Tuple2[Ref, Types])
+{
+  var $condInEx: Bool
+  if (!(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))) {
+    inhale acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+  }
+}
+
+// decreases 
+method LEqualsR_9bd3b639_F()
+  ensures L_9bd3b639_F() == R_9bd3b639_F()
+
+
+// decreases _
+method LeftUnit_9bd3b639_F(x_V0: Int)
+  ensures F_9bd3b639_F(L_9bd3b639_F(), x_V0) == x_V0
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthEqualsLengthPrime_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var tail_V1: ADT$List_9bd3b639_T
+      inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthPrime_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (xs_V0 == ADT$List_9bd3b639_T_Nil_9bd3b639_F()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthReverseAux_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ac_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+          inhale __V2 ==
+            LengthReverseAux_9bd3b639_MList(tail_V1, ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+            ac_V0))
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthReverse_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  {
+    var __V1: Tuple0
+    inhale __V1 == ReverseCorrect_9bd3b639_MList(xs_V0)
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthSlowReverse_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          inhale __V2 ==
+            LengthSnoc_9bd3b639_MList(SlowReverse_9bd3b639_MList(tail_V1), head_V1)
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LengthSnoc_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  x_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var tail_V1: ADT$List_9bd3b639_T
+      inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Length_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var tail_V1: ADT$List_9bd3b639_T
+      inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LiberalDrop_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method LiberalTake_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (n_V0 == 0 ||
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0) + rank$ADT$List_9bd3b639_T(ys_V0)
+method MergeOrdered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T)
+  requires Ordered_9eae4def_F(xs_V0) && Ordered_9eae4def_F(ys_V0)
+  ensures Ordered_9eae4def_F(Merge_9eae4def_F(xs_V0, ys_V0))
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, ys_V0_CN1: List_9bd3b639_T°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var ys_V0_CN1: ADT$List_9bd3b639_T
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init ys_V0_CN1
+    inhale ys_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // ys_V0_CN1 = ys_V0
+    ys_V0_CN1 := ys_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {x_V2,tail_V2}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var x_V2: Int
+        var tail_V2: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          x_V2 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          tail_V2 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // !match ys_V0_CN1 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {_,ytail_V1}: 
+// }
+          {
+            var fn$$1: Bool
+            fn$$1 := false
+            if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+            ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+            !fn$$1) {
+              fn$$1 := true
+            }
+            {
+              var ytail_V1: ADT$List_9bd3b639_T
+              if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+              true &&
+              true &&
+              !fn$$1) {
+                fn$$1 := true
+                ytail_V1 := ADT$List_9bd3b639_T_tailA(ys_V0_CN1)
+                
+                // if(x_V2 <= ys_V0_CN1.fieldheadA: int°) {...} else {...}
+                if (x_V2 <= ADT$List_9bd3b639_T_headA(ys_V0_CN1)) {
+                  
+                  // decl 
+                  
+                  // MergeOrdered_9eae4def_F(tail_V2, ys_V0_CN1)
+                  assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V2) +
+                    rank$ADT$List_9bd3b639_T(ys_V0_CN1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                    (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                    rank$ADT$List_9bd3b639_T(tail_V2) +
+                    rank$ADT$List_9bd3b639_T(ys_V0_CN1) ==
+                    old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                    false
+                  MergeOrdered_9eae4def_F(tail_V2, ys_V0_CN1)
+                } else {
+                  
+                  // decl 
+                  
+                  // MergeOrdered_9eae4def_F(xs_V0_CN0, ytail_V1)
+                  assert (decreasing(rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                    rank$ADT$List_9bd3b639_T(ytail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                    (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                    rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                    rank$ADT$List_9bd3b639_T(ytail_V1) ==
+                    old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                    rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                    false
+                  MergeOrdered_9eae4def_F(xs_V0_CN0, ytail_V1)
+                }
+              }
+            }
+            assert fn$$1
+          }
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0) + rank$ADT$List_9bd3b639_T(ys_V0)
+method MergeSameElements_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  p_V0: Int)
+  requires Ordered_9eae4def_F(xs_V0) && Ordered_9eae4def_F(ys_V0)
+  ensures Project_9eae4def_F(Merge_9eae4def_F(xs_V0, ys_V0), p_V0) ==
+    Append_9bd3b639_MList(Project_9eae4def_F(xs_V0, p_V0), Project_9eae4def_F(ys_V0,
+    p_V0))
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, ys_V0_CN1: List_9bd3b639_T°°, p_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var ys_V0_CN1: ADT$List_9bd3b639_T
+    var p_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init ys_V0_CN1
+    inhale ys_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // ys_V0_CN1 = ys_V0
+    ys_V0_CN1 := ys_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {x_V1,xtail_V1}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var x_V1: Int
+        var xtail_V1: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          x_V1 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          xtail_V1 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // !match ys_V0_CN1 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {y_V2,ytail_V2}: 
+// }
+          {
+            var fn$$1: Bool
+            fn$$1 := false
+            if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+            ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+            !fn$$1) {
+              fn$$1 := true
+              
+              // MergeSameElements_9eae4def_F(xtail_V1, ys_V0_CN1, p_V0_CN2)
+              assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V1) +
+                rank$ADT$List_9bd3b639_T(ys_V0_CN1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                rank$ADT$List_9bd3b639_T(xtail_V1) +
+                rank$ADT$List_9bd3b639_T(ys_V0_CN1) ==
+                old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                false
+              MergeSameElements_9eae4def_F(xtail_V1, ys_V0_CN1, p_V0_CN2)
+            }
+            {
+              var y_V2: Int
+              var ytail_V2: ADT$List_9bd3b639_T
+              if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+              true &&
+              true &&
+              !fn$$1) {
+                fn$$1 := true
+                y_V2 := ADT$List_9bd3b639_T_headA(ys_V0_CN1)
+                ytail_V2 := ADT$List_9bd3b639_T_tailA(ys_V0_CN1)
+                
+                // MergeSameElements_9eae4def_F(xs_V0_CN0, ytail_V2, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                  rank$ADT$List_9bd3b639_T(ytail_V2), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                  rank$ADT$List_9bd3b639_T(ytail_V2) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                MergeSameElements_9eae4def_F(xs_V0_CN0, ytail_V2, p_V0_CN2)
+                
+                // MergeSameElements_9eae4def_F(xtail_V1, ytail_V2, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V1) +
+                  rank$ADT$List_9bd3b639_T(ytail_V2), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xtail_V1) +
+                  rank$ADT$List_9bd3b639_T(ytail_V2) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                MergeSameElements_9eae4def_F(xtail_V1, ytail_V2, p_V0_CN2)
+                
+                // MergeSameElements_9eae4def_F(xtail_V1, ys_V0_CN1, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V1) +
+                  rank$ADT$List_9bd3b639_T(ys_V0_CN1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xtail_V1) +
+                  rank$ADT$List_9bd3b639_T(ys_V0_CN1) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                MergeSameElements_9eae4def_F(xtail_V1, ys_V0_CN1, p_V0_CN2)
+              }
+            }
+            assert fn$$1
+          }
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases length_V0
+method MergeSortAuxOrdered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, length_V0: Int)
+  requires length_V0 >= 0
+  requires length_V0 == Length_9bd3b639_MList(xs_V0)
+  ensures Ordered_9eae4def_F(MergeSortAux_9eae4def_F(xs_V0, length_V0))
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, length_V0_CN1: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var length_V0_CN1: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init length_V0_CN1
+    inhale length_V0_CN1 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // length_V0_CN1 = length_V0
+    length_V0_CN1 := length_V0
+    
+    // decl 
+    
+    // if(length_V0_CN1 > 0) {...} else {...}
+    if (length_V0_CN1 > 0) {
+      
+      // decl 
+      
+      // if(length_V0_CN1 == 1) {...} else {...}
+      if (length_V0_CN1 == 1) {
+        
+        // decl 
+        
+        // assert MergeSortAux_9eae4def_F(xs_V0_CN0, length_V0_CN1) == xs_V0_CN0
+        assert MergeSortAux_9eae4def_F(xs_V0_CN0, length_V0_CN1) ==
+          xs_V0_CN0
+        
+        // assert xs_V0_CN0.Length() == xs_V0_CN0.Cons_9bd3b639_F?1 + xs_V0_CN0.fieldtailA: List_9bd3b639_T°.Length():0
+        assert Length_9bd3b639_MList(xs_V0_CN0) ==
+          (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() ?
+            1 + Length_9bd3b639_MList(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)) :
+            0)
+        
+        // assert xs_V0_CN0.Length() == 1 ==> xs_V0_CN0.Cons_9bd3b639_F && xs_V0_CN0.fieldtailA: List_9bd3b639_T°.Nil_9bd3b639_F
+        assert Length_9bd3b639_MList(xs_V0_CN0) == 1 ==>
+          ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+          ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+          ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0_CN0)) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()
+        
+        // assert Ordered_9eae4def_F(xs_V0_CN0)
+        assert Ordered_9eae4def_F(xs_V0_CN0)
+      } else {
+        
+        // decl pair_V1: PairOfLists_9eae4def_T°°
+        {
+          var pair_V1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+          
+          // init pair_V1
+          {
+            var fn$$0: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+            fn$$0 := pair_V1
+            inhale (get0of2(fn$$0): ADT$List_9bd3b639_T) ==
+              ADT$List_9bd3b639_T_dflt()
+            inhale (get1of2(fn$$0): ADT$List_9bd3b639_T) ==
+              ADT$List_9bd3b639_T_dflt()
+          }
+          
+          // pair_V1 = Split_9eae4def_F(xs_V0_CN0, length_V0_CN1 / 2)
+          pair_V1 := Split_9eae4def_F(xs_V0_CN0, length_V0_CN1 / 2)
+          
+          // MergeSortAuxOrdered_9eae4def_F(pair_V1.leftA, length_V0_CN1 / 2)
+          assert (decreasing(length_V0_CN1 / 2, old(length_V0)): Bool) &&
+            (bounded(old(length_V0)): Bool) ||
+            length_V0_CN1 / 2 == old(length_V0) && false
+          MergeSortAuxOrdered_9eae4def_F((get0of2(pair_V1): ADT$List_9bd3b639_T),
+            length_V0_CN1 / 2)
+          
+          // MergeSortAuxOrdered_9eae4def_F(pair_V1.rightA, length_V0_CN1 - length_V0_CN1 / 2)
+          assert (decreasing(length_V0_CN1 - length_V0_CN1 / 2, old(length_V0)): Bool) &&
+            (bounded(old(length_V0)): Bool) ||
+            length_V0_CN1 - length_V0_CN1 / 2 == old(length_V0) && false
+          MergeSortAuxOrdered_9eae4def_F((get1of2(pair_V1): ADT$List_9bd3b639_T),
+            length_V0_CN1 - length_V0_CN1 / 2)
+          
+          // MergeOrdered_9eae4def_F(MergeSortAux_9eae4def_F(pair_V1.leftA, length_V0_CN1 / 2), MergeSortAux_9eae4def_F(pair_V1.rightA, length_V0_CN1 - length_V0_CN1 / 2))
+          MergeOrdered_9eae4def_F(MergeSortAux_9eae4def_F((get0of2(pair_V1): ADT$List_9bd3b639_T),
+            length_V0_CN1 / 2), MergeSortAux_9eae4def_F((get1of2(pair_V1): ADT$List_9bd3b639_T),
+            length_V0_CN1 - length_V0_CN1 / 2))
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases length_V0
+method MergeSortAuxSameElements_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, length_V0: Int,
+  p_V0: Int)
+  requires length_V0 == Length_9bd3b639_MList(xs_V0)
+  requires length_V0 >= 0
+  ensures Project_9eae4def_F(xs_V0, p_V0) ==
+    Project_9eae4def_F(MergeSortAux_9eae4def_F(xs_V0, length_V0), p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, length_V0_CN1: int°°, p_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var length_V0_CN1: Int
+    var p_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init length_V0_CN1
+    inhale length_V0_CN1 == 0
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // length_V0_CN1 = length_V0
+    length_V0_CN1 := length_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // if(2 <= length_V0_CN1) {...} else {...}
+    if (2 <= length_V0_CN1) {
+      
+      // decl pair_V1: PairOfLists_9eae4def_T°°, left_V1: List_9bd3b639_T°°, right_V1: List_9bd3b639_T°°
+      {
+        var pair_V1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+        var left_V1: ADT$List_9bd3b639_T
+        var right_V1: ADT$List_9bd3b639_T
+        
+        // init pair_V1
+        {
+          var fn$$0: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+          fn$$0 := pair_V1
+          inhale (get0of2(fn$$0): ADT$List_9bd3b639_T) ==
+            ADT$List_9bd3b639_T_dflt()
+          inhale (get1of2(fn$$0): ADT$List_9bd3b639_T) ==
+            ADT$List_9bd3b639_T_dflt()
+        }
+        
+        // pair_V1 = Split_9eae4def_F(xs_V0_CN0, length_V0_CN1 / 2)
+        pair_V1 := Split_9eae4def_F(xs_V0_CN0, length_V0_CN1 / 2)
+        
+        // init left_V1
+        inhale left_V1 == ADT$List_9bd3b639_T_dflt()
+        
+        // left_V1 = pair_V1.leftA
+        left_V1 := (get0of2(pair_V1): ADT$List_9bd3b639_T)
+        
+        // init right_V1
+        inhale right_V1 == ADT$List_9bd3b639_T_dflt()
+        
+        // right_V1 = pair_V1.rightA
+        right_V1 := (get1of2(pair_V1): ADT$List_9bd3b639_T)
+        
+        // MergeSortAuxOrdered_9eae4def_F(left_V1, length_V0_CN1 / 2)
+        MergeSortAuxOrdered_9eae4def_F(left_V1, length_V0_CN1 / 2)
+        
+        // MergeSortAuxOrdered_9eae4def_F(right_V1, length_V0_CN1 - length_V0_CN1 / 2)
+        MergeSortAuxOrdered_9eae4def_F(right_V1, length_V0_CN1 -
+          length_V0_CN1 / 2)
+        
+        // MergeSameElements_9eae4def_F(MergeSortAux_9eae4def_F(left_V1, length_V0_CN1 / 2), MergeSortAux_9eae4def_F(right_V1, length_V0_CN1 - length_V0_CN1 / 2), p_V0_CN2)
+        MergeSameElements_9eae4def_F(MergeSortAux_9eae4def_F(left_V1, length_V0_CN1 /
+          2), MergeSortAux_9eae4def_F(right_V1, length_V0_CN1 -
+          length_V0_CN1 / 2), p_V0_CN2)
+        
+        // MergeSortAuxSameElements_9eae4def_F(left_V1, length_V0_CN1 / 2, p_V0_CN2)
+        assert (decreasing(length_V0_CN1 / 2, old(length_V0)): Bool) &&
+          (bounded(old(length_V0)): Bool) ||
+          length_V0_CN1 / 2 == old(length_V0) && false
+        MergeSortAuxSameElements_9eae4def_F(left_V1, length_V0_CN1 / 2, p_V0_CN2)
+        
+        // MergeSortAuxSameElements_9eae4def_F(right_V1, length_V0_CN1 - length_V0_CN1 / 2, p_V0_CN2)
+        assert (decreasing(length_V0_CN1 - length_V0_CN1 / 2, old(length_V0)): Bool) &&
+          (bounded(old(length_V0)): Bool) ||
+          length_V0_CN1 - length_V0_CN1 / 2 == old(length_V0) && false
+        MergeSortAuxSameElements_9eae4def_F(right_V1, length_V0_CN1 -
+          length_V0_CN1 / 2, p_V0_CN2)
+        
+        // AppendProject_9eae4def_F(left_V1, right_V1, p_V0_CN2)
+        AppendProject_9eae4def_F(left_V1, right_V1, p_V0_CN2)
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases length_V0
+method MergeSortAux_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  length_V0: Int)
+  requires length_V0 >= 0
+  requires length_V0 == Length_9bd3b639_MList(xs_V0)
+{
+  if (length_V0 < 2) {
+  } else {
+    var lr_V3: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+    inhale lr_V3 == Split_9eae4def_F(xs_V0, length_V0 / 2)
+    {
+      var left_V1: ADT$List_9bd3b639_T
+      inhale left_V1 == (get0of2(lr_V3): ADT$List_9bd3b639_T)
+      {
+        var right_V2: ADT$List_9bd3b639_T
+        inhale right_V2 == (get1of2(lr_V3): ADT$List_9bd3b639_T)
+        assert (decreasing(length_V0 / 2, old(length_V0)): Bool) &&
+          (bounded(old(length_V0)): Bool)
+        assert (decreasing(length_V0 - length_V0 / 2, old(length_V0)): Bool) &&
+          (bounded(old(length_V0)): Bool)
+      }
+    }
+  }
+}
+
+// decreases Length_9bd3b639_MList(xs_V0)
+method MergeSortEqualsMergeSortPrime_9eae4def_F(xs_V0: ADT$List_9bd3b639_T)
+  ensures MergeSort_9eae4def_F(xs_V0) == MergeSortPrime_9eae4def_F(xs_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {x_V2,tail_V2}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+      }
+      {
+        var x_V2: Int
+        var tail_V2: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          x_V2 := ADT$List_9bd3b639_T_headA(xs_V0_CN0)
+          tail_V2 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // if(xs_V0_CN0.Length() >= 2) {...} else {...}
+          if (Length_9bd3b639_MList(xs_V0_CN0) >= 2) {
+            
+            // decl length_V1: int°°, pair_V1: PairOfLists_9eae4def_T°°, pairPrime_V1: PairOfLists_9eae4def_T°°, N16: Unit_9bd3b639_T°°
+            {
+              var length_V1: Int
+              var pair_V1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+              var pairPrime_V1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+              var N16: Tuple0
+              
+              // init length_V1
+              inhale length_V1 == 0
+              
+              // length_V1 = xs_V0_CN0.Length()
+              length_V1 := Length_9bd3b639_MList(xs_V0_CN0)
+              
+              // init pair_V1
+              {
+                var fn$$1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+                fn$$1 := pair_V1
+                inhale (get0of2(fn$$1): ADT$List_9bd3b639_T) ==
+                  ADT$List_9bd3b639_T_dflt()
+                inhale (get1of2(fn$$1): ADT$List_9bd3b639_T) ==
+                  ADT$List_9bd3b639_T_dflt()
+              }
+              
+              // pair_V1 = Split_9eae4def_F(xs_V0_CN0, length_V1 / 2)
+              pair_V1 := Split_9eae4def_F(xs_V0_CN0, length_V1 / 2)
+              
+              // init pairPrime_V1
+              {
+                var fn$$2: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+                fn$$2 := pairPrime_V1
+                inhale (get0of2(fn$$2): ADT$List_9bd3b639_T) ==
+                  ADT$List_9bd3b639_T_dflt()
+                inhale (get1of2(fn$$2): ADT$List_9bd3b639_T) ==
+                  ADT$List_9bd3b639_T_dflt()
+              }
+              
+              // pairPrime_V1 = SplitPrime_9eae4def_F(xs_V0_CN0, xs_V0_CN0)
+              pairPrime_V1 := SplitPrime_9eae4def_F(xs_V0_CN0, xs_V0_CN0)
+              
+              // assert MergeSort_9eae4def_F(xs_V0_CN0) == MergeSortAux_9eae4def_F(xs_V0_CN0, length_V1)
+              assert MergeSort_9eae4def_F(xs_V0_CN0) ==
+                MergeSortAux_9eae4def_F(xs_V0_CN0, length_V1)
+              
+              // assert MergeSortAux_9eae4def_F(xs_V0_CN0, xs_V0_CN0.Length()) == Merge_9eae4def_F(MergeSortAux_9eae4def_F(pair_V1.leftA, length_V1 / 2), MergeSortAux_9eae4def_F(pair_V1.rightA, length_V1 - length_V1 / 2))
+              assert MergeSortAux_9eae4def_F(xs_V0_CN0, Length_9bd3b639_MList(xs_V0_CN0)) ==
+                Merge_9eae4def_F(MergeSortAux_9eae4def_F((get0of2(pair_V1): ADT$List_9bd3b639_T),
+                length_V1 / 2), MergeSortAux_9eae4def_F((get1of2(pair_V1): ADT$List_9bd3b639_T),
+                length_V1 - length_V1 / 2))
+              
+              // MergeSortEqualsMergeSortPrime_9eae4def_F(pair_V1.leftA)
+              assert (decreasing(Length_9bd3b639_MList((get0of2(pair_V1): ADT$List_9bd3b639_T)),
+                old(Length_9bd3b639_MList(xs_V0))): Bool) &&
+                (bounded(old(Length_9bd3b639_MList(xs_V0))): Bool) ||
+                Length_9bd3b639_MList((get0of2(pair_V1): ADT$List_9bd3b639_T)) ==
+                old(Length_9bd3b639_MList(xs_V0)) &&
+                false
+              MergeSortEqualsMergeSortPrime_9eae4def_F((get0of2(pair_V1): ADT$List_9bd3b639_T))
+              
+              // MergeSortEqualsMergeSortPrime_9eae4def_F(pair_V1.rightA)
+              assert (decreasing(Length_9bd3b639_MList((get1of2(pair_V1): ADT$List_9bd3b639_T)),
+                old(Length_9bd3b639_MList(xs_V0))): Bool) &&
+                (bounded(old(Length_9bd3b639_MList(xs_V0))): Bool) ||
+                Length_9bd3b639_MList((get1of2(pair_V1): ADT$List_9bd3b639_T)) ==
+                old(Length_9bd3b639_MList(xs_V0)) &&
+                false
+              MergeSortEqualsMergeSortPrime_9eae4def_F((get1of2(pair_V1): ADT$List_9bd3b639_T))
+              
+              // N16 = AppendDecomposition_9bd3b639_F(pair_V1.leftA, pair_V1.rightA, pairPrime_V1.leftA, pairPrime_V1.rightA)
+              N16 := AppendDecomposition_9bd3b639_F((get0of2(pair_V1): ADT$List_9bd3b639_T),
+                (get1of2(pair_V1): ADT$List_9bd3b639_T), (get0of2(pairPrime_V1): ADT$List_9bd3b639_T),
+                (get1of2(pairPrime_V1): ADT$List_9bd3b639_T))
+            }
+          }
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method MergeSortOrdered_9eae4def_F(xs_V0: ADT$List_9bd3b639_T)
+  ensures Ordered_9eae4def_F(MergeSort_9eae4def_F(xs_V0))
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // decl 
+    
+    // MergeSortAuxOrdered_9eae4def_F(xs_V0_CN0, xs_V0_CN0.Length())
+    MergeSortAuxOrdered_9eae4def_F(xs_V0_CN0, Length_9bd3b639_MList(xs_V0_CN0))
+    label returnLabel
+  }
+}
+
+// decreases Length_9bd3b639_MList(xs_V0)
+method MergeSortPrime_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (Length_9bd3b639_MList(xs_V0) < 2) {
+  } else {
+    var pair_V1: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+    inhale pair_V1 == SplitPrime_9eae4def_F(xs_V0, xs_V0)
+    assert (decreasing(Length_9bd3b639_MList((get0of2(pair_V1): ADT$List_9bd3b639_T)),
+      old(Length_9bd3b639_MList(xs_V0))): Bool) &&
+      (bounded(old(Length_9bd3b639_MList(xs_V0))): Bool)
+    assert (decreasing(Length_9bd3b639_MList((get1of2(pair_V1): ADT$List_9bd3b639_T)),
+      old(Length_9bd3b639_MList(xs_V0))): Bool) &&
+      (bounded(old(Length_9bd3b639_MList(xs_V0))): Bool)
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method MergeSortSameElements_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, p_V0: Int)
+  ensures Project_9eae4def_F(xs_V0, p_V0) ==
+    Project_9eae4def_F(MergeSort_9eae4def_F(xs_V0), p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, p_V0_CN1: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var p_V0_CN1: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN1
+    inhale p_V0_CN1 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // p_V0_CN1 = p_V0
+    p_V0_CN1 := p_V0
+    
+    // decl 
+    
+    // MergeSortAuxSameElements_9eae4def_F(xs_V0_CN0, xs_V0_CN0.Length(), p_V0_CN1)
+    MergeSortAuxSameElements_9eae4def_F(xs_V0_CN0, Length_9bd3b639_MList(xs_V0_CN0),
+      p_V0_CN1)
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0) + rank$ADT$List_9bd3b639_T(ys_V0)
+method Merge_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var x_V1: Int
+      inhale x_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var xtail_V1: ADT$List_9bd3b639_T
+        inhale xtail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        if (ADT$List_9bd3b639_T_tag(ys_V0) ==
+        ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+        } elseif (ADT$List_9bd3b639_T_tag(ys_V0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+          {
+            var y_V2: Int
+            inhale y_V2 == ADT$List_9bd3b639_T_headA(ys_V0)
+            {
+              var ytail_V2: ADT$List_9bd3b639_T
+              inhale ytail_V2 == ADT$List_9bd3b639_T_tailA(ys_V0)
+              if (x_V1 <= y_V2) {
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V1) +
+                  rank$ADT$List_9bd3b639_T(ys_V0), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool)
+              } else {
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ytail_V2), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool)}
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Ordered_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+    }
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+  ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(xs_V0)) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V2: Int
+      inhale head_V2 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var y_V2: Int
+        inhale y_V2 ==
+          ADT$List_9bd3b639_T_headA(ADT$List_9bd3b639_T_tailA(xs_V0))
+        if (head_V2 <= y_V2) {
+          assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+            old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0) + rank$ADT$List_9bd3b639_T(ys_V0)
+method ProjectSame_9eae4def_F(xs_V0: ADT$List_9bd3b639_T, ys_V0: ADT$List_9bd3b639_T,
+  p_V0: Int)
+  ensures Project_9eae4def_F(xs_V0, p_V0) ==
+    Project_9eae4def_F(ys_V0, p_V0) ==>
+    Count_9eae4def_F(xs_V0, p_V0) == Count_9eae4def_F(ys_V0, p_V0)
+{
+  
+  // decl xs_V0_CN0: List_9bd3b639_T°°, ys_V0_CN1: List_9bd3b639_T°°, p_V0_CN2: int°°
+  {
+    var xs_V0_CN0: ADT$List_9bd3b639_T
+    var ys_V0_CN1: ADT$List_9bd3b639_T
+    var p_V0_CN2: Int
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_9bd3b639_T_dflt()
+    
+    // init ys_V0_CN1
+    inhale ys_V0_CN1 == ADT$List_9bd3b639_T_dflt()
+    
+    // init p_V0_CN2
+    inhale p_V0_CN2 == 0
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // ys_V0_CN1 = ys_V0
+    ys_V0_CN1 := ys_V0
+    
+    // p_V0_CN2 = p_V0
+    p_V0_CN2 := p_V0
+    
+    // decl 
+    
+    // !match xs_V0_CN0 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {_,xtail_V2}: 
+// }
+    {
+      var fn$$0: Bool
+      fn$$0 := false
+      if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+      ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+      !fn$$0) {
+        fn$$0 := true
+        
+        // !match ys_V0_CN1 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {_,ytail_V1}: 
+// }
+        {
+          var fn$$1: Bool
+          fn$$1 := false
+          if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+          ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+          !fn$$1) {
+            fn$$1 := true
+          }
+          {
+            var ytail_V1: ADT$List_9bd3b639_T
+            if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+            ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+            true &&
+            true &&
+            !fn$$1) {
+              fn$$1 := true
+              ytail_V1 := ADT$List_9bd3b639_T_tailA(ys_V0_CN1)
+              
+              // ProjectSame_9eae4def_F(xs_V0_CN0, ytail_V1, p_V0_CN2)
+              assert (decreasing(rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                rank$ADT$List_9bd3b639_T(ytail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                rank$ADT$List_9bd3b639_T(ytail_V1) ==
+                old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                false
+              ProjectSame_9eae4def_F(xs_V0_CN0, ytail_V1, p_V0_CN2)
+            }
+          }
+          assert fn$$1
+        }
+      }
+      {
+        var xtail_V2: ADT$List_9bd3b639_T
+        if (ADT$List_9bd3b639_T_tag(xs_V0_CN0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        true &&
+        true &&
+        !fn$$0) {
+          fn$$0 := true
+          xtail_V2 := ADT$List_9bd3b639_T_tailA(xs_V0_CN0)
+          
+          // !match ys_V0_CN1 {
+//   case Nil_9bd3b639_F {}: 
+//   case Cons_9bd3b639_F {y_V3,ytail_V3}: 
+// }
+          {
+            var fn$$2: Bool
+            fn$$2 := false
+            if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+            ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag() &&
+            !fn$$2) {
+              fn$$2 := true
+              
+              // ProjectSame_9eae4def_F(xtail_V2, ys_V0_CN1, p_V0_CN2)
+              assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V2) +
+                rank$ADT$List_9bd3b639_T(ys_V0_CN1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                rank$ADT$List_9bd3b639_T(xtail_V2) +
+                rank$ADT$List_9bd3b639_T(ys_V0_CN1) ==
+                old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                false
+              ProjectSame_9eae4def_F(xtail_V2, ys_V0_CN1, p_V0_CN2)
+            }
+            {
+              var y_V3: Int
+              var ytail_V3: ADT$List_9bd3b639_T
+              if (ADT$List_9bd3b639_T_tag(ys_V0_CN1) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+              true &&
+              true &&
+              !fn$$2) {
+                fn$$2 := true
+                y_V3 := ADT$List_9bd3b639_T_headA(ys_V0_CN1)
+                ytail_V3 := ADT$List_9bd3b639_T_tailA(ys_V0_CN1)
+                
+                // ProjectSame_9eae4def_F(xtail_V2, ytail_V3, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V2) +
+                  rank$ADT$List_9bd3b639_T(ytail_V3), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xtail_V2) +
+                  rank$ADT$List_9bd3b639_T(ytail_V3) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                ProjectSame_9eae4def_F(xtail_V2, ytail_V3, p_V0_CN2)
+                
+                // ProjectSame_9eae4def_F(xs_V0_CN0, ytail_V3, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                  rank$ADT$List_9bd3b639_T(ytail_V3), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xs_V0_CN0) +
+                  rank$ADT$List_9bd3b639_T(ytail_V3) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                ProjectSame_9eae4def_F(xs_V0_CN0, ytail_V3, p_V0_CN2)
+                
+                // ProjectSame_9eae4def_F(xtail_V2, ys_V0_CN1, p_V0_CN2)
+                assert (decreasing(rank$ADT$List_9bd3b639_T(xtail_V2) +
+                  rank$ADT$List_9bd3b639_T(ys_V0_CN1), old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) &&
+                  (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0))): Bool) ||
+                  rank$ADT$List_9bd3b639_T(xtail_V2) +
+                  rank$ADT$List_9bd3b639_T(ys_V0_CN1) ==
+                  old(rank$ADT$List_9bd3b639_T(xs_V0) +
+                  rank$ADT$List_9bd3b639_T(ys_V0)) &&
+                  false
+                ProjectSame_9eae4def_F(xtail_V2, ys_V0_CN1, p_V0_CN2)
+              }
+            }
+            assert fn$$2
+          }
+        }
+      }
+      assert fn$$0
+    }
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Project_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T, p_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        if (head_V1 == p_V0) {
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+        } else {
+          assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+    {
+      var __V1: Tuple0
+      inhale __V1 == AppendNil_9bd3b639_MList(ys_V0)
+    }
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V2: Int
+      inhale head_V2 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V2: ADT$List_9bd3b639_T
+        inhale tail_V2 == ADT$List_9bd3b639_T_tailA(xs_V0)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseAuxAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T, ac_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseAuxCorrect_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ac_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          inhale __V2 == ReverseAuxSlowCorrect_9bd3b639_MList(xs_V0, ac_V0)
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseAuxSlowCorrect_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ac_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        {
+          var __V4: Tuple0
+          inhale __V4 ==
+            SnocAppend_9bd3b639_MList(SlowReverse_9bd3b639_MList(tail_V1), head_V1)
+          {
+            var __V3: Tuple0
+            inhale __V3 ==
+              asserting_9bd3b639_F(ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1,
+              Append_9bd3b639_MList(ADT$List_9bd3b639_T_Nil_9bd3b639_F(), ac_V0)) ==
+              ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, ac_V0))
+            {
+              var __V2: Tuple0
+              inhale __V2 ==
+                AppendAssociative_9bd3b639_F(SlowReverse_9bd3b639_MList(tail_V1),
+                ADT$List_9bd3b639_T_Cons_9bd3b639_F(head_V1, ADT$List_9bd3b639_T_Nil_9bd3b639_F()),
+                ac_V0)
+              assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+                (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseAux_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ac_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseCorrect_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var tail_V1: ADT$List_9bd3b639_T
+      inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+      {
+        var __V2: Tuple0
+        inhale __V2 ==
+          ReverseAuxSlowCorrect_9bd3b639_MList(xs_V0, ADT$List_9bd3b639_T_Nil_9bd3b639_F())
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method ReverseInvolution_9bd3b639_MList(xs_V0: ADT$List_9bd3b639_T)
+  ensures Reverse_9bd3b639_MList(Reverse_9bd3b639_MList(xs_V0)) == xs_V0
+
+
+// decreases _
+method RightUnit_9bd3b639_F(x_V0: Int)
+  ensures F_9bd3b639_F(x_V0, R_9bd3b639_F()) == x_V0
+
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method SameValueDrop_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (!(n_V0 == 0) &&
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method SameValueTake_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (!(n_V0 == 0) &&
+  ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method SlowReverse_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method SnocAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  y_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Snoc_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, y_V0: Int)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(nn_V0) + rank$ADT$List_9bd3b639_T(xs_V0)
+method SplitPrime_9eae4def_F_posts_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  nn_V0: ADT$List_9bd3b639_T)
+  requires Length_9bd3b639_MList(nn_V0) <= Length_9bd3b639_MList(xs_V0)
+{
+  var $result: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+  {
+    var n_V1: Int
+    inhale n_V1 == Length_9bd3b639_MList(nn_V0) / 2
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(nn_V0) + rank$ADT$List_9bd3b639_T(xs_V0)
+method SplitPrime_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T, nn_V0: ADT$List_9bd3b639_T)
+  requires Length_9bd3b639_MList(nn_V0) <= Length_9bd3b639_MList(xs_V0)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+    if (ADT$List_9bd3b639_T_tag(nn_V0) ==
+    ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+    } elseif (ADT$List_9bd3b639_T_tag(nn_V0) ==
+    ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+      {
+        var n_V2: Int
+        inhale n_V2 == ADT$List_9bd3b639_T_headA(nn_V0)
+        {
+          var ntail_V2: ADT$List_9bd3b639_T
+          inhale ntail_V2 == ADT$List_9bd3b639_T_tailA(nn_V0)
+        }
+      }
+    }
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var x_V3: Int
+      inhale x_V3 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var xtail_V3: ADT$List_9bd3b639_T
+        inhale xtail_V3 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        if (ADT$List_9bd3b639_T_tag(nn_V0) ==
+        ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+        } elseif (ADT$List_9bd3b639_T_tag(nn_V0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+          {
+            var n_V4: Int
+            inhale n_V4 == ADT$List_9bd3b639_T_headA(nn_V0)
+            {
+              var nPrime_V4: Int
+              inhale nPrime_V4 ==
+                ADT$List_9bd3b639_T_headA(ADT$List_9bd3b639_T_tailA(nn_V0))
+              {
+                var ntail_V4: ADT$List_9bd3b639_T
+                inhale ntail_V4 ==
+                  ADT$List_9bd3b639_T_tailA(ADT$List_9bd3b639_T_tailA(nn_V0))
+                {
+                  var __V7: Bool
+                  inhale __V7 ==
+                    (Length_9bd3b639_MList(ADT$List_9bd3b639_T_Cons_9bd3b639_F(nPrime_V4,
+                    ntail_V4)) +
+                    1 ==
+                    Length_9bd3b639_MList(nn_V0))
+                  {
+                    var __V6: Bool
+                    inhale __V6 ==
+                      Length_9bd3b639_MList(xtail_V3) <=
+                      Length_9bd3b639_MList(ntail_V4)
+                    {
+                      var pair_V5: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+                      assert (decreasing(rank$ADT$List_9bd3b639_T(ntail_V4) +
+                        rank$ADT$List_9bd3b639_T(xtail_V3), old(rank$ADT$List_9bd3b639_T(nn_V0) +
+                        rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+                        (bounded(old(rank$ADT$List_9bd3b639_T(nn_V0) +
+                        rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+                      inhale pair_V5 ==
+                        SplitPrime_9eae4def_F(xtail_V3, ntail_V4)
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } elseif (ADT$List_9bd3b639_T_tag(nn_V0) ==
+        ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag() &&
+        ADT$List_9bd3b639_T_tag(ADT$List_9bd3b639_T_tailA(nn_V0)) ==
+        ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+          {
+            var n_V8: Int
+            inhale n_V8 == ADT$List_9bd3b639_T_headA(nn_V0)
+          }
+        }
+      }
+    }
+  }
+}
+
+// decreases n_V0
+method Split_9eae4def_F_posts_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  var $result: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+  {
+    var left_V1: ADT$List_9bd3b639_T
+    inhale left_V1 == (get0of2($result): ADT$List_9bd3b639_T)
+    {
+      var right_V2: ADT$List_9bd3b639_T
+      inhale right_V2 == (get1of2($result): ADT$List_9bd3b639_T)
+    }
+  }
+}
+
+// decreases n_V0
+method Split_9eae4def_F_termination_proof(xs_V0: ADT$List_9bd3b639_T, n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  if (n_V0 == 0) {
+  } else {
+    var lr_V5: Tuple2[ADT$List_9bd3b639_T, ADT$List_9bd3b639_T]
+    assert (decreasing(n_V0 - 1, old(n_V0)): Bool) &&
+      (bounded(old(n_V0)): Bool)
+    inhale lr_V5 ==
+      Split_9eae4def_F(ADT$List_9bd3b639_T_tailA(xs_V0), n_V0 - 1)
+    {
+      var l_V3: ADT$List_9bd3b639_T
+      inhale l_V3 == (get0of2(lr_V5): ADT$List_9bd3b639_T)
+      {
+        var r_V4: ADT$List_9bd3b639_T
+        inhale r_V4 == (get1of2(lr_V5): ADT$List_9bd3b639_T)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method TakeDropAppend_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T,
+  ys_V0: ADT$List_9bd3b639_T)
+{
+  if (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Nil_9bd3b639_F_tag()) {
+  } elseif (ADT$List_9bd3b639_T_tag(xs_V0) ==
+  ADT$List_9bd3b639_T_Cons_9bd3b639_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_9bd3b639_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_9bd3b639_T
+        inhale tail_V1 == ADT$List_9bd3b639_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_9bd3b639_T(tail_V1), old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_9bd3b639_T(xs_V0)
+method Take_9bd3b639_MList_termination_proof(xs_V0: ADT$List_9bd3b639_T, n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_9bd3b639_MList(xs_V0)
+{
+  if (n_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_9bd3b639_T(ADT$List_9bd3b639_T_tailA(xs_V0)),
+      old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_9bd3b639_T(xs_V0))): Bool)}
+}
+
+method panic_a4af0e5e_F(v_V0: Tuple2[Ref, Types])
+  requires false

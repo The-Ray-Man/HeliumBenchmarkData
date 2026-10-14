@@ -1,0 +1,2236 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function Payroll(): PyType 
+  
+  unique function Employee(): PyType 
+  
+  unique function Combined(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_Payroll {
+    extends_(Payroll(), object()) && get_basic(Payroll()) == Payroll()
+  }
+  
+  axiom subtype_Employee {
+    extends_(Employee(), object()) && get_basic(Employee()) == Employee()
+  }
+  
+  axiom subtype_Combined {
+    extends_(Combined(), object()) && get_basic(Combined()) == Combined()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field dict_accp: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field Payroll_PID: Ref
+
+field Payroll_PIDp: Ref
+
+field Payroll_salary: Ref
+
+field Payroll_salaryp: Ref
+
+field Payroll_joinInd: Ref
+
+field Payroll_joinIndp: Ref
+
+field Employee_EID: Ref
+
+field Employee_EIDp: Ref
+
+field Combined_payroll: Ref
+
+field Combined_payrollp: Ref
+
+field Combined_employee: Ref
+
+field Combined_employeep: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+  decreases _
+{
+  self >= other
+}
+
+function int___le__(self: Int, other: Int): Bool
+  decreases _
+{
+  self <= other
+}
+
+function int___lt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self < other
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function list___len__(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+{
+  |self.list_acc|
+}
+
+function list___len___0(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_accp, wildcard)
+{
+  |self.list_accp|
+}
+
+function list___getitem__(self: Ref, key: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_acc, wildcard)
+  requires (let ln ==
+      (list___len__(self)) in
+      (int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln) &&
+      (int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_acc[int___unbox__(key)] :
+      self.list_acc[list___len__(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+
+
+function list___getitem___0(self: Ref, key: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_accp, wildcard)
+  requires (let ln ==
+      (list___len___0(self)) in
+      (int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln) &&
+      (int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_accp[int___unbox__(key)] :
+      self.list_accp[list___len___0(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustTerminate_0(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeBounded_0(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate MustInvokeUnbounded_0(r: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+method check_join_and_find_employee(p1: Bool, p2: Bool, _cthread_158: Ref, _cthread_158_0: Ref,
+  _caller_measures_158: Seq[Measure$], _caller_measures_158_0: Seq[Measure$],
+  _residue_158: Perm, _residue_158_0: Perm, psi: Ref, psi_1: Ref, es: Ref, es_1: Ref)
+  returns (_current_wait_level_158: Perm, _current_wait_level_158_0: Perm, _res: Ref,
+  _res_0: Ref)
+  requires (p1 ==> _cthread_158 != null) && (p2 ==> _cthread_158_0 != null)
+  requires (p1 ==> issubtype(typeof(_cthread_158), Thread_0())) &&
+    (p2 ==> issubtype(typeof(_cthread_158_0), Thread_0()))
+  requires (p1 ==> issubtype(typeof(psi), Payroll())) &&
+    (p2 ==> issubtype(typeof(psi_1), Payroll()))
+  requires (p1 ==> issubtype(typeof(es), list(Employee()))) &&
+    (p2 ==> issubtype(typeof(es_1), list(Employee())))
+  requires (p1 ==> acc(es.list_acc, write)) &&
+    (p2 ==> acc(es_1.list_accp, write))
+  requires (p1 && p2 ==> es == es_1) &&
+    (p1 && p2 ==>
+    __prim__int___box__(list___len__(es)) ==
+    __prim__int___box__(list___len___0(es_1)))
+  requires (p1 ==> acc(psi.Payroll_joinInd, 1 / 4)) &&
+    (p2 ==> acc(psi_1.Payroll_joinIndp, 1 / 4)) &&
+    ((p1 ==> issubtype(typeof(psi.Payroll_joinInd), bool())) &&
+    (p2 ==> issubtype(typeof(psi_1.Payroll_joinIndp), bool()))) &&
+    (p1 && p2 ==> psi.Payroll_joinInd == psi_1.Payroll_joinIndp)
+  requires (p1 ==> acc(psi.Payroll_PID, 1 / 4)) &&
+    (p2 ==> acc(psi_1.Payroll_PIDp, 1 / 4)) &&
+    ((p1 ==> issubtype(typeof(psi.Payroll_PID), int())) &&
+    (p2 ==> issubtype(typeof(psi_1.Payroll_PIDp), int()))) &&
+    (p1 && p2 ==> psi.Payroll_PID == psi_1.Payroll_PIDp)
+  requires (p1 ==> true) && (p2 ==> true) &&
+    ((p1 ==>
+    (forall lambda37_25$i: Ref ::
+      { list___getitem__(es, lambda37_25$i) }
+      issubtype(typeof(lambda37_25$i), int()) &&
+      issubtype(typeof(lambda37_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda37_25$i), 0) &&
+      int___lt__(int___unbox__(lambda37_25$i), list___len__(es))) ==>
+      acc(list___getitem__(es, lambda37_25$i).Employee_EID, 1 / 4))) &&
+    (p2 ==>
+    (forall lambda37_25$i: Ref ::
+      { list___getitem___0(es_1, lambda37_25$i) }
+      issubtype(typeof(lambda37_25$i), int()) &&
+      issubtype(typeof(lambda37_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda37_25$i), 0) &&
+      int___lt__(int___unbox__(lambda37_25$i), list___len___0(es_1))) ==>
+      acc(list___getitem___0(es_1, lambda37_25$i).Employee_EIDp, 1 / 4)))) &&
+    (forall lambda37_25$i: Ref ::
+      { list___getitem__(es, lambda37_25$i) }
+      { list___getitem___0(es_1, lambda37_25$i) }
+      (p1 ==>
+      issubtype(typeof(lambda37_25$i), int()) &&
+      issubtype(typeof(lambda37_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda37_25$i), 0) &&
+      int___lt__(int___unbox__(lambda37_25$i), list___len__(es))) ==>
+      issubtype(typeof(list___getitem__(es, lambda37_25$i).Employee_EID), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda37_25$i), int()) &&
+      issubtype(typeof(lambda37_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda37_25$i), 0) &&
+      int___lt__(int___unbox__(lambda37_25$i), list___len___0(es_1))) ==>
+      issubtype(typeof(list___getitem___0(es_1, lambda37_25$i).Employee_EIDp),
+      int()))) &&
+    (forall lambda37_25$i: Ref ::
+      { list___getitem__(es, lambda37_25$i) }
+      { list___getitem___0(es_1, lambda37_25$i) }
+      (p1 ==> issubtype(typeof(lambda37_25$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda37_25$i), int())) &&
+      ((p1 ==> issubtype(typeof(lambda37_25$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda37_25$i), int()))) &&
+      ((p1 ==> int___ge__(int___unbox__(lambda37_25$i), 0)) &&
+      (p2 ==> int___ge__(int___unbox__(lambda37_25$i), 0)) &&
+      ((p1 ==> int___lt__(int___unbox__(lambda37_25$i), list___len__(es))) &&
+      (p2 ==>
+      int___lt__(int___unbox__(lambda37_25$i), list___len___0(es_1))))) ==>
+      p1 && p2 ==>
+      list___getitem__(es, lambda37_25$i).Employee_EID ==
+      list___getitem___0(es_1, lambda37_25$i).Employee_EIDp)
+  requires (p1 ==>
+    [true,
+    perm(MustTerminate(_cthread_158)) == none &&
+    ((forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) &&
+    (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false))))]) &&
+    (p2 ==>
+    [true,
+    perm(MustTerminate_0(_cthread_158_0)) == none &&
+    ((forperm _r_3: Ref [MustInvokeBounded_0(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [MustInvokeUnbounded_0(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [_r_3.MustReleaseBoundedp] :: false) &&
+    (forperm _r_3: Ref [_r_3.MustReleaseUnboundedp] :: false))))])
+  ensures (p1 ==>
+    [(forperm
+      _r_1: Ref [_r_1.MustReleaseBounded] :: Level(_r_1) <=
+      _current_wait_level_158) &&
+    ((forperm
+      _r_1: Ref [_r_1.MustReleaseUnbounded] :: Level(_r_1) <=
+      _current_wait_level_158) &&
+    _residue_158 <= _current_wait_level_158),
+    true]) &&
+    (p2 ==>
+    [(forperm
+      _r_1: Ref [_r_1.MustReleaseBoundedp] :: Level(_r_1) <=
+      _current_wait_level_158_0) &&
+    ((forperm
+      _r_1: Ref [_r_1.MustReleaseUnboundedp] :: Level(_r_1) <=
+      _current_wait_level_158_0) &&
+    _residue_158_0 <= _current_wait_level_158_0),
+    true])
+  ensures (p1 ==> _res == null || issubtype(typeof(_res), Combined())) &&
+    (p2 ==> _res_0 == null || issubtype(typeof(_res_0), Combined()))
+  ensures (p1 ==> acc(es.list_acc, write)) &&
+    (p2 ==> acc(es_1.list_accp, write))
+  ensures (p1 ==> acc(psi.Payroll_PID, 1 / 4)) &&
+    (p2 ==> acc(psi_1.Payroll_PIDp, 1 / 4)) &&
+    ((p1 ==> issubtype(typeof(psi.Payroll_PID), int())) &&
+    (p2 ==> issubtype(typeof(psi_1.Payroll_PIDp), int())))
+  ensures (p1 ==> acc(psi.Payroll_joinInd, 1 / 4)) &&
+    (p2 ==> acc(psi_1.Payroll_joinIndp, 1 / 4)) &&
+    ((p1 ==> issubtype(typeof(psi.Payroll_joinInd), bool())) &&
+    (p2 ==> issubtype(typeof(psi_1.Payroll_joinIndp), bool())))
+  ensures (p1 ==> true) && (p2 ==> true) &&
+    ((p1 ==>
+    (forall lambda41_24$i: Ref ::
+      { list___getitem__(es, lambda41_24$i) }
+      issubtype(typeof(lambda41_24$i), int()) &&
+      issubtype(typeof(lambda41_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda41_24$i), 0) &&
+      int___lt__(int___unbox__(lambda41_24$i), list___len__(es))) ==>
+      acc(list___getitem__(es, lambda41_24$i).Employee_EID, 1 / 4))) &&
+    (p2 ==>
+    (forall lambda41_24$i: Ref ::
+      { list___getitem___0(es_1, lambda41_24$i) }
+      issubtype(typeof(lambda41_24$i), int()) &&
+      issubtype(typeof(lambda41_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda41_24$i), 0) &&
+      int___lt__(int___unbox__(lambda41_24$i), list___len___0(es_1))) ==>
+      acc(list___getitem___0(es_1, lambda41_24$i).Employee_EIDp, 1 / 4)))) &&
+    (forall lambda41_24$i: Ref ::
+      { list___getitem__(es, lambda41_24$i) }
+      { list___getitem___0(es_1, lambda41_24$i) }
+      (p1 ==>
+      issubtype(typeof(lambda41_24$i), int()) &&
+      issubtype(typeof(lambda41_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda41_24$i), 0) &&
+      int___lt__(int___unbox__(lambda41_24$i), list___len__(es))) ==>
+      issubtype(typeof(list___getitem__(es, lambda41_24$i).Employee_EID), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda41_24$i), int()) &&
+      issubtype(typeof(lambda41_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda41_24$i), 0) &&
+      int___lt__(int___unbox__(lambda41_24$i), list___len___0(es_1))) ==>
+      issubtype(typeof(list___getitem___0(es_1, lambda41_24$i).Employee_EIDp),
+      int())))
+  ensures p1 && p2 ==> _res == _res_0
+  ensures (p1 ==>
+    [true,
+    (forperm _r_2: Ref [MustInvokeBounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [MustInvokeUnbounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [_r_2.MustReleaseBounded] :: false) &&
+    (forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: false)))]) &&
+    (p2 ==>
+    [true,
+    (forperm _r_2: Ref [MustInvokeBounded_0(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [MustInvokeUnbounded_0(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [_r_2.MustReleaseBoundedp] :: false) &&
+    (forperm _r_2: Ref [_r_2.MustReleaseUnboundedp] :: false)))])
+{
+  var ret1: Bool
+  var ret2: Bool
+  inhale p1
+  ret1 := false
+  ret2 := false
+  {
+    var _err: Ref
+    var _err_0: Ref
+    var j: Ref
+    var j_0: Ref
+    var psi_0: Ref
+    var psi_0_0: Ref
+    var es_0: Ref
+    var es_0_0: Ref
+    var _loop_measures: Seq[Measure$]
+    var _loop_measures_0: Seq[Measure$]
+    var _loop_check_before: Bool
+    var _loop_check_before_0: Bool
+    var _loop_termination_flag: Bool
+    var _loop_termination_flag_0: Bool
+    var _loop_original_must_terminate: Perm
+    var _loop_original_must_terminate_0: Perm
+    var _residue_159: Perm
+    var _residue_159_0: Perm
+    var Combined_res: Ref
+    var Combined_res_0: Ref
+    var _cwl_158: Perm
+    var _cwl_158_0: Perm
+    var _method_measures_158: Seq[Measure$]
+    var _method_measures_158_0: Seq[Measure$]
+    if (p1 && !ret1) {
+      _method_measures_158 := Seq[Measure$]()
+      _res := null
+      _err := null
+      psi_0 := psi
+      es_0 := es
+    }
+    if (p2 && !ret2) {
+      _method_measures_158_0 := Seq[Measure$]()
+      _res_0 := null
+      _err_0 := null
+      psi_0_0 := psi_1
+      es_0_0 := es_1
+    }
+    {
+      var p1_0: Bool
+      var p2_0: Bool
+      var p3: Bool
+      var p4: Bool
+      p1_0 := p1 && !ret1 && bool___unbox__(psi_0.Payroll_joinInd)
+      p2_0 := p2 && !ret2 && bool___unbox__(psi_0_0.Payroll_joinIndp)
+      p3 := p1 && !ret1 && !bool___unbox__(psi_0.Payroll_joinInd)
+      p4 := p2 && !ret2 && !bool___unbox__(psi_0_0.Payroll_joinIndp)
+      if (p1_0 && !ret1) {
+        j := __prim__int___box__(0)
+        inhale _isDefined(106)
+        // Save current MustTerminate amount.
+        _loop_original_must_terminate := perm(MustTerminate(_cthread_158))
+        // Save loop termination promise.
+        _loop_termination_flag := false
+        // We are before loop.
+        _loop_check_before := true
+      }
+      if (p2_0 && !ret2) {
+        j_0 := __prim__int___box__(0)
+        inhale true
+        // Save current MustTerminate amount.
+        _loop_original_must_terminate_0 := perm(MustTerminate_0(_cthread_158_0))
+        // Save loop termination promise.
+        _loop_termination_flag_0 := false
+        // We are before loop.
+        _loop_check_before_0 := true
+      }
+      {
+        var bypass1: Bool
+        var bypass2: Bool
+        var tmp1: Seq[Measure$]
+        var tmp2: Seq[Measure$]
+        var tmp1_0: Ref
+        var tmp2_0: Ref
+        var tmp1_1: Perm
+        var tmp2_1: Perm
+        var tmp1_2: Bool
+        var tmp2_2: Bool
+        var tmp1_3: Ref
+        var tmp2_3: Ref
+        var tmp1_4: Bool
+        var tmp2_4: Bool
+        var oldret1: Bool
+        var oldret2: Bool
+        var p1_1: Bool
+        var p2_1: Bool
+        var idle1: Bool
+        var idle2: Bool
+        bypass1 := !(p1_0 && !ret1)
+        bypass2 := !(p2_0 && !ret2)
+        if (bypass1) {
+          tmp1 := _loop_measures
+          tmp1_0 := Combined_res
+          tmp1_1 := _cwl_158
+          tmp1_2 := ret1
+          tmp1_3 := j
+          tmp1_4 := _loop_check_before
+        }
+        if (bypass2) {
+          tmp2 := _loop_measures_0
+          tmp2_0 := Combined_res_0
+          tmp2_1 := _cwl_158_0
+          tmp2_2 := ret2
+          tmp2_3 := j_0
+          tmp2_4 := _loop_check_before_0
+        }
+        oldret1 := ret1
+        oldret2 := ret2
+        idle1 := false
+        idle2 := false
+        while (p1_0 && !ret1 && !bypass1 &&
+        int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0)) ||
+        p2_0 && !ret2 && !bypass2 &&
+        int___lt__(int___unbox__(j_0), list___len___0(es_0_0)))
+          invariant (p1_0 && !bypass1 ==>
+            [(forperm
+              _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _residue_159) &&
+            ((forperm
+              _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <=
+              _residue_159) &&
+            _residue_158 <= _residue_159),
+            true]) &&
+            (p2_0 && !bypass2 ==>
+            [(forperm
+              _r: Ref [_r.MustReleaseBoundedp] :: Level(_r) <=
+              _residue_159_0) &&
+            ((forperm
+              _r: Ref [_r.MustReleaseUnboundedp] :: Level(_r) <=
+              _residue_159_0) &&
+            _residue_158_0 <= _residue_159_0),
+            true])
+          invariant (p1_0 && !bypass1 ==> issubtype(typeof(j), int())) &&
+            (p2_0 && !bypass2 ==> issubtype(typeof(j_0), int()))
+          invariant (p1_0 && !bypass1 ==> acc(es_0.list_acc, write)) &&
+            (p2_0 && !bypass2 ==> acc(es_0_0.list_accp, write))
+          invariant (p1_0 && !bypass1 && (p2_0 && !bypass2) ==>
+            !ret1 == !ret2) &&
+            ((p1_0 && !bypass1 && (p2_0 && !bypass2) ==> es_0 == es_0_0) &&
+            (p1_0 && !bypass1 && (p2_0 && !bypass2) ==>
+            __prim__int___box__(list___len__(es_0)) ==
+            __prim__int___box__(list___len___0(es_0_0))))
+          invariant (p1_0 && !bypass1 ==> acc(psi_0.Payroll_PID, 1 / 8)) &&
+            (p2_0 && !bypass2 ==> acc(psi_0_0.Payroll_PIDp, 1 / 8)) &&
+            ((p1_0 && !bypass1 ==>
+            issubtype(typeof(psi_0.Payroll_PID), int())) &&
+            (p2_0 && !bypass2 ==>
+            issubtype(typeof(psi_0_0.Payroll_PIDp), int()))) &&
+            (p1_0 && !bypass1 && (p2_0 && !bypass2) ==>
+            psi_0.Payroll_PID == psi_0_0.Payroll_PIDp)
+          invariant (p1_0 && !bypass1 ==>
+            int___ge__(int___unbox__(_checkDefined(j, 106)), 0)) &&
+            (p2_0 && !bypass2 ==> int___ge__(int___unbox__(j_0), 0)) &&
+            ((p1_0 && !bypass1 ==>
+            int___le__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))) &&
+            (p2_0 && !bypass2 ==>
+            int___le__(int___unbox__(j_0), list___len___0(es_0_0))) &&
+            (p1_0 && !bypass1 && (p2_0 && !bypass2) ==>
+            _checkDefined(j, 106) == j_0))
+          invariant true &&
+            ((p1_0 && !bypass1 ==>
+            (forall lambda51_34$i: Ref ::
+              { list___getitem__(es_0, lambda51_34$i) }
+              issubtype(typeof(lambda51_34$i), int()) &&
+              issubtype(typeof(lambda51_34$i), int()) &&
+              (int___ge__(int___unbox__(lambda51_34$i), 0) &&
+              int___lt__(int___unbox__(lambda51_34$i), list___len__(es_0))) ==>
+              acc(list___getitem__(es_0, lambda51_34$i).Employee_EID, 1 / 4))) &&
+            (p2_0 && !bypass2 ==>
+            (forall lambda51_34$i: Ref ::
+              { list___getitem___0(es_0_0, lambda51_34$i) }
+              issubtype(typeof(lambda51_34$i), int()) &&
+              issubtype(typeof(lambda51_34$i), int()) &&
+              (int___ge__(int___unbox__(lambda51_34$i), 0) &&
+              int___lt__(int___unbox__(lambda51_34$i), list___len___0(es_0_0))) ==>
+              acc(list___getitem___0(es_0_0, lambda51_34$i).Employee_EIDp, 1 /
+              4)))) &&
+            (forall lambda51_34$i: Ref ::
+              { list___getitem__(es_0, lambda51_34$i) }
+              { list___getitem___0(es_0_0, lambda51_34$i) }
+              (p1_0 && !bypass1 ==>
+              issubtype(typeof(lambda51_34$i), int()) &&
+              issubtype(typeof(lambda51_34$i), int()) &&
+              (int___ge__(int___unbox__(lambda51_34$i), 0) &&
+              int___lt__(int___unbox__(lambda51_34$i), list___len__(es_0))) ==>
+              issubtype(typeof(list___getitem__(es_0, lambda51_34$i).Employee_EID),
+              int())) &&
+              (p2_0 && !bypass2 ==>
+              issubtype(typeof(lambda51_34$i), int()) &&
+              issubtype(typeof(lambda51_34$i), int()) &&
+              (int___ge__(int___unbox__(lambda51_34$i), 0) &&
+              int___lt__(int___unbox__(lambda51_34$i), list___len___0(es_0_0))) ==>
+              issubtype(typeof(list___getitem___0(es_0_0, lambda51_34$i).Employee_EIDp),
+              int()))) &&
+            (forall lambda51_34$i: Ref ::
+              { list___getitem__(es_0, lambda51_34$i) }
+              { list___getitem___0(es_0_0, lambda51_34$i) }
+              (p1_0 && !bypass1 ==> issubtype(typeof(lambda51_34$i), int())) &&
+              (p2_0 && !bypass2 ==> issubtype(typeof(lambda51_34$i), int())) &&
+              ((p1_0 && !bypass1 ==>
+              issubtype(typeof(lambda51_34$i), int())) &&
+              (p2_0 && !bypass2 ==> issubtype(typeof(lambda51_34$i), int()))) &&
+              ((p1_0 && !bypass1 ==>
+              int___ge__(int___unbox__(lambda51_34$i), 0)) &&
+              (p2_0 && !bypass2 ==>
+              int___ge__(int___unbox__(lambda51_34$i), 0)) &&
+              ((p1_0 && !bypass1 ==>
+              int___lt__(int___unbox__(lambda51_34$i), list___len__(es_0))) &&
+              (p2_0 && !bypass2 ==>
+              int___lt__(int___unbox__(lambda51_34$i), list___len___0(es_0_0))))) ==>
+              p1_0 && !bypass1 && (p2_0 && !bypass2) ==>
+              list___getitem__(es_0, lambda51_34$i).Employee_EID ==
+              list___getitem___0(es_0_0, lambda51_34$i).Employee_EIDp)
+          invariant (p1_0 && !bypass1 ==>
+            [true,
+            !idle1 ==>
+            _loop_check_before ==>
+            _loop_termination_flag ||
+            (!int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0)) ||
+            perm(MustTerminate(_cthread_158)) == none &&
+            ((forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+            (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))))]) &&
+            (p2_0 && !bypass2 ==>
+            [true,
+            !idle2 ==>
+            _loop_check_before_0 ==>
+            _loop_termination_flag_0 ||
+            (!int___lt__(int___unbox__(j_0), list___len___0(es_0_0)) ||
+            perm(MustTerminate_0(_cthread_158_0)) == none &&
+            ((forperm _r_0: Ref [MustInvokeBounded_0(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [MustInvokeUnbounded_0(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [_r_0.MustReleaseBoundedp] :: false) &&
+            (forperm _r_0: Ref [_r_0.MustReleaseUnboundedp] :: false)))))])
+          invariant (p1_0 && !bypass1 ==>
+            [true,
+            !idle1 ==>
+            !_loop_check_before ==>
+            (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+            (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))]) &&
+            (p2_0 && !bypass2 ==>
+            [true,
+            !idle2 ==>
+            !_loop_check_before_0 ==>
+            (forperm _r_0: Ref [MustInvokeBounded_0(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [MustInvokeUnbounded_0(_r_0)] :: false) &&
+            ((forperm _r_0: Ref [_r_0.MustReleaseBoundedp] :: false) &&
+            (forperm _r_0: Ref [_r_0.MustReleaseUnboundedp] :: false)))])
+          invariant bypass1 ==> tmp1 == _loop_measures
+          invariant bypass1 ==> tmp1_2 == ret1
+          invariant bypass1 ==> tmp1_1 == _cwl_158
+          invariant bypass1 ==> tmp1_3 == j
+          invariant bypass1 ==> tmp1_4 == _loop_check_before
+          invariant bypass1 ==> tmp1_0 == Combined_res
+          invariant bypass2 ==> tmp2_2 == ret2
+          invariant bypass2 ==> tmp2_3 == j_0
+          invariant bypass2 ==> tmp2_4 == _loop_check_before_0
+          invariant bypass2 ==> tmp2_0 == Combined_res_0
+          invariant bypass2 ==> tmp2 == _loop_measures_0
+          invariant bypass2 ==> tmp2_1 == _cwl_158_0 
+        {
+          p1_1 := p1_0 && !ret1 &&
+            int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))
+          p2_1 := p2_0 && !ret2 &&
+            int___lt__(int___unbox__(j_0), list___len___0(es_0_0))
+          idle1 := p1_0 && !ret1 &&
+            !int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))
+          idle2 := p2_0 && !ret2 &&
+            !int___lt__(int___unbox__(j_0), list___len___0(es_0_0))
+          if (p1_1 && !ret1) {
+            _loop_measures := Seq[Measure$]()
+          }
+          if (p2_1 && !ret2) {
+            _loop_measures_0 := Seq[Measure$]()
+          }
+          assert p1_1 && !ret1 && (p2_1 && !ret2) ==>
+            list___getitem__(es_0, _checkDefined(j, 106)).Employee_EID ==
+            list___getitem___0(es_0_0, j_0).Employee_EIDp
+          assert p1_1 && !ret1 && (p2_1 && !ret2) ==>
+            __prim__bool___box__(int___eq__(psi_0.Payroll_PID, list___getitem__(es_0,
+            _checkDefined(j, 106)).Employee_EID)) ==
+            __prim__bool___box__(int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0,
+            j_0).Employee_EIDp))
+          {
+            var p1_2: Bool
+            var p2_2: Bool
+            var p3_0: Bool
+            var p4_0: Bool
+            p1_2 := p1_1 && !ret1 &&
+              int___eq__(psi_0.Payroll_PID, list___getitem__(es_0, _checkDefined(j,
+              106)).Employee_EID)
+            p2_2 := p2_1 && !ret2 &&
+              int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0, j_0).Employee_EIDp)
+            p3_0 := p1_1 && !ret1 &&
+              !int___eq__(psi_0.Payroll_PID, list___getitem__(es_0, _checkDefined(j,
+              106)).Employee_EID)
+            p4_0 := p2_1 && !ret2 &&
+              !int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0, j_0).Employee_EIDp)
+            {
+              var tmp: Ref
+              tmp := new()
+              if (p1_2 && !ret1) {
+                Combined_res := tmp
+              }
+              if (p2_2 && !ret2) {
+                Combined_res_0 := tmp
+              }
+            }
+            if (p1_2 && !ret1) {
+              inhale typeof(Combined_res) == Combined()
+              inhale acc(_MaySet(Combined_res, 144119652022534690276650450446394945347), write)
+              inhale acc(_MaySet(Combined_res, 34503401614447846156716155980889514143555), write)
+            }
+            if (p2_2 && !ret2) {
+              inhale typeof(Combined_res_0) == Combined()
+              inhale acc(_MaySet_0(Combined_res_0, 144119652022534690276650450446394945347), write)
+              inhale acc(_MaySet_0(Combined_res_0, 34503401614447846156716155980889514143555), write)
+            }
+            // Method call: Combined___init__
+  
+            if (p1_2 && !ret1 || p2_2 && !ret2) {
+              var tmp1_5: Ref
+              var tmp2_5: Ref
+              var tmp1_6: Seq[Measure$]
+              var tmp2_6: Seq[Measure$]
+              var tmp1_7: Perm
+              var tmp2_7: Perm
+              var tmp1_8: Ref
+              var tmp2_8: Ref
+              var tmp1_9: Ref
+              var tmp2_9: Ref
+              var tmp1_10: Ref
+              var tmp2_10: Ref
+              var tmp1_11: Perm
+              var tmp2_11: Perm
+              if (p1_2 && !ret1) {
+                tmp1_5 := _cthread_158
+                tmp1_6 := _method_measures_158
+                tmp1_7 := _residue_159
+                tmp1_8 := Combined_res
+                tmp1_9 := psi_0
+                tmp1_10 := list___getitem__(es_0, _checkDefined(j, 106))
+              }
+              if (p2_2 && !ret2) {
+                tmp2_5 := _cthread_158_0
+                tmp2_6 := _method_measures_158_0
+                tmp2_7 := _residue_159_0
+                tmp2_8 := Combined_res_0
+                tmp2_9 := psi_0_0
+                tmp2_10 := list___getitem___0(es_0_0, j_0)
+              }
+              tmp1_11, tmp2_11 := Combined___init__(p1_2 && !ret1, p2_2 &&
+                !ret2, tmp1_5, tmp2_5, tmp1_6, tmp2_6, tmp1_7, tmp2_7, tmp1_8,
+                tmp2_8, tmp1_9, tmp2_9, tmp1_10, tmp2_10)
+              if (p1_2 && !ret1) {
+                _cwl_158 := tmp1_11
+              }
+              if (p2_2 && !ret2) {
+                _cwl_158_0 := tmp2_11
+              }
+            }
+            if (p1_2 && !ret1) {
+              _res := Combined_res
+              ret1 := true
+            }
+            if (p2_2 && !ret2) {
+              _res_0 := Combined_res_0
+              ret2 := true
+            }
+          }
+          if (p1_1 && !ret1) {
+            j := __prim__int___box__(int___add__(int___unbox__(j), 1))
+            inhale _isDefined(106)
+            // We are after loop body.
+            _loop_check_before := false
+          }
+          if (p2_1 && !ret2) {
+            j_0 := __prim__int___box__(int___add__(int___unbox__(j_0), 1))
+            inhale true
+            // We are after loop body.
+            _loop_check_before_0 := false
+          }
+          assert (p1_1 && !ret1 ==>
+            _loop_termination_flag ==>
+            !int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))) &&
+            (p2_1 && !ret2 ==>
+            _loop_termination_flag_0 ==>
+            !int___lt__(int___unbox__(j_0), list___len___0(es_0_0)))
+        }
+        // Loop Reconstruction.
+  
+        if (!bypass1 && ret1 || !bypass2 && ret2) {
+          ret1 := oldret1
+          ret2 := oldret2
+          inhale p1_0 && !ret1 ==>
+            int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))
+          inhale p2_0 && !ret1 ==>
+            int___lt__(int___unbox__(j_0), list___len___0(es_0_0))
+          p1_1 := p1_0 && !ret1 &&
+            int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))
+          p2_1 := p2_0 && !ret2 &&
+            int___lt__(int___unbox__(j_0), list___len___0(es_0_0))
+          idle1 := p1_0 && !ret1 &&
+            !int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))
+          idle2 := p2_0 && !ret2 &&
+            !int___lt__(int___unbox__(j_0), list___len___0(es_0_0))
+          if (p1_1 && !ret1) {
+            _loop_measures := Seq[Measure$]()
+          }
+          if (p2_1 && !ret2) {
+            _loop_measures_0 := Seq[Measure$]()
+          }
+          assert p1_1 && !ret1 && (p2_1 && !ret2) ==>
+            list___getitem__(es_0, _checkDefined(j, 106)).Employee_EID ==
+            list___getitem___0(es_0_0, j_0).Employee_EIDp
+          assert p1_1 && !ret1 && (p2_1 && !ret2) ==>
+            __prim__bool___box__(int___eq__(psi_0.Payroll_PID, list___getitem__(es_0,
+            _checkDefined(j, 106)).Employee_EID)) ==
+            __prim__bool___box__(int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0,
+            j_0).Employee_EIDp))
+          {
+            var p1_2: Bool
+            var p2_2: Bool
+            var p3_0: Bool
+            var p4_0: Bool
+            p1_2 := p1_1 && !ret1 &&
+              int___eq__(psi_0.Payroll_PID, list___getitem__(es_0, _checkDefined(j,
+              106)).Employee_EID)
+            p2_2 := p2_1 && !ret2 &&
+              int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0, j_0).Employee_EIDp)
+            p3_0 := p1_1 && !ret1 &&
+              !int___eq__(psi_0.Payroll_PID, list___getitem__(es_0, _checkDefined(j,
+              106)).Employee_EID)
+            p4_0 := p2_1 && !ret2 &&
+              !int___eq__(psi_0_0.Payroll_PIDp, list___getitem___0(es_0_0, j_0).Employee_EIDp)
+            {
+              var tmp: Ref
+              tmp := new()
+              if (p1_2 && !ret1) {
+                Combined_res := tmp
+              }
+              if (p2_2 && !ret2) {
+                Combined_res_0 := tmp
+              }
+            }
+            if (p1_2 && !ret1) {
+              inhale typeof(Combined_res) == Combined()
+              inhale acc(_MaySet(Combined_res, 144119652022534690276650450446394945347), write)
+              inhale acc(_MaySet(Combined_res, 34503401614447846156716155980889514143555), write)
+            }
+            if (p2_2 && !ret2) {
+              inhale typeof(Combined_res_0) == Combined()
+              inhale acc(_MaySet_0(Combined_res_0, 144119652022534690276650450446394945347), write)
+              inhale acc(_MaySet_0(Combined_res_0, 34503401614447846156716155980889514143555), write)
+            }
+            // Method call: Combined___init__
+  
+            if (p1_2 && !ret1 || p2_2 && !ret2) {
+              var tmp1_5: Ref
+              var tmp2_5: Ref
+              var tmp1_6: Seq[Measure$]
+              var tmp2_6: Seq[Measure$]
+              var tmp1_7: Perm
+              var tmp2_7: Perm
+              var tmp1_8: Ref
+              var tmp2_8: Ref
+              var tmp1_9: Ref
+              var tmp2_9: Ref
+              var tmp1_10: Ref
+              var tmp2_10: Ref
+              var tmp1_11: Perm
+              var tmp2_11: Perm
+              if (p1_2 && !ret1) {
+                tmp1_5 := _cthread_158
+                tmp1_6 := _method_measures_158
+                tmp1_7 := _residue_159
+                tmp1_8 := Combined_res
+                tmp1_9 := psi_0
+                tmp1_10 := list___getitem__(es_0, _checkDefined(j, 106))
+              }
+              if (p2_2 && !ret2) {
+                tmp2_5 := _cthread_158_0
+                tmp2_6 := _method_measures_158_0
+                tmp2_7 := _residue_159_0
+                tmp2_8 := Combined_res_0
+                tmp2_9 := psi_0_0
+                tmp2_10 := list___getitem___0(es_0_0, j_0)
+              }
+              tmp1_11, tmp2_11 := Combined___init__(p1_2 && !ret1, p2_2 &&
+                !ret2, tmp1_5, tmp2_5, tmp1_6, tmp2_6, tmp1_7, tmp2_7, tmp1_8,
+                tmp2_8, tmp1_9, tmp2_9, tmp1_10, tmp2_10)
+              if (p1_2 && !ret1) {
+                _cwl_158 := tmp1_11
+              }
+              if (p2_2 && !ret2) {
+                _cwl_158_0 := tmp2_11
+              }
+            }
+            if (p1_2 && !ret1) {
+              _res := Combined_res
+              ret1 := true
+            }
+            if (p2_2 && !ret2) {
+              _res_0 := Combined_res_0
+              ret2 := true
+            }
+          }
+          if (p1_1 && !ret1) {
+            j := __prim__int___box__(int___add__(int___unbox__(j), 1))
+            inhale _isDefined(106)
+            // We are after loop body.
+            _loop_check_before := false
+          }
+          if (p2_1 && !ret2) {
+            j_0 := __prim__int___box__(int___add__(int___unbox__(j_0), 1))
+            inhale true
+            // We are after loop body.
+            _loop_check_before_0 := false
+          }
+          assert (p1_1 && !ret1 ==>
+            _loop_termination_flag ==>
+            !int___lt__(int___unbox__(_checkDefined(j, 106)), list___len__(es_0))) &&
+            (p2_1 && !ret2 ==>
+            _loop_termination_flag_0 ==>
+            !int___lt__(int___unbox__(j_0), list___len___0(es_0_0)))
+          inhale !p1_1 || !!ret1
+          inhale !p2_1 || !!ret2
+        }
+      }
+      if (p1_0 && !ret1) {
+        // Reset MustTerminate amount to original level.
+        exhale perm(MustTerminate(_cthread_158)) > none ==>
+          acc(MustTerminate(_cthread_158), perm(MustTerminate(_cthread_158)) -
+          _loop_original_must_terminate)
+        _res := null
+      }
+      if (p2_0 && !ret2) {
+        // Reset MustTerminate amount to original level.
+        exhale perm(MustTerminate_0(_cthread_158_0)) > none ==>
+          acc(MustTerminate_0(_cthread_158_0), perm(MustTerminate_0(_cthread_158_0)) -
+          _loop_original_must_terminate_0)
+        _res_0 := null
+      }
+    }
+    if (p1 && !ret1) {
+      _res := null
+      ret1 := true
+    }
+    if (p2 && !ret2) {
+      _res_0 := null
+      ret2 := true
+    }
+    exhale true
+  }
+}
+
+method Payroll___init__(p1_3: Bool, p2_3: Bool, _cthread_155: Ref, _cthread_155_0: Ref,
+  _caller_measures_155: Seq[Measure$], _caller_measures_155_0: Seq[Measure$],
+  _residue_155: Perm, _residue_155_0: Perm, self: Ref, self_5: Ref, PID: Ref,
+  PID_1: Ref, salary: Ref, salary_1: Ref, joinInd: Ref, joinInd_1: Ref)
+  returns (_current_wait_level_155: Perm, _current_wait_level_155_0: Perm)
+  requires (p1_3 ==> _cthread_155 != null) &&
+    (p2_3 ==> _cthread_155_0 != null)
+  requires (p1_3 ==> issubtype(typeof(_cthread_155), Thread_0())) &&
+    (p2_3 ==> issubtype(typeof(_cthread_155_0), Thread_0()))
+  requires (p1_3 ==> self != null) && (p2_3 ==> self_5 != null)
+  requires (p1_3 ==> acc(_MaySet(self, 82553171102560121750380880), write)) &&
+    (p2_3 ==> acc(_MaySet_0(self_5, 82553171102560121750380880), write))
+  requires (p1_3 ==>
+    acc(_MaySet(self, 2463233723638617245031687777771856), write)) &&
+    (p2_3 ==>
+    acc(_MaySet_0(self_5, 2463233723638617245031687777771856), write))
+  requires (p1_3 ==>
+    acc(_MaySet(self, 521466568736562424214282083178733904), write)) &&
+    (p2_3 ==>
+    acc(_MaySet_0(self_5, 521466568736562424214282083178733904), write))
+  requires (p1_3 ==> issubtype(typeof(self), Payroll())) &&
+    (p2_3 ==> issubtype(typeof(self_5), Payroll()))
+  requires (p1_3 ==> issubtype(typeof(PID), int())) &&
+    (p2_3 ==> issubtype(typeof(PID_1), int()))
+  requires (p1_3 ==> issubtype(typeof(salary), int())) &&
+    (p2_3 ==> issubtype(typeof(salary_1), int()))
+  requires (p1_3 ==> issubtype(typeof(joinInd), bool())) &&
+    (p2_3 ==> issubtype(typeof(joinInd_1), bool()))
+  requires (p1_3 ==> self != null) && (p2_3 ==> self_5 != null)
+  requires (p1_3 ==>
+    [true,
+    perm(MustTerminate(_cthread_155)) == none &&
+    ((forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) &&
+    (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false))))]) &&
+    (p2_3 ==>
+    [true,
+    perm(MustTerminate_0(_cthread_155_0)) == none &&
+    ((forperm _r_6: Ref [MustInvokeBounded_0(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [MustInvokeUnbounded_0(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [_r_6.MustReleaseBoundedp] :: false) &&
+    (forperm _r_6: Ref [_r_6.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_3 ==>
+    [(forperm
+      _r_4: Ref [_r_4.MustReleaseBounded] :: Level(_r_4) <=
+      _current_wait_level_155) &&
+    ((forperm
+      _r_4: Ref [_r_4.MustReleaseUnbounded] :: Level(_r_4) <=
+      _current_wait_level_155) &&
+    _residue_155 <= _current_wait_level_155),
+    true]) &&
+    (p2_3 ==>
+    [(forperm
+      _r_4: Ref [_r_4.MustReleaseBoundedp] :: Level(_r_4) <=
+      _current_wait_level_155_0) &&
+    ((forperm
+      _r_4: Ref [_r_4.MustReleaseUnboundedp] :: Level(_r_4) <=
+      _current_wait_level_155_0) &&
+    _residue_155_0 <= _current_wait_level_155_0),
+    true])
+  ensures (p1_3 ==>
+    [true,
+    (forperm _r_5: Ref [MustInvokeBounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [MustInvokeUnbounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [_r_5.MustReleaseBounded] :: false) &&
+    (forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: false)))]) &&
+    (p2_3 ==>
+    [true,
+    (forperm _r_5: Ref [MustInvokeBounded_0(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [MustInvokeUnbounded_0(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [_r_5.MustReleaseBoundedp] :: false) &&
+    (forperm _r_5: Ref [_r_5.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_3
+  {
+    var _err: Ref
+    var _err_1: Ref
+    var self_2: Ref
+    var self_2_0: Ref
+    var PID_0: Ref
+    var PID_0_0: Ref
+    var salary_0: Ref
+    var salary_0_0: Ref
+    var joinInd_0: Ref
+    var joinInd_0_0: Ref
+    var _cwl_155: Perm
+    var _cwl_155_0: Perm
+    var _method_measures_155: Seq[Measure$]
+    var _method_measures_155_0: Seq[Measure$]
+    if (p1_3) {
+      _method_measures_155 := Seq[Measure$]()
+      inhale typeof(self) == Payroll()
+      _err := null
+      self_2 := self
+      PID_0 := PID
+      salary_0 := salary
+      joinInd_0 := joinInd
+    }
+    if (p2_3) {
+      _method_measures_155_0 := Seq[Measure$]()
+      inhale typeof(self_5) == Payroll()
+      _err_1 := null
+      self_2_0 := self_5
+      PID_0_0 := PID_1
+      salary_0_0 := salary_1
+      joinInd_0_0 := joinInd_1
+    }
+    {
+      var p1_4: Bool
+      var p2_4: Bool
+      var p3_1: Bool
+      var p4_1: Bool
+      p1_4 := p1_3 &&
+        perm(_MaySet(self_2, 82553171102560121750380880)) > none
+      p2_4 := p2_3 &&
+        perm(_MaySet_0(self_2_0, 82553171102560121750380880)) > none
+      p3_1 := p1_3 &&
+        !(perm(_MaySet(self_2, 82553171102560121750380880)) > none)
+      p4_1 := p2_3 &&
+        !(perm(_MaySet_0(self_2_0, 82553171102560121750380880)) > none)
+      if (p1_4) {
+        exhale acc(_MaySet(self_2, 82553171102560121750380880), write)
+        inhale acc(self_2.Payroll_PID, write)
+      }
+      if (p2_4) {
+        exhale acc(_MaySet_0(self_2_0, 82553171102560121750380880), write)
+        inhale acc(self_2_0.Payroll_PIDp, write)
+      }
+    }
+    if (p1_3) {
+      self_2.Payroll_PID := PID_0
+    }
+    if (p2_3) {
+      self_2_0.Payroll_PIDp := PID_0_0
+    }
+    {
+      var p1_5: Bool
+      var p2_5: Bool
+      var p3_2: Bool
+      var p4_2: Bool
+      p1_5 := p1_3 &&
+        perm(_MaySet(self_2, 2463233723638617245031687777771856)) > none
+      p2_5 := p2_3 &&
+        perm(_MaySet_0(self_2_0, 2463233723638617245031687777771856)) >
+        none
+      p3_2 := p1_3 &&
+        !(perm(_MaySet(self_2, 2463233723638617245031687777771856)) > none)
+      p4_2 := p2_3 &&
+        !(perm(_MaySet_0(self_2_0, 2463233723638617245031687777771856)) >
+        none)
+      if (p1_5) {
+        exhale acc(_MaySet(self_2, 2463233723638617245031687777771856), write)
+        inhale acc(self_2.Payroll_salary, write)
+      }
+      if (p2_5) {
+        exhale acc(_MaySet_0(self_2_0, 2463233723638617245031687777771856), write)
+        inhale acc(self_2_0.Payroll_salaryp, write)
+      }
+    }
+    if (p1_3) {
+      self_2.Payroll_salary := salary_0
+    }
+    if (p2_3) {
+      self_2_0.Payroll_salaryp := salary_0_0
+    }
+    {
+      var p1_6: Bool
+      var p2_6: Bool
+      var p3_3: Bool
+      var p4_3: Bool
+      p1_6 := p1_3 &&
+        perm(_MaySet(self_2, 521466568736562424214282083178733904)) > none
+      p2_6 := p2_3 &&
+        perm(_MaySet_0(self_2_0, 521466568736562424214282083178733904)) >
+        none
+      p3_3 := p1_3 &&
+        !(perm(_MaySet(self_2, 521466568736562424214282083178733904)) >
+        none)
+      p4_3 := p2_3 &&
+        !(perm(_MaySet_0(self_2_0, 521466568736562424214282083178733904)) >
+        none)
+      if (p1_6) {
+        exhale acc(_MaySet(self_2, 521466568736562424214282083178733904), write)
+        inhale acc(self_2.Payroll_joinInd, write)
+      }
+      if (p2_6) {
+        exhale acc(_MaySet_0(self_2_0, 521466568736562424214282083178733904), write)
+        inhale acc(self_2_0.Payroll_joinIndp, write)
+      }
+    }
+    if (p1_3) {
+      self_2.Payroll_joinInd := joinInd_0
+    }
+    if (p2_3) {
+      self_2_0.Payroll_joinIndp := joinInd_0_0
+    }
+    exhale true
+  }
+}
+
+method Employee___init__(p1_7: Bool, p2_7: Bool, _cthread_156: Ref, _cthread_156_0: Ref,
+  _caller_measures_156: Seq[Measure$], _caller_measures_156_0: Seq[Measure$],
+  _residue_156: Perm, _residue_156_0: Perm, self_0: Ref, self_0_0: Ref, EID: Ref,
+  EID_1: Ref)
+  returns (_current_wait_level_156: Perm, _current_wait_level_156_0: Perm)
+  requires (p1_7 ==> _cthread_156 != null) &&
+    (p2_7 ==> _cthread_156_0 != null)
+  requires (p1_7 ==> issubtype(typeof(_cthread_156), Thread_0())) &&
+    (p2_7 ==> issubtype(typeof(_cthread_156_0), Thread_0()))
+  requires (p1_7 ==> self_0 != null) && (p2_7 ==> self_0_0 != null)
+  requires (p1_7 ==>
+    acc(_MaySet(self_0, 21133559855717717100911947077), write)) &&
+    (p2_7 ==>
+    acc(_MaySet_0(self_0_0, 21133559855717717100911947077), write))
+  requires (p1_7 ==> issubtype(typeof(self_0), Employee())) &&
+    (p2_7 ==> issubtype(typeof(self_0_0), Employee()))
+  requires (p1_7 ==> issubtype(typeof(EID), int())) &&
+    (p2_7 ==> issubtype(typeof(EID_1), int()))
+  requires (p1_7 ==> self_0 != null) && (p2_7 ==> self_0_0 != null)
+  requires (p1_7 ==>
+    [true,
+    perm(MustTerminate(_cthread_156)) == none &&
+    ((forperm _r_9: Ref [MustInvokeBounded(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [MustInvokeUnbounded(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [_r_9.MustReleaseBounded] :: false) &&
+    (forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: false))))]) &&
+    (p2_7 ==>
+    [true,
+    perm(MustTerminate_0(_cthread_156_0)) == none &&
+    ((forperm _r_9: Ref [MustInvokeBounded_0(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [MustInvokeUnbounded_0(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [_r_9.MustReleaseBoundedp] :: false) &&
+    (forperm _r_9: Ref [_r_9.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_7 ==>
+    [(forperm
+      _r_7: Ref [_r_7.MustReleaseBounded] :: Level(_r_7) <=
+      _current_wait_level_156) &&
+    ((forperm
+      _r_7: Ref [_r_7.MustReleaseUnbounded] :: Level(_r_7) <=
+      _current_wait_level_156) &&
+    _residue_156 <= _current_wait_level_156),
+    true]) &&
+    (p2_7 ==>
+    [(forperm
+      _r_7: Ref [_r_7.MustReleaseBoundedp] :: Level(_r_7) <=
+      _current_wait_level_156_0) &&
+    ((forperm
+      _r_7: Ref [_r_7.MustReleaseUnboundedp] :: Level(_r_7) <=
+      _current_wait_level_156_0) &&
+    _residue_156_0 <= _current_wait_level_156_0),
+    true])
+  ensures (p1_7 ==>
+    [true,
+    (forperm _r_8: Ref [MustInvokeBounded(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [MustInvokeUnbounded(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [_r_8.MustReleaseBounded] :: false) &&
+    (forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: false)))]) &&
+    (p2_7 ==>
+    [true,
+    (forperm _r_8: Ref [MustInvokeBounded_0(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [MustInvokeUnbounded_0(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [_r_8.MustReleaseBoundedp] :: false) &&
+    (forperm _r_8: Ref [_r_8.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_7
+  {
+    var _err: Ref
+    var _err_2: Ref
+    var self_3: Ref
+    var self_3_0: Ref
+    var EID_0: Ref
+    var EID_0_0: Ref
+    var _cwl_156: Perm
+    var _cwl_156_0: Perm
+    var _method_measures_156: Seq[Measure$]
+    var _method_measures_156_0: Seq[Measure$]
+    if (p1_7) {
+      _method_measures_156 := Seq[Measure$]()
+      inhale typeof(self_0) == Employee()
+      _err := null
+      self_3 := self_0
+      EID_0 := EID
+    }
+    if (p2_7) {
+      _method_measures_156_0 := Seq[Measure$]()
+      inhale typeof(self_0_0) == Employee()
+      _err_2 := null
+      self_3_0 := self_0_0
+      EID_0_0 := EID_1
+    }
+    {
+      var p1_8: Bool
+      var p2_8: Bool
+      var p3_4: Bool
+      var p4_4: Bool
+      p1_8 := p1_7 &&
+        perm(_MaySet(self_3, 21133559855717717100911947077)) > none
+      p2_8 := p2_7 &&
+        perm(_MaySet_0(self_3_0, 21133559855717717100911947077)) > none
+      p3_4 := p1_7 &&
+        !(perm(_MaySet(self_3, 21133559855717717100911947077)) > none)
+      p4_4 := p2_7 &&
+        !(perm(_MaySet_0(self_3_0, 21133559855717717100911947077)) > none)
+      if (p1_8) {
+        exhale acc(_MaySet(self_3, 21133559855717717100911947077), write)
+        inhale acc(self_3.Employee_EID, write)
+      }
+      if (p2_8) {
+        exhale acc(_MaySet_0(self_3_0, 21133559855717717100911947077), write)
+        inhale acc(self_3_0.Employee_EIDp, write)
+      }
+    }
+    if (p1_7) {
+      self_3.Employee_EID := EID_0
+    }
+    if (p2_7) {
+      self_3_0.Employee_EIDp := EID_0_0
+    }
+    exhale true
+  }
+}
+
+method Combined___init__(p1_9: Bool, p2_9: Bool, _cthread_157: Ref, _cthread_157_0: Ref,
+  _caller_measures_157: Seq[Measure$], _caller_measures_157_0: Seq[Measure$],
+  _residue_157: Perm, _residue_157_0: Perm, self_1: Ref, self_1_0: Ref, payroll: Ref,
+  payroll_1: Ref, employee: Ref, employee_1: Ref)
+  returns (_current_wait_level_157: Perm, _current_wait_level_157_0: Perm)
+  requires (p1_9 ==> _cthread_157 != null) &&
+    (p2_9 ==> _cthread_157_0 != null)
+  requires (p1_9 ==> issubtype(typeof(_cthread_157), Thread_0())) &&
+    (p2_9 ==> issubtype(typeof(_cthread_157_0), Thread_0()))
+  requires (p1_9 ==> self_1 != null) && (p2_9 ==> self_1_0 != null)
+  requires (p1_9 ==>
+    acc(_MaySet(self_1, 144119652022534690276650450446394945347), write)) &&
+    (p2_9 ==>
+    acc(_MaySet_0(self_1_0, 144119652022534690276650450446394945347), write))
+  requires (p1_9 ==>
+    acc(_MaySet(self_1, 34503401614447846156716155980889514143555), write)) &&
+    (p2_9 ==>
+    acc(_MaySet_0(self_1_0, 34503401614447846156716155980889514143555), write))
+  requires (p1_9 ==> issubtype(typeof(self_1), Combined())) &&
+    (p2_9 ==> issubtype(typeof(self_1_0), Combined()))
+  requires (p1_9 ==> issubtype(typeof(payroll), Payroll())) &&
+    (p2_9 ==> issubtype(typeof(payroll_1), Payroll()))
+  requires (p1_9 ==> issubtype(typeof(employee), Employee())) &&
+    (p2_9 ==> issubtype(typeof(employee_1), Employee()))
+  requires (p1_9 ==> self_1 != null) && (p2_9 ==> self_1_0 != null)
+  requires (p1_9 ==>
+    [true,
+    perm(MustTerminate(_cthread_157)) == none &&
+    ((forperm _r_12: Ref [MustInvokeBounded(_r_12)] :: false) &&
+    ((forperm _r_12: Ref [MustInvokeUnbounded(_r_12)] :: false) &&
+    ((forperm _r_12: Ref [_r_12.MustReleaseBounded] :: false) &&
+    (forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: false))))]) &&
+    (p2_9 ==>
+    [true,
+    perm(MustTerminate_0(_cthread_157_0)) == none &&
+    ((forperm _r_12: Ref [MustInvokeBounded_0(_r_12)] :: false) &&
+    ((forperm _r_12: Ref [MustInvokeUnbounded_0(_r_12)] :: false) &&
+    ((forperm _r_12: Ref [_r_12.MustReleaseBoundedp] :: false) &&
+    (forperm _r_12: Ref [_r_12.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_9 ==>
+    [(forperm
+      _r_10: Ref [_r_10.MustReleaseBounded] :: Level(_r_10) <=
+      _current_wait_level_157) &&
+    ((forperm
+      _r_10: Ref [_r_10.MustReleaseUnbounded] :: Level(_r_10) <=
+      _current_wait_level_157) &&
+    _residue_157 <= _current_wait_level_157),
+    true]) &&
+    (p2_9 ==>
+    [(forperm
+      _r_10: Ref [_r_10.MustReleaseBoundedp] :: Level(_r_10) <=
+      _current_wait_level_157_0) &&
+    ((forperm
+      _r_10: Ref [_r_10.MustReleaseUnboundedp] :: Level(_r_10) <=
+      _current_wait_level_157_0) &&
+    _residue_157_0 <= _current_wait_level_157_0),
+    true])
+  ensures (p1_9 ==>
+    [true,
+    (forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) &&
+    (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false)))]) &&
+    (p2_9 ==>
+    [true,
+    (forperm _r_11: Ref [MustInvokeBounded_0(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [MustInvokeUnbounded_0(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [_r_11.MustReleaseBoundedp] :: false) &&
+    (forperm _r_11: Ref [_r_11.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_9
+  {
+    var _err: Ref
+    var _err_3: Ref
+    var self_4: Ref
+    var self_4_0: Ref
+    var payroll_0: Ref
+    var payroll_0_0: Ref
+    var employee_0: Ref
+    var employee_0_0: Ref
+    var _cwl_157: Perm
+    var _cwl_157_0: Perm
+    var _method_measures_157: Seq[Measure$]
+    var _method_measures_157_0: Seq[Measure$]
+    if (p1_9) {
+      _method_measures_157 := Seq[Measure$]()
+      inhale typeof(self_1) == Combined()
+      _err := null
+      self_4 := self_1
+      payroll_0 := payroll
+      employee_0 := employee
+    }
+    if (p2_9) {
+      _method_measures_157_0 := Seq[Measure$]()
+      inhale typeof(self_1_0) == Combined()
+      _err_3 := null
+      self_4_0 := self_1_0
+      payroll_0_0 := payroll_1
+      employee_0_0 := employee_1
+    }
+    {
+      var p1_10: Bool
+      var p2_10: Bool
+      var p3_5: Bool
+      var p4_5: Bool
+      p1_10 := p1_9 &&
+        perm(_MaySet(self_4, 144119652022534690276650450446394945347)) >
+        none
+      p2_10 := p2_9 &&
+        perm(_MaySet_0(self_4_0, 144119652022534690276650450446394945347)) >
+        none
+      p3_5 := p1_9 &&
+        !(perm(_MaySet(self_4, 144119652022534690276650450446394945347)) >
+        none)
+      p4_5 := p2_9 &&
+        !(perm(_MaySet_0(self_4_0, 144119652022534690276650450446394945347)) >
+        none)
+      if (p1_10) {
+        exhale acc(_MaySet(self_4, 144119652022534690276650450446394945347), write)
+        inhale acc(self_4.Combined_payroll, write)
+      }
+      if (p2_10) {
+        exhale acc(_MaySet_0(self_4_0, 144119652022534690276650450446394945347), write)
+        inhale acc(self_4_0.Combined_payrollp, write)
+      }
+    }
+    if (p1_9) {
+      self_4.Combined_payroll := payroll_0
+    }
+    if (p2_9) {
+      self_4_0.Combined_payrollp := payroll_0_0
+    }
+    {
+      var p1_11: Bool
+      var p2_11: Bool
+      var p3_6: Bool
+      var p4_6: Bool
+      p1_11 := p1_9 &&
+        perm(_MaySet(self_4, 34503401614447846156716155980889514143555)) >
+        none
+      p2_11 := p2_9 &&
+        perm(_MaySet_0(self_4_0, 34503401614447846156716155980889514143555)) >
+        none
+      p3_6 := p1_9 &&
+        !(perm(_MaySet(self_4, 34503401614447846156716155980889514143555)) >
+        none)
+      p4_6 := p2_9 &&
+        !(perm(_MaySet_0(self_4_0, 34503401614447846156716155980889514143555)) >
+        none)
+      if (p1_11) {
+        exhale acc(_MaySet(self_4, 34503401614447846156716155980889514143555), write)
+        inhale acc(self_4.Combined_employee, write)
+      }
+      if (p2_11) {
+        exhale acc(_MaySet_0(self_4_0, 34503401614447846156716155980889514143555), write)
+        inhale acc(self_4_0.Combined_employeep, write)
+      }
+    }
+    if (p1_9) {
+      self_4.Combined_employee := employee_0
+    }
+    if (p2_9) {
+      self_4_0.Combined_employeep := employee_0_0
+    }
+    exhale true
+  }
+}
+
+method main(p1_12: Bool, p2_12: Bool, _cthread_159: Ref, _cthread_159_0: Ref,
+  _caller_measures_159: Seq[Measure$], _caller_measures_159_0: Seq[Measure$],
+  _residue_160: Perm, _residue_160_0: Perm)
+  returns (_current_wait_level_159: Perm, _current_wait_level_159_0: Perm)
+  requires (p1_12 ==> _cthread_159 != null) &&
+    (p2_12 ==> _cthread_159_0 != null)
+  requires (p1_12 ==> issubtype(typeof(_cthread_159), Thread_0())) &&
+    (p2_12 ==> issubtype(typeof(_cthread_159_0), Thread_0()))
+  requires (p1_12 ==>
+    [true,
+    perm(MustTerminate(_cthread_159)) == none &&
+    ((forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) &&
+    (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false))))]) &&
+    (p2_12 ==>
+    [true,
+    perm(MustTerminate_0(_cthread_159_0)) == none &&
+    ((forperm _r_15: Ref [MustInvokeBounded_0(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [MustInvokeUnbounded_0(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [_r_15.MustReleaseBoundedp] :: false) &&
+    (forperm _r_15: Ref [_r_15.MustReleaseUnboundedp] :: false))))])
+  ensures (p1_12 ==>
+    [(forperm
+      _r_13: Ref [_r_13.MustReleaseBounded] :: Level(_r_13) <=
+      _current_wait_level_159) &&
+    ((forperm
+      _r_13: Ref [_r_13.MustReleaseUnbounded] :: Level(_r_13) <=
+      _current_wait_level_159) &&
+    _residue_160 <= _current_wait_level_159),
+    true]) &&
+    (p2_12 ==>
+    [(forperm
+      _r_13: Ref [_r_13.MustReleaseBoundedp] :: Level(_r_13) <=
+      _current_wait_level_159_0) &&
+    ((forperm
+      _r_13: Ref [_r_13.MustReleaseUnboundedp] :: Level(_r_13) <=
+      _current_wait_level_159_0) &&
+    _residue_160_0 <= _current_wait_level_159_0),
+    true])
+  ensures (p1_12 ==>
+    [true,
+    (forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) &&
+    ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) &&
+    ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) &&
+    (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false)))]) &&
+    (p2_12 ==>
+    [true,
+    (forperm _r_14: Ref [MustInvokeBounded_0(_r_14)] :: false) &&
+    ((forperm _r_14: Ref [MustInvokeUnbounded_0(_r_14)] :: false) &&
+    ((forperm _r_14: Ref [_r_14.MustReleaseBoundedp] :: false) &&
+    (forperm _r_14: Ref [_r_14.MustReleaseUnboundedp] :: false)))])
+{
+  inhale p1_12
+  {
+    var module_defined_0: Bool
+    var module_defined_0_0: Bool
+    var module_names_0: Set[_Name]
+    var module_names_0_0: Set[_Name]
+    var _err: Ref
+    var _err_4: Ref
+    var _cwl_159: Perm
+    var _cwl_159_0: Perm
+    var _method_measures_159: Seq[Measure$]
+    var _method_measures_159_0: Seq[Measure$]
+    if (p1_12) {
+      _method_measures_159 := Seq[Measure$]()
+      module_defined_0 := true
+      module_names_0 := Set[_Name]()
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._val, 99 / 100) &&
+        issubtype(typeof(__file__()._val), str()) &&
+        issubtype(typeof(__file__()._val), str())
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._val, 99 / 100) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+      _err := null
+      module_names_0 := (module_names_0 union Set(_single(1953720652)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7809644653626814543)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union
+        Set(_single(30518523402477904)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7306379489946135877)))
+    }
+    if (p2_12) {
+      _method_measures_159_0 := Seq[Measure$]()
+      module_defined_0_0 := true
+      module_names_0_0 := Set[_Name]()
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._valp, 99 / 100) &&
+        issubtype(typeof(__file__()._valp), str()) &&
+        issubtype(typeof(__file__()._valp), str())
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._valp, 99 / 100) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._valp)
+      _err_4 := null
+      module_names_0_0 := (module_names_0_0 union Set(_single(1953720652)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7809644653626814543)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(30518523402477904)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7306379489946135877)))
+    }
+    assert (p1_12 ==> true) && (p2_12 ==> true) &&
+      ((p1_12 ==> (_single(7306379489946135877) in module_names_0)) &&
+      (p2_12 ==> (_single(7306379489946135877) in module_names_0_0))) &&
+      ((p1_12 ==> (_single(30518523402477904) in module_names_0)) &&
+      (p2_12 ==> (_single(30518523402477904) in module_names_0_0)))
+    if (p1_12) {
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7234309775342530371)))
+    }
+    if (p2_12) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7234309775342530371)))
+    }
+    assert (p1_12 ==> true) && (p2_12 ==> true) &&
+      ((p1_12 ==> (_single(30518523402477904) in module_names_0)) &&
+      (p2_12 ==> (_single(30518523402477904) in module_names_0_0))) &&
+      ((p1_12 ==> (_single(7234309775342530371) in module_names_0)) &&
+      (p2_12 ==> (_single(7234309775342530371) in module_names_0_0)))
+    if (p1_12) {
+      module_names_0 := (module_names_0 union
+        Set(_single(10678285587517204968099303568249337805684410660280041756313604417635)))
+    }
+    if (p2_12) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(10678285587517204968099303568249337805684410660280041756313604417635)))
+    }
+    exhale true
+  }
+}

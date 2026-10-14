@@ -1,0 +1,336 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u32  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u32 {
+    (forall x: s_UInt_u32 ::
+      { make_generic_s_UInt_u32(x) }
+      s_Param_typ(make_generic_s_UInt_u32(x)) == s_UInt_u32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u32, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u32_type() ==>
+      make_generic_s_UInt_u32(p.make_concrete_s_UInt_u32) == p)
+  }
+}
+
+domain s_x86_64$col$$col$vec128_storage  {
+  
+  
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_x86_64$col$$col$vec128_storage {
+    inhabited(s_x86_64$col$$col$vec128_storage_type()) == true
+  }
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$convert$col$$col$From  {
+  
+  function core$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_x86_64$col$$col$vec128_storage  {
+  
+  axiom s_x86_64$col$$col$vec128_storage_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_x86_64$col$$col$vec128_storage_type())
+  }
+  
+  axiom s_x86_64$col$$col$vec128_storage_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_x86_64$col$$col$vec128_storage_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_ppv_lite86_x86_64$col$$col$vec128_storage_286_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_ppv_lite86_x86_64$col$$col$vec128_storage_286_condition {
+    core$col$$col$convert$col$$col$From_impl(s_x86_64$col$$col$vec128_storage_type(),
+    s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(4)))
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { core$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_ppv_lite86_Array_301_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_ppv_lite86_Array_301_condition {
+    core$col$$col$convert$col$$col$From_impl(s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(4)),
+    s_x86_64$col$$col$vec128_storage_type())
+  }
+}
+
+field p_UInt_u32_val: s_UInt_u32
+
+function s_x86_64$col$$col$vec128_storage_unreachable(): s_x86_64$col$$col$vec128_storage
+  ensures false
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function p_x86_64$col$$col$vec128_storage_snap(self: Ref): s_x86_64$col$$col$vec128_storage
+  requires acc(p_x86_64$col$$col$vec128_storage(self), write)
+
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+predicate p_x86_64$col$$col$vec128_storage(self: Ref) 
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+method make_generic_UInt_u32(self: Ref)
+  requires acc(p_UInt_u32(self), write)
+  ensures acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures old(make_generic_s_UInt_u32(p_UInt_u32_snap(self))) ==
+    p_Param_snap(self, s_UInt_u32_type())
+
+
+method make_concrete_UInt_u32(self: Ref)
+  requires acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures acc(p_UInt_u32(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u32_type())) ==
+    make_generic_s_UInt_u32(p_UInt_u32_snap(self))
+
+
+method p_x86_64$col$$col$vec128_storage_assign(self: Ref, value: s_x86_64$col$$col$vec128_storage)
+  ensures acc(p_x86_64$col$$col$vec128_storage(self), write)
+  ensures p_x86_64$col$$col$vec128_storage_snap(self) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method trait_core$col$$col$convert$col$$col$From_impl_x86_64$col$$col$vec128_storage_286_fn_pre_weaken_$lt$x86_64$col$$col$vec128_storage$sp$as$sp$core$col$$col$convert$col$$col$From$lt$$lb$u32$sc$$sp$4$rb$$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(4))) &&
+    acc(p_Array(_1p, s_UInt_u32_type(), s_UInt_usize_cons(4)), write)
+{
+  label start
+}
+
+method trait_core$col$$col$convert$col$$col$From_impl_x86_64$col$$col$vec128_storage_286_fn_post_strengthen_$lt$x86_64$col$$col$vec128_storage$sp$as$sp$core$col$$col$convert$col$$col$From$lt$$lb$u32$sc$$sp$4$rb$$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(4))) &&
+    acc(p_Array(_1p, s_UInt_u32_type(), s_UInt_usize_cons(4)), write)
+  requires inhabited(s_x86_64$col$$col$vec128_storage_type()) &&
+    acc(p_x86_64$col$$col$vec128_storage(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_UInt_u32(make_concrete_s_UInt_u32: s_UInt_u32)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_x86_64$col$$col$vec128_storage_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_UInt_u32_type()
+  Unknown_type(id: Int)
+}

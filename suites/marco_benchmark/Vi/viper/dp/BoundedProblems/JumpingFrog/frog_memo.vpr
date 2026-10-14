@@ -1,0 +1,70 @@
+import "../../_preambles/defs.vpr"
+// precondition needed to ensure the problem is well-defined
+define valid_frog(cost, n, jump) 0 <= n < |cost| && jump > 0
+
+function frog_rec(cost: Seq[Int], n: Int, jump: Int): Int
+    requires valid_frog(cost, n, jump)
+    decreases n
+{
+    // Base Case: the bridge is of length 0
+    n == 0 ? cost[n] : 
+
+    // The bridge's length is shorter than the jumping distance.
+    n < jump ? cost[n] + frog_rec(cost, n - 1, jump) :
+
+    // We take the minimum cost between the frog walking one plan and jumping the distance.
+    cost[n] + min(frog_rec(cost, n - 1, jump), jump + frog_rec(cost, n - jump, jump))
+}
+
+method frog_memo(cost: Seq[Int], n: Int, jump: Int, mem: Seq[Int]) returns (minCost: Int, newmem: Seq[Int])
+    requires valid_frog(cost, n, jump)
+    
+    // definition of memoization sequence
+    requires |cost| == |mem|
+    requires forall i: Int :: {mem[i]} 0 <= i < |mem| ==> mem[i] != -1 ==> mem[i] == frog_rec(cost, i, jump)
+    ensures |mem| == |newmem|
+    ensures forall i: Int :: {newmem[i]} 0 <= i < |mem| ==> newmem[i] != -1 ==> newmem[i] == frog_rec(cost, i, jump)
+    
+    // This is the property we are trying to prove
+    ensures minCost == frog_rec(cost, n, jump)
+    decreases n
+{
+    // We check if the value is already memoized
+    if (mem[n] != -1) {
+        minCost := mem[n]
+        newmem := mem
+    } else {
+        // curr tracks the cost for the current position.
+        var curr: Int := cost[n]
+        newmem := mem
+        // We check whether the bridge is long enough for the frog to make a jump.
+        if (n >= jump) {
+            // We calculate/look up the cost of taking a step.
+            var steps: Int, step_mem: Seq[Int] := frog_memo(cost, n - 1, jump, mem)
+
+            // We calculate/look up the cost of taking the jump.
+            var jumps: Int, jump_mem: Seq[Int] := frog_memo(cost, n - jump, jump, mem)
+
+            // If the frog takes the jump, the size of the jump has to be added to the cost.
+            jumps := jumps + jump
+
+            // We take the minimum of the two options.
+            if (jumps < steps) {
+                curr := curr + jumps
+                newmem := jump_mem
+            } else {
+                curr := curr + steps
+                newmem := step_mem
+            }
+        } 
+        // If the bridge is too short for the frog to make a jump, the frog can only take 1 step.
+        elseif (n >= 1) {
+            var opt: Int 
+            // We calculate/look up the cost of taking one step.
+            opt, newmem := frog_memo(cost, n - 1, jump, mem)
+            curr := curr + opt
+        }
+        newmem := newmem[n := curr] 
+        minCost := curr
+    }
+}

@@ -1,0 +1,326 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_token$col$$col$Token  {
+  
+  function token$col$$col$Token_impl(arg0: Type): Bool 
+}
+
+domain trait_token$col$$col$private$col$$col$CustomToken  {
+  
+  function token$col$$col$private$col$$col$CustomToken_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_token$col$$col$Eq  {
+  
+  axiom s_token$col$$col$Eq_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_token$col$$col$Eq_type())
+  }
+  
+  axiom s_token$col$$col$Eq_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_token$col$$col$Eq_type())
+  }
+}
+
+domain trait_token$col$$col$Token_impl_syn_token$col$$col$Eq_520_condition  {
+  
+  axiom token$col$$col$Token_impl_syn_token$col$$col$Eq_520_condition {
+    token$col$$col$Token_impl(s_token$col$$col$Eq_type())
+  }
+}
+
+domain trait_token$col$$col$Token_impl_syn_Param_12_condition  {
+  
+  axiom token$col$$col$Token_impl_syn_Param_12_condition {
+    (forall T$0: Type ::
+      { token$col$$col$Token_impl(T$0) }
+      token$col$$col$private$col$$col$CustomToken_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      token$col$$col$Token_impl(T$0))
+  }
+}
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+function const_847_0_0(): s_Str
+
+
+function addr_to_ref(arg: Int): Ref
+
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Str(self: Ref) 
+
+method m_$lt$token$col$$col$Eq$sp$as$sp$token$col$$col$Token$gt$$col$$col$display(_0p: Ref)
+  ensures inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+{
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  p_Ref_immutable_assign(_0p, s_Str_type(), s_Ref_immutable_cons(addr_to_ref(10145709240540253388800), make_generic_s_UInt_usize(s_UInt_usize_cons(3)), make_generic_s_Str(const_847_0_0())))
+  label _before_0_1
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method trait_token$col$$col$Token_impl_token$col$$col$Eq_520_fn_pre_weaken_$lt$token$col$$col$Eq$sp$as$sp$token$col$$col$Token$gt$$col$$col$display(_0p: Ref)
+{
+  label start
+}
+
+method trait_token$col$$col$Token_impl_token$col$$col$Eq_520_fn_post_strengthen_$lt$token$col$$col$Eq$sp$as$sp$token$col$$col$Token$gt$$col$$col$display(_0p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt Type {
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Str_type()
+  s_UInt_usize_type()
+  s_token$col$$col$Eq_type()
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,312 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- List example specific flows setup -------------------- */
+
+// A single path-counting flow
+domain FlowDom {
+  function pc(f : FlowDom) : Int
+  axiom positive {
+    forall p: FlowDom :: pc(p) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqImplies {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1,p2) ==> (p1 == p2)
+  }
+
+  axiom fdEqImplied {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      (pc(p1) == pc(p2)) ==> fdEq(p1,p2) 
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      // fdPlus(p1,p2) == fd(pc(p1) + pc(p2))
+      pc(fdPlus(p1, p2)) == pc(p1) + pc(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    pc(fdZero()) == 0
+  }
+
+  function fdOne() : FlowDom
+  axiom fdOneDef {
+    pc(fdOne()) == 1
+  }
+}
+
+
+// struct Node { var next: Node; }
+field next: Ref
+
+define nodeSpatial(x) acc(x.next)
+define hrepUnchanged(x) x.next == old(x.next)
+
+
+// Definition of a node and good condition:
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom, FlowDom]
+  requires nodeSpatial(x)
+  ensures !(x.next != null && x.next == y) ==> result == constMap(fdZero())
+  ensures (x.next != null && x.next == y) ==>
+    forall p: FlowDom :: {select(result, p)} select(result, p) == p
+
+// These are the invariants that say this structure is a list
+define listInv(hd, I) 
+  intValid(I) && hd in dom(I)
+  // Only hd has global inflow
+  && (forall x: Ref :: {Iinf(I,x), x in dom(I)}
+    (x in dom(I)) ==> Iinf(I, x) == (x == hd ? fdOne() : fdZero()))
+  // Each node's flow is 1, or 0 (to cover unlinked nodes before GC de-allocates them)
+  && (forall x: Ref :: {Iinf(x.intf, x), x in dom(I)} x in dom(I)
+    ==> fdEq(Iinf(x.intf, x), fdOne()) || fdEq(Iinf(x.intf, x), fdZero()))
+  // Data structure is closed
+  && (forall x: Ref :: {x in dom(I)} x in dom(I) && x.next != null ==> x.next in dom(I))
+
+
+/* -------------------- Actual list methods -------------------- */
+
+
+// Helper function to create and initialize new node
+method alloc(i: FlowDom, X: Set[Ref]) returns (x: Ref, X1: Set[Ref])
+  requires X == Set[Ref]()
+  ensures X1 == Set(x)
+  ensures forall z: Ref :: {z in X1} z in X1 ==> node(z)
+  ensures fdEq(Iinf(x.intf, x), i)
+    && (forall y: Ref :: Iout(x.intf, y) == fdZero())
+  ensures intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+{
+  x := new(*)
+  x.next := null
+  x.intf := interface(singMap(x, i, fdZero()), constMap(fdZero()), Set(x))
+  X1 := Set(x)
+  _lemma_prove_intValid(x)
+  _lemma_prove_intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+}
+
+
+method swap(hd: Ref, X: Set[Ref], n0: Ref)
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires listInv(hd, intCompSet(X))
+  requires n0 in X && n0.next in X && n0.next.next in X && Iinf(n0.intf, n0) == fdOne()
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures listInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _field_read(n0, n0.next)
+  var n1: Ref := n0.next
+
+  _field_read(n1, n1.next)
+  var n2: Ref := n1.next
+
+  _make_dirty(n0)
+  n0.next := n2;
+
+  _field_read(n2, n2.next)
+  _make_dirty(n1)
+  n1.next := n2.next; 
+
+  _make_dirty(n2)
+  n2.next := n1;
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+
+// Create a new node and insert it after l in the list
+method insert(hd: Ref, X: Set[Ref], l: Ref) returns (X1: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires listInv(hd, intCompSet(X))
+  requires l in X && Iinf(l.intf, l) == fdOne()
+  ensures forall x: Ref :: {x in X1} x in X1 ==> node(x)
+  ensures listInv(hd, intCompSet(X1))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]  // edge_fns[n][n'] is e(n, n')
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]  // infs_small[n] is In.inf[n]
+  var infs_small_new: IMap[Ref, FlowDom]  // infs_small_new[n] is In'.inf[n]
+  var inf_D: IMap[Ref, FlowDom]  // inf_D is inflow of interface of dirty region
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  var n: Ref
+  var Y: Set[Ref]
+  var Y1: Set[Ref]
+  Y := Set[Ref]()
+
+  label pre_alloc_call
+
+  n, Y1 := alloc(fdZero(), Y)
+
+  // ---- Post method call:
+
+  var FP1: Set[Ref]
+  _post_method_call(FP, FP1, Y, Y1, pre_alloc_call)
+
+  // ---- Flows set-up again after method call:
+
+  _pre_code(FP1)
+
+  // ---- Actual code:
+
+  _field_read(l, l.next)
+  var r: Ref := l.next
+
+  _make_dirty(l)
+  l.next := n;
+
+  _make_dirty(n)
+  n.next := r;
+
+  // ---- Check flow interface preserved:
+
+  _post_code_sync_EA(FP1)
+
+  X1 := FP1
+}
+
+
+method delete(hd: Ref, l: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires listInv(hd, intCompSet(X))
+  requires l in X && l.next in X
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures listInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]  // edge_fns[n][n'] is e(n, n')
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]  // infs_small[n] is In.inf[n]
+  var infs_small_new: IMap[Ref, FlowDom]  // infs_small_new[n] is In'.inf[n]
+  var inf_D: IMap[Ref, FlowDom]  // inf_D is inflow of interface of dirty region
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _field_read(l, l.next)
+  var n: Ref := l.next
+
+  _field_read(n, n.next)
+  var r: Ref := n.next
+
+  _make_dirty(l)
+  l.next := r;
+
+  _make_dirty(n)
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+
+method traverse(hd: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires listInv(hd, intCompSet(X))
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures listInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]  // edge_fns[n][n'] is e(n, n')
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]  // infs_small[n] is In.inf[n]
+  var infs_small_new: IMap[Ref, FlowDom]  // infs_small_new[n] is In'.inf[n]
+  var inf_D: IMap[Ref, FlowDom]  // inf_D is inflow of interface of dirty region
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  var l: Ref := hd
+  var r: Ref
+
+  _field_read(l, l.next)
+  r := l.next
+
+  var nond: Bool
+  nond := nondet()
+  while (nond && r != null)
+    invariant forall x: Ref :: {x in X} x in X ==> node(x)
+    invariant listInv(hd, intCompSet(X))
+    invariant l in X && Iinf(l.intf, l) == fdOne()
+    invariant r == l.next && (r != null ==> r in X && Iinf(r.intf, r) == fdOne())
+  {
+    _assume_global_invs(FP)
+    
+    l := r
+
+    _field_read(l, l.next)
+    r := l.next
+
+    nond := nondet()
+  }
+
+  // Check that we can now call either insert or delete:
+  assert (forall x: Ref :: {x in X} x in X ==> node(x))
+    && listInv(hd, intCompSet(X))
+    && l in X && Iinf(l.intf, l) == fdOne()
+  if (r != null) {
+    assert (forall x: Ref :: {x in X} x in X ==> node(x))
+      && listInv(hd, intCompSet(X))
+      && l in X && l.next in X
+  }
+}

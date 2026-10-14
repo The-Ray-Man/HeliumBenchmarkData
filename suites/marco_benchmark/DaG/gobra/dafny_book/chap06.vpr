@@ -1,0 +1,2080 @@
+domain ADT$List_bfafa02c_T  {
+  
+  function ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA: Int, tailA: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T 
+  
+  unique function ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag(): Int 
+  
+  function ADT$List_bfafa02c_T_Nil_bfafa02c_F(): ADT$List_bfafa02c_T 
+  
+  unique function ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag(): Int 
+  
+  function ADT$List_bfafa02c_T_dflt(): ADT$List_bfafa02c_T 
+  
+  function ADT$List_bfafa02c_T_headA(t: ADT$List_bfafa02c_T): Int 
+  
+  function ADT$List_bfafa02c_T_tag(t: ADT$List_bfafa02c_T): Int 
+  
+  function ADT$List_bfafa02c_T_tailA(t: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T 
+  
+  function rank$ADT$List_bfafa02c_T(x: ADT$List_bfafa02c_T): Int 
+  
+  axiom {
+    (forall headA: Int, tailA: ADT$List_bfafa02c_T ::
+      { ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA, tailA) }
+      ADT$List_bfafa02c_T_tag(ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA, tailA)) ==
+      ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+      ADT$List_bfafa02c_T_headA(ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA, tailA)) ==
+      headA &&
+      ADT$List_bfafa02c_T_tailA(ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA, tailA)) ==
+      tailA)
+  }
+  
+  axiom {
+    (forall headA: Int, tailA: ADT$List_bfafa02c_T ::
+      { rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA,
+      tailA)) }
+      rank$ADT$List_bfafa02c_T(tailA) <
+      rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_Cons_bfafa02c_F(headA, tailA)))
+  }
+  
+  axiom {
+    (forall t: ADT$List_bfafa02c_T ::
+      { ADT$List_bfafa02c_T_headA(t) }
+      { ADT$List_bfafa02c_T_tailA(t) }
+      ADT$List_bfafa02c_T_tag(t) ==
+      ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() ==>
+      t ==
+      ADT$List_bfafa02c_T_Cons_bfafa02c_F(ADT$List_bfafa02c_T_headA(t), ADT$List_bfafa02c_T_tailA(t)))
+  }
+  
+  axiom {
+    (forall t: ADT$List_bfafa02c_T ::
+      { ADT$List_bfafa02c_T_tag(t) }
+      t ==
+      ADT$List_bfafa02c_T_Cons_bfafa02c_F(ADT$List_bfafa02c_T_headA(t), ADT$List_bfafa02c_T_tailA(t)) ||
+      t == ADT$List_bfafa02c_T_Nil_bfafa02c_F())
+  }
+  
+  axiom {
+    (forall x: ADT$List_bfafa02c_T ::
+      { rank$ADT$List_bfafa02c_T(x) }
+      0 <= rank$ADT$List_bfafa02c_T(x))
+  }
+  
+  axiom {
+    ADT$List_bfafa02c_T_tag(ADT$List_bfafa02c_T_Nil_bfafa02c_F()) ==
+    ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+}
+
+domain String  {
+  
+  function strConcat(l: Int, r: Int): Int 
+  
+  function strLen(id: Int): Int 
+  
+  unique function stringLit(): Int 
+  
+  axiom {
+    (forall l: Int, r: Int ::
+      { strLen(strConcat(l, r)) }
+      strLen(strConcat(l, r)) == strLen(l) + strLen(r))
+  }
+  
+  axiom {
+    (forall str: Int :: { strLen(str) } 0 <= strLen(str))
+  }
+  
+  axiom {
+    strLen(stringLit()) == 0
+  }
+}
+
+domain Tuple0  {
+  
+  function tuple0(): Tuple0 
+}
+
+domain Tuple2[T0, T1]  {
+  
+  function get0of2(p: Tuple2[T0, T1]): T0 
+  
+  function get1of2(p: Tuple2[T0, T1]): T1 
+  
+  function tuple2(t0: T0, t1: T1): Tuple2[T0, T1] 
+  
+  axiom getter_over_tuple2 {
+    (forall t0: T0, t1: T1 ::
+      { (tuple2(t0, t1): Tuple2[T0, T1]) }
+      (get0of2((tuple2(t0, t1): Tuple2[T0, T1])): T0) == t0 &&
+      (get1of2((tuple2(t0, t1): Tuple2[T0, T1])): T1) == t1)
+  }
+  
+  axiom tuple2_over_getter {
+    (forall p: Tuple2[T0, T1] ::
+      { (get0of2(p): T0) }
+      { (get1of2(p): T1) }
+      (tuple2((get0of2(p): T0), (get1of2(p): T1)): Tuple2[T0, T1]) == p)
+  }
+}
+
+domain Types  {
+  
+  function behavioral_subtype_Types(l: Types, r: Types): Bool 
+  
+  function comparableType_Types(t: Types): Bool 
+  
+  function empty_interface_Types(): Types 
+  
+  unique function empty_interface_Types_tag(): Int 
+  
+  function nil_Types(): Types 
+  
+  unique function nil_Types_tag(): Int 
+  
+  function tag_Types(t: Types): Int 
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, a) }
+      behavioral_subtype_Types(a, a))
+  }
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, empty_interface_Types()) }
+      behavioral_subtype_Types(a, empty_interface_Types()))
+  }
+  
+  axiom {
+    (forall a: Types, b: Types, c: Types ::
+      { behavioral_subtype_Types(a, b), behavioral_subtype_Types(b, c) }
+      behavioral_subtype_Types(a, b) && behavioral_subtype_Types(b, c) ==>
+      behavioral_subtype_Types(a, c))
+  }
+  
+  axiom {
+    comparableType_Types(empty_interface_Types()) == false
+  }
+  
+  axiom {
+    comparableType_Types(nil_Types()) == true
+  }
+  
+  axiom {
+    tag_Types(empty_interface_Types()) == empty_interface_Types_tag()
+  }
+  
+  axiom {
+    tag_Types(nil_Types()) == nil_Types_tag()
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function bounded(arg1: T): Bool 
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AppendAssociative_bfafa02c_F(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T,
+  zs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Append_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), zs_V0) ==
+    Append_bfafa02c_MList(xs_V0, Append_bfafa02c_MList(ys_V0, zs_V0))
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          AppendAssociative_bfafa02c_F(tail_V1, ys_V0, zs_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(a_V0)
+function AppendDecomposition_bfafa02c_F(a_V0: ADT$List_bfafa02c_T, b_V0: ADT$List_bfafa02c_T,
+  c_V0: ADT$List_bfafa02c_T, d_V0: ADT$List_bfafa02c_T): Tuple0
+  requires Length_bfafa02c_MList(a_V0) == Length_bfafa02c_MList(c_V0)
+  requires Append_bfafa02c_MList(a_V0, b_V0) ==
+    Append_bfafa02c_MList(c_V0, d_V0)
+  ensures a_V0 == c_V0 && b_V0 == d_V0
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(a_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(a_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(a_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(a_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_bfafa02c_T_tailA(a_V0)) in
+        AppendDecomposition_bfafa02c_F(tail_V1, b_V0, ADT$List_bfafa02c_T_tailA(c_V0),
+        d_V0)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AppendNil_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Append_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F()) ==
+    xs_V0
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          AppendNil_bfafa02c_MList(tail_V1))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AppendTakeDrop_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+  ensures Append_bfafa02c_MList(Take_bfafa02c_MList(xs_V0, n_V0), Drop_bfafa02c_MList(xs_V0,
+    n_V0)) ==
+    xs_V0
+{
+  (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    AppendTakeDrop_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), n_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Append_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T
+  ensures Length_bfafa02c_MList(result) ==
+    Length_bfafa02c_MList(xs_V0) + Length_bfafa02c_MList(ys_V0)
+{
+  assertArg2_ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ys_V0 :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, Append_bfafa02c_MList(tail_V1,
+          ys_V0)))) :
+      ADT$List_bfafa02c_T_dflt())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AtAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T,
+  i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  requires i_V0 <
+    Length_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0))
+  ensures At_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), i_V0) ==
+    (i_V0 < Length_bfafa02c_MList(xs_V0) ?
+      At_bfafa02c_MList(xs_V0, i_V0) :
+      At_bfafa02c_MList(ys_V0, i_V0 - Length_bfafa02c_MList(xs_V0)))
+{
+  (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  i_V0 == 0 ?
+    tuple0() :
+    AtAppend_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), ys_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AtDropHead_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  requires i_V0 < Length_bfafa02c_MList(xs_V0)
+  ensures At_bfafa02c_MList(xs_V0, i_V0) ==
+    ADT$List_bfafa02c_T_headA(Drop_bfafa02c_MList(xs_V0, i_V0))
+{
+  (i_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    AtDropHead_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), i_V0 - 1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function AtFind_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int): Tuple0
+  ensures Find_bfafa02c_MList(xs_V0, y_V0) == Length_bfafa02c_MList(xs_V0) ||
+    At_bfafa02c_MList(xs_V0, Find_bfafa02c_MList(xs_V0, y_V0)) == y_V0
+{
+  (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_headA(xs_V0) == y_V0 ?
+    tuple0() :
+    AtFind_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), y_V0))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function At_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, i_V0: Int): Int
+  requires i_V0 >= 0
+  requires i_V0 < Length_bfafa02c_MList(xs_V0)
+{
+  (i_V0 == 0 ?
+    ADT$List_bfafa02c_T_headA(xs_V0) :
+    At_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), i_V0 - 1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function BeforeFind_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  ensures i_V0 < Find_bfafa02c_MList(xs_V0, y_V0) ==>
+    !(At_bfafa02c_MList(xs_V0, i_V0) == y_V0)
+{
+  (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_headA(xs_V0) == y_V0 ||
+  i_V0 == 0 ||
+  i_V0 >= Length_bfafa02c_MList(xs_V0) ?
+    tuple0() :
+    BeforeFind_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), y_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Drop_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): ADT$List_bfafa02c_T
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+{
+  (n_V0 == 0 ?
+    xs_V0 :
+    Drop_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), n_V0 - 1))
+}
+
+function F_bfafa02c_F(x_V0: Int, y_V0: Int): Int
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function FindAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T,
+  y_V0: Int): Tuple0
+  ensures Find_bfafa02c_MList(xs_V0, y_V0) == Length_bfafa02c_MList(xs_V0) ||
+    Find_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), y_V0) ==
+    Find_bfafa02c_MList(xs_V0, y_V0)
+{
+  (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    FindAppend_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), ys_V0, y_V0))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function FindDrop_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int, i_V0: Int): Tuple0
+  requires i_V0 >= 0
+  ensures i_V0 <= Find_bfafa02c_MList(xs_V0, y_V0) ==>
+    Find_bfafa02c_MList(xs_V0, y_V0) ==
+    Find_bfafa02c_MList(Drop_bfafa02c_MList(xs_V0, i_V0), y_V0) + i_V0
+{
+  (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  i_V0 == 0 ?
+    tuple0() :
+    FindDrop_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), y_V0, i_V0 -
+    1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Find_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int): Int
+  ensures result >= 0
+  ensures result <= Length_bfafa02c_MList(xs_V0)
+{
+  assertArg2_Int(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    0 :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          (head_V1 == y_V0 ? 0 : 1 + Find_bfafa02c_MList(tail_V1, y_V0)))) :
+      0)))
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+function IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]): Bool
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+
+
+// decreases _
+function L_bfafa02c_F(): Int
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0)) ==
+    Length_bfafa02c_MList(xs_V0) + Length_bfafa02c_MList(ys_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          LengthAppend_bfafa02c_MList(tail_V1, ys_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthEqualsLengthPrime_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(xs_V0) == LengthPrime_bfafa02c_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+        LengthEqualsLengthPrime_bfafa02c_MList(tail_V1)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthPrime_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Int
+{
+  (xs_V0 == ADT$List_bfafa02c_T_Nil_bfafa02c_F() ?
+    0 :
+    1 + LengthPrime_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0)))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthReverseAlternative_bfafa02c_F(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(Reverse_bfafa02c_MList(xs_V0)) ==
+    Length_bfafa02c_MList(xs_V0)
+{
+  LengthReverseAux_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F())
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthReverseAux_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ac_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(ReverseAux_bfafa02c_MList(xs_V0, ac_V0)) ==
+    Length_bfafa02c_MList(xs_V0) + Length_bfafa02c_MList(ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (LengthReverseAux_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+            ac_V0))) in
+            asserting_bfafa02c_F(Length_bfafa02c_MList(ReverseAux_bfafa02c_MList(tail_V1,
+            ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ac_V0))) ==
+            Length_bfafa02c_MList(tail_V1) +
+            Length_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+            ac_V0)))))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthReverse_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(Reverse_bfafa02c_MList(xs_V0)) ==
+    Length_bfafa02c_MList(xs_V0)
+{
+  (let __V1 ==
+    (ReverseCorrect_bfafa02c_MList(xs_V0)) in
+    LengthSlowReverse_bfafa02c_MList(xs_V0))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthSlowReverse_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Length_bfafa02c_MList(SlowReverse_bfafa02c_MList(xs_V0)) ==
+    Length_bfafa02c_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (LengthSnoc_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1),
+            head_V1)) in
+            LengthSlowReverse_bfafa02c_MList(tail_V1)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LengthSnoc_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, x_V0: Int): Tuple0
+  ensures Length_bfafa02c_MList(Snoc_bfafa02c_MList(xs_V0, x_V0)) ==
+    Length_bfafa02c_MList(xs_V0) + 1
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+        LengthSnoc_bfafa02c_MList(tail_V1, x_V0)) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Length_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Int
+  ensures result >= 0
+{
+  assertArg2_Int(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    0 :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+        1 + Length_bfafa02c_MList(tail_V1)) :
+      0)))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LiberalDrop_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): ADT$List_bfafa02c_T
+  requires n_V0 >= 0
+{
+  (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    xs_V0 :
+    LiberalDrop_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), n_V0 - 1))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function LiberalTake_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): ADT$List_bfafa02c_T
+  requires n_V0 >= 0
+{
+  (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ADT$List_bfafa02c_T_Nil_bfafa02c_F() :
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F(ADT$List_bfafa02c_T_headA(xs_V0), LiberalTake_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0),
+    n_V0 - 1)))
+}
+
+// decreases _
+function R_bfafa02c_F(): Int
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Reverse_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0)) ==
+    Append_bfafa02c_MList(Reverse_bfafa02c_MList(ys_V0), Reverse_bfafa02c_MList(xs_V0))
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    (let __V1 ==
+      (AppendNil_bfafa02c_MList(ys_V0)) in
+      AppendNil_bfafa02c_MList(Reverse_bfafa02c_MList(ys_V0))) :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V2 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V2 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          ReverseAuxAppend_bfafa02c_MList(xs_V0, ys_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseAuxAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T,
+  ac_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures ReverseAux_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), ac_V0) ==
+    Append_bfafa02c_MList(Reverse_bfafa02c_MList(ys_V0), ReverseAux_bfafa02c_MList(xs_V0,
+    ac_V0))
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ReverseAuxCorrect_bfafa02c_MList(ys_V0, ac_V0) :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          ReverseAuxAppend_bfafa02c_MList(tail_V1, ys_V0, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ac_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseAuxCorrect_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ac_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures ReverseAux_bfafa02c_MList(xs_V0, ac_V0) ==
+    Append_bfafa02c_MList(Reverse_bfafa02c_MList(xs_V0), ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          (let __V2 ==
+            (ReverseAuxSlowCorrect_bfafa02c_MList(xs_V0, ac_V0)) in
+            ReverseCorrect_bfafa02c_MList(xs_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseAuxSlowCorrect_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ac_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures ReverseAux_bfafa02c_MList(xs_V0, ac_V0) ==
+    Append_bfafa02c_MList(SlowReverse_bfafa02c_MList(xs_V0), ac_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          (let __V4 ==
+            (SnocAppend_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1),
+            head_V1)) in
+            (let __V3 ==
+              (asserting_bfafa02c_F(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+              Append_bfafa02c_MList(ADT$List_bfafa02c_T_Nil_bfafa02c_F(), ac_V0)) ==
+              ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ac_V0))) in
+              (let __V2 ==
+                (AppendAssociative_bfafa02c_F(SlowReverse_bfafa02c_MList(tail_V1),
+                ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F()),
+                ac_V0)) in
+                ReverseAuxSlowCorrect_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+                ac_V0))))))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseAux_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ac_V0: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T
+{
+  assertArg2_ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ac_V0 :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          ReverseAux_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ac_V0)))) :
+      ADT$List_bfafa02c_T_dflt())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function ReverseCorrect_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Reverse_bfafa02c_MList(xs_V0) ==
+    SlowReverse_bfafa02c_MList(xs_V0)
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let tail_V1 ==
+        (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+        (let __V2 ==
+          (ReverseAuxSlowCorrect_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F())) in
+          AppendNil_bfafa02c_MList(SlowReverse_bfafa02c_MList(xs_V0)))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Reverse_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T
+{
+  ReverseAux_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F())
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function SameValueDrop_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  ensures n_V0 <= Length_bfafa02c_MList(xs_V0) ==>
+    Drop_bfafa02c_MList(xs_V0, n_V0) ==
+    LiberalDrop_bfafa02c_MList(xs_V0, n_V0)
+{
+  (!(n_V0 == 0) &&
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() ?
+    SameValueDrop_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), n_V0 - 1) :
+    tuple0())
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function SameValueTake_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): Tuple0
+  requires n_V0 >= 0
+  ensures n_V0 <= Length_bfafa02c_MList(xs_V0) ==>
+    Take_bfafa02c_MList(xs_V0, n_V0) ==
+    LiberalTake_bfafa02c_MList(xs_V0, n_V0)
+{
+  (!(n_V0 == 0) &&
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() ?
+    SameValueTake_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0), n_V0 - 1) :
+    tuple0())
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function SlowReverse_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T
+{
+  assertArg2_ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ADT$List_bfafa02c_T_Nil_bfafa02c_F() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          Snoc_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1), head_V1))) :
+      ADT$List_bfafa02c_T_dflt())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function SnocAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int): Tuple0
+  ensures Snoc_bfafa02c_MList(xs_V0, y_V0) ==
+    Append_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Cons_bfafa02c_F(y_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          SnocAppend_bfafa02c_MList(tail_V1, y_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Snoc_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, y_V0: Int): ADT$List_bfafa02c_T
+{
+  assertArg2_ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F(y_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F()) :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, Snoc_bfafa02c_MList(tail_V1,
+          y_V0)))) :
+      ADT$List_bfafa02c_T_dflt())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function TakeDropAppend_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T): Tuple0
+  ensures Take_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), Length_bfafa02c_MList(xs_V0)) ==
+    xs_V0
+  ensures Drop_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0), Length_bfafa02c_MList(xs_V0)) ==
+    ys_V0
+{
+  assertArg2_Tuple0(ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+  true &&
+  true, (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ?
+    tuple0() :
+    (ADT$List_bfafa02c_T_tag(xs_V0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag() &&
+    true &&
+    true ?
+      (let head_V1 ==
+        (ADT$List_bfafa02c_T_headA(xs_V0)) in
+        (let tail_V1 ==
+          (ADT$List_bfafa02c_T_tailA(xs_V0)) in
+          TakeDropAppend_bfafa02c_MList(tail_V1, ys_V0))) :
+      tuple0())))
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+function Take_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T, n_V0: Int): ADT$List_bfafa02c_T
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+{
+  (n_V0 == 0 ?
+    ADT$List_bfafa02c_T_Nil_bfafa02c_F() :
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F(ADT$List_bfafa02c_T_headA(xs_V0), Take_bfafa02c_MList(ADT$List_bfafa02c_T_tailA(xs_V0),
+    n_V0 - 1)))
+}
+
+// decreases 
+function assertArg2_ADT$List_bfafa02c_T(b: Bool, y: ADT$List_bfafa02c_T): ADT$List_bfafa02c_T
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Int(b: Bool, y: Int): Int
+  requires b
+{
+  y
+}
+
+// decreases 
+function assertArg2_Tuple0(b: Bool, y: Tuple0): Tuple0
+  requires b
+{
+  y
+}
+
+// decreases 
+function asserting_bfafa02c_F(b_V0: Bool): Tuple0
+  requires b_V0
+{
+  tuple0()
+}
+
+predicate ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]) 
+
+method $IMPORTS_bfafa02c_a4af0e5e()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_bfafa02c_bfafa02c()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_1c993190()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_25da33ea()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_30fc84c4()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_4f86582a()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_6a70a42e()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_7b1c251()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_8a441397()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_95e6aa2()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_9711fea1()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_c17ecea0()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_caf84290()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_cf422868()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_bfafa02c_d9bb4418()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AppendAssociative_bfafa02c_F_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T, zs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(a_V0)
+method AppendDecomposition_bfafa02c_F_termination_proof(a_V0: ADT$List_bfafa02c_T,
+  b_V0: ADT$List_bfafa02c_T, c_V0: ADT$List_bfafa02c_T, d_V0: ADT$List_bfafa02c_T)
+  requires Length_bfafa02c_MList(a_V0) == Length_bfafa02c_MList(c_V0)
+  requires Append_bfafa02c_MList(a_V0, b_V0) ==
+    Append_bfafa02c_MList(c_V0, d_V0)
+{
+  if (ADT$List_bfafa02c_T_tag(a_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(a_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var tail_V1: ADT$List_bfafa02c_T
+      inhale tail_V1 == ADT$List_bfafa02c_T_tailA(a_V0)
+      assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(a_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_bfafa02c_T(a_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AppendNil_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AppendTakeDrop_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+{
+  if (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Append_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, ys_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AtAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T, i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 <
+    Length_bfafa02c_MList(Append_bfafa02c_MList(xs_V0, ys_V0))
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AtDropHead_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 < Length_bfafa02c_MList(xs_V0)
+{
+  if (i_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method AtFind_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, y_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_headA(xs_V0) == y_V0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method At_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, i_V0: Int)
+  requires i_V0 >= 0
+  requires i_V0 < Length_bfafa02c_MList(xs_V0)
+{
+  if (i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method BeforeFind_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  y_V0: Int, i_V0: Int)
+  requires i_V0 >= 0
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  ADT$List_bfafa02c_T_headA(xs_V0) == y_V0 ||
+  i_V0 == 0 ||
+  i_V0 >= Length_bfafa02c_MList(xs_V0)) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Drop_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+{
+  if (n_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Duplicate_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==>
+    acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Error_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  returns (P0_PO0: Int)
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method FindAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T, y_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method FindDrop_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  y_V0: Int, i_V0: Int)
+  requires i_V0 >= 0
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag() ||
+  i_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Find_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, y_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        if (head_V1 == y_V0) {
+        } else {
+          assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+      }
+    }
+  }
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e__pres_termination_proof(thisItf: Tuple2[Ref, Types])
+{
+  var $condInEx: Bool
+  if (!(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))) {
+    inhale acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+  }
+}
+
+// decreases 
+method LEqualsR_bfafa02c_F()
+  ensures L_bfafa02c_F() == R_bfafa02c_F()
+{
+  
+  // decl 
+  {
+    
+    
+    
+    // decl 
+    
+    // LeftUnit_bfafa02c_F(R_bfafa02c_F())
+    LeftUnit_bfafa02c_F(R_bfafa02c_F())
+    
+    // assert F_bfafa02c_F(L_bfafa02c_F(), R_bfafa02c_F()) == R_bfafa02c_F()
+    assert F_bfafa02c_F(L_bfafa02c_F(), R_bfafa02c_F()) == R_bfafa02c_F()
+    
+    // RightUnit_bfafa02c_F(L_bfafa02c_F())
+    RightUnit_bfafa02c_F(L_bfafa02c_F())
+    
+    // assert F_bfafa02c_F(L_bfafa02c_F(), R_bfafa02c_F()) == L_bfafa02c_F()
+    assert F_bfafa02c_F(L_bfafa02c_F(), R_bfafa02c_F()) == L_bfafa02c_F()
+    
+    // return
+    goto returnLabel
+    label returnLabel
+  }
+}
+
+// decreases _
+method LeftUnit_bfafa02c_F(x_V0: Int)
+  ensures F_bfafa02c_F(L_bfafa02c_F(), x_V0) == x_V0
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthEqualsLengthPrime_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var tail_V1: ADT$List_bfafa02c_T
+      inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthPrime_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (xs_V0 == ADT$List_bfafa02c_T_Nil_bfafa02c_F()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthReverseAux_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ac_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+          inhale __V2 ==
+            LengthReverseAux_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+            ac_V0))
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthReverse_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  {
+    var __V1: Tuple0
+    inhale __V1 == ReverseCorrect_bfafa02c_MList(xs_V0)
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthSlowReverse_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          inhale __V2 ==
+            LengthSnoc_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1), head_V1)
+          assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+            (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LengthSnoc_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  x_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var tail_V1: ADT$List_bfafa02c_T
+      inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Length_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var tail_V1: ADT$List_bfafa02c_T
+      inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+      assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+        (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LiberalDrop_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method LiberalTake_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (n_V0 == 0 ||
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+    {
+      var __V1: Tuple0
+      inhale __V1 == AppendNil_bfafa02c_MList(ys_V0)
+    }
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V2: Int
+      inhale head_V2 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V2: ADT$List_bfafa02c_T
+        inhale tail_V2 == ADT$List_bfafa02c_T_tailA(xs_V0)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseAuxAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T, ac_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseAuxCorrect_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ac_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        {
+          var __V2: Tuple0
+          inhale __V2 == ReverseAuxSlowCorrect_bfafa02c_MList(xs_V0, ac_V0)
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseAuxSlowCorrect_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ac_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        {
+          var __V4: Tuple0
+          inhale __V4 ==
+            SnocAppend_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1), head_V1)
+          {
+            var __V3: Tuple0
+            inhale __V3 ==
+              asserting_bfafa02c_F(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+              Append_bfafa02c_MList(ADT$List_bfafa02c_T_Nil_bfafa02c_F(), ac_V0)) ==
+              ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ac_V0))
+            {
+              var __V2: Tuple0
+              inhale __V2 ==
+                AppendAssociative_bfafa02c_F(SlowReverse_bfafa02c_MList(tail_V1),
+                ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F()),
+                ac_V0)
+              assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+                (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseAux_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ac_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseCorrect_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var tail_V1: ADT$List_bfafa02c_T
+      inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+      {
+        var __V2: Tuple0
+        inhale __V2 ==
+          ReverseAuxSlowCorrect_bfafa02c_MList(xs_V0, ADT$List_bfafa02c_T_Nil_bfafa02c_F())
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method ReverseInvolution_bfafa02c_MList(xs_V0: ADT$List_bfafa02c_T)
+  ensures Reverse_bfafa02c_MList(Reverse_bfafa02c_MList(xs_V0)) == xs_V0
+{
+  
+  // decl xs_V0_CN0: List_bfafa02c_T°°
+  {
+    var xs_V0_CN0: ADT$List_bfafa02c_T
+    
+    
+    
+    // init xs_V0_CN0
+    inhale xs_V0_CN0 == ADT$List_bfafa02c_T_dflt()
+    
+    // xs_V0_CN0 = xs_V0
+    xs_V0_CN0 := xs_V0
+    
+    // decl 
+    
+    // if(xs_V0_CN0.Cons_bfafa02c_F) {...} else {...}
+    if (ADT$List_bfafa02c_T_tag(xs_V0_CN0) ==
+    ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+      
+      // decl head_V1: int°°, tail_V1: List_bfafa02c_T°°, N12: Unit_bfafa02c_T°°, N19: Unit_bfafa02c_T°°, N28: Unit_bfafa02c_T°°, N43: Unit_bfafa02c_T°°
+      {
+        var head_V1: Int
+        var tail_V1: ADT$List_bfafa02c_T
+        var N12: Tuple0
+        var N19: Tuple0
+        var N28: Tuple0
+        var N43: Tuple0
+        
+        // init head_V1
+        inhale head_V1 == 0
+        
+        // head_V1 = xs_V0_CN0.fieldheadA: int°
+        head_V1 := ADT$List_bfafa02c_T_headA(xs_V0_CN0)
+        
+        // init tail_V1
+        inhale tail_V1 == ADT$List_bfafa02c_T_dflt()
+        
+        // tail_V1 = xs_V0_CN0.fieldtailA: List_bfafa02c_T°
+        tail_V1 := ADT$List_bfafa02c_T_tailA(xs_V0_CN0)
+        
+        // assert xs_V0_CN0.Reverse().Reverse() == xs_V0_CN0.ReverseAux(Nil_bfafa02c_F{}).Reverse()
+        assert Reverse_bfafa02c_MList(Reverse_bfafa02c_MList(xs_V0_CN0)) ==
+          Reverse_bfafa02c_MList(ReverseAux_bfafa02c_MList(xs_V0_CN0, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))
+        
+        // assert xs_V0_CN0.ReverseAux(Nil_bfafa02c_F{}).Reverse() == tail_V1.ReverseAux(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse()
+        assert Reverse_bfafa02c_MList(ReverseAux_bfafa02c_MList(xs_V0_CN0, ADT$List_bfafa02c_T_Nil_bfafa02c_F())) ==
+          Reverse_bfafa02c_MList(ReverseAux_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F())))
+        
+        // N12 = tail_V1.ReverseAuxSlowCorrect(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}})
+        N12 := ReverseAuxSlowCorrect_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F()))
+        
+        // assert tail_V1.ReverseAux(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse() == tail_V1.SlowReverse().Append(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse()
+        assert Reverse_bfafa02c_MList(ReverseAux_bfafa02c_MList(tail_V1, ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F()))) ==
+          Reverse_bfafa02c_MList(Append_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1),
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F())))
+        
+        // N19 = tail_V1.ReverseCorrect()
+        N19 := ReverseCorrect_bfafa02c_MList(tail_V1)
+        
+        // assert tail_V1.SlowReverse().Append(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse() == tail_V1.Reverse().Append(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse()
+        assert Reverse_bfafa02c_MList(Append_bfafa02c_MList(SlowReverse_bfafa02c_MList(tail_V1),
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))) ==
+          Reverse_bfafa02c_MList(Append_bfafa02c_MList(Reverse_bfafa02c_MList(tail_V1),
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F())))
+        
+        // N28 = tail_V1.Reverse().ReverseAppend(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}})
+        N28 := ReverseAppend_bfafa02c_MList(Reverse_bfafa02c_MList(tail_V1),
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))
+        
+        // assert tail_V1.Reverse().Append(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse() == List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse().Append(tail_V1.Reverse().Reverse())
+        assert Reverse_bfafa02c_MList(Append_bfafa02c_MList(Reverse_bfafa02c_MList(tail_V1),
+          ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1, ADT$List_bfafa02c_T_Nil_bfafa02c_F()))) ==
+          Append_bfafa02c_MList(Reverse_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F())), Reverse_bfafa02c_MList(Reverse_bfafa02c_MList(tail_V1)))
+        
+        // tail_V1ReverseInvolution()
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) ||
+          rank$ADT$List_bfafa02c_T(tail_V1) ==
+          old(rank$ADT$List_bfafa02c_T(xs_V0)) &&
+          false
+        ReverseInvolution_bfafa02c_MList(tail_V1)
+        
+        // assert List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse().Append(tail_V1.Reverse().Reverse()) == List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse().Append(tail_V1)
+        assert Append_bfafa02c_MList(Reverse_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F())), Reverse_bfafa02c_MList(Reverse_bfafa02c_MList(tail_V1))) ==
+          Append_bfafa02c_MList(Reverse_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F())), tail_V1)
+        
+        // N43 = List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).ReverseAuxCorrect(tail_V1)
+        N43 := ReverseAuxCorrect_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F()), tail_V1)
+        
+        // assert List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).Reverse().Append(tail_V1) == List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).ReverseAux(tail_V1)
+        assert Append_bfafa02c_MList(Reverse_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F())), tail_V1) ==
+          ReverseAux_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F()), tail_V1)
+        
+        // assert List_bfafa02c_T°(Cons_bfafa02c_F{head_V1, Nil_bfafa02c_F{}}).ReverseAux(tail_V1) == List_bfafa02c_T°(Nil_bfafa02c_F{}).ReverseAux(xs_V0_CN0)
+        assert ReverseAux_bfafa02c_MList(ADT$List_bfafa02c_T_Cons_bfafa02c_F(head_V1,
+          ADT$List_bfafa02c_T_Nil_bfafa02c_F()), tail_V1) ==
+          ReverseAux_bfafa02c_MList(ADT$List_bfafa02c_T_Nil_bfafa02c_F(), xs_V0_CN0)
+        
+        // assert List_bfafa02c_T°(Nil_bfafa02c_F{}).ReverseAux(xs_V0_CN0) == xs_V0_CN0
+        assert ReverseAux_bfafa02c_MList(ADT$List_bfafa02c_T_Nil_bfafa02c_F(),
+          xs_V0_CN0) ==
+          xs_V0_CN0
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases _
+method RightUnit_bfafa02c_F(x_V0: Int)
+  ensures F_bfafa02c_F(x_V0, R_bfafa02c_F()) == x_V0
+
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method SameValueDrop_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (!(n_V0 == 0) &&
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method SameValueTake_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  n_V0: Int)
+  requires n_V0 >= 0
+{
+  if (!(n_V0 == 0) &&
+  ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method SlowReverse_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method SnocAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  y_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Snoc_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, y_V0: Int)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method TakeDropAppend_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T,
+  ys_V0: ADT$List_bfafa02c_T)
+{
+  if (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Nil_bfafa02c_F_tag()) {
+  } elseif (ADT$List_bfafa02c_T_tag(xs_V0) ==
+  ADT$List_bfafa02c_T_Cons_bfafa02c_F_tag()) {
+    {
+      var head_V1: Int
+      inhale head_V1 == ADT$List_bfafa02c_T_headA(xs_V0)
+      {
+        var tail_V1: ADT$List_bfafa02c_T
+        inhale tail_V1 == ADT$List_bfafa02c_T_tailA(xs_V0)
+        assert (decreasing(rank$ADT$List_bfafa02c_T(tail_V1), old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+          (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)
+      }
+    }
+  }
+}
+
+// decreases rank$ADT$List_bfafa02c_T(xs_V0)
+method Take_bfafa02c_MList_termination_proof(xs_V0: ADT$List_bfafa02c_T, n_V0: Int)
+  requires n_V0 >= 0
+  requires n_V0 <= Length_bfafa02c_MList(xs_V0)
+{
+  if (n_V0 == 0) {
+  } else {
+    assert (decreasing(rank$ADT$List_bfafa02c_T(ADT$List_bfafa02c_T_tailA(xs_V0)),
+      old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool) &&
+      (bounded(old(rank$ADT$List_bfafa02c_T(xs_V0))): Bool)}
+}
+
+method panic_a4af0e5e_F(v_V0: Tuple2[Ref, Types])
+  requires false

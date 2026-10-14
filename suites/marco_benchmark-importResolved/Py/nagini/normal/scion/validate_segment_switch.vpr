@@ -1,0 +1,1556 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSeq_basic(): PyType
+  
+  function PSeq(arg0: PyType): PyType
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function Place(): PyType
+  
+  unique function Router(): PyType
+  
+  unique function InterfaceState(): PyType
+  
+  unique function Serializable(): PyType
+  
+  unique function SCIONSegmentSwitchError(): PyType
+  
+  unique function SCIONBaseException(): PyType
+  
+  unique function SCIONBaseError(): PyType
+  
+  unique function SCIONIOError(): PyType
+  
+  unique function SCIONIndexError(): PyType
+  
+  unique function SCIONKeyError(): PyType
+  
+  unique function SCIONJSONError(): PyType
+  
+  unique function SCIONYAMLError(): PyType
+  
+  unique function SCIONParseError(): PyType
+  
+  unique function SCIONTypeError(): PyType
+  
+  unique function SCIONServiceLookupError(): PyType
+  
+  unique function SCIONChecksumFailed(): PyType
+  
+  unique function SCIONTCPError(): PyType
+  
+  unique function SCIONTCPTimeout(): PyType
+  
+  unique function SCIONElement(): PyType
+  
+  unique function HostAddrBase(): PyType
+  
+  unique function TypeBase(): PyType
+  
+  unique function LinkType(): PyType
+  
+  unique function OpaqueField(): PyType
+  
+  unique function OpaqueFieldList(): PyType
+  
+  unique function HopOpaqueField(): PyType
+  
+  unique function InfoOpaqueField(): PyType
+  
+  unique function SCIONPath(): PyType
+  
+  unique function ASMarking(): PyType
+  
+  unique function ISD_AS(): PyType
+  
+  unique function SCIONAddr(): PyType
+  
+  unique function Socket(): PyType
+  
+  unique function UDPSocket(): PyType
+  
+  unique function Element(): PyType
+  
+  unique function Topology(): PyType
+  
+  unique function RouterElement(): PyType
+  
+  unique function InterfaceElement(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: { list(arg0),list_arg(Z, 0) } issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: { dict(arg0, arg1),dict_arg(Z, 0) } issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: { dict(arg0, arg1),dict_arg(Z, 1) } issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType :: { PSeq(var0) } extends_(PSeq(var0), object()) && get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType :: { PSeq(arg0),PSeq_arg(Z, 0) } issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: { PSet(arg0),PSet_arg(Z, 0) } issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_Router {
+    extends_(Router(), SCIONElement()) && get_basic(Router()) == Router()
+  }
+  
+  axiom subtype_InterfaceState {
+    extends_(InterfaceState(), object()) && get_basic(InterfaceState()) == InterfaceState()
+  }
+  
+  axiom subtype_Serializable {
+    extends_(Serializable(), object()) && get_basic(Serializable()) == Serializable()
+  }
+  
+  axiom subtype_SCIONSegmentSwitchError {
+    extends_(SCIONSegmentSwitchError(), SCIONBaseException()) && get_basic(SCIONSegmentSwitchError()) == SCIONSegmentSwitchError()
+  }
+  
+  axiom subtype_SCIONBaseException {
+    extends_(SCIONBaseException(), Exception()) && get_basic(SCIONBaseException()) == SCIONBaseException()
+  }
+  
+  axiom subtype_SCIONBaseError {
+    extends_(SCIONBaseError(), SCIONBaseException()) && get_basic(SCIONBaseError()) == SCIONBaseError()
+  }
+  
+  axiom subtype_SCIONIOError {
+    extends_(SCIONIOError(), SCIONBaseError()) && get_basic(SCIONIOError()) == SCIONIOError()
+  }
+  
+  axiom subtype_SCIONIndexError {
+    extends_(SCIONIndexError(), SCIONBaseError()) && get_basic(SCIONIndexError()) == SCIONIndexError()
+  }
+  
+  axiom subtype_SCIONKeyError {
+    extends_(SCIONKeyError(), SCIONBaseError()) && get_basic(SCIONKeyError()) == SCIONKeyError()
+  }
+  
+  axiom subtype_SCIONJSONError {
+    extends_(SCIONJSONError(), SCIONBaseError()) && get_basic(SCIONJSONError()) == SCIONJSONError()
+  }
+  
+  axiom subtype_SCIONYAMLError {
+    extends_(SCIONYAMLError(), SCIONBaseError()) && get_basic(SCIONYAMLError()) == SCIONYAMLError()
+  }
+  
+  axiom subtype_SCIONParseError {
+    extends_(SCIONParseError(), SCIONBaseError()) && get_basic(SCIONParseError()) == SCIONParseError()
+  }
+  
+  axiom subtype_SCIONTypeError {
+    extends_(SCIONTypeError(), SCIONBaseError()) && get_basic(SCIONTypeError()) == SCIONTypeError()
+  }
+  
+  axiom subtype_SCIONServiceLookupError {
+    extends_(SCIONServiceLookupError(), SCIONBaseError()) && get_basic(SCIONServiceLookupError()) == SCIONServiceLookupError()
+  }
+  
+  axiom subtype_SCIONChecksumFailed {
+    extends_(SCIONChecksumFailed(), SCIONBaseError()) && get_basic(SCIONChecksumFailed()) == SCIONChecksumFailed()
+  }
+  
+  axiom subtype_SCIONTCPError {
+    extends_(SCIONTCPError(), SCIONBaseError()) && get_basic(SCIONTCPError()) == SCIONTCPError()
+  }
+  
+  axiom subtype_SCIONTCPTimeout {
+    extends_(SCIONTCPTimeout(), SCIONBaseError()) && get_basic(SCIONTCPTimeout()) == SCIONTCPTimeout()
+  }
+  
+  axiom subtype_SCIONElement {
+    extends_(SCIONElement(), object()) && get_basic(SCIONElement()) == SCIONElement()
+  }
+  
+  axiom subtype_HostAddrBase {
+    extends_(HostAddrBase(), Serializable()) && get_basic(HostAddrBase()) == HostAddrBase()
+  }
+  
+  axiom subtype_TypeBase {
+    extends_(TypeBase(), object()) && get_basic(TypeBase()) == TypeBase()
+  }
+  
+  axiom subtype_LinkType {
+    extends_(LinkType(), TypeBase()) && get_basic(LinkType()) == LinkType()
+  }
+  
+  axiom subtype_OpaqueField {
+    extends_(OpaqueField(), Serializable()) && get_basic(OpaqueField()) == OpaqueField()
+  }
+  
+  axiom subtype_OpaqueFieldList {
+    extends_(OpaqueFieldList(), object()) && get_basic(OpaqueFieldList()) == OpaqueFieldList()
+  }
+  
+  axiom subtype_HopOpaqueField {
+    extends_(HopOpaqueField(), OpaqueField()) && get_basic(HopOpaqueField()) == HopOpaqueField()
+  }
+  
+  axiom subtype_InfoOpaqueField {
+    extends_(InfoOpaqueField(), OpaqueField()) && get_basic(InfoOpaqueField()) == InfoOpaqueField()
+  }
+  
+  axiom subtype_SCIONPath {
+    extends_(SCIONPath(), Serializable()) && get_basic(SCIONPath()) == SCIONPath()
+  }
+  
+  axiom subtype_ASMarking {
+    extends_(ASMarking(), object()) && get_basic(ASMarking()) == ASMarking()
+  }
+  
+  axiom subtype_ISD_AS {
+    extends_(ISD_AS(), Serializable()) && get_basic(ISD_AS()) == ISD_AS()
+  }
+  
+  axiom subtype_SCIONAddr {
+    extends_(SCIONAddr(), object()) && get_basic(SCIONAddr()) == SCIONAddr()
+  }
+  
+  axiom subtype_Socket {
+    extends_(Socket(), object()) && get_basic(Socket()) == Socket()
+  }
+  
+  axiom subtype_UDPSocket {
+    extends_(UDPSocket(), Socket()) && get_basic(UDPSocket()) == UDPSocket()
+  }
+  
+  axiom subtype_Element {
+    extends_(Element(), object()) && get_basic(Element()) == Element()
+  }
+  
+  axiom subtype_Topology {
+    extends_(Topology(), object()) && get_basic(Topology()) == Topology()
+  }
+  
+  axiom subtype_RouterElement {
+    extends_(RouterElement(), Element()) && get_basic(RouterElement()) == RouterElement()
+  }
+  
+  axiom subtype_InterfaceElement {
+    extends_(InterfaceElement(), Element()) && get_basic(InterfaceElement()) == InterfaceElement()
+  }
+}
+
+domain Function {
+  
+  
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+  
+  axiom low_true {
+    (forall x: T :: { (Low(x): Bool) } (Low(x): Bool))
+  }
+}
+
+domain _list_ce_helper {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int :: { ___s[___i] } ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$] {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$]
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ :: { (__toMS(Seq(__t)): Multiset[T$]) } (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] :: { (__toMS(__ss1 ++ __ss2): Multiset[T$]) } (__toMS(__ss1 ++ __ss2): Multiset[T$]) == ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] :: { (__toMS(__ss1): Multiset[T$]) } |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _dict_ce_helper {
+  
+  function dict_get_helper(___s: Set[Ref], ___s2: Ref, ___s3: Ref): Ref
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field dict_acc2: Ref
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+field Router__udp_sock: Ref
+
+field Router_interface: Ref
+
+field Router_is_core_router: Ref
+
+field Router_of_gen_key: Ref
+
+field Router_sibra_key: Ref
+
+field Router_if_states: Ref
+
+field Router_revocations: Ref
+
+field Router_pre_ext_handlers: Ref
+
+field Router_post_ext_handlers: Ref
+
+field Router_sibra_state: Ref
+
+field Router__remote_sock: Ref
+
+field InterfaceState_is_active: Ref
+
+field InterfaceState_rev_info: Ref
+
+field SCIONInterfaceDownException_if_id: Ref
+
+field SCIONBaseException_args_: Ref
+
+field SCIONElement_id: Ref
+
+field SCIONElement_conf_dir: Ref
+
+field SCIONElement_ifid2br: Ref
+
+field SCIONElement__port: Ref
+
+field SCIONElement_topology: Ref
+
+field SCIONElement_config: Ref
+
+field SCIONElement_addr: Ref
+
+field SCIONElement_trust_store: Ref
+
+field SCIONElement_total_dropped: Ref
+
+field SCIONElement__core_ases: Ref
+
+field SCIONElement_run_flag: Ref
+
+field SCIONElement_stopped_flag: Ref
+
+field SCIONElement__in_buf: Ref
+
+field SCIONElement__socks: Ref
+
+field SCIONElement__startup: Ref
+
+field SCIONElement_DefaultMeta: PyType
+
+field Config_master_as_key: Ref
+
+field Config_propagation_time: Ref
+
+field Config_registration_time: Ref
+
+field Config_registers_paths: Ref
+
+field Config_cert_ver: Ref
+
+field ExtensionHeader__hdr_len: Ref
+
+field HostAddrBase_addr: Ref
+
+field OpaqueFieldList__order: Ref
+
+field OpaqueFieldList__labels: Ref
+
+field HopOpaqueField_xover: Ref
+
+field HopOpaqueField_verify_only: Ref
+
+field HopOpaqueField_forward_only: Ref
+
+field HopOpaqueField_recurse: Ref
+
+field HopOpaqueField_exp_time: Ref
+
+field HopOpaqueField_ingress_if: Ref
+
+field HopOpaqueField_egress_if: Ref
+
+field HopOpaqueField_mac: Ref
+
+field InfoOpaqueField_up_flag: Ref
+
+field InfoOpaqueField_shortcut: Ref
+
+field InfoOpaqueField_peer: Ref
+
+field InfoOpaqueField_timestamp: Ref
+
+field InfoOpaqueField_isd: Ref
+
+field InfoOpaqueField_hops: Ref
+
+field Raw__data: Ref
+
+field Raw__desc: Ref
+
+field Raw__len: Ref
+
+field Raw__min: Ref
+
+field Raw__offset: Ref
+
+field SCIONPath__ofs: Ref
+
+field SCIONPath__iof_idx: Ref
+
+field SCIONPath__hof_idx: Ref
+
+field SCIONPath_interfaces: Ref
+
+field SCIONPath_mtu: Ref
+
+field PCBMarking_p: Ref
+
+field PPCBMarking_inIA: Ref
+
+field PPCBMarking_inIF: Ref
+
+field PPCBMarking_inMTU: Ref
+
+field PPCBMarking_outIA: Ref
+
+field PPCBMarking_outIF: Ref
+
+field ISD_AS__isd: Ref
+
+field ISD_AS__as: Ref
+
+field SCIONAddr_isd_as: Ref
+
+field SCIONAddr_host: Ref
+
+field SCIONL4Packet_l4_hdr: Ref
+
+field SCIONCommonHdr_version: Ref
+
+field SCIONCommonHdr_src_addr_type: Ref
+
+field SCIONCommonHdr_dst_addr_type: Ref
+
+field SCIONCommonHdr_addrs_len: Ref
+
+field SCIONCommonHdr_total_len: Ref
+
+field SCIONCommonHdr__iof_idx: Ref
+
+field SCIONCommonHdr__hof_idx: Ref
+
+field SCIONCommonHdr_next_hdr: Ref
+
+field SCIONCommonHdr_hdr_len: Ref
+
+field SCIONAddrHdr_src: Ref
+
+field SCIONAddrHdr_dst: Ref
+
+field SCIONAddrHdr__pad_len: Ref
+
+field SCIONAddrHdr__total_len: Ref
+
+field SCIONBasePacket_cmn_hdr: Ref
+
+field SCIONBasePacket_addrs: Ref
+
+field SCIONBasePacket_path: Ref
+
+field SCIONBasePacket__l4_proto: Ref
+
+field SCIONBasePacket__payload: Ref
+
+field SCIONExtPacket_ext_hdrs: Ref
+
+field SCMPPayload__cmn_hdr: Ref
+
+field SCMPPayload__addrs: Ref
+
+field SCMPPayload__path: Ref
+
+field SCMPPayload__exts: Ref
+
+field SCMPPayload__l4_hdr: Ref
+
+field SCMPExt_error: Ref
+
+field SCMPExt_hopbyhop: Ref
+
+field SibraExtBase_accepted: Ref
+
+field SibraExtBase_error: Ref
+
+field Element_addr: Ref
+
+field Element_port: Ref
+
+field Element_name: Ref
+
+field Topology_is_core_as: Ref
+
+field Topology_mtu: Ref
+
+field Topology_isd_as: Ref
+
+field Topology_beacon_servers: Ref
+
+field Topology_certificate_servers: Ref
+
+field Topology_path_servers: Ref
+
+field Topology_sibra_servers: Ref
+
+field Topology_parent_border_routers: Ref
+
+field Topology_child_border_routers: Ref
+
+field Topology_peer_border_routers: Ref
+
+field Topology_routing_border_routers: Ref
+
+field RouterElement_interface: Ref
+
+field InterfaceElement_isd_as: Ref
+
+field InterfaceElement_if_id: Ref
+
+field InterfaceElement_udp_port: Ref
+
+field InterfaceElement_bandwidth: Ref
+
+field InterfaceElement_to_addr: Ref
+
+field InterfaceElement_link_type: Ref
+
+field InterfaceElement_to_udp_port: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function LinkType_PEER(receiver: PyType): Ref
+  ensures issubtype(typeof(result), str())
+  ensures receiver == LinkType() ==> result == str___create__(4, 1380271440)
+
+
+function LinkType_ROUTING(receiver: PyType): Ref
+  ensures issubtype(typeof(result), str())
+  ensures receiver == LinkType() ==> result == str___create__(7, 20070800200912722)
+
+
+function Router_get_topology_border_routers_len(self_18: Ref): Ref
+  requires issubtype(typeof(self_18), Router())
+  requires self_18 != null
+  requires acc(SCIONElement_State(self_18), 1 / 10)
+  ensures issubtype(typeof(result), int())
+  ensures int___eq__(result, __prim__int___box__((unfolding acc(SCIONElement_State(self_18), 1 / 10) in PSeq___len__(Topology_get_border_routers(self_18.SCIONElement_topology)))))
+  ensures int___ge__(int___unbox__(result), 0)
+{
+  (unfolding acc(SCIONElement_State(self_18), 1 / 10) in Router_get_topology_border_routers_len_1(self_18))
+}
+
+function Router_get_topology_border_routers_len_1(self_19: Ref): Ref
+  requires issubtype(typeof(self_19), Router())
+  requires self_19 != null
+  requires acc(self_19.SCIONElement_topology, 1 / 10) && issubtype(typeof(self_19.SCIONElement_topology), Topology())
+  requires acc(Topology_State(self_19.SCIONElement_topology), 1 / 10)
+  ensures issubtype(typeof(result), int())
+  ensures int___ge__(int___unbox__(result), 0)
+{
+  __prim__int___box__((unfolding acc(Topology_State(self_19.SCIONElement_topology), 1 / 10) in PSeq___len__(Topology_border_routers(self_19.SCIONElement_topology))))
+}
+
+function OpaqueFieldList_contents(self_108: Ref): Ref
+  requires issubtype(typeof(self_108), OpaqueFieldList())
+  requires self_108 != null
+  requires acc(self_108.OpaqueFieldList__order, 1 / 20) && issubtype(typeof(self_108.OpaqueFieldList__order), tuple(Seq(str()))) && (acc(self_108.OpaqueFieldList__labels, 1 / 20) && issubtype(typeof(self_108.OpaqueFieldList__labels), dict(str(), list(OpaqueField()))))
+  requires acc(self_108.OpaqueFieldList__labels.dict_acc, 1 / 20) && acc(self_108.OpaqueFieldList__labels.dict_acc2, 1 / 20)
+  ensures issubtype(typeof(result), PSeq(OpaqueField()))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(result)), OpaqueFieldList___len__(self_108))
+
+
+function OpaqueFieldList___len__(self_109: Ref): Ref
+  requires issubtype(typeof(self_109), OpaqueFieldList())
+  requires self_109 != null
+  requires acc(self_109.OpaqueFieldList__labels, 1 / 20) && issubtype(typeof(self_109.OpaqueFieldList__labels), dict(str(), list(OpaqueField())))
+  requires acc(self_109.OpaqueFieldList__labels.dict_acc, 1 / 20) && acc(self_109.OpaqueFieldList__labels.dict_acc2, 1 / 20)
+  ensures issubtype(typeof(result), int())
+  ensures int___ge__(int___unbox__(result), 0)
+
+
+function OpaqueFieldList_get_by_idx(self_113: Ref, idx_1: Ref): Ref
+  requires issubtype(typeof(self_113), OpaqueFieldList())
+  requires issubtype(typeof(idx_1), int())
+  requires self_113 != null
+  requires acc(OpaqueFieldList_State(self_113), 1 / 20)
+  requires int___ge__(int___unbox__(idx_1), 0) && int___lt__(int___unbox__(idx_1), int___unbox__(OpaqueFieldList_get_len(self_113)))
+  ensures issubtype(typeof(result), OpaqueField())
+  ensures result == (unfolding acc(OpaqueFieldList_State(self_113), 1 / 20) in PSeq___getitem__(OpaqueFieldList_contents(self_113), idx_1))
+  ensures PSeq___contains__((unfolding acc(OpaqueFieldList_State(self_113), 1 / 20) in OpaqueFieldList_contents(self_113)), result)
+
+
+function OpaqueFieldList_get_len(self_114: Ref): Ref
+  requires issubtype(typeof(self_114), OpaqueFieldList())
+  requires self_114 != null
+  requires acc(OpaqueFieldList_State(self_114), 1 / 20)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(OpaqueFieldList_State(self_114), 1 / 20) in OpaqueFieldList___len__(self_114))
+}
+
+function OpaqueFieldList_get_contents(self_115: Ref): Ref
+  requires issubtype(typeof(self_115), OpaqueFieldList())
+  requires self_115 != null
+  requires acc(OpaqueFieldList_State(self_115), 1 / 20)
+  ensures issubtype(typeof(result), PSeq(OpaqueField()))
+{
+  (unfolding acc(OpaqueFieldList_State(self_115), 1 / 20) in OpaqueFieldList_contents(self_115))
+}
+
+function OpaqueFieldList_get_iof_peer(self_116: Ref, iof_0: Ref): Ref
+  requires issubtype(typeof(self_116), OpaqueFieldList())
+  requires issubtype(typeof(iof_0), InfoOpaqueField())
+  requires self_116 != null
+  requires acc(OpaqueFieldList_State(self_116), 1 / 10)
+  requires PSeq___contains__(OpaqueFieldList_get_contents(self_116), iof_0)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueFieldList_State(self_116), 1 / 10) in InfoOpaqueField_get_peer(iof_0))
+}
+
+function OpaqueFieldList_get_iof_shortcut(self_117: Ref, iof_1: Ref): Ref
+  requires issubtype(typeof(self_117), OpaqueFieldList())
+  requires issubtype(typeof(iof_1), InfoOpaqueField())
+  requires self_117 != null
+  requires acc(OpaqueFieldList_State(self_117), 1 / 10)
+  requires PSeq___contains__(OpaqueFieldList_get_contents(self_117), iof_1)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueFieldList_State(self_117), 1 / 10) in InfoOpaqueField_get_shortcut(iof_1))
+}
+
+function OpaqueFieldList_get_iof_up_flag(self_118: Ref, iof_2: Ref): Ref
+  requires issubtype(typeof(self_118), OpaqueFieldList())
+  requires issubtype(typeof(iof_2), InfoOpaqueField())
+  requires self_118 != null
+  requires acc(OpaqueFieldList_State(self_118), 1 / 10)
+  requires PSeq___contains__(OpaqueFieldList_get_contents(self_118), iof_2)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueFieldList_State(self_118), 1 / 10) in InfoOpaqueField_get_up_flag(iof_2))
+}
+
+function OpaqueFieldList_get_iof_hops(self_119: Ref, iof_3: Ref): Ref
+  requires issubtype(typeof(self_119), OpaqueFieldList())
+  requires issubtype(typeof(iof_3), InfoOpaqueField())
+  requires self_119 != null
+  requires acc(OpaqueFieldList_State(self_119), 1 / 10)
+  requires PSeq___contains__(OpaqueFieldList_get_contents(self_119), iof_3)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(OpaqueFieldList_State(self_119), 1 / 10) in InfoOpaqueField_get_hops(iof_3))
+}
+
+function OpaqueFieldList_get_hof_xover(self_120: Ref, hof_3: Ref): Ref
+  requires issubtype(typeof(self_120), OpaqueFieldList())
+  requires issubtype(typeof(hof_3), HopOpaqueField())
+  requires self_120 != null
+  requires acc(OpaqueFieldList_State(self_120), 1 / 10)
+  requires PSeq___contains__(OpaqueFieldList_get_contents(self_120), hof_3)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueFieldList_State(self_120), 1 / 10) in HopOpaqueField_get_xover(hof_3))
+}
+
+function HopOpaqueField_get_xover(self_126: Ref): Ref
+  requires issubtype(typeof(self_126), HopOpaqueField())
+  requires self_126 != null
+  requires acc(OpaqueField_State(self_126), 1 / 20)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueField_State(self_126), 1 / 20) in self_126.HopOpaqueField_xover)
+}
+
+function InfoOpaqueField_get_up_flag(self_137: Ref): Ref
+  requires issubtype(typeof(self_137), InfoOpaqueField())
+  requires self_137 != null
+  requires acc(OpaqueField_State(self_137), 1 / 20)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueField_State(self_137), 1 / 20) in self_137.InfoOpaqueField_up_flag)
+}
+
+function InfoOpaqueField_get_shortcut(self_138: Ref): Ref
+  requires issubtype(typeof(self_138), InfoOpaqueField())
+  requires self_138 != null
+  requires acc(OpaqueField_State(self_138), 1 / 20)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueField_State(self_138), 1 / 20) in self_138.InfoOpaqueField_shortcut)
+}
+
+function InfoOpaqueField_get_peer(self_139: Ref): Ref
+  requires issubtype(typeof(self_139), InfoOpaqueField())
+  requires self_139 != null
+  requires acc(OpaqueField_State(self_139), 1 / 20)
+  ensures issubtype(typeof(result), bool())
+{
+  (unfolding acc(OpaqueField_State(self_139), 1 / 20) in self_139.InfoOpaqueField_peer)
+}
+
+function InfoOpaqueField_get_hops(self_140: Ref): Ref
+  requires issubtype(typeof(self_140), InfoOpaqueField())
+  requires self_140 != null
+  requires acc(OpaqueField_State(self_140), 1 / 20)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(OpaqueField_State(self_140), 1 / 20) in self_140.InfoOpaqueField_hops)
+}
+
+function SCIONPath_get_iof(self_148: Ref): Ref
+  requires issubtype(typeof(self_148), SCIONPath())
+  requires self_148 != null
+  requires acc(SCIONPath_State(self_148), 1 / 20)
+  ensures result == null || issubtype(typeof(result), InfoOpaqueField())
+  ensures SCIONPath_get_iof_idx(self_148) != null ==> result != null
+  ensures result != null ==> PSeq___contains__(SCIONPath_get_ofs_contents(self_148), result)
+
+
+function SCIONPath_get_hof(self_149: Ref): Ref
+  requires issubtype(typeof(self_149), SCIONPath())
+  requires self_149 != null
+  requires acc(SCIONPath_State(self_149), 1 / 10)
+  ensures result == null || issubtype(typeof(result), HopOpaqueField())
+  ensures SCIONPath_get_hof_idx(self_149) != null ==> result != null
+  ensures result != null ==> PSeq___contains__(SCIONPath_get_ofs_contents(self_149), result)
+
+
+function SCIONPath_get_iof_idx(self_155: Ref): Ref
+  requires issubtype(typeof(self_155), SCIONPath())
+  requires self_155 != null
+  requires acc(SCIONPath_State(self_155), 1 / 20)
+  ensures result == null || issubtype(typeof(result), int())
+  ensures result != null ==> int___ge__(int___unbox__(result), 0) && int___lt__(int___unbox__(result), int___unbox__(SCIONPath_get_ofs_len(self_155)))
+{
+  (unfolding acc(SCIONPath_State(self_155), 1 / 20) in self_155.SCIONPath__iof_idx)
+}
+
+function SCIONPath_get_hof_idx(self_156: Ref): Ref
+  requires issubtype(typeof(self_156), SCIONPath())
+  requires self_156 != null
+  requires acc(SCIONPath_State(self_156), 1 / 20)
+  ensures result == null || issubtype(typeof(result), int())
+  ensures result != null ==> int___ge__(int___unbox__(result), 0) && int___lt__(int___unbox__(result), int___unbox__(SCIONPath_get_ofs_len(self_156)))
+{
+  (unfolding acc(SCIONPath_State(self_156), 1 / 20) in self_156.SCIONPath__hof_idx)
+}
+
+function SCIONPath_get_ofs_contents(self_157: Ref): Ref
+  requires issubtype(typeof(self_157), SCIONPath())
+  requires self_157 != null
+  requires acc(SCIONPath_State(self_157), 1 / 20)
+  ensures issubtype(typeof(result), PSeq(OpaqueField()))
+{
+  (unfolding acc(SCIONPath_State(self_157), 1 / 20) in SCIONPath_get_ofs_contents_1(self_157))
+}
+
+function SCIONPath_get_ofs_contents_1(self_158: Ref): Ref
+  requires issubtype(typeof(self_158), SCIONPath())
+  requires self_158 != null
+  requires acc(self_158.SCIONPath__ofs, 1 / 20) && issubtype(typeof(self_158.SCIONPath__ofs), OpaqueFieldList())
+  requires acc(OpaqueFieldList_State(self_158.SCIONPath__ofs), 1 / 20)
+  ensures issubtype(typeof(result), PSeq(OpaqueField()))
+{
+  (unfolding acc(OpaqueFieldList_State(self_158.SCIONPath__ofs), 1 / 20) in OpaqueFieldList_contents(self_158.SCIONPath__ofs))
+}
+
+function SCIONPath_state_get_ofs_len(self_159: Ref): Ref
+  requires issubtype(typeof(self_159), SCIONPath())
+  requires self_159 != null
+  requires acc(self_159.SCIONPath__ofs, 1 / 10) && issubtype(typeof(self_159.SCIONPath__ofs), OpaqueFieldList())
+  requires acc(OpaqueFieldList_State(self_159.SCIONPath__ofs), 1 / 10)
+  ensures issubtype(typeof(result), int())
+{
+  object___cast__(int(), (unfolding acc(OpaqueFieldList_State(self_159.SCIONPath__ofs), 1 / 10) in OpaqueFieldList___len__(self_159.SCIONPath__ofs)))
+}
+
+function SCIONPath_get_ofs_len(self_160: Ref): Ref
+  requires issubtype(typeof(self_160), SCIONPath())
+  requires self_160 != null
+  requires acc(SCIONPath_State(self_160), 1 / 20)
+  ensures issubtype(typeof(result), int())
+{
+  object___cast__(int(), (unfolding acc(SCIONPath_State(self_160), 1 / 20) in SCIONPath_get_ofs_len_1(self_160)))
+}
+
+function SCIONPath_get_ofs_len_1(self_161: Ref): Ref
+  requires issubtype(typeof(self_161), SCIONPath())
+  requires self_161 != null
+  requires acc(self_161.SCIONPath__ofs, 1 / 20) && issubtype(typeof(self_161.SCIONPath__ofs), OpaqueFieldList())
+  requires acc(OpaqueFieldList_State(self_161.SCIONPath__ofs), 1 / 20)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(OpaqueFieldList_State(self_161.SCIONPath__ofs), 1 / 20) in OpaqueFieldList___len__(self_161.SCIONPath__ofs))
+}
+
+function SCIONPath_get_iof_up_flag(self_165: Ref, iof_6: Ref): Ref
+  requires issubtype(typeof(self_165), SCIONPath())
+  requires issubtype(typeof(iof_6), InfoOpaqueField())
+  requires self_165 != null
+  requires acc(SCIONPath_State(self_165), 1 / 10)
+  requires PSeq___contains__(SCIONPath_get_ofs_contents(self_165), iof_6)
+  ensures issubtype(typeof(result), bool())
+
+
+function SCIONPath_get_hof_egress_if(self_175: Ref, hof_9: Ref): Ref
+  requires issubtype(typeof(self_175), SCIONPath())
+  requires issubtype(typeof(hof_9), HopOpaqueField())
+  requires self_175 != null
+  requires acc(SCIONPath_State(self_175), 1 / 10)
+  requires PSeq___contains__(SCIONPath_get_ofs_contents(self_175), hof_9)
+  ensures issubtype(typeof(result), int())
+
+
+function Element_get_addr(self_338: Ref): Ref
+  requires issubtype(typeof(self_338), Element())
+  requires self_338 != null
+  requires acc(Element_State(self_338), 1 / 10)
+  ensures result == null || issubtype(typeof(result), HostAddrBase())
+{
+  (unfolding acc(Element_State(self_338), 1 / 10) in self_338.Element_addr)
+}
+
+function Element_get_port(self_339: Ref): Ref
+  requires issubtype(typeof(self_339), Element())
+  requires self_339 != null
+  requires acc(Element_State(self_339), 1 / 10)
+  ensures result == null || issubtype(typeof(result), int())
+{
+  (unfolding acc(Element_State(self_339), 1 / 10) in self_339.Element_port)
+}
+
+function Topology_border_routers(self_342: Ref): Ref
+  requires issubtype(typeof(self_342), Topology())
+  requires self_342 != null
+  requires acc(self_342.Topology_parent_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_parent_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_child_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_child_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_peer_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_peer_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_routing_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_routing_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_parent_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_child_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_peer_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_routing_border_routers.list_acc, 1 / 20)
+  ensures issubtype(typeof(result), PSeq(RouterElement()))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(result)), __prim__int___box__(int___add__(int___add__(int___add__(list___len__(self_342.Topology_parent_border_routers), list___len__(self_342.Topology_child_border_routers)), list___len__(self_342.Topology_peer_border_routers)), list___len__(self_342.Topology_routing_border_routers))))
+
+
+function Topology_get_border_routers(self_343: Ref): Ref
+  requires issubtype(typeof(self_343), Topology())
+  requires self_343 != null
+  requires acc(Topology_State(self_343), 1 / 20)
+  ensures issubtype(typeof(result), PSeq(RouterElement()))
+{
+  (unfolding acc(Topology_State(self_343), 1 / 20) in Topology_border_routers(self_343))
+}
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+{
+  self >= other
+}
+
+function int___le__(self: Int, other: Int): Bool
+{
+  self <= other
+}
+
+function int___lt__(self: Int, other: Int): Bool
+{
+  self < other
+}
+
+function int___add__(self: Int, other: Int): Int
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+{
+  self - other
+}
+
+function object___cast__(typ: PyType, obj: Ref): Ref
+  requires issubtype(typeof(obj), typ)
+  ensures result == obj
+  ensures issubtype(typeof(obj), typ)
+
+
+function list___len__(self: Ref): Int
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+{
+  |self.list_acc|
+}
+
+function Level(r: Ref): Perm
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool
+{
+  (forall m: Measure$ :: { (m in map) } (m in map) ==> Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function PSeq___sil_seq__(box: Ref): Seq[Ref]
+  requires issubtype(typeof(box), PSeq(PSeq_arg(typeof(box), 0)))
+
+
+function PSeq___contains__(self: Ref, item: Ref): Bool
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == (item in PSeq___sil_seq__(self))
+  ensures result ==> issubtype(typeof(item), PSeq_arg(typeof(self), 0))
+
+
+function PSeq___getitem__(self: Ref, index: Ref): Ref
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(index), int())
+  requires (let ln == (PSeq___len__(self)) in (int___unbox__(index) < 0 ==> int___unbox__(index) >= -ln) && (int___unbox__(index) >= 0 ==> int___unbox__(index) < ln))
+  ensures result == (int___unbox__(index) >= 0 ? PSeq___sil_seq__(self)[int___unbox__(index)] : PSeq___sil_seq__(self)[PSeq___len__(self) + int___unbox__(index)])
+  ensures issubtype(typeof(result), PSeq_arg(typeof(self), 0))
+
+
+function PSeq___len__(self: Ref): Int
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == |PSeq___sil_seq__(self)|
+
+
+function dict___contains__(self: Ref, item: Ref): Bool
+  requires issubtype(typeof(self), dict(dict_arg(typeof(self), 0), dict_arg(typeof(self), 1)))
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  ensures result == (item in self.dict_acc)
+
+
+function dict___getitem__(self: Ref, key: Ref): Ref
+  requires issubtype(typeof(self), dict(dict_arg(typeof(self), 0), dict_arg(typeof(self), 1)))
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  requires dict___contains__(self, key)
+  ensures issubtype(typeof(result), dict_arg(typeof(self), 1))
+  ensures (result in dict___values__(self))
+  ensures dict_get_helper(self.dict_acc, self.dict_acc2, key) == result
+
+
+function dict___values__(self: Ref): Seq[Ref]
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  ensures |result| == |self.dict_acc|
+
+
+function str___len__(self: Ref): Int
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+function tuple___val__(self: Ref): Seq[Ref]
+
+
+function tuple___create1__(arg0: Ref, t0: PyType, ctr: Int): Ref
+  requires issubtype(typeof(arg0), t0)
+  ensures typeof(result) == tuple(Seq(t0))
+  ensures tuple_args(typeof(result)) == Seq(t0)
+  ensures tuple___val__(result) == Seq(arg0)
+  ensures tuple___len__(result) == 1 && tuple___getitem__(result, 0) == arg0
+
+
+function tuple___len__(self: Ref): Int
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)|
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  requires (let ln == (tuple___len__(self)) in (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) + key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==> result == tuple___val__(self)[tuple___len__(self) + key]
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate State_abstract_rest(self_97: Ref) 
+
+predicate SCIONElement_State(self_97: Ref) {
+  true && issubtype(typeof(self_97), SCIONElement()) && ((issubtype(typeof(self_97), SCIONElement()) ==> acc(self_97.SCIONElement_addr, write) && issubtype(typeof(self_97.SCIONElement_addr), SCIONAddr()) && (acc(SCIONAddr_State(self_97.SCIONElement_addr), write) && (acc(self_97.SCIONElement_topology, write) && issubtype(typeof(self_97.SCIONElement_topology), Topology()) && (acc(Topology_State(self_97.SCIONElement_topology), write) && (acc(self_97.SCIONElement_ifid2br, write) && issubtype(typeof(self_97.SCIONElement_ifid2br), dict(int(), RouterElement())) && (acc(self_97.SCIONElement_ifid2br.dict_acc, write) && acc(self_97.SCIONElement_ifid2br.dict_acc2, write) && (forall lambda857_37$x: Ref :: { (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) } { (dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x) in PSeq___sil_seq__(Topology_get_border_routers(self_97.SCIONElement_topology))) } issubtype(typeof(lambda857_37$x), int()) ==> (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) ==> PSeq___contains__(Topology_get_border_routers(self_97.SCIONElement_topology), dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x))))))))) && (issubtype(typeof(self_97), Router()) ==> acc(self_97.Router_interface, write) && issubtype(typeof(self_97.Router_interface), InterfaceElement()) && (acc(Element_State(self_97.Router_interface), write) && (acc(self_97.Router__remote_sock, write) && issubtype(typeof(self_97.Router__remote_sock), UDPSocket()) && (acc(self_97.Router__udp_sock, write) && issubtype(typeof(self_97.Router__udp_sock), UDPSocket()) && (acc(self_97.Router_of_gen_key, write) && issubtype(typeof(self_97.Router_of_gen_key), bytes()) && (acc(self_97.Router_if_states, write) && issubtype(typeof(self_97.Router_if_states), dict(int(), InterfaceState())) && (acc(self_97.Router_if_states.dict_acc, write) && acc(self_97.Router_if_states.dict_acc2, write) && (true && (forall lambda183_39$x: Ref :: { (lambda183_39$x in self_97.Router_if_states.dict_acc) } issubtype(typeof(lambda183_39$x), int()) && (lambda183_39$x in self_97.Router_if_states.dict_acc) ==> acc(InterfaceState_State(object___cast__(InterfaceState(), dict___getitem__(self_97.Router_if_states, lambda183_39$x))), write)) && (acc(self_97.Router_pre_ext_handlers, write) && issubtype(typeof(self_97.Router_pre_ext_handlers), dict(union_type_2(NoneType(), int()), bool())) && (acc(self_97.Router_post_ext_handlers, write) && issubtype(typeof(self_97.Router_post_ext_handlers), dict(union_type_2(NoneType(), int()), bool())))))))))))) && (true && typeof(self_97) != SCIONElement() && typeof(self_97) != Router() ==> acc(State_abstract_rest(self_97), write)))
+}
+
+predicate InterfaceState_State(self_80: Ref) 
+
+predicate State_abstract_rest_4(self_107: Ref) 
+
+predicate OpaqueField_State(self_107: Ref) {
+  true && issubtype(typeof(self_107), OpaqueField()) && ((issubtype(typeof(self_107), OpaqueField()) ==> true) && (issubtype(typeof(self_107), InfoOpaqueField()) ==> acc(self_107.InfoOpaqueField_up_flag, write) && issubtype(typeof(self_107.InfoOpaqueField_up_flag), bool()) && (acc(self_107.InfoOpaqueField_shortcut, write) && issubtype(typeof(self_107.InfoOpaqueField_shortcut), bool()) && (acc(self_107.InfoOpaqueField_peer, write) && issubtype(typeof(self_107.InfoOpaqueField_peer), bool()) && (acc(self_107.InfoOpaqueField_timestamp, write) && issubtype(typeof(self_107.InfoOpaqueField_timestamp), int()) && (acc(self_107.InfoOpaqueField_isd, write) && issubtype(typeof(self_107.InfoOpaqueField_isd), int()) && (acc(self_107.InfoOpaqueField_hops, write) && issubtype(typeof(self_107.InfoOpaqueField_hops), int()))))))) && (issubtype(typeof(self_107), HopOpaqueField()) ==> acc(self_107.HopOpaqueField_xover, write) && issubtype(typeof(self_107.HopOpaqueField_xover), bool()) && (acc(self_107.HopOpaqueField_verify_only, write) && issubtype(typeof(self_107.HopOpaqueField_verify_only), bool()) && (acc(self_107.HopOpaqueField_forward_only, write) && issubtype(typeof(self_107.HopOpaqueField_forward_only), bool()) && (acc(self_107.HopOpaqueField_recurse, write) && issubtype(typeof(self_107.HopOpaqueField_recurse), bool()) && (acc(self_107.HopOpaqueField_exp_time, write) && issubtype(typeof(self_107.HopOpaqueField_exp_time), int()) && (acc(self_107.HopOpaqueField_ingress_if, write) && issubtype(typeof(self_107.HopOpaqueField_ingress_if), int()) && (acc(self_107.HopOpaqueField_egress_if, write) && issubtype(typeof(self_107.HopOpaqueField_egress_if), int()) && (acc(self_107.HopOpaqueField_mac, write) && issubtype(typeof(self_107.HopOpaqueField_mac), bytes()))))))))) && (true && typeof(self_107) != OpaqueField() && typeof(self_107) != InfoOpaqueField() && typeof(self_107) != HopOpaqueField() ==> acc(State_abstract_rest_4(self_107), write)))
+}
+
+predicate State_abstract_rest_5(self_123: Ref) 
+
+predicate OpaqueFieldList_State(self_123: Ref) {
+  true && issubtype(typeof(self_123), OpaqueFieldList()) && ((issubtype(typeof(self_123), OpaqueFieldList()) ==> acc(self_123.OpaqueFieldList__order, write) && issubtype(typeof(self_123.OpaqueFieldList__order), tuple(Seq(str()))) && (acc(self_123.OpaqueFieldList__labels, write) && issubtype(typeof(self_123.OpaqueFieldList__labels), dict(str(), list(OpaqueField()))) && (acc(self_123.OpaqueFieldList__labels.dict_acc, write) && acc(self_123.OpaqueFieldList__labels.dict_acc2, write) && (true && (forall lambda36_40$e: Ref :: { (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) } { (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) } issubtype(typeof(lambda36_40$e), OpaqueField()) && (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) ==> acc(OpaqueField_State(lambda36_40$e), write)))))) && (true && typeof(self_123) != OpaqueFieldList() ==> acc(State_abstract_rest_5(self_123), write)))
+}
+
+predicate State_abstract_rest_6(self_197: Ref) 
+
+predicate SCIONPath_State(self_197: Ref) {
+  true && issubtype(typeof(self_197), SCIONPath()) && ((issubtype(typeof(self_197), SCIONPath()) ==> acc(self_197.SCIONPath__ofs, write) && issubtype(typeof(self_197.SCIONPath__ofs), OpaqueFieldList()) && (acc(OpaqueFieldList_State(self_197.SCIONPath__ofs), write) && (acc(self_197.SCIONPath__hof_idx, write) && (self_197.SCIONPath__hof_idx == null || issubtype(typeof(self_197.SCIONPath__hof_idx), int())) && (acc(self_197.SCIONPath__iof_idx, write) && (self_197.SCIONPath__iof_idx == null || issubtype(typeof(self_197.SCIONPath__iof_idx), int())) && (self_197.SCIONPath__hof_idx != null && (self_197.SCIONPath__iof_idx != null && (acc(self_197.SCIONPath_interfaces, write) && issubtype(typeof(self_197.SCIONPath_interfaces), list(tuple(Seq(ASMarking(), int())))) && (acc(self_197.SCIONPath_interfaces.list_acc, write) && (acc(self_197.SCIONPath_mtu, write) && (self_197.SCIONPath_mtu == null || issubtype(typeof(self_197.SCIONPath_mtu), int())) && ((self_197.SCIONPath__hof_idx != null ==> int___ge__(int___unbox__(self_197.SCIONPath__hof_idx), 0) && (int___lt__(int___unbox__(self_197.SCIONPath__hof_idx), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx)), HopOpaqueField()))) && ((self_197.SCIONPath__iof_idx != null ==> int___ge__(int___unbox__(self_197.SCIONPath__iof_idx), 0) && (int___lt__(int___unbox__(self_197.SCIONPath__iof_idx), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx)), InfoOpaqueField()))) && ((self_197.SCIONPath__hof_idx != null && self_197.SCIONPath__iof_idx != null ==> bool___unbox__((let lambda60_94$iof == (object___cast__(InfoOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx))) in __prim__bool___box__(!bool___unbox__(OpaqueFieldList_get_iof_peer(self_197.SCIONPath__ofs, lambda60_94$iof)) && (bool___unbox__(OpaqueFieldList_get_iof_up_flag(self_197.SCIONPath__ofs, lambda60_94$iof)) && (bool___unbox__((__prim__bool___box__(!bool___unbox__(OpaqueFieldList_get_hof_xover(self_197.SCIONPath__ofs, (object___cast__(HopOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx))))) || bool___unbox__(OpaqueFieldList_get_iof_shortcut(self_197.SCIONPath__ofs, lambda60_94$iof))))) && !int___eq__(self_197.SCIONPath__hof_idx, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__iof_idx), int___unbox__(OpaqueFieldList_get_iof_hops(self_197.SCIONPath__ofs, lambda60_94$iof))))) ==> int___lt__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && (issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1)))), HopOpaqueField()) && OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1))) != OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx)))))))) && (self_197.SCIONPath__hof_idx != null && (self_197.SCIONPath__iof_idx != null && int___lt__(int___unbox__(self_197.SCIONPath__hof_idx), int___sub__(int___unbox__(SCIONPath_state_get_ofs_len(self_197)), 1))) ==> int___lt__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && (issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1)))), HopOpaqueField()) && bool___unbox__((let lambda79_94$iof == (object___cast__(InfoOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx))) in __prim__bool___box__(int___le__(int___sub__(int___unbox__(self_197.SCIONPath__hof_idx), int___unbox__(self_197.SCIONPath__iof_idx)), int___unbox__(OpaqueFieldList_get_iof_hops(self_197.SCIONPath__ofs, lambda79_94$iof)))))))))))))))))))) && (true && typeof(self_197) != SCIONPath() ==> acc(State_abstract_rest_6(self_197), write)))
+}
+
+predicate SCIONAddr_State(self_224: Ref) 
+
+predicate State_abstract_rest_16(self_341: Ref) 
+
+predicate Element_State(self_341: Ref) {
+  true && issubtype(typeof(self_341), Element()) && ((issubtype(typeof(self_341), Element()) ==> acc(self_341.Element_addr, write) && (self_341.Element_addr == null || issubtype(typeof(self_341.Element_addr), HostAddrBase())) && (acc(self_341.Element_port, write) && (self_341.Element_port == null || issubtype(typeof(self_341.Element_port), int())) && (acc(self_341.Element_name, write) && (self_341.Element_name == null || issubtype(typeof(self_341.Element_name), str()))))) && (issubtype(typeof(self_341), InterfaceElement()) ==> acc(self_341.InterfaceElement_isd_as, write) && issubtype(typeof(self_341.InterfaceElement_isd_as), int()) && (acc(self_341.InterfaceElement_if_id, write) && issubtype(typeof(self_341.InterfaceElement_if_id), int()) && (acc(self_341.InterfaceElement_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_udp_port), int()) && (acc(self_341.InterfaceElement_bandwidth, write) && issubtype(typeof(self_341.InterfaceElement_bandwidth), int()) && (acc(self_341.InterfaceElement_to_addr, write) && (self_341.InterfaceElement_to_addr == null || issubtype(typeof(self_341.InterfaceElement_to_addr), HostAddrBase())) && (acc(self_341.InterfaceElement_link_type, write) && (self_341.InterfaceElement_link_type == null || issubtype(typeof(self_341.InterfaceElement_link_type), str())) && (acc(self_341.InterfaceElement_to_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_to_udp_port), int())))))))) && (issubtype(typeof(self_341), RouterElement()) ==> acc(self_341.RouterElement_interface, write) && issubtype(typeof(self_341.RouterElement_interface), InterfaceElement()) && acc(Element_State(self_341.RouterElement_interface), write)) && (true && typeof(self_341) != Element() && typeof(self_341) != InterfaceElement() && typeof(self_341) != RouterElement() ==> acc(State_abstract_rest_16(self_341), write)))
+}
+
+predicate State_abstract_rest_17(self_351: Ref) 
+
+predicate Topology_State(self_351: Ref) {
+  true && issubtype(typeof(self_351), Topology()) && ((issubtype(typeof(self_351), Topology()) ==> acc(self_351.Topology_is_core_as, write) && issubtype(typeof(self_351.Topology_is_core_as), bool()) && (acc(self_351.Topology_mtu, write) && (self_351.Topology_mtu == null || issubtype(typeof(self_351.Topology_mtu), int())) && (acc(self_351.Topology_isd_as, write) && (self_351.Topology_isd_as == null || issubtype(typeof(self_351.Topology_isd_as), ISD_AS())) && (acc(self_351.Topology_beacon_servers, write) && issubtype(typeof(self_351.Topology_beacon_servers), list(RouterElement())) && (acc(self_351.Topology_beacon_servers.list_acc, write) && (acc(self_351.Topology_certificate_servers, write) && issubtype(typeof(self_351.Topology_certificate_servers), list(RouterElement())) && (acc(self_351.Topology_certificate_servers.list_acc, write) && (acc(self_351.Topology_path_servers, write) && issubtype(typeof(self_351.Topology_path_servers), list(RouterElement())) && (acc(self_351.Topology_path_servers.list_acc, write) && (acc(self_351.Topology_sibra_servers, write) && issubtype(typeof(self_351.Topology_sibra_servers), list(RouterElement())) && (acc(self_351.Topology_sibra_servers.list_acc, write) && (acc(self_351.Topology_parent_border_routers, write) && issubtype(typeof(self_351.Topology_parent_border_routers), list(RouterElement())) && (acc(self_351.Topology_parent_border_routers.list_acc, write) && (acc(self_351.Topology_child_border_routers, write) && issubtype(typeof(self_351.Topology_child_border_routers), list(RouterElement())) && (acc(self_351.Topology_child_border_routers.list_acc, write) && (acc(self_351.Topology_peer_border_routers, write) && issubtype(typeof(self_351.Topology_peer_border_routers), list(RouterElement())) && (acc(self_351.Topology_peer_border_routers.list_acc, write) && (acc(self_351.Topology_routing_border_routers, write) && issubtype(typeof(self_351.Topology_routing_border_routers), list(RouterElement())) && (acc(self_351.Topology_routing_border_routers.list_acc, write) && ((forall lambda60_51$x: Ref :: { (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) } issubtype(typeof(lambda60_51$x), RouterElement()) ==> (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda60_51$x)) && ((forall lambda61_50$x: Ref :: { (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) } issubtype(typeof(lambda61_50$x), RouterElement()) ==> (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda61_50$x)) && ((forall lambda62_49$x: Ref :: { (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) } issubtype(typeof(lambda62_49$x), RouterElement()) ==> (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda62_49$x)) && ((forall lambda63_52$x: Ref :: { (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) } issubtype(typeof(lambda63_52$x), RouterElement()) ==> (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda63_52$x)) && (true && (forall lambda64_46$e: Ref :: { (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda64_46$e), RouterElement()) && (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> acc(Element_State(lambda64_46$e), write)) && ((forall lambda65_46$e: Ref :: { (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda65_46$e), RouterElement()) ==> (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_addr(lambda65_46$e) != null) && (forall lambda66_46$e: Ref :: { (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda66_46$e), RouterElement()) ==> (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_port(lambda66_46$e) != null)))))))))))))))))))))))))) && (true && typeof(self_351) != Topology() ==> acc(State_abstract_rest_17(self_351), write)))
+}
+
+method Router__validate_segment_switch(_cthread_221: Ref, _caller_measures_221: Seq[Measure$], _residue_221: Perm, self_64: Ref, path_1: Ref, fwd_if_4: Ref, prev_if_0: Ref, prev_iof_0: Ref, prev_hof_1: Ref) returns (_current_wait_level_221: Perm, _err: Ref)
+  requires _cthread_221 != null
+  requires issubtype(typeof(_cthread_221), Thread_0())
+  requires issubtype(typeof(self_64), Router())
+  requires issubtype(typeof(path_1), SCIONPath())
+  requires issubtype(typeof(fwd_if_4), int())
+  requires issubtype(typeof(prev_if_0), int())
+  requires issubtype(typeof(prev_iof_0), InfoOpaqueField())
+  requires issubtype(typeof(prev_hof_1), HopOpaqueField())
+  requires self_64 != null
+  requires acc(SCIONPath_State(path_1), 1 / 10)
+  requires acc(SCIONElement_State(self_64), 1 / 10)
+  requires SCIONPath_get_iof_idx(path_1) != null
+  requires SCIONPath_get_hof_idx(path_1) != null
+  requires PSeq___contains__(SCIONPath_get_ofs_contents(path_1), prev_iof_0)
+  requires PSeq___contains__(SCIONPath_get_ofs_contents(path_1), prev_hof_1)
+  requires int___add__(int___unbox__(Router_get_topology_border_routers_len(self_64)), 5) > 0 && [acc(MustTerminate(_cthread_221), write), true]
+  requires [true, Measure$check(_caller_measures_221, _cthread_221, int___add__(int___unbox__(Router_get_topology_border_routers_len(self_64)), 5)) || perm(MustTerminate(_cthread_221)) == none && ((forperm _r_36: Ref [MustInvokeBounded(_r_36)] :: false) && ((forperm _r_36: Ref [MustInvokeUnbounded(_r_36)] :: false) && ((forperm _r_36: Ref [_r_36.MustReleaseBounded] :: false) && (forperm _r_36: Ref [_r_36.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_34: Ref [_r_34.MustReleaseBounded] :: Level(_r_34) <= _current_wait_level_221) && ((forperm _r_34: Ref [_r_34.MustReleaseUnbounded] :: Level(_r_34) <= _current_wait_level_221) && _residue_221 <= _current_wait_level_221), true]
+  ensures _err == null ==> acc(SCIONPath_State(path_1), 1 / 10)
+  ensures _err == null ==> acc(SCIONElement_State(self_64), 1 / 10)
+  ensures _err != null && issubtype(typeof(_err), SCIONSegmentSwitchError()) ==> acc(SCIONPath_State(path_1), 1 / 10)
+  ensures _err != null && issubtype(typeof(_err), SCIONSegmentSwitchError()) ==> acc(SCIONElement_State(self_64), 1 / 10)
+  ensures _err != null && issubtype(typeof(_err), SCIONSegmentSwitchError()) ==> acc(_err.SCIONBaseException_args_, write) && issubtype(typeof(_err.SCIONBaseException_args_), tuple(Seq(object())))
+  ensures _err != null && issubtype(typeof(_err), SCIONSegmentSwitchError()) ==> int___ge__(tuple___len__(_err.SCIONBaseException_args_), 1)
+  ensures _err != null ==> issubtype(typeof(_err), SCIONSegmentSwitchError())
+  ensures [true, (forperm _r_35: Ref [MustInvokeBounded(_r_35)] :: false) && ((forperm _r_35: Ref [MustInvokeUnbounded(_r_35)] :: false) && ((forperm _r_35: Ref [_r_35.MustReleaseBounded] :: false) && (forperm _r_35: Ref [_r_35.MustReleaseUnbounded] :: false)))]
+{
+  var rcvd_on_link_type: Ref
+  var fwd_on_link_type: Ref
+  var cur_iof: Ref
+  var cur_hof: Ref
+  var self_360: Ref
+  var path_11: Ref
+  var fwd_if_6: Ref
+  var prev_if_1: Ref
+  var prev_iof_1: Ref
+  var prev_hof_6: Ref
+  var _link_type_res: Ref
+  var _link_type_res_0: Ref
+  var SCIONSegmentSwitchError_res: Ref
+  var SCIONSegmentSwitchError_res_0: Ref
+  var SCIONSegmentSwitchError_res_1: Ref
+  var SCIONSegmentSwitchError_res_2: Ref
+  var SCIONSegmentSwitchError_res_3: Ref
+  var _cwl_221: Perm
+  var _method_measures_221: Seq[Measure$]
+  _method_measures_221 := Seq(Measure$create(true, _cthread_221, int___add__(int___unbox__(Router_get_topology_border_routers_len(self_64)), 5)))
+  inhale typeof(self_64) == Router()
+  _err := null
+  self_360 := self_64
+  path_11 := path_1
+  fwd_if_6 := fwd_if_4
+  prev_if_1 := prev_if_0
+  prev_iof_1 := prev_iof_0
+  prev_hof_6 := prev_hof_1
+  _cwl_221, _link_type_res := Router__link_type(_cthread_221, _method_measures_221, _residue_221, self_360, prev_if_1)
+  rcvd_on_link_type := _link_type_res
+  inhale _isDefined(34518023222782015939896642329656335688562)
+  _cwl_221, _link_type_res_0 := Router__link_type(_cthread_221, _method_measures_221, _residue_221, self_360, fwd_if_6)
+  fwd_on_link_type := _link_type_res_0
+  inhale _isDefined(134836028213992249765221259100220061542)
+  cur_iof := SCIONPath_get_iof(path_11)
+  inhale _isDefined(28832945988072803)
+  cur_hof := SCIONPath_get_hof(path_11)
+  inhale _isDefined(28832941693105507)
+  if (!bool___unbox__(SCIONPath_get_iof_up_flag(path_11, prev_iof_1)) && bool___unbox__(SCIONPath_get_iof_up_flag(path_11, _checkDefined(cur_iof, 28832945988072803)))) {
+    SCIONSegmentSwitchError_res := new()
+    inhale typeof(SCIONSegmentSwitchError_res) == SCIONSegmentSwitchError()
+    inhale acc(_MaySet(SCIONSegmentSwitchError_res, 2340446737858384733671959561063924865783486336333871924051), write)
+    _cwl_221 := SCIONBaseException___init__(_cthread_221, _method_measures_221, _residue_221, SCIONSegmentSwitchError_res, tuple___create1__(str___create__(50, 467953842718822149971574946041218622556479909118378173928539123529493063438000982821502902158996146432378603604558837587), str(), 4))
+    _err := SCIONSegmentSwitchError_res
+    if (_err != null) {
+      _err := _err
+      goto __end
+    }
+  }
+  if (bool___unbox__(SCIONPath_get_iof_up_flag(path_11, prev_iof_1)) && (bool___unbox__(SCIONPath_get_iof_up_flag(path_11, _checkDefined(cur_iof, 28832945988072803))) && (_checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542) != null && !str___eq__(_checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542), LinkType_ROUTING(LinkType()))))) {
+    SCIONSegmentSwitchError_res_0 := new()
+    inhale typeof(SCIONSegmentSwitchError_res_0) == SCIONSegmentSwitchError()
+    inhale acc(_MaySet(SCIONSegmentSwitchError_res_0, 2340446737858384733671959561063924865783486336333871924051), write)
+    _cwl_221 := SCIONBaseException___init__(_cthread_221, _method_measures_221, _residue_221, SCIONSegmentSwitchError_res_0, tuple___create1__(str___create__(99, 4723005973973796833690419180849299306326419552736989885541059682275448995047254729048299264738589916861689124392502790962132231510669561994894284749478364287880470737042057401175861099990661927154389002827716724298966171607055513932101459), str(), 5))
+    _err := SCIONSegmentSwitchError_res_0
+    if (_err != null) {
+      _err := _err
+      goto __end
+    }
+  }
+  if (!bool___unbox__(SCIONPath_get_iof_up_flag(path_11, prev_iof_1)) && (!bool___unbox__(SCIONPath_get_iof_up_flag(path_11, _checkDefined(cur_iof, 28832945988072803))) && (_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562) != null && !str___eq__(_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562), LinkType_ROUTING(LinkType()))))) {
+    SCIONSegmentSwitchError_res_1 := new()
+    inhale typeof(SCIONSegmentSwitchError_res_1) == SCIONSegmentSwitchError()
+    inhale acc(_MaySet(SCIONSegmentSwitchError_res_1, 2340446737858384733671959561063924865783486336333871924051), write)
+    _cwl_221 := SCIONBaseException___init__(_cthread_221, _method_measures_221, _residue_221, SCIONSegmentSwitchError_res_1, tuple___create1__(str___create__(103, 20285156197030084561648701370278850025187457879780318848201805717084004674498875258127362180368466740746451718474337497148107374389236813102405982770015890613113123367108067055181277373988519819008299165802962539993545140203767622385969413386499923), str(), 6))
+    _err := SCIONSegmentSwitchError_res_1
+    if (_err != null) {
+      _err := _err
+      goto __end
+    }
+  }
+  if (_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562) != null && str___eq__(_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562), LinkType_ROUTING(LinkType())) && (_checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542) != null && str___eq__(_checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542), LinkType_ROUTING(LinkType())))) {
+    SCIONSegmentSwitchError_res_2 := new()
+    inhale typeof(SCIONSegmentSwitchError_res_2) == SCIONSegmentSwitchError()
+    inhale acc(_MaySet(SCIONSegmentSwitchError_res_2, 2340446737858384733671959561063924865783486336333871924051), write)
+    _cwl_221 := SCIONBaseException___init__(_cthread_221, _method_measures_221, _residue_221, SCIONSegmentSwitchError_res_2, tuple___create1__(str___create__(52, 30667823036420728420537135663757303647861467323982032006579580457162813480289858510344815922609472745249925996271602879788883), str(), 7))
+    _err := SCIONSegmentSwitchError_res_2
+    if (_err != null) {
+      _err := _err
+      goto __end
+    }
+  }
+  if ((_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562) != null && str___eq__(_checkDefined(rcvd_on_link_type, 34518023222782015939896642329656335688562), LinkType_PEER(LinkType())) || _checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542) != null && str___eq__(_checkDefined(fwd_on_link_type, 134836028213992249765221259100220061542), LinkType_PEER(LinkType()))) && !int___eq__(SCIONPath_get_hof_egress_if(path_11, prev_hof_6), SCIONPath_get_hof_egress_if(path_11, _checkDefined(cur_hof, 28832941693105507)))) {
+    SCIONSegmentSwitchError_res_3 := new()
+    inhale typeof(SCIONSegmentSwitchError_res_3) == SCIONSegmentSwitchError()
+    inhale acc(_MaySet(SCIONSegmentSwitchError_res_3, 2340446737858384733671959561063924865783486336333871924051), write)
+    _cwl_221 := SCIONBaseException___init__(_cthread_221, _method_measures_221, _residue_221, SCIONSegmentSwitchError_res_3, tuple___create1__(str___create__(65, 620441582265714666649262147000146852588788571820275728685250043100326220089303168018383833995528377721232527747521269110406818026374707153324880986738157381), str(), 8))
+    _err := SCIONSegmentSwitchError_res_3
+    if (_err != null) {
+      _err := _err
+      goto __end
+    }
+  }
+  goto __end
+  label __end
+}
+
+method Router__link_type(_cthread_223: Ref, _caller_measures_223: Seq[Measure$], _residue_223: Perm, self_66: Ref, if_id_0: Ref) returns (_current_wait_level_223: Perm, _res: Ref)
+  requires _cthread_223 != null
+  requires issubtype(typeof(_cthread_223), Thread_0())
+  requires issubtype(typeof(self_66), Router())
+  requires issubtype(typeof(if_id_0), int())
+  requires self_66 != null
+  requires acc(SCIONElement_State(self_66), 1 / 10)
+  requires int___add__(int___unbox__(Router_get_topology_border_routers_len(self_66)), 4) > 0 && [acc(MustTerminate(_cthread_223), write), true]
+  requires [true, Measure$check(_caller_measures_223, _cthread_223, int___add__(int___unbox__(Router_get_topology_border_routers_len(self_66)), 4)) || perm(MustTerminate(_cthread_223)) == none && ((forperm _r_40: Ref [MustInvokeBounded(_r_40)] :: false) && ((forperm _r_40: Ref [MustInvokeUnbounded(_r_40)] :: false) && ((forperm _r_40: Ref [_r_40.MustReleaseBounded] :: false) && (forperm _r_40: Ref [_r_40.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_39: Ref [_r_39.MustReleaseBounded] :: Level(_r_39) <= _current_wait_level_223) && ((forperm _r_39: Ref [_r_39.MustReleaseUnbounded] :: Level(_r_39) <= _current_wait_level_223) && _residue_223 <= _current_wait_level_223), true]
+  ensures _res == null || issubtype(typeof(_res), str())
+  ensures acc(SCIONElement_State(self_66), 1 / 10)
+  ensures int___eq__(Router_get_topology_border_routers_len(self_66), old(Router_get_topology_border_routers_len(self_66)))
+{
+  var _cwl_223: Perm
+  inhale typeof(self_66) == Router()
+  _res := null
+  inhale false
+}
+
+method SCIONBaseException___init__(_cthread_256: Ref, _caller_measures_256: Seq[Measure$], _residue_256: Perm, self_86: Ref, args_4: Ref) returns (_current_wait_level_256: Perm)
+  requires _cthread_256 != null
+  requires issubtype(typeof(_cthread_256), Thread_0())
+  requires self_86 != null
+  requires acc(_MaySet(self_86, 2340446737858384733671959561063924865783486336333871924051), write)
+  requires issubtype(typeof(self_86), SCIONBaseException())
+  requires (forall i: Int :: { tuple_arg(typeof(args_4), i) } i >= 0 && i < |tuple_args(typeof(args_4))| ==> issubtype(tuple_arg(typeof(args_4), i), object()))
+  requires self_86 != null
+  requires [acc(MustTerminate(_cthread_256), write), true]
+  requires [true, Measure$check(_caller_measures_256, _cthread_256, 1) || perm(MustTerminate(_cthread_256)) == none && ((forperm _r_84: Ref [MustInvokeBounded(_r_84)] :: false) && ((forperm _r_84: Ref [MustInvokeUnbounded(_r_84)] :: false) && ((forperm _r_84: Ref [_r_84.MustReleaseBounded] :: false) && (forperm _r_84: Ref [_r_84.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_83: Ref [_r_83.MustReleaseBounded] :: Level(_r_83) <= _current_wait_level_256) && ((forperm _r_83: Ref [_r_83.MustReleaseUnbounded] :: Level(_r_83) <= _current_wait_level_256) && _residue_256 <= _current_wait_level_256), true]
+  ensures acc(self_86.SCIONBaseException_args_, write) && issubtype(typeof(self_86.SCIONBaseException_args_), tuple(Seq(object())))
+  ensures int___eq__(__prim__int___box__(tuple___len__(self_86.SCIONBaseException_args_)), __prim__int___box__(tuple___len__(args_4)))
+{
+  var _cwl_256: Perm
+  inhale typeof(self_86) == SCIONBaseException()
+  inhale false
+}
+
+method State_Stateframe_check(self_97: Ref)
+  requires true && issubtype(typeof(self_97), SCIONElement())
+  requires issubtype(typeof(self_97), SCIONElement())
+  requires true && (acc(self_97.SCIONElement_addr, write) && issubtype(typeof(self_97.SCIONElement_addr), SCIONAddr()) && (acc(SCIONAddr_State(self_97.SCIONElement_addr), write) && (acc(self_97.SCIONElement_topology, write) && issubtype(typeof(self_97.SCIONElement_topology), Topology()) && (acc(Topology_State(self_97.SCIONElement_topology), write) && (acc(self_97.SCIONElement_ifid2br, write) && issubtype(typeof(self_97.SCIONElement_ifid2br), dict(int(), RouterElement())) && (acc(self_97.SCIONElement_ifid2br.dict_acc, write) && acc(self_97.SCIONElement_ifid2br.dict_acc2, write) && (forall lambda857_37$x: Ref :: { (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) } { (dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x) in PSeq___sil_seq__(Topology_get_border_routers(self_97.SCIONElement_topology))) } issubtype(typeof(lambda857_37$x), int()) ==> (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) ==> PSeq___contains__(Topology_get_border_routers(self_97.SCIONElement_topology), dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x)))))))))
+
+
+method State_Stateframe_check_0(self_97: Ref)
+  requires true && issubtype(typeof(self_97), SCIONElement())
+  requires issubtype(typeof(self_97), Router())
+  requires true && (acc(self_97.Router_interface, write) && issubtype(typeof(self_97.Router_interface), InterfaceElement()) && (acc(Element_State(self_97.Router_interface), write) && (acc(self_97.Router__remote_sock, write) && issubtype(typeof(self_97.Router__remote_sock), UDPSocket()) && (acc(self_97.Router__udp_sock, write) && issubtype(typeof(self_97.Router__udp_sock), UDPSocket()) && (acc(self_97.Router_of_gen_key, write) && issubtype(typeof(self_97.Router_of_gen_key), bytes()) && (acc(self_97.Router_if_states, write) && issubtype(typeof(self_97.Router_if_states), dict(int(), InterfaceState())) && (acc(self_97.Router_if_states.dict_acc, write) && acc(self_97.Router_if_states.dict_acc2, write) && (true && (forall lambda183_39$x: Ref :: { (lambda183_39$x in self_97.Router_if_states.dict_acc) } issubtype(typeof(lambda183_39$x), int()) && (lambda183_39$x in self_97.Router_if_states.dict_acc) ==> acc(InterfaceState_State(object___cast__(InterfaceState(), dict___getitem__(self_97.Router_if_states, lambda183_39$x))), write)) && (acc(self_97.Router_pre_ext_handlers, write) && issubtype(typeof(self_97.Router_pre_ext_handlers), dict(union_type_2(NoneType(), int()), bool())) && (acc(self_97.Router_post_ext_handlers, write) && issubtype(typeof(self_97.Router_post_ext_handlers), dict(union_type_2(NoneType(), int()), bool()))))))))))))
+
+
+method State_Stateframe_check_5(self_107: Ref)
+  requires true && issubtype(typeof(self_107), OpaqueField())
+  requires issubtype(typeof(self_107), OpaqueField())
+  requires true && true
+
+
+method State_Stateframe_check_6(self_107: Ref)
+  requires true && issubtype(typeof(self_107), OpaqueField())
+  requires issubtype(typeof(self_107), InfoOpaqueField())
+  requires true && (acc(self_107.InfoOpaqueField_up_flag, write) && issubtype(typeof(self_107.InfoOpaqueField_up_flag), bool()) && (acc(self_107.InfoOpaqueField_shortcut, write) && issubtype(typeof(self_107.InfoOpaqueField_shortcut), bool()) && (acc(self_107.InfoOpaqueField_peer, write) && issubtype(typeof(self_107.InfoOpaqueField_peer), bool()) && (acc(self_107.InfoOpaqueField_timestamp, write) && issubtype(typeof(self_107.InfoOpaqueField_timestamp), int()) && (acc(self_107.InfoOpaqueField_isd, write) && issubtype(typeof(self_107.InfoOpaqueField_isd), int()) && (acc(self_107.InfoOpaqueField_hops, write) && issubtype(typeof(self_107.InfoOpaqueField_hops), int())))))))
+
+
+method State_Stateframe_check_7(self_107: Ref)
+  requires true && issubtype(typeof(self_107), OpaqueField())
+  requires issubtype(typeof(self_107), HopOpaqueField())
+  requires true && (acc(self_107.HopOpaqueField_xover, write) && issubtype(typeof(self_107.HopOpaqueField_xover), bool()) && (acc(self_107.HopOpaqueField_verify_only, write) && issubtype(typeof(self_107.HopOpaqueField_verify_only), bool()) && (acc(self_107.HopOpaqueField_forward_only, write) && issubtype(typeof(self_107.HopOpaqueField_forward_only), bool()) && (acc(self_107.HopOpaqueField_recurse, write) && issubtype(typeof(self_107.HopOpaqueField_recurse), bool()) && (acc(self_107.HopOpaqueField_exp_time, write) && issubtype(typeof(self_107.HopOpaqueField_exp_time), int()) && (acc(self_107.HopOpaqueField_ingress_if, write) && issubtype(typeof(self_107.HopOpaqueField_ingress_if), int()) && (acc(self_107.HopOpaqueField_egress_if, write) && issubtype(typeof(self_107.HopOpaqueField_egress_if), int()) && (acc(self_107.HopOpaqueField_mac, write) && issubtype(typeof(self_107.HopOpaqueField_mac), bytes())))))))))
+
+
+method State_Stateframe_check_8(self_123: Ref)
+  requires true && issubtype(typeof(self_123), OpaqueFieldList())
+  requires issubtype(typeof(self_123), OpaqueFieldList())
+  requires true && (acc(self_123.OpaqueFieldList__order, write) && issubtype(typeof(self_123.OpaqueFieldList__order), tuple(Seq(str()))) && (acc(self_123.OpaqueFieldList__labels, write) && issubtype(typeof(self_123.OpaqueFieldList__labels), dict(str(), list(OpaqueField()))) && (acc(self_123.OpaqueFieldList__labels.dict_acc, write) && acc(self_123.OpaqueFieldList__labels.dict_acc2, write) && (true && (forall lambda36_40$e: Ref :: { (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) } { (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) } issubtype(typeof(lambda36_40$e), OpaqueField()) && (lambda36_40$e in PSeq___sil_seq__(OpaqueFieldList_contents(self_123))) ==> acc(OpaqueField_State(lambda36_40$e), write))))))
+
+
+method State_Stateframe_check_9(self_197: Ref)
+  requires true && issubtype(typeof(self_197), SCIONPath())
+  requires issubtype(typeof(self_197), SCIONPath())
+  requires true && (acc(self_197.SCIONPath__ofs, write) && issubtype(typeof(self_197.SCIONPath__ofs), OpaqueFieldList()) && (acc(OpaqueFieldList_State(self_197.SCIONPath__ofs), write) && (acc(self_197.SCIONPath__hof_idx, write) && (self_197.SCIONPath__hof_idx == null || issubtype(typeof(self_197.SCIONPath__hof_idx), int())) && (acc(self_197.SCIONPath__iof_idx, write) && (self_197.SCIONPath__iof_idx == null || issubtype(typeof(self_197.SCIONPath__iof_idx), int())) && (self_197.SCIONPath__hof_idx != null && (self_197.SCIONPath__iof_idx != null && (acc(self_197.SCIONPath_interfaces, write) && issubtype(typeof(self_197.SCIONPath_interfaces), list(tuple(Seq(ASMarking(), int())))) && (acc(self_197.SCIONPath_interfaces.list_acc, write) && (acc(self_197.SCIONPath_mtu, write) && (self_197.SCIONPath_mtu == null || issubtype(typeof(self_197.SCIONPath_mtu), int())) && ((self_197.SCIONPath__hof_idx != null ==> int___ge__(int___unbox__(self_197.SCIONPath__hof_idx), 0) && (int___lt__(int___unbox__(self_197.SCIONPath__hof_idx), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx)), HopOpaqueField()))) && ((self_197.SCIONPath__iof_idx != null ==> int___ge__(int___unbox__(self_197.SCIONPath__iof_idx), 0) && (int___lt__(int___unbox__(self_197.SCIONPath__iof_idx), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx)), InfoOpaqueField()))) && ((self_197.SCIONPath__hof_idx != null && self_197.SCIONPath__iof_idx != null ==> bool___unbox__((let lambda60_94$iof == (object___cast__(InfoOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx))) in __prim__bool___box__(!bool___unbox__(OpaqueFieldList_get_iof_peer(self_197.SCIONPath__ofs, lambda60_94$iof)) && (bool___unbox__(OpaqueFieldList_get_iof_up_flag(self_197.SCIONPath__ofs, lambda60_94$iof)) && (bool___unbox__((__prim__bool___box__(!bool___unbox__(OpaqueFieldList_get_hof_xover(self_197.SCIONPath__ofs, (object___cast__(HopOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx))))) || bool___unbox__(OpaqueFieldList_get_iof_shortcut(self_197.SCIONPath__ofs, lambda60_94$iof))))) && !int___eq__(self_197.SCIONPath__hof_idx, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__iof_idx), int___unbox__(OpaqueFieldList_get_iof_hops(self_197.SCIONPath__ofs, lambda60_94$iof))))) ==> int___lt__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && (issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1)))), HopOpaqueField()) && OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1))) != OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__hof_idx)))))))) && (self_197.SCIONPath__hof_idx != null && (self_197.SCIONPath__iof_idx != null && int___lt__(int___unbox__(self_197.SCIONPath__hof_idx), int___sub__(int___unbox__(SCIONPath_state_get_ofs_len(self_197)), 1))) ==> int___lt__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1), int___unbox__(SCIONPath_state_get_ofs_len(self_197))) && (issubtype(typeof(OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, __prim__int___box__(int___add__(int___unbox__(self_197.SCIONPath__hof_idx), 1)))), HopOpaqueField()) && bool___unbox__((let lambda79_94$iof == (object___cast__(InfoOpaqueField(), OpaqueFieldList_get_by_idx(self_197.SCIONPath__ofs, self_197.SCIONPath__iof_idx))) in __prim__bool___box__(int___le__(int___sub__(int___unbox__(self_197.SCIONPath__hof_idx), int___unbox__(self_197.SCIONPath__iof_idx)), int___unbox__(OpaqueFieldList_get_iof_hops(self_197.SCIONPath__ofs, lambda79_94$iof))))))))))))))))))))
+
+
+method State_Stateframe_check_21(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), Element())
+  requires true && (acc(self_341.Element_addr, write) && (self_341.Element_addr == null || issubtype(typeof(self_341.Element_addr), HostAddrBase())) && (acc(self_341.Element_port, write) && (self_341.Element_port == null || issubtype(typeof(self_341.Element_port), int())) && (acc(self_341.Element_name, write) && (self_341.Element_name == null || issubtype(typeof(self_341.Element_name), str())))))
+
+
+method State_Stateframe_check_22(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), InterfaceElement())
+  requires true && (acc(self_341.InterfaceElement_isd_as, write) && issubtype(typeof(self_341.InterfaceElement_isd_as), int()) && (acc(self_341.InterfaceElement_if_id, write) && issubtype(typeof(self_341.InterfaceElement_if_id), int()) && (acc(self_341.InterfaceElement_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_udp_port), int()) && (acc(self_341.InterfaceElement_bandwidth, write) && issubtype(typeof(self_341.InterfaceElement_bandwidth), int()) && (acc(self_341.InterfaceElement_to_addr, write) && (self_341.InterfaceElement_to_addr == null || issubtype(typeof(self_341.InterfaceElement_to_addr), HostAddrBase())) && (acc(self_341.InterfaceElement_link_type, write) && (self_341.InterfaceElement_link_type == null || issubtype(typeof(self_341.InterfaceElement_link_type), str())) && (acc(self_341.InterfaceElement_to_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_to_udp_port), int()))))))))
+
+
+method State_Stateframe_check_23(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), RouterElement())
+  requires true && (acc(self_341.RouterElement_interface, write) && issubtype(typeof(self_341.RouterElement_interface), InterfaceElement()) && acc(Element_State(self_341.RouterElement_interface), write))
+
+
+method State_Stateframe_check_24(self_351: Ref)
+  requires true && issubtype(typeof(self_351), Topology())
+  requires issubtype(typeof(self_351), Topology())
+  requires true && (acc(self_351.Topology_is_core_as, write) && issubtype(typeof(self_351.Topology_is_core_as), bool()) && (acc(self_351.Topology_mtu, write) && (self_351.Topology_mtu == null || issubtype(typeof(self_351.Topology_mtu), int())) && (acc(self_351.Topology_isd_as, write) && (self_351.Topology_isd_as == null || issubtype(typeof(self_351.Topology_isd_as), ISD_AS())) && (acc(self_351.Topology_beacon_servers, write) && issubtype(typeof(self_351.Topology_beacon_servers), list(RouterElement())) && (acc(self_351.Topology_beacon_servers.list_acc, write) && (acc(self_351.Topology_certificate_servers, write) && issubtype(typeof(self_351.Topology_certificate_servers), list(RouterElement())) && (acc(self_351.Topology_certificate_servers.list_acc, write) && (acc(self_351.Topology_path_servers, write) && issubtype(typeof(self_351.Topology_path_servers), list(RouterElement())) && (acc(self_351.Topology_path_servers.list_acc, write) && (acc(self_351.Topology_sibra_servers, write) && issubtype(typeof(self_351.Topology_sibra_servers), list(RouterElement())) && (acc(self_351.Topology_sibra_servers.list_acc, write) && (acc(self_351.Topology_parent_border_routers, write) && issubtype(typeof(self_351.Topology_parent_border_routers), list(RouterElement())) && (acc(self_351.Topology_parent_border_routers.list_acc, write) && (acc(self_351.Topology_child_border_routers, write) && issubtype(typeof(self_351.Topology_child_border_routers), list(RouterElement())) && (acc(self_351.Topology_child_border_routers.list_acc, write) && (acc(self_351.Topology_peer_border_routers, write) && issubtype(typeof(self_351.Topology_peer_border_routers), list(RouterElement())) && (acc(self_351.Topology_peer_border_routers.list_acc, write) && (acc(self_351.Topology_routing_border_routers, write) && issubtype(typeof(self_351.Topology_routing_border_routers), list(RouterElement())) && (acc(self_351.Topology_routing_border_routers.list_acc, write) && ((forall lambda60_51$x: Ref :: { (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) } issubtype(typeof(lambda60_51$x), RouterElement()) ==> (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda60_51$x)) && ((forall lambda61_50$x: Ref :: { (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) } issubtype(typeof(lambda61_50$x), RouterElement()) ==> (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda61_50$x)) && ((forall lambda62_49$x: Ref :: { (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) } issubtype(typeof(lambda62_49$x), RouterElement()) ==> (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda62_49$x)) && ((forall lambda63_52$x: Ref :: { (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) } issubtype(typeof(lambda63_52$x), RouterElement()) ==> (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda63_52$x)) && (true && (forall lambda64_46$e: Ref :: { (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda64_46$e), RouterElement()) && (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> acc(Element_State(lambda64_46$e), write)) && ((forall lambda65_46$e: Ref :: { (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda65_46$e), RouterElement()) ==> (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_addr(lambda65_46$e) != null) && (forall lambda66_46$e: Ref :: { (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda66_46$e), RouterElement()) ==> (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_port(lambda66_46$e) != null))))))))))))))))))))))))))

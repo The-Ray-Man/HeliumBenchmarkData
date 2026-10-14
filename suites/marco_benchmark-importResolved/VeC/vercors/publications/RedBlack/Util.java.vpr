@@ -1,0 +1,399 @@
+domain TYPE {
+  
+  unique function class_java_DOT_lang_DOT_Object(): TYPE
+  
+  unique function class_Util(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Number(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Class(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Integer(): TYPE
+  
+  unique function class_Node(): TYPE
+  
+  unique function class_EncodedGlobalVariables(): TYPE
+  
+  unique function class_MagicWands(): TYPE
+  
+  function directSuperclass(t: TYPE): TYPE
+  
+  function type_of(val: Ref): TYPE
+  
+  axiom java_DOT_lang_DOT_Object_directSuperclass {
+    directSuperclass(class_java_DOT_lang_DOT_Object()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom Util_directSuperclass {
+    directSuperclass(class_Util()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom java_DOT_lang_DOT_Number_directSuperclass {
+    directSuperclass(class_java_DOT_lang_DOT_Number()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom java_DOT_lang_DOT_Class_directSuperclass {
+    directSuperclass(class_java_DOT_lang_DOT_Class()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom java_DOT_lang_DOT_Integer_directSuperclass {
+    directSuperclass(class_java_DOT_lang_DOT_Integer()) == class_java_DOT_lang_DOT_Number()
+  }
+  
+  axiom Node_directSuperclass {
+    directSuperclass(class_Node()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom EncodedGlobalVariables_directSuperclass {
+    directSuperclass(class_EncodedGlobalVariables()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom MagicWands_directSuperclass {
+    directSuperclass(class_MagicWands()) == class_java_DOT_lang_DOT_Object()
+  }
+}
+
+domain frac {
+  
+  function frac_val(a: frac): Perm
+  
+  axiom frac_eq {
+    (forall a: frac, b: frac :: { frac_val(a),frac_val(b) } (frac_val(a) == frac_val(b)) == (a == b))
+  }
+  
+  axiom frac_bound {
+    (forall a: frac :: { frac_val(a) } 0 / 1 < frac_val(a) && frac_val(a) <= 1 / 1)
+  }
+}
+
+domain zfrac {
+  
+  function zfrac_val(a: zfrac): Perm
+  
+  axiom zfrac_eq {
+    (forall a: zfrac, b: zfrac :: { zfrac_val(a),zfrac_val(b) } (zfrac_val(a) == zfrac_val(b)) == (a == b))
+  }
+  
+  axiom zfrac_bound {
+    (forall a: zfrac :: { zfrac_val(a) } 0 / 1 <= zfrac_val(a) && zfrac_val(a) <= 1 / 1)
+  }
+}
+
+//  a field 
+field possibly_illegal_cast: Ref
+
+//  a field 
+field field_Node_key: Int
+
+//  a field 
+field field_Node_left: Ref
+
+//  a field 
+field field_Node_right: Ref
+
+//  a field 
+field field_Node_color: Bool
+
+//  a field 
+field field_Node_dblack: Bool
+
+//  a field 
+field field_Node_dblackNull: Bool
+
+//  a field 
+field field_java_DOT_lang_DOT_Integer_MIN_VALUE: Int
+
+//  a field 
+field field_java_DOT_lang_DOT_Integer_MAX_VALUE: Int
+
+//  a field 
+field field_java_DOT_lang_DOT_Integer_TYPE: Ref
+
+//  a field 
+field field_java_DOT_lang_DOT_Integer_SIZE: Int
+
+//  a field 
+field field_java_DOT_lang_DOT_Integer_BYTES: Int
+
+function instanceof(t: TYPE, u: TYPE): Bool
+  ensures result == (t == u || directSuperclass(t) == u)
+
+
+function method_Util_isPrefix__Sequence$Integer$__Sequence$Integer$(seq1: Seq[Int], seq2: Seq[Int]): Bool
+  decreases _
+  ensures seq1 == seq2 ==> result == true
+  ensures result ==> |seq1| <= |seq2|
+  ensures result && 0 < |seq1| ==> method_Util_isPrefix__Sequence$Integer$__Sequence$Integer$(seq1[1..], seq2[1..])
+  ensures result == (|seq1| <= |seq2| && (forall i: Int :: { seq1[i] } { seq2[i] } 0 <= i && i < |seq1| ==> seq1[i] == seq2[i]))
+{
+  (|seq1| <= 0 ? true : (|seq2| <= 0 ? false : seq1[0] == seq2[0] && method_Util_isPrefix__Sequence$Integer$__Sequence$Integer$(seq1[1..], seq2[1..])))
+}
+
+function method_Util_isPrefix__Sequence$Node$__Sequence$Node$(seq1: Seq[Ref], seq2: Seq[Ref]): Bool
+  decreases _
+  ensures seq1 == seq2 ==> result == true
+  ensures result ==> |seq1| <= |seq2|
+  ensures result && 0 < |seq1| ==> method_Util_isPrefix__Sequence$Node$__Sequence$Node$(seq1[1..], seq2[1..])
+  ensures result == (|seq1| <= |seq2| && (forall i: Int :: { seq1[i] } { seq2[i] } 0 <= i && i < |seq1| ==> seq1[i] == seq2[i]))
+{
+  (|seq1| <= 0 ? true : (|seq2| <= 0 ? false : seq1[0] == seq2[0] && method_Util_isPrefix__Sequence$Node$__Sequence$Node$(seq1[1..], seq2[1..])))
+}
+
+function method_Util_prefixExtensionLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Sequence$Node$(pref: Seq[Ref], all: Seq[Ref], extension: Seq[Ref], newAll: Seq[Ref]): Bool
+  requires method_Util_isPrefix__Sequence$Node$__Sequence$Node$(pref, all)
+  requires newAll == all ++ extension
+  ensures method_Util_isPrefix__Sequence$Node$__Sequence$Node$(pref, newAll)
+  ensures result
+{
+  0 < |pref| ==> 0 < |all| && 0 < |newAll| && method_Util_prefixExtensionLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Sequence$Node$(pref[1..], all[1..], extension, newAll[1..])
+}
+
+function method_Util_prefixTransLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$(pref: Seq[Ref], intermed: Seq[Ref], all: Seq[Ref]): Bool
+  requires method_Util_isPrefix__Sequence$Node$__Sequence$Node$(pref, intermed)
+  requires method_Util_isPrefix__Sequence$Node$__Sequence$Node$(intermed, all)
+  ensures method_Util_isPrefix__Sequence$Node$__Sequence$Node$(pref, all)
+  ensures result
+{
+  0 < |pref| ==> 0 < |intermed| && 0 < |all| && method_Util_prefixTransLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$(pref[1..], intermed[1..], all[1..])
+}
+
+function method_Util_isSuffix__Sequence$Node$__Sequence$Node$(seq1: Seq[Ref], seq2: Seq[Ref]): Bool
+  ensures seq1 == seq2 ==> result == true
+  ensures result ==> |seq1| <= |seq2|
+  ensures result == (|seq1| <= |seq2| && (forall i: Int :: { seq1[i] } 0 <= i && i < |seq1| ==> seq1[i] == seq2[i + |seq2| - |seq1|]))
+{
+  (|seq2| < |seq1| ? false : (|seq1| <= 0 ? true : (|seq1| < |seq2| ? method_Util_isSuffix__Sequence$Node$__Sequence$Node$(seq1, seq2[1..]) : seq1[0] == seq2[0] && method_Util_isSuffix__Sequence$Node$__Sequence$Node$(seq1[1..], seq2[1..]))))
+}
+
+function method_Util_isSuffix__Sequence$Integer$__Sequence$Integer$(seq1: Seq[Int], seq2: Seq[Int]): Bool
+  ensures seq1 == seq2 ==> result == true
+  ensures result ==> |seq1| <= |seq2|
+  ensures result == (|seq1| <= |seq2| && (forall i: Int :: { seq1[i] } 0 <= i && i < |seq1| ==> seq1[i] == seq2[i + |seq2| - |seq1|]))
+{
+  (|seq2| < |seq1| ? false : (|seq1| <= 0 ? true : (|seq1| < |seq2| ? method_Util_isSuffix__Sequence$Integer$__Sequence$Integer$(seq1, seq2[1..]) : seq1[0] == seq2[0] && method_Util_isSuffix__Sequence$Integer$__Sequence$Integer$(seq1[1..], seq2[1..]))))
+}
+
+function method_Util_suffixShortenLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Sequence$Node$(suff: Seq[Ref], all: Seq[Ref], taken: Seq[Ref], remainder: Seq[Ref]): Bool
+  requires method_Util_isSuffix__Sequence$Node$__Sequence$Node$(suff, all)
+  requires suff == taken ++ remainder
+  ensures method_Util_isSuffix__Sequence$Node$__Sequence$Node$(remainder, all)
+  ensures result
+{
+  (|suff| < |all| ? method_Util_suffixShortenLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Sequence$Node$(suff, all[1..], taken, remainder) : (|taken| <= 0 ? suff == remainder && method_Util_isSuffix__Sequence$Node$__Sequence$Node$(remainder, all) : 0 < |suff| && 0 < |all| && method_Util_suffixShortenLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Sequence$Node$(suff[1..], all[1..], taken[1..], remainder)))
+}
+
+function method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(inf: Seq[Int], all: Seq[Int], idx: Int): Bool
+  requires 0 <= idx
+  ensures result && 0 < |inf| ==> idx <= |all| - |inf| && all[idx] == inf[0]
+  ensures result == (idx <= |all| - |inf| && (forall i: Int :: { inf[i] } 0 <= i && i < |inf| ==> inf[i] == all[i + idx]))
+{
+  (|all| < idx ? false : (idx == 0 ? method_Util_isPrefix__Sequence$Integer$__Sequence$Integer$(inf, all) : method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(inf, all[1..], idx - 1)))
+}
+
+function method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf: Seq[Ref], all: Seq[Ref], idx: Int): Bool
+  requires 0 <= idx
+  ensures result && 0 < |inf| ==> idx <= |all| - |inf| && all[idx] == inf[0]
+  ensures result == (idx <= |all| - |inf| && (forall i: Int :: { inf[i] } 0 <= i && i < |inf| ==> inf[i] == all[i + idx]))
+{
+  (|all| < idx ? false : (idx == 0 ? method_Util_isPrefix__Sequence$Node$__Sequence$Node$(inf, all) : method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf, all[1..], idx - 1)))
+}
+
+function method_Util_infixSuffixLemma__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Integer(suff: Seq[Int], all: Seq[Int], taken: Seq[Int], remainder: Seq[Int], idx: Int): Bool
+  requires 0 <= idx
+  requires method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(suff, all, idx)
+  requires suff == taken ++ remainder
+  ensures method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(remainder, all, idx + |taken|)
+  ensures result
+{
+  (0 < idx ? method_Util_infixSuffixLemma__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Integer(suff, all[1..], taken, remainder, idx - 1) : (|taken| <= 0 ? suff == remainder && method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(remainder, all, idx) : 0 < |suff| && 0 < |all| && method_Util_infixSuffixLemma__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Integer(suff[1..], all[1..], taken[1..], remainder, idx)))
+}
+
+function method_Util_infixTailLemma__Sequence$Node$__Sequence$Node$__Integer(inf: Seq[Ref], all: Seq[Ref], idx: Int): Bool
+  requires 0 <= idx
+  requires method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf, all, idx)
+  requires 0 < |inf|
+  ensures result
+  ensures method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf[1..], all, idx + 1)
+
+
+function method_Util_infixAdditionLemma__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Integer(inf1: Seq[Int], inf2: Seq[Int], all: Seq[Int], idx: Int): Bool
+  requires 0 <= idx
+  requires method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(inf1, all, idx)
+  requires method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(inf2, all, idx + |inf1|)
+  ensures result
+  ensures method_Util_isInfix__Sequence$Integer$__Sequence$Integer$__Integer(inf1 ++ inf2, all, idx)
+
+
+function method_Util_infixAdditionLemma__Sequence$Node$__Sequence$Node$__Sequence$Node$__Integer(inf1: Seq[Ref], inf2: Seq[Ref], all: Seq[Ref], idx: Int): Bool
+  requires 0 <= idx
+  requires method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf1, all, idx)
+  requires method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf2, all, idx + |inf1|)
+  ensures result
+  ensures method_Util_isInfix__Sequence$Node$__Sequence$Node$__Integer(inf1 ++ inf2, all, idx)
+
+
+function method_Util_sorted__Sequence$Integer$(s: Seq[Int]): Bool
+{
+  (forall i: Int, j: Int :: { s[j],s[i] } 0 <= i && i < |s| && (i < j && j < |s|) ==> s[i] <= s[j])
+}
+
+function method_Util_sortedTailLemma__Sequence$Integer$(s: Seq[Int]): Bool
+  requires method_Util_sorted__Sequence$Integer$(s)
+  ensures method_Util_sorted__Sequence$Integer$(s[1..])
+{
+  true
+}
+
+function method_Util_sortedLemma__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$__Sequence$Integer$(all: Seq[Int], front: Seq[Int], back: Seq[Int], larger: Seq[Int]): Bool
+  requires method_Util_sorted__Sequence$Integer$(all)
+  requires all == front ++ back
+  requires method_Util_smallerSeq__Sequence$Integer$__Sequence$Integer$(all, larger)
+  ensures method_Util_sorted__Sequence$Integer$(back)
+  ensures method_Util_smallerSeq__Sequence$Integer$__Sequence$Integer$(back, larger)
+  ensures result
+
+
+function method_Util_smallerSeq__Sequence$Integer$__Sequence$Integer$(smaller: Seq[Int], larger: Seq[Int]): Bool
+{
+  (forall i: Int, j: Int :: { larger[j],smaller[i] } 0 <= i && i < |smaller| && (0 <= j && j < |larger|) ==> smaller[i] <= larger[j])
+}
+
+function method_Util_toBag__Sequence$Node$(s: Seq[Ref]): Multiset[Ref]
+  ensures |result| == |s|
+  ensures (forall i: Int :: 0 <= i && i < |s| ==> 0 < ((s[i] in result)))
+{
+  method_Util_toBag__Sequence$Node$__Integer(s, |s|)
+}
+
+function method_Util_toBag__Sequence$Node$__Integer(s: Seq[Ref], maxIdx: Int): Multiset[Ref]
+  requires 0 <= maxIdx && maxIdx <= |s|
+  ensures |result| == maxIdx
+  ensures (forall i: Int :: 0 <= i && i < maxIdx ==> 0 < ((s[i] in result)))
+{
+  method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s, 0, maxIdx)
+}
+
+function method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s: Seq[Ref], idx: Int, maxIdx: Int): Multiset[Ref]
+  requires 0 <= idx
+  requires 0 <= maxIdx && maxIdx <= |s|
+  ensures idx <= maxIdx ==> |result| == maxIdx - idx
+  ensures (forall i: Int :: idx <= i && i < maxIdx ==> 0 < ((s[i] in result)))
+{
+  (maxIdx <= idx ? Multiset[Ref]() : (Multiset(s[idx]) union method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s, idx + 1, maxIdx)))
+}
+
+function method_Util_toBagPrefixLemma__Sequence$Node$__Sequence$Node$__Integer__Integer__Bag$Node$(pre: Seq[Ref], all: Seq[Ref], idx: Int, maxIdx: Int, asBag: Multiset[Ref]): Bool
+  requires 0 <= idx
+  requires idx <= maxIdx && maxIdx <= |pre|
+  requires method_Util_toBagFrom__Sequence$Node$__Integer__Integer(pre, idx, maxIdx) == asBag
+  requires method_Util_isPrefix__Sequence$Node$__Sequence$Node$(pre, all)
+  ensures method_Util_toBagFrom__Sequence$Node$__Integer__Integer(all, idx, maxIdx) == asBag
+  ensures result
+{
+  (idx < maxIdx ? pre[idx] == all[idx] && method_Util_toBagPrefixLemma__Sequence$Node$__Sequence$Node$__Integer__Integer__Bag$Node$(pre, all, idx + 1, maxIdx, (asBag setminus Multiset(pre[idx]))) : asBag == Multiset[Ref]())
+}
+
+function method_Util_toBagMaxIdxIncrLemma__Sequence$Node$__Integer__Integer__Bag$Node$(s: Seq[Ref], idx: Int, maxIdx: Int, asBag: Multiset[Ref]): Bool
+  requires 0 <= idx
+  requires idx <= maxIdx && maxIdx < |s|
+  requires method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s, idx, maxIdx) == asBag
+  ensures method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s, idx, maxIdx + 1) == (asBag union Multiset(s[maxIdx]))
+  ensures result
+{
+  (idx < maxIdx ? method_Util_toBagMaxIdxIncrLemma__Sequence$Node$__Integer__Integer__Bag$Node$(s, idx + 1, maxIdx, (asBag setminus Multiset(s[idx]))) : asBag == Multiset[Ref]() && method_Util_toBagFrom__Sequence$Node$__Integer__Integer(s, idx, maxIdx + 1) == Multiset(s[maxIdx]))
+}
+
+function new_frac(x: Perm): frac
+  requires 0 / 1 < x && x <= 1 / 1
+  ensures frac_val(result) == x
+
+
+function new_zfrac(x: Perm): zfrac
+  requires 0 / 1 <= x && x <= 1 / 1
+  ensures zfrac_val(result) == x
+
+
+method constructor_java_DOT_lang_DOT_Object_java_DOT_lang_DOT_Object(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_java_DOT_lang_DOT_Object()
+{
+  inhale false
+}
+
+method internal_java_DOT_lang_DOT_Object_java_DOT_lang_DOT_Object(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_java_DOT_lang_DOT_Object()
+{
+  inhale false
+}
+
+method constructor_Util_Util(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_Util()
+{
+  inhale false
+}
+
+method internal_Util_Util(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_Util()
+{
+  var diz__1: Ref
+  diz__1 := new()
+  inhale type_of(diz__1) == class_Util()
+  label method_end_internal_Util_Util_0
+  sys__result := diz__1
+  // assert
+  assert sys__result != null && type_of(sys__result) == class_Util()
+  inhale false
+}
+
+method constructor_java_DOT_lang_DOT_Number_java_DOT_lang_DOT_Number(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_java_DOT_lang_DOT_Number()
+{
+  inhale false
+}
+
+method internal_java_DOT_lang_DOT_Number_java_DOT_lang_DOT_Number(current_thread_id: Int, globals: Ref) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_java_DOT_lang_DOT_Number()
+{
+  inhale false
+}
+
+method constructor_Node_Node__Integer(current_thread_id: Int, globals: Ref, item: Int) returns (sys__result: Ref)
+  requires 0 <= current_thread_id
+  requires acc(globals.field_java_DOT_lang_DOT_Integer_MIN_VALUE, wildcard)
+  requires globals.field_java_DOT_lang_DOT_Integer_MIN_VALUE <= item
+  ensures sys__result != null
+  ensures type_of(sys__result) == class_Node()
+  ensures acc(sys__result.field_Node_key, write)
+  ensures acc(sys__result.field_Node_left, write)
+  ensures acc(sys__result.field_Node_right, write)
+  ensures acc(sys__result.field_Node_color, write)
+  ensures acc(sys__result.field_Node_dblack, write)
+  ensures acc(sys__result.field_Node_dblackNull, write)
+  ensures acc(globals.field_java_DOT_lang_DOT_Integer_MIN_VALUE, wildcard)
+  ensures globals.field_java_DOT_lang_DOT_Integer_MIN_VALUE <= sys__result.field_Node_key
+  ensures sys__result.field_Node_key == item
+  ensures sys__result.field_Node_left == null
+  ensures sys__result.field_Node_right == null
+  ensures sys__result.field_Node_color == true
+  ensures sys__result.field_Node_dblack == false
+  ensures sys__result.field_Node_dblackNull == false
+{
+  inhale false
+}
+
+method array_new_Bag_Node_(size0: Int) returns (sys__result: Multiset[Ref])
+  ensures 0 < size0 ==> sys__result == Multiset[Ref]()
+{
+  inhale false
+}

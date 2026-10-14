@@ -1,0 +1,682 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_std$col$$col$option$col$$col$Option {
+    (forall T$0: Type ::
+      { inhabited(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      inhabited(s_std$col$$col$option$col$$col$Option_type(T$0)) ==
+      (true || inhabited(T$0)))
+  }
+  
+  axiom inhabited_std$col$$col$iter$col$$col$Fuse {
+    (forall I$0: Type ::
+      { inhabited(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) }
+      inhabited(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) ==
+      inhabited(s_std$col$$col$option$col$$col$Option_type(I$0)))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_pad_tail$col$$col$PadUsing {
+    (forall I$0: Type, F$1: Type ::
+      { inhabited(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) }
+      inhabited(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) ==
+      (inhabited(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) &&
+      inhabited(s_UInt_usize_type()) &&
+      (inhabited(s_UInt_usize_type()) &&
+      (inhabited(s_UInt_usize_type()) && inhabited(F$1)))))
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$ops$col$$col$FnMut  {
+  
+  function std$col$$col$ops$col$$col$FnMut_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain trait_std$col$$col$ops$col$$col$FnOnce  {
+  
+  function std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(arg0: Type,
+  arg1: Type): Type 
+  
+  function std$col$$col$ops$col$$col$FnOnce_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain trait_std$col$$col$iter$col$$col$Iterator  {
+  
+  function std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(arg0: Type): Type 
+  
+  function std$col$$col$iter$col$$col$Iterator_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_std$col$$col$option$col$$col$Option  {
+  
+  axiom s_std$col$$col$option$col$$col$Option_Sized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)))
+  }
+  
+  axiom s_std$col$$col$option$col$$col$Option_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)))
+  }
+}
+
+domain sizedness_std$col$$col$iter$col$$col$Fuse  {
+  
+  axiom s_std$col$$col$iter$col$$col$Fuse_Sized {
+    (forall I$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)))
+  }
+  
+  axiom s_std$col$$col$iter$col$$col$Fuse_MetaSized {
+    (forall I$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_pad_tail$col$$col$PadUsing  {
+  
+  axiom s_pad_tail$col$$col$PadUsing_Sized {
+    (forall I$0: Type, F$1: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)))
+  }
+  
+  axiom s_pad_tail$col$$col$PadUsing_MetaSized {
+    (forall I$0: Type, F$1: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(F$1) ==>
+      std$col$$col$marker$col$$col$MetaSized_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)))
+  }
+}
+
+domain sizedness_1_Tuple  {
+  
+  axiom s_1_Tuple_Sized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_1_Tuple_type(T$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$marker$col$$col$Sized_impl(s_1_Tuple_type(T$0)))
+  }
+  
+  axiom s_1_Tuple_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_1_Tuple_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      std$col$$col$marker$col$$col$MetaSized_impl(s_1_Tuple_type(T$0)))
+  }
+}
+
+domain trait_fns_std$col$$col$iter$col$$col$Iterator_std$col$$col$iter$col$$col$Iterator$col$$col$fuse  {
+  
+  function std$col$$col$iter$col$$col$Iterator_fn_pre_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(arg0: s_Param,
+  arg1: Type): Bool 
+  
+  function std$col$$col$iter$col$$col$Iterator_fn_post_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(arg0: s_std$col$$col$iter$col$$col$Fuse,
+  arg1: s_Param, arg2: Type): Bool 
+  
+  axiom std$col$$col$iter$col$$col$Iterator_fn_pre_std$col$$col$iter$col$$col$Iterator$col$$col$fuse_base {
+    (forall _1s: s_Param, Self$0: Type ::
+      { std$col$$col$iter$col$$col$Iterator_fn_pre_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_1s,
+      Self$0) }
+      true ==>
+      std$col$$col$iter$col$$col$Iterator_fn_pre_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_1s,
+      Self$0))
+  }
+  
+  axiom std$col$$col$iter$col$$col$Iterator_fn_post_std$col$$col$iter$col$$col$Iterator$col$$col$fuse_base {
+    (forall _0s: s_std$col$$col$iter$col$$col$Fuse, _1s: s_Param, Self$0: Type ::
+      { std$col$$col$iter$col$$col$Iterator_fn_post_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_0s,
+      _1s, Self$0) }
+      std$col$$col$iter$col$$col$Iterator_fn_post_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_0s,
+      _1s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_std$col$$col$iter$col$$col$Iterator_impl_core_std$col$$col$iter$col$$col$Fuse_8092_condition  {
+  
+  axiom std$col$$col$iter$col$$col$Iterator_impl_core_std$col$$col$iter$col$$col$Fuse_8092_condition {
+    (forall I$0: Type ::
+      { std$col$$col$iter$col$$col$Iterator_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) }
+      std$col$$col$iter$col$$col$Iterator_impl(I$0) &&
+      std$col$$col$marker$col$$col$Sized_impl(I$0) ==>
+      std$col$$col$iter$col$$col$Iterator_impl(s_std$col$$col$iter$col$$col$Fuse_type(I$0)))
+  }
+}
+
+domain trait_std$col$$col$iter$col$$col$Iterator_impl_itertools_pad_tail$col$$col$PadUsing_351_condition  {
+  
+  axiom std$col$$col$iter$col$$col$Iterator_impl_itertools_pad_tail$col$$col$PadUsing_351_condition {
+    (forall I$0: Type, F$1: Type ::
+      { std$col$$col$iter$col$$col$Iterator_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) }
+      (let A$2 ==
+        (std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$1,
+        s_1_Tuple_type(s_UInt_usize_type()))) in
+        std$col$$col$marker$col$$col$Sized_impl(F$1) &&
+        std$col$$col$ops$col$$col$FnMut_impl(F$1, s_1_Tuple_type(s_UInt_usize_type())) &&
+        (std$col$$col$ops$col$$col$FnOnce_impl(F$1, s_1_Tuple_type(s_UInt_usize_type())) &&
+        std$col$$col$marker$col$$col$Sized_impl(I$0)) &&
+        (std$col$$col$iter$col$$col$Iterator_impl(I$0) &&
+        std$col$$col$marker$col$$col$Sized_impl(A$2) &&
+        (std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$1,
+        s_1_Tuple_type(s_UInt_usize_type())) ==
+        A$2 &&
+        std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(I$0) ==
+        A$2)) ==>
+        std$col$$col$iter$col$$col$Iterator_impl(s_pad_tail$col$$col$PadUsing_type(I$0, F$1))))
+  }
+}
+
+domain trait_std$col$$col$iter$col$$col$Iterator_impl_core_std$col$$col$iter$col$$col$Fuse_8092_$lt$std$col$$col$iter$col$$col$Fuse$lt$I$gt$$sp$as$sp$std$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item  {
+  
+  axiom std$col$$col$iter$col$$col$Iterator_impl_core_std$col$$col$iter$col$$col$Fuse_8092_assoc_type_$lt$std$col$$col$iter$col$$col$Fuse$lt$I$gt$$sp$as$sp$std$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item {
+    (forall I$0: Type ::
+      { std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) }
+      std$col$$col$iter$col$$col$Iterator_impl(I$0) &&
+      std$col$$col$marker$col$$col$Sized_impl(I$0) ==>
+      std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) ==
+      std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(I$0))
+  }
+}
+
+domain trait_std$col$$col$iter$col$$col$Iterator_impl_itertools_pad_tail$col$$col$PadUsing_351_$lt$pad_tail$col$$col$PadUsing$lt$I$com$$sp$F$gt$$sp$as$sp$std$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item  {
+  
+  axiom std$col$$col$iter$col$$col$Iterator_impl_itertools_pad_tail$col$$col$PadUsing_351_assoc_type_$lt$pad_tail$col$$col$PadUsing$lt$I$com$$sp$F$gt$$sp$as$sp$std$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item {
+    (forall I$0: Type, F$1: Type ::
+      { std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) }
+      (let A$2 ==
+        (std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$1,
+        s_1_Tuple_type(s_UInt_usize_type()))) in
+        std$col$$col$marker$col$$col$Sized_impl(F$1) &&
+        std$col$$col$ops$col$$col$FnMut_impl(F$1, s_1_Tuple_type(s_UInt_usize_type())) &&
+        (std$col$$col$ops$col$$col$FnOnce_impl(F$1, s_1_Tuple_type(s_UInt_usize_type())) &&
+        std$col$$col$marker$col$$col$Sized_impl(I$0)) &&
+        (std$col$$col$iter$col$$col$Iterator_impl(I$0) &&
+        std$col$$col$marker$col$$col$Sized_impl(A$2) &&
+        (std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$1,
+        s_1_Tuple_type(s_UInt_usize_type())) ==
+        A$2 &&
+        std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(I$0) ==
+        A$2)) ==>
+        std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) ==
+        A$2))
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_pad_tail$col$$col$PadUsing_unreachable(I$0: Type, F$1: Type): s_pad_tail$col$$col$PadUsing
+  ensures false
+
+
+function s_pad_tail$col$$col$PadUsing_field_0(self: Ref, I$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_pad_tail$col$$col$PadUsing_field_1(self: Ref, I$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_pad_tail$col$$col$PadUsing_field_2(self: Ref, I$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_pad_tail$col$$col$PadUsing_field_3(self: Ref, I$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_pad_tail$col$$col$PadUsing_field_4(self: Ref, I$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$iter$col$$col$Fuse_unreachable(I$0: Type): s_std$col$$col$iter$col$$col$Fuse
+  ensures false
+
+
+function s_std$col$$col$iter$col$$col$Fuse_field_0(self: Ref, I$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$option$col$$col$Option_unreachable(T$0: Type): s_std$col$$col$option$col$$col$Option
+  ensures false
+
+
+function s_std$col$$col$option$col$$col$Option_1_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$option$col$$col$Option_discr(self: s_std$col$$col$option$col$$col$Option): s_Int_isize
+{
+  (self.iss_std$col$$col$option$col$$col$Option_1_cons ?
+    s_Int_isize_cons(1) :
+    s_Int_isize_cons(0))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_pad_tail$col$$col$PadUsing_snap(self: Ref, I$0: Type, F$1: Type): s_pad_tail$col$$col$PadUsing
+  requires acc(p_pad_tail$col$$col$PadUsing(self, I$0, F$1), write)
+{
+  (unfolding acc(p_pad_tail$col$$col$PadUsing(self, I$0, F$1), write) in
+    s_pad_tail$col$$col$PadUsing_cons(p_std$col$$col$iter$col$$col$Fuse_snap(s_pad_tail$col$$col$PadUsing_field_0(self,
+    I$0, F$1), I$0), p_UInt_usize_snap(s_pad_tail$col$$col$PadUsing_field_1(self,
+    I$0, F$1)), p_UInt_usize_snap(s_pad_tail$col$$col$PadUsing_field_2(self,
+    I$0, F$1)), p_UInt_usize_snap(s_pad_tail$col$$col$PadUsing_field_3(self,
+    I$0, F$1)), p_Param_snap(s_pad_tail$col$$col$PadUsing_field_4(self, I$0,
+    F$1), F$1)))
+}
+
+function p_std$col$$col$iter$col$$col$Fuse_snap(self: Ref, I$0: Type): s_std$col$$col$iter$col$$col$Fuse
+  requires acc(p_std$col$$col$iter$col$$col$Fuse(self, I$0), write)
+{
+  (unfolding acc(p_std$col$$col$iter$col$$col$Fuse(self, I$0), write) in
+    s_std$col$$col$iter$col$$col$Fuse_cons(p_std$col$$col$option$col$$col$Option_snap(s_std$col$$col$iter$col$$col$Fuse_field_0(self,
+    I$0), I$0)))
+}
+
+function p_std$col$$col$option$col$$col$Option_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_std$col$$col$option$col$$col$Option_snap(self: Ref, T$0: Type): s_std$col$$col$option$col$$col$Option
+  requires acc(p_std$col$$col$option$col$$col$Option(self, T$0), write)
+{
+  (unfolding acc(p_std$col$$col$option$col$$col$Option(self, T$0), write) in
+    (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+    s_Int_isize_cons(1) ?
+      (unfolding acc(p_std$col$$col$option$col$$col$Option_1_owned(self, T$0), write) in
+        s_std$col$$col$option$col$$col$Option_1_cons(p_Param_snap(s_std$col$$col$option$col$$col$Option_1_field_0(self,
+        T$0), T$0))) :
+      (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+      s_Int_isize_cons(0) ?
+        (unfolding acc(p_std$col$$col$option$col$$col$Option_0_owned(self, T$0), write) in
+          s_std$col$$col$option$col$$col$Option_0_cons()) :
+        s_std$col$$col$option$col$$col$Option_unreachable(T$0))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_pad_tail$col$$col$PadUsing(self: Ref, I$0: Type, F$1: Type) {
+  inhabited(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) &&
+  acc(p_std$col$$col$iter$col$$col$Fuse(s_pad_tail$col$$col$PadUsing_field_0(self,
+  I$0, F$1), I$0), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_pad_tail$col$$col$PadUsing_field_1(self, I$0, F$1)), write)) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_pad_tail$col$$col$PadUsing_field_2(self, I$0, F$1)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_pad_tail$col$$col$PadUsing_field_3(self, I$0, F$1)), write) &&
+  (inhabited(F$1) &&
+  acc(p_Param(s_pad_tail$col$$col$PadUsing_field_4(self, I$0, F$1), F$1), write))))
+}
+
+predicate p_std$col$$col$iter$col$$col$Fuse(self: Ref, I$0: Type) {
+  inhabited(s_std$col$$col$option$col$$col$Option_type(I$0)) &&
+  acc(p_std$col$$col$option$col$$col$Option(s_std$col$$col$iter$col$$col$Fuse_field_0(self,
+  I$0), I$0), write)
+}
+
+predicate p_std$col$$col$option$col$$col$Option_0_owned(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_std$col$$col$option$col$$col$Option_1_owned(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_std$col$$col$option$col$$col$Option_1_field_0(self, T$0), T$0), write)
+}
+
+predicate p_std$col$$col$option$col$$col$Option(self: Ref, T$0: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_std$col$$col$option$col$$col$Option_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1)) &&
+  ((p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_std$col$$col$option$col$$col$Option_0_owned(self, T$0), write)) &&
+  (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(T$0) &&
+  acc(p_std$col$$col$option$col$$col$Option_1_owned(self, T$0), write))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_pad_tail$col$$col$pad_using(_0p: Ref, _1p: Ref, _2p: Ref, _3p: Ref,
+  I$0: Type, F$1: Type)
+  requires inhabited(I$0) && acc(p_Param(_1p, I$0), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  requires inhabited(F$1) && acc(p_Param(_3p, F$1), write)
+  ensures inhabited(s_pad_tail$col$$col$PadUsing_type(I$0, F$1)) &&
+    acc(p_pad_tail$col$$col$PadUsing(_0p, I$0, F$1), write)
+{
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb4_to_bb5: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_Param
+  var _tmp3: s_std$col$$col$iter$col$$col$Fuse
+  var _tmp4: s_UInt_usize
+  var _tmp5: s_Param
+  label start
+  inhale std$col$$col$ops$col$$col$FnMut_impl(F$1, s_1_Tuple_type(s_UInt_usize_type()))
+  inhale std$col$$col$ops$col$$col$FnOnce_impl(F$1, s_1_Tuple_type(s_UInt_usize_type()))
+  inhale std$col$$col$iter$col$$col$Iterator_impl(I$0)
+  inhale std$col$$col$marker$col$$col$Sized_impl(F$1)
+  inhale std$col$$col$marker$col$$col$Sized_impl(I$0)
+  inhale std$col$$col$ops$col$$col$FnOnce_assoc_type_std$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$1,
+    s_1_Tuple_type(s_UInt_usize_type())) ==
+    std$col$$col$iter$col$$col$Iterator_assoc_type_std$col$$col$iter$col$$col$Iterator$col$$col$Item(I$0)
+  _from_bb1_to_bb2 := false
+  _from_bb4_to_bb5 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_Param_snap(_1p, I$0)
+  exhale inhabited(I$0) && acc(p_Param(_1p, I$0), write)
+  p_Param_assign(_5p, I$0, _tmp0)
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  std$col$$col$iter$col$$col$Iterator_fn_stub_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_4p,
+    _5p, I$0)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  _tmp1 := p_UInt_usize_snap(_2p)
+  p_UInt_usize_assign(_6p, _tmp1)
+  label _before_1_3
+  label _before_1_4
+  _tmp2 := p_Param_snap(_3p, F$1)
+  exhale inhabited(F$1) && acc(p_Param(_3p, F$1), write)
+  p_Param_assign(_7p, F$1, _tmp2)
+  label _before_1_5
+  _tmp3 := p_std$col$$col$iter$col$$col$Fuse_snap(_4p, I$0)
+  exhale inhabited(s_std$col$$col$iter$col$$col$Fuse_type(I$0)) &&
+    acc(p_std$col$$col$iter$col$$col$Fuse(_4p, I$0), write)
+  _tmp4 := p_UInt_usize_snap(_6p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_6p), write)
+  _tmp5 := p_Param_snap(_7p, F$1)
+  exhale inhabited(F$1) && acc(p_Param(_7p, F$1), write)
+  p_pad_tail$col$$col$PadUsing_assign(_0p, I$0, F$1, s_pad_tail$col$$col$PadUsing_cons(_tmp3, s_UInt_usize_cons(0), s_UInt_usize_cons(0), _tmp4, _tmp5))
+  label _before_1_6
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label _before_2_2
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label package_post2
+  goto end
+  label bb_6
+  assert false
+  goto end
+  label bb_7
+  assert false
+  goto end
+  label bb_8
+  assert false
+  goto end
+  label bb_9
+  assert false
+  goto end
+  label bb_10
+  assert false
+  goto end
+  label end
+}
+
+method p_pad_tail$col$$col$PadUsing_assign(self: Ref, I$0: Type, F$1: Type,
+  value: s_pad_tail$col$$col$PadUsing)
+  ensures acc(p_pad_tail$col$$col$PadUsing(self, I$0, F$1), write)
+  ensures p_pad_tail$col$$col$PadUsing_snap(self, I$0, F$1) == value
+
+
+method p_std$col$$col$iter$col$$col$Fuse_assign(self: Ref, I$0: Type, value: s_std$col$$col$iter$col$$col$Fuse)
+  ensures acc(p_std$col$$col$iter$col$$col$Fuse(self, I$0), write)
+  ensures p_std$col$$col$iter$col$$col$Fuse_snap(self, I$0) == value
+
+
+method p_std$col$$col$option$col$$col$Option_assign(self: Ref, T$0: Type, value: s_std$col$$col$option$col$$col$Option)
+  ensures acc(p_std$col$$col$option$col$$col$Option(self, T$0), write)
+  ensures p_std$col$$col$option$col$$col$Option_snap(self, T$0) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method std$col$$col$iter$col$$col$Iterator_fn_stub_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(_0p: Ref,
+  _1p: Ref, Self$0: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires std$col$$col$iter$col$$col$Iterator_fn_pre_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(p_Param_snap(_1p,
+    Self$0), Self$0)
+  ensures inhabited(s_std$col$$col$iter$col$$col$Fuse_type(Self$0)) &&
+    acc(p_std$col$$col$iter$col$$col$Fuse(_0p, Self$0), write)
+  ensures std$col$$col$iter$col$$col$Iterator_fn_post_std$col$$col$iter$col$$col$Iterator$col$$col$fuse(p_std$col$$col$iter$col$$col$Fuse_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, Self$0)), Self$0)
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_pad_tail$col$$col$PadUsing {
+  s_pad_tail$col$$col$PadUsing_cons(s_pad_tail$col$$col$PadUsing_0: s_std$col$$col$iter$col$$col$Fuse,
+  s_pad_tail$col$$col$PadUsing_1: s_UInt_usize, s_pad_tail$col$$col$PadUsing_2: s_UInt_usize,
+  s_pad_tail$col$$col$PadUsing_3: s_UInt_usize, s_pad_tail$col$$col$PadUsing_4: s_Param)
+}
+
+adt s_std$col$$col$iter$col$$col$Fuse {
+  s_std$col$$col$iter$col$$col$Fuse_cons(s_std$col$$col$iter$col$$col$Fuse_0: s_std$col$$col$option$col$$col$Option)
+}
+
+adt s_std$col$$col$option$col$$col$Option {
+  s_std$col$$col$option$col$$col$Option_0_cons()
+  s_std$col$$col$option$col$$col$Option_1_cons(s_std$col$$col$option$col$$col$Option_1_0: s_Param)
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_std$col$$col$option$col$$col$Option_type(s_std$col$$col$option$col$$col$Option_typaram_T$0: Type)
+  s_std$col$$col$iter$col$$col$Fuse_type(s_std$col$$col$iter$col$$col$Fuse_typaram_I$0: Type)
+  s_UInt_usize_type()
+  s_pad_tail$col$$col$PadUsing_type(s_pad_tail$col$$col$PadUsing_typaram_I$0: Type,
+  s_pad_tail$col$$col$PadUsing_typaram_F$1: Type)
+  s_1_Tuple_type(s_1_Tuple_typaram_T$0: Type)
+  Unknown_type(id: Int)
+}

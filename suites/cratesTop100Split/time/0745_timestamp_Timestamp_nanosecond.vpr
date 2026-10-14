@@ -1,0 +1,589 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u32  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u32 {
+    (forall x: s_UInt_u32 ::
+      { make_generic_s_UInt_u32(x) }
+      s_Param_typ(make_generic_s_UInt_u32(x)) == s_UInt_u32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u32, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u32_type() ==>
+      make_generic_s_UInt_u32(p.make_concrete_s_UInt_u32) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Int_i64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Int_i64 {
+    (forall x: s_Int_i64 ::
+      { make_generic_s_Int_i64(x) }
+      s_Param_typ(make_generic_s_Int_i64(x)) == s_Int_i64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Int_i64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Int_i64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Int_i64_type() ==>
+      make_generic_s_Int_i64(p.make_concrete_s_Int_i64) == p)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_timestamp$col$$col$Padding {
+    inhabited(s_timestamp$col$$col$Padding_type()) == true
+  }
+  
+  axiom inhabited_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+    (forall T$0: Type ::
+      { inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_deranged$col$$col$RangedU32 {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) ==
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u32_type())))
+  }
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+  
+  axiom inhabited_deranged$col$$col$RangedI64 {
+    (forall MIN$0: s_Int_i64, MAX$1: s_Int_i64 ::
+      { inhabited(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)) }
+      inhabited(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)) ==
+      inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_Int_i64_type())))
+  }
+  
+  axiom inhabited_timestamp$col$$col$Timestamp {
+    inhabited(s_timestamp$col$$col$Timestamp_type()) ==
+    (inhabited(s_timestamp$col$$col$Padding_type()) &&
+    (inhabited(s_deranged$col$$col$RangedU32_type(s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))) &&
+    inhabited(s_deranged$col$$col$RangedI64_type(s_Int_i64_cons(-377705116800), s_Int_i64_cons(253402300799)))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+domain sizedness_timestamp$col$$col$Padding  {
+  
+  axiom s_timestamp$col$$col$Padding_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_timestamp$col$$col$Padding_type())
+  }
+  
+  axiom s_timestamp$col$$col$Padding_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_timestamp$col$$col$Padding_type())
+  }
+}
+
+domain sizedness_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe  {
+  
+  axiom s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+  
+  axiom s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(T$0)))
+  }
+}
+
+domain sizedness_deranged$col$$col$RangedU32  {
+  
+  axiom s_deranged$col$$col$RangedU32_Sized {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)))
+  }
+  
+  axiom s_deranged$col$$col$RangedU32_MetaSized {
+    (forall MIN$0: s_UInt_u32, MAX$1: s_UInt_u32 ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)))
+  }
+}
+
+domain sizedness_deranged$col$$col$RangedI64  {
+  
+  axiom s_deranged$col$$col$RangedI64_Sized {
+    (forall MIN$0: s_Int_i64, MAX$1: s_Int_i64 ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)))
+  }
+  
+  axiom s_deranged$col$$col$RangedI64_MetaSized {
+    (forall MIN$0: s_Int_i64, MAX$1: s_Int_i64 ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_deranged$col$$col$RangedI64_type(MIN$0, MAX$1)))
+  }
+}
+
+domain sizedness_timestamp$col$$col$Timestamp  {
+  
+  axiom s_timestamp$col$$col$Timestamp_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_timestamp$col$$col$Timestamp_type())
+  }
+  
+  axiom s_timestamp$col$$col$Timestamp_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_timestamp$col$$col$Timestamp_type())
+  }
+}
+
+field p_UInt_u32_val: s_UInt_u32
+
+field p_Int_i64_val: s_Int_i64
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_timestamp$col$$col$Timestamp_unreachable(): s_timestamp$col$$col$Timestamp
+  ensures false
+
+
+function s_timestamp$col$$col$Timestamp_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_timestamp$col$$col$Timestamp_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_timestamp$col$$col$Timestamp_field_2(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_timestamp$col$$col$Padding_unreachable(): s_timestamp$col$$col$Padding
+  ensures false
+
+
+function s_timestamp$col$$col$Padding_discr(self: s_timestamp$col$$col$Padding): s_UInt_u32
+{
+  s_UInt_u32_cons(0)
+}
+
+function s_deranged$col$$col$RangedU32_unreachable(MIN$0: s_UInt_u32, MAX$1: s_UInt_u32): s_deranged$col$$col$RangedU32
+  ensures false
+
+
+function s_deranged$col$$col$RangedU32_field_0(self: Ref, MIN$0: s_UInt_u32,
+  MAX$1: s_UInt_u32): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_unreachable(T$0: Type): s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe
+  ensures false
+
+
+function s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self: Ref,
+  T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_deranged$col$$col$RangedI64_unreachable(MIN$0: s_Int_i64, MAX$1: s_Int_i64): s_deranged$col$$col$RangedI64
+  ensures false
+
+
+function s_deranged$col$$col$RangedI64_field_0(self: Ref, MIN$0: s_Int_i64,
+  MAX$1: s_Int_i64): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_timestamp$col$$col$Timestamp_snap(self: Ref): s_timestamp$col$$col$Timestamp
+  requires acc(p_timestamp$col$$col$Timestamp(self), write)
+{
+  (unfolding acc(p_timestamp$col$$col$Timestamp(self), write) in
+    s_timestamp$col$$col$Timestamp_cons(p_timestamp$col$$col$Padding_snap(s_timestamp$col$$col$Timestamp_field_0(self)), p_deranged$col$$col$RangedU32_snap(s_timestamp$col$$col$Timestamp_field_1(self),
+    s_UInt_u32_cons(0), s_UInt_u32_cons(999999999)), p_deranged$col$$col$RangedI64_snap(s_timestamp$col$$col$Timestamp_field_2(self),
+    s_Int_i64_cons(-377705116800), s_Int_i64_cons(253402300799))))
+}
+
+function p_timestamp$col$$col$Padding_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_timestamp$col$$col$Padding_snap(self: Ref): s_timestamp$col$$col$Padding
+  requires acc(p_timestamp$col$$col$Padding(self), write)
+{
+  (unfolding acc(p_timestamp$col$$col$Padding(self), write) in
+    (p_UInt_u32_snap(p_timestamp$col$$col$Padding_field_discr(self)) ==
+    s_UInt_u32_cons(0) ?
+      (unfolding acc(p_timestamp$col$$col$Padding_0_owned(self), write) in
+        s_timestamp$col$$col$Padding_0_cons()) :
+      s_timestamp$col$$col$Padding_unreachable()))
+}
+
+function p_deranged$col$$col$RangedU32_snap(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32): s_deranged$col$$col$RangedU32
+  requires acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write)
+{
+  (unfolding acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write) in
+    s_deranged$col$$col$RangedU32_cons(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(s_deranged$col$$col$RangedU32_field_0(self,
+    MIN$0, MAX$1), s_UInt_u32_type())))
+}
+
+function p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self: Ref,
+  T$0: Type): s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe
+  requires acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+{
+  (unfolding acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write) in
+    s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_cons(p_Param_snap(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self,
+    T$0), T$0)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_deranged$col$$col$RangedI64_snap(self: Ref, MIN$0: s_Int_i64, MAX$1: s_Int_i64): s_deranged$col$$col$RangedI64
+  requires acc(p_deranged$col$$col$RangedI64(self, MIN$0, MAX$1), write)
+{
+  (unfolding acc(p_deranged$col$$col$RangedI64(self, MIN$0, MAX$1), write) in
+    s_deranged$col$$col$RangedI64_cons(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(s_deranged$col$$col$RangedI64_field_0(self,
+    MIN$0, MAX$1), s_Int_i64_type())))
+}
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_timestamp$col$$col$Timestamp(self: Ref) {
+  inhabited(s_timestamp$col$$col$Padding_type()) &&
+  acc(p_timestamp$col$$col$Padding(s_timestamp$col$$col$Timestamp_field_0(self)), write) &&
+  (inhabited(s_deranged$col$$col$RangedU32_type(s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))) &&
+  acc(p_deranged$col$$col$RangedU32(s_timestamp$col$$col$Timestamp_field_1(self),
+  s_UInt_u32_cons(0), s_UInt_u32_cons(999999999)), write) &&
+  (inhabited(s_deranged$col$$col$RangedI64_type(s_Int_i64_cons(-377705116800), s_Int_i64_cons(253402300799))) &&
+  acc(p_deranged$col$$col$RangedI64(s_timestamp$col$$col$Timestamp_field_2(self),
+  s_Int_i64_cons(-377705116800), s_Int_i64_cons(253402300799)), write)))
+}
+
+predicate p_timestamp$col$$col$Padding_0_owned(self: Ref) {
+  true
+}
+
+predicate p_timestamp$col$$col$Padding(self: Ref) {
+  inhabited(s_UInt_u32_type()) &&
+  acc(p_UInt_u32(p_timestamp$col$$col$Padding_field_discr(self)), write) &&
+  (p_UInt_u32_snap(p_timestamp$col$$col$Padding_field_discr(self)) ==
+  s_UInt_u32_cons(0) &&
+  (p_UInt_u32_snap(p_timestamp$col$$col$Padding_field_discr(self)) ==
+  s_UInt_u32_cons(0) ==>
+  true && acc(p_timestamp$col$$col$Padding_0_owned(self), write)))
+}
+
+predicate p_deranged$col$$col$RangedU32(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32) {
+  inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_UInt_u32_type())) &&
+  acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(s_deranged$col$$col$RangedU32_field_0(self,
+  MIN$0, MAX$1), s_UInt_u32_type()), write)
+}
+
+predicate p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_deranged$col$$col$RangedI64(self: Ref, MIN$0: s_Int_i64, MAX$1: s_Int_i64) {
+  inhabited(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_Int_i64_type())) &&
+  acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(s_deranged$col$$col$RangedI64_field_0(self,
+  MIN$0, MAX$1), s_Int_i64_type()), write)
+}
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+method m_timestamp$col$$col$Timestamp$col$$col$nanosecond(_0p: Ref, _1p: Ref)
+  requires inhabited(s_timestamp$col$$col$Timestamp_type()) &&
+    acc(p_timestamp$col$$col$Timestamp(_1p), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+{
+  var _2p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_deranged$col$$col$RangedU32
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  unfold acc(p_timestamp$col$$col$Timestamp(_1p), write)
+  _tmp0 := p_deranged$col$$col$RangedU32_snap(s_timestamp$col$$col$Timestamp_field_1(_1p),
+    s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))
+  p_deranged$col$$col$RangedU32_assign(_2p, s_UInt_u32_cons(0), s_UInt_u32_cons(999999999),
+    _tmp0)
+  label _before_0_2
+  fold acc(p_timestamp$col$$col$Timestamp(_1p), write)
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_deranged$col$$col$RangedU32$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$get(_0p,
+    _2p, s_UInt_u32_cons(0), s_UInt_u32_cons(999999999))
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_deranged$col$$col$RangedU32$col$$col$$lt$MIN$com$$sp$MAX$gt$$col$$col$get(_0p: Ref,
+  _1p: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32)
+  requires inhabited(s_deranged$col$$col$RangedU32_type(MIN$0, MAX$1)) &&
+    acc(p_deranged$col$$col$RangedU32(_1p, MIN$0, MAX$1), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+
+
+method make_generic_UInt_u32(self: Ref)
+  requires acc(p_UInt_u32(self), write)
+  ensures acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures old(make_generic_s_UInt_u32(p_UInt_u32_snap(self))) ==
+    p_Param_snap(self, s_UInt_u32_type())
+
+
+method make_concrete_UInt_u32(self: Ref)
+  requires acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures acc(p_UInt_u32(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u32_type())) ==
+    make_generic_s_UInt_u32(p_UInt_u32_snap(self))
+
+
+method make_generic_Int_i64(self: Ref)
+  requires acc(p_Int_i64(self), write)
+  ensures acc(p_Param(self, s_Int_i64_type()), write)
+  ensures old(make_generic_s_Int_i64(p_Int_i64_snap(self))) ==
+    p_Param_snap(self, s_Int_i64_type())
+
+
+method make_concrete_Int_i64(self: Ref)
+  requires acc(p_Param(self, s_Int_i64_type()), write)
+  ensures acc(p_Int_i64(self), write)
+  ensures old(p_Param_snap(self, s_Int_i64_type())) ==
+    make_generic_s_Int_i64(p_Int_i64_snap(self))
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_timestamp$col$$col$Timestamp_assign(self: Ref, value: s_timestamp$col$$col$Timestamp)
+  ensures acc(p_timestamp$col$$col$Timestamp(self), write)
+  ensures p_timestamp$col$$col$Timestamp_snap(self) == value
+
+
+method p_timestamp$col$$col$Padding_assign(self: Ref, value: s_timestamp$col$$col$Padding)
+  ensures acc(p_timestamp$col$$col$Padding(self), write)
+  ensures p_timestamp$col$$col$Padding_snap(self) == value
+
+
+method p_deranged$col$$col$RangedU32_assign(self: Ref, MIN$0: s_UInt_u32, MAX$1: s_UInt_u32,
+  value: s_deranged$col$$col$RangedU32)
+  ensures acc(p_deranged$col$$col$RangedU32(self, MIN$0, MAX$1), write)
+  ensures p_deranged$col$$col$RangedU32_snap(self, MIN$0, MAX$1) == value
+
+
+method p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_assign(self: Ref,
+  T$0: Type, value: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+  ensures acc(p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe(self, T$0), write)
+  ensures p_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_snap(self, T$0) ==
+    value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_deranged$col$$col$RangedI64_assign(self: Ref, MIN$0: s_Int_i64, MAX$1: s_Int_i64,
+  value: s_deranged$col$$col$RangedI64)
+  ensures acc(p_deranged$col$$col$RangedI64(self, MIN$0, MAX$1), write)
+  ensures p_deranged$col$$col$RangedI64_snap(self, MIN$0, MAX$1) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+adt s_Param {
+  make_generic_s_UInt_u32(make_concrete_s_UInt_u32: s_UInt_u32)
+  make_generic_s_Int_i64(make_concrete_s_Int_i64: s_Int_i64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_timestamp$col$$col$Timestamp {
+  s_timestamp$col$$col$Timestamp_cons(s_timestamp$col$$col$Timestamp_0: s_timestamp$col$$col$Padding,
+  s_timestamp$col$$col$Timestamp_1: s_deranged$col$$col$RangedU32, s_timestamp$col$$col$Timestamp_2: s_deranged$col$$col$RangedI64)
+}
+
+adt s_timestamp$col$$col$Padding {
+  s_timestamp$col$$col$Padding_0_cons()
+}
+
+adt s_deranged$col$$col$RangedU32 {
+  s_deranged$col$$col$RangedU32_cons(s_deranged$col$$col$RangedU32_0: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+}
+
+adt s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe {
+  s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_cons(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_0: s_Param)
+}
+
+adt s_deranged$col$$col$RangedI64 {
+  s_deranged$col$$col$RangedI64_cons(s_deranged$col$$col$RangedI64_0: s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe)
+}
+
+adt Type {
+  s_UInt_u32_type()
+  s_Int_i64_type()
+  s_timestamp$col$$col$Padding_type()
+  s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_type(s_deranged$col$$col$unsafe_wrapper$col$$col$Unsafe_typaram_T$0: Type)
+  s_deranged$col$$col$RangedU32_type(s_deranged$col$$col$RangedU32_constparam_MIN$0: s_UInt_u32,
+  s_deranged$col$$col$RangedU32_constparam_MAX$1: s_UInt_u32)
+  s_deranged$col$$col$RangedI64_type(s_deranged$col$$col$RangedI64_constparam_MIN$0: s_Int_i64,
+  s_deranged$col$$col$RangedI64_constparam_MAX$1: s_Int_i64)
+  s_timestamp$col$$col$Timestamp_type()
+  Unknown_type(id: Int)
+}

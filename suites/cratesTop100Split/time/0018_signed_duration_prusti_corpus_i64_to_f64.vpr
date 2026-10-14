@@ -1,0 +1,330 @@
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+field p_Float_f64_val: s_Float_f64
+
+field p_Int_i64_val: s_Int_i64
+
+function mir_binop_Mul_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_mul(arg1, arg2)
+}
+
+function mir_binop_Add_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_add(arg1, arg2)
+}
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+method m_signed_duration$col$$col$prusti_corpus_i64_to_f64(_0p: Ref, _1p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Int_i64
+  var _tmp1: Ref
+  var _tmp2: s_Int_i64
+  var _tmp3: Ref
+  var _tmp4: s_Int_i64
+  var _tmp5: s_Float_f64
+  var _tmp6: s_Int_i64
+  var _tmp7: s_Float_f64
+  var _tmp8: s_Float_f64
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_Int_i64_snap(_1p)
+  p_Int_i64_assign(_3p, _tmp0)
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  p_Int_i64_assign(_tmp1, s_Int_i64_cons(4294967296))
+  label pre0
+  m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$div_euclid(_2p,
+    _3p, _tmp1)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label _before_1_4
+  _tmp2 := p_Int_i64_snap(_1p)
+  p_Int_i64_assign(_5p, _tmp2)
+  label _before_1_5
+  goto bb_term_1
+  label bb_term_1
+  p_Int_i64_assign(_tmp3, s_Int_i64_cons(4294967296))
+  label pre2
+  m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$rem_euclid(_4p,
+    _5p, _tmp3)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label _before_2_2
+  label _before_2_3
+  label _before_2_4
+  label _before_2_5
+  _tmp4 := p_Int_i64_snap(_2p)
+  p_Int_i64_assign(_8p, _tmp4)
+  label _before_2_6
+  goto bb_term_2
+  label bb_term_2
+  label pre4
+  m_signed_duration$col$$col$prusti_corpus_small_to_f64(_7p, _8p)
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  _tmp5 := p_Float_f64_snap(_7p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_7p), write)
+  p_Float_f64_assign(_6p, mir_binop_Mul_Float_f64_Float_f64(_tmp5, s_Float_f64_cons(4751297606875873280)))
+  label _before_3_2
+  label _before_3_3
+  label _before_3_4
+  label _before_3_5
+  _tmp6 := p_Int_i64_snap(_4p)
+  p_Int_i64_assign(_10p, _tmp6)
+  label _before_3_6
+  goto bb_term_3
+  label bb_term_3
+  label pre6
+  m_signed_duration$col$$col$prusti_corpus_small_to_f64(_9p, _10p)
+  label post7
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  _tmp7 := p_Float_f64_snap(_6p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_6p), write)
+  _tmp8 := p_Float_f64_snap(_9p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_9p), write)
+  p_Float_f64_assign(_0p, mir_binop_Add_Float_f64_Float_f64(_tmp7, _tmp8))
+  label _before_4_2
+  label _before_4_3
+  label _before_4_4
+  label _before_4_5
+  label _before_4_6
+  label package_post8
+  goto end
+  label bb_5
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$div_euclid(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_2p), write)
+  ensures inhabited(s_Int_i64_type()) && acc(p_Int_i64(_0p), write)
+
+
+method m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$rem_euclid(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_2p), write)
+  ensures inhabited(s_Int_i64_type()) && acc(p_Int_i64(_0p), write)
+
+
+method m_signed_duration$col$$col$prusti_corpus_small_to_f64(_0p: Ref, _1p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Float_f64_type()
+  s_Int_i64_type()
+  Unknown_type(id: Int)
+}

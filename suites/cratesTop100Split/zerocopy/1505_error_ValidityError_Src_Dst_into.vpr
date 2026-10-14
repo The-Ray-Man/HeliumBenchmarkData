@@ -1,0 +1,536 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_error$col$$col$ValidityError  {
+  
+  axiom s_Param_typ_def_make_generic_s_error$col$$col$ValidityError {
+    (forall x: s_error$col$$col$ValidityError, Src$0: Type, Dst$1: Type ::
+      { make_generic_s_error$col$$col$ValidityError(x, Src$0, Dst$1) }
+      s_Param_typ(make_generic_s_error$col$$col$ValidityError(x, Src$0, Dst$1)) ==
+      s_error$col$$col$ValidityError_type(Src$0, Dst$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_error$col$$col$ValidityError {
+    (forall p: s_Param ::
+      { p.make_concrete_s_error$col$$col$ValidityError, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_error$col$$col$ValidityError_type(s_Param_typ(p).s_error$col$$col$ValidityError_typaram_Src$0, s_Param_typ(p).s_error$col$$col$ValidityError_typaram_Dst$1) ==>
+      make_generic_s_error$col$$col$ValidityError(p.make_concrete_s_error$col$$col$ValidityError, s_Param_typ(p).s_error$col$$col$ValidityError_typaram_Src$0, s_Param_typ(p).s_error$col$$col$ValidityError_typaram_Dst$1) ==
+      p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_error$col$$col$ConvertError {
+    (forall A$0: Type, S$1: Type, V$2: Type ::
+      { inhabited(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)) }
+      inhabited(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)) ==
+      (inhabited(A$0) || (inhabited(S$1) || inhabited(V$2))))
+  }
+  
+  axiom inhabited_error$col$$col$ValidityError {
+    (forall Src$0: Type, Dst$1: Type ::
+      { inhabited(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) }
+      inhabited(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) ==
+      (inhabited(Src$0) &&
+      inhabited(s_util$col$$col$SendSyncPhantomData_type(Dst$1))))
+  }
+  
+  axiom inhabited_util$col$$col$SendSyncPhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_util$col$$col$SendSyncPhantomData_type(T$0)) }
+      inhabited(s_util$col$$col$SendSyncPhantomData_type(T$0)) ==
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_TryFromBytes  {
+  
+  function TryFromBytes_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_error$col$$col$ConvertError  {
+  
+  axiom s_error$col$$col$ConvertError_Sized {
+    (forall A$0: Type, S$1: Type, V$2: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)))
+  }
+  
+  axiom s_error$col$$col$ConvertError_MetaSized {
+    (forall A$0: Type, S$1: Type, V$2: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_error$col$$col$ConvertError_type(A$0, S$1, V$2)))
+  }
+}
+
+domain sizedness_error$col$$col$ValidityError  {
+  
+  axiom s_error$col$$col$ValidityError_Sized {
+    (forall Src$0: Type, Dst$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_error$col$$col$ValidityError_type(Src$0, Dst$1)))
+  }
+  
+  axiom s_error$col$$col$ValidityError_MetaSized {
+    (forall Src$0: Type, Dst$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_error$col$$col$ValidityError_type(Src$0, Dst$1)))
+  }
+}
+
+domain sizedness_util$col$$col$SendSyncPhantomData  {
+  
+  axiom s_util$col$$col$SendSyncPhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_util$col$$col$SendSyncPhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_util$col$$col$SendSyncPhantomData_type(T$0)))
+  }
+  
+  axiom s_util$col$$col$SendSyncPhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_util$col$$col$SendSyncPhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_util$col$$col$SendSyncPhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_TryFromBytes_impl_zerocopy_Int_isize_1306_condition  {
+  
+  axiom TryFromBytes_impl_zerocopy_Int_isize_1306_condition {
+    TryFromBytes_impl(s_Int_isize_type())
+  }
+}
+
+domain trait_TryFromBytes_impl_zerocopy_core$col$$col$marker$col$$col$PhantomData_1705_condition  {
+  
+  axiom TryFromBytes_impl_zerocopy_core$col$$col$marker$col$$col$PhantomData_1705_condition {
+    (forall T$0: Type ::
+      { TryFromBytes_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      TryFromBytes_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+function s_error$col$$col$ConvertError_unreachable(A$0: Type, S$1: Type, V$2: Type): s_error$col$$col$ConvertError
+  ensures false
+
+
+function s_error$col$$col$ConvertError_0_field_0(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$ConvertError_1_field_0(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$ConvertError_2_field_0(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$ConvertError_discr(self: s_error$col$$col$ConvertError): s_Int_isize
+{
+  (self.iss_error$col$$col$ConvertError_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_error$col$$col$ConvertError_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_error$col$$col$ValidityError_unreachable(Src$0: Type, Dst$1: Type): s_error$col$$col$ValidityError
+  ensures false
+
+
+function s_error$col$$col$ValidityError_field_0(self: Ref, Src$0: Type, Dst$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$ValidityError_field_1(self: Ref, Src$0: Type, Dst$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_util$col$$col$SendSyncPhantomData_unreachable(T$0: Type): s_util$col$$col$SendSyncPhantomData
+  ensures false
+
+
+function s_util$col$$col$SendSyncPhantomData_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function p_error$col$$col$ConvertError_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_error$col$$col$ConvertError_snap(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type): s_error$col$$col$ConvertError
+  requires acc(p_error$col$$col$ConvertError(self, A$0, S$1, V$2), write)
+{
+  (unfolding acc(p_error$col$$col$ConvertError(self, A$0, S$1, V$2), write) in
+    (p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_error$col$$col$ConvertError_2_owned(self, A$0, S$1, V$2), write) in
+        s_error$col$$col$ConvertError_2_cons(p_Param_snap(s_error$col$$col$ConvertError_2_field_0(self,
+        A$0, S$1, V$2), V$2))) :
+      (p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_error$col$$col$ConvertError_1_owned(self, A$0, S$1,
+          V$2), write) in
+          s_error$col$$col$ConvertError_1_cons(p_Param_snap(s_error$col$$col$ConvertError_1_field_0(self,
+          A$0, S$1, V$2), S$1))) :
+        (p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_error$col$$col$ConvertError_0_owned(self, A$0, S$1,
+            V$2), write) in
+            s_error$col$$col$ConvertError_0_cons(p_Param_snap(s_error$col$$col$ConvertError_0_field_0(self,
+            A$0, S$1, V$2), A$0))) :
+          s_error$col$$col$ConvertError_unreachable(A$0, S$1, V$2)))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_error$col$$col$ValidityError_snap(self: Ref, Src$0: Type, Dst$1: Type): s_error$col$$col$ValidityError
+  requires acc(p_error$col$$col$ValidityError(self, Src$0, Dst$1), write)
+{
+  (unfolding acc(p_error$col$$col$ValidityError(self, Src$0, Dst$1), write) in
+    s_error$col$$col$ValidityError_cons(p_Param_snap(s_error$col$$col$ValidityError_field_0(self,
+    Src$0, Dst$1), Src$0), p_util$col$$col$SendSyncPhantomData_snap(s_error$col$$col$ValidityError_field_1(self,
+    Src$0, Dst$1), Dst$1)))
+}
+
+function p_util$col$$col$SendSyncPhantomData_snap(self: Ref, T$0: Type): s_util$col$$col$SendSyncPhantomData
+  requires acc(p_util$col$$col$SendSyncPhantomData(self, T$0), write)
+{
+  (unfolding acc(p_util$col$$col$SendSyncPhantomData(self, T$0), write) in
+    s_util$col$$col$SendSyncPhantomData_cons(p_core$col$$col$marker$col$$col$PhantomData_snap(s_util$col$$col$SendSyncPhantomData_field_0(self,
+    T$0), T$0)))
+}
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+predicate p_error$col$$col$ConvertError_0_owned(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type) {
+  inhabited(A$0) &&
+  acc(p_Param(s_error$col$$col$ConvertError_0_field_0(self, A$0, S$1, V$2),
+  A$0), write)
+}
+
+predicate p_error$col$$col$ConvertError_1_owned(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type) {
+  inhabited(S$1) &&
+  acc(p_Param(s_error$col$$col$ConvertError_1_field_0(self, A$0, S$1, V$2),
+  S$1), write)
+}
+
+predicate p_error$col$$col$ConvertError_2_owned(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type) {
+  inhabited(V$2) &&
+  acc(p_Param(s_error$col$$col$ConvertError_2_field_0(self, A$0, S$1, V$2),
+  V$2), write)
+}
+
+predicate p_error$col$$col$ConvertError(self: Ref, A$0: Type, S$1: Type, V$2: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_error$col$$col$ConvertError_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  inhabited(A$0) &&
+  acc(p_error$col$$col$ConvertError_0_owned(self, A$0, S$1, V$2), write)) &&
+  ((p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(S$1) &&
+  acc(p_error$col$$col$ConvertError_1_owned(self, A$0, S$1, V$2), write)) &&
+  (p_Int_isize_snap(p_error$col$$col$ConvertError_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  inhabited(V$2) &&
+  acc(p_error$col$$col$ConvertError_2_owned(self, A$0, S$1, V$2), write)))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_error$col$$col$ValidityError(self: Ref, Src$0: Type, Dst$1: Type) {
+  inhabited(Src$0) &&
+  acc(p_Param(s_error$col$$col$ValidityError_field_0(self, Src$0, Dst$1), Src$0), write) &&
+  (inhabited(s_util$col$$col$SendSyncPhantomData_type(Dst$1)) &&
+  acc(p_util$col$$col$SendSyncPhantomData(s_error$col$$col$ValidityError_field_1(self,
+  Src$0, Dst$1), Dst$1), write))
+}
+
+predicate p_util$col$$col$SendSyncPhantomData(self: Ref, T$0: Type) {
+  inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_util$col$$col$SendSyncPhantomData_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+method m_error$col$$col$ValidityError$col$$col$$lt$Src$com$$sp$Dst$gt$$col$$col$into(_0p: Ref,
+  _1p: Ref, Src$0: Type, Dst$1: Type, A$2: Type, S$3: Type)
+  requires inhabited(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) &&
+    acc(p_error$col$$col$ValidityError(_1p, Src$0, Dst$1), write)
+  ensures inhabited(s_error$col$$col$ConvertError_type(A$2, S$3, s_error$col$$col$ValidityError_type(Src$0, Dst$1))) &&
+    acc(p_error$col$$col$ConvertError(_0p, A$2, S$3, s_error$col$$col$ValidityError_type(Src$0, Dst$1)), write)
+{
+  var _2p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_error$col$$col$ValidityError
+  var _tmp1: s_error$col$$col$ValidityError
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(S$3)
+  inhale core$col$$col$marker$col$$col$Sized_impl(A$2)
+  inhale TryFromBytes_impl(Dst$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(Dst$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Src$0)
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_error$col$$col$ValidityError_snap(_1p, Src$0, Dst$1)
+  exhale inhabited(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) &&
+    acc(p_error$col$$col$ValidityError(_1p, Src$0, Dst$1), write)
+  p_error$col$$col$ValidityError_assign(_2p, Src$0, Dst$1, _tmp0)
+  label _before_0_2
+  _tmp1 := p_error$col$$col$ValidityError_snap(_2p, Src$0, Dst$1)
+  exhale inhabited(s_error$col$$col$ValidityError_type(Src$0, Dst$1)) &&
+    acc(p_error$col$$col$ValidityError(_2p, Src$0, Dst$1), write)
+  p_error$col$$col$ConvertError_assign(_0p, A$2, S$3, s_error$col$$col$ValidityError_type(Src$0, Dst$1),
+    s_error$col$$col$ConvertError_2_cons(make_generic_s_error$col$$col$ValidityError(_tmp1, Src$0, Dst$1)))
+  label _before_0_3
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label package_post0
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_error$col$$col$ValidityError(self: Ref, Src$0: Type, Dst$1: Type)
+  requires acc(p_error$col$$col$ValidityError(self, Src$0, Dst$1), write)
+  ensures acc(p_Param(self, s_error$col$$col$ValidityError_type(Src$0, Dst$1)), write)
+  ensures old(make_generic_s_error$col$$col$ValidityError(p_error$col$$col$ValidityError_snap(self,
+    Src$0, Dst$1), Src$0, Dst$1)) ==
+    p_Param_snap(self, s_error$col$$col$ValidityError_type(Src$0, Dst$1))
+
+
+method make_concrete_error$col$$col$ValidityError(self: Ref, Src$0: Type, Dst$1: Type)
+  requires acc(p_Param(self, s_error$col$$col$ValidityError_type(Src$0, Dst$1)), write)
+  ensures acc(p_error$col$$col$ValidityError(self, Src$0, Dst$1), write)
+  ensures old(p_Param_snap(self, s_error$col$$col$ValidityError_type(Src$0, Dst$1))) ==
+    make_generic_s_error$col$$col$ValidityError(p_error$col$$col$ValidityError_snap(self,
+    Src$0, Dst$1), Src$0, Dst$1)
+
+
+method p_error$col$$col$ConvertError_assign(self: Ref, A$0: Type, S$1: Type,
+  V$2: Type, value: s_error$col$$col$ConvertError)
+  ensures acc(p_error$col$$col$ConvertError(self, A$0, S$1, V$2), write)
+  ensures p_error$col$$col$ConvertError_snap(self, A$0, S$1, V$2) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_error$col$$col$ValidityError_assign(self: Ref, Src$0: Type, Dst$1: Type,
+  value: s_error$col$$col$ValidityError)
+  ensures acc(p_error$col$$col$ValidityError(self, Src$0, Dst$1), write)
+  ensures p_error$col$$col$ValidityError_snap(self, Src$0, Dst$1) == value
+
+
+method p_util$col$$col$SendSyncPhantomData_assign(self: Ref, T$0: Type, value: s_util$col$$col$SendSyncPhantomData)
+  ensures acc(p_util$col$$col$SendSyncPhantomData(self, T$0), write)
+  ensures p_util$col$$col$SendSyncPhantomData_snap(self, T$0) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+adt s_Param {
+  make_generic_s_error$col$$col$ValidityError(make_concrete_s_error$col$$col$ValidityError: s_error$col$$col$ValidityError,
+  make_generic_s_error$col$$col$ValidityError_typaram_Src$0: Type, make_generic_s_error$col$$col$ValidityError_typaram_Dst$1: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_error$col$$col$ConvertError {
+  s_error$col$$col$ConvertError_0_cons(s_error$col$$col$ConvertError_0_0: s_Param)
+  s_error$col$$col$ConvertError_1_cons(s_error$col$$col$ConvertError_1_0: s_Param)
+  s_error$col$$col$ConvertError_2_cons(s_error$col$$col$ConvertError_2_0: s_Param)
+}
+
+adt s_error$col$$col$ValidityError {
+  s_error$col$$col$ValidityError_cons(s_error$col$$col$ValidityError_0: s_Param,
+  s_error$col$$col$ValidityError_1: s_util$col$$col$SendSyncPhantomData)
+}
+
+adt s_util$col$$col$SendSyncPhantomData {
+  s_util$col$$col$SendSyncPhantomData_cons(s_util$col$$col$SendSyncPhantomData_0: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_error$col$$col$ConvertError_type(s_error$col$$col$ConvertError_typaram_A$0: Type,
+  s_error$col$$col$ConvertError_typaram_S$1: Type, s_error$col$$col$ConvertError_typaram_V$2: Type)
+  s_error$col$$col$ValidityError_type(s_error$col$$col$ValidityError_typaram_Src$0: Type,
+  s_error$col$$col$ValidityError_typaram_Dst$1: Type)
+  s_util$col$$col$SendSyncPhantomData_type(s_util$col$$col$SendSyncPhantomData_typaram_T$0: Type)
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  Unknown_type(id: Int)
+}

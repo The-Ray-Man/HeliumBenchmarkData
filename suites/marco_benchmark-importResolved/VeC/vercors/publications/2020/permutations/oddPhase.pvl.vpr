@@ -1,0 +1,1835 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+domain void  {
+  
+  function unit(): void 
+  
+  axiom {
+    (forall v: void ::true ==> unit() == v)
+  }
+}
+
+domain array  {
+  
+  function array_loc(a: array, i: Int): Ref 
+  
+  function alen(a: array): Int 
+  
+  function loc_inv_1(loc: Ref): array 
+  
+  function loc_inv_2(loc: Ref): Int 
+  
+  axiom {
+    (forall a: array, i: Int ::
+      { array_loc(a, i) }
+      loc_inv_1(array_loc(a, i)) == a && loc_inv_2(array_loc(a, i)) == i)
+  }
+  
+  axiom {
+    (forall a: array :: { alen(a) } alen(a) >= 0)
+  }
+}
+
+domain any  {
+  
+  
+}
+
+domain option[T1]  {
+  
+  function None(): option[T1] 
+  
+  function some(x: T1): option[T1] 
+  
+  function option_get(opt: option[T1]): T1 
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (None(): option[T1]) != (some(x): option[T1]))
+  }
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (option_get((some(x): option[T1])): T1) == x)
+  }
+  
+  axiom {
+    (forall opt: option[T1] ::
+      { (some((option_get(opt): T1)): option[T1]) }
+      (some((option_get(opt): T1)): option[T1]) == opt)
+  }
+}
+
+field int: Int
+
+field bool: Bool
+
+field inp_seq_cur: Seq[Int]
+
+field inp_seq_all: Seq[Seq[Int]]
+
+function counter(ys: Seq[Int], element: Int): Int
+  ensures 0 <= result
+  ensures (forall j: Int ::0 <= j && j < |ys| ==> element != ys[j]) ==>
+    result == 0
+  ensures result == 0 ==>
+    (forall j: Int ::0 <= j && j < |ys| ==> element != ys[j])
+  ensures (forall j: Int ::0 <= j && j < |ys| ==> element == ys[j]) ==>
+    result == |ys|
+  ensures result == |ys| ==>
+    (forall j: Int ::0 <= j && j < |ys| ==> element == ys[j])
+  ensures result <= |ys|
+  ensures (element in ys) ==> 0 < result
+  ensures 0 < result ==> (element in ys)
+{
+  (0 < |ys| ?
+    (ys[0] == element ?
+      1 + counter(ys[1..], element) :
+      counter(ys[1..], element)) :
+    0)
+}
+
+function swap(xs: Seq[Int], i: Int, j: Int, k: Int): Seq[Int]
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires 0 <= k
+  requires k < |xs| + 1
+  ensures |result| == |xs| - k
+  ensures j < k ==>
+    (forall l: Int ::0 <= l && l < |result| ==> result[l] == xs[l + k])
+  ensures j <= k ==>
+    (forall l: Int ::0 <= l && l < |result| && l + k != j ==>
+      result[l] == xs[l + k])
+  ensures j <= k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures i < k ==>
+    (forall l: Int ::0 <= l && l < |result| && l + k != j ==>
+      result[l] == xs[l + k])
+  ensures i < k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures i <= k ==>
+    (forall l: Int ::0 <= l && l < |result| && (l + k != i && l + k != j) ==>
+      result[l] == xs[l + k])
+  ensures i <= k && (0 <= i - k && i - k < |result|) ==>
+    result[i - k] == xs[j]
+  ensures i <= k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures (forall l: Int ::0 <= l && l < |result| &&
+      (l + k != i && l + k != j) ==>
+      result[l] == xs[l + k])
+  ensures 0 <= i - k && i - k < |result| ==> result[i - k] == xs[j]
+  ensures 0 <= j - k && j - k < |result| ==> result[j - k] == xs[i]
+{
+  (k < |xs| ?
+    (k == i ?
+      Seq(xs[j]) ++ swap(xs, i, j, k + 1) :
+      (k == j ?
+        Seq(xs[i]) ++ swap(xs, i, j, k + 1) :
+        Seq(xs[k]) ++ swap(xs, i, j, k + 1))) :
+    Seq[Int]())
+}
+
+function isApermutation(xs: Seq[Int], ys: Seq[Int]): Bool
+{
+  |xs| == |ys| &&
+  (forall l: Int ::0 <= l && l < |xs| ==>
+    counter(xs, xs[l]) == counter(ys, xs[l]))
+}
+
+function property1(xs: Seq[Int], ys: Seq[Int]): Bool
+  requires |xs| == |ys|
+{
+  (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| &&
+    ys[2 * i + 1] <= ys[2 * (i + 1)] ==>
+    xs[2 * i + 1] == ys[2 * i + 1]) &&
+  (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| &&
+    ys[2 * i + 1] <= ys[2 * (i + 1)] ==>
+    xs[2 * (i + 1)] == ys[2 * (i + 1)])
+}
+
+function property2(xs: Seq[Int], ys: Seq[Int]): Bool
+  requires |xs| == |ys|
+{
+  (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| ==>
+    ys[2 * i + 1] <= ys[2 * (i + 1)]) ==>
+  (forall i: Int ::0 <= i && i < |ys| ==> xs[i] == ys[i])
+}
+
+function aloc(a: array, i: Int): Ref
+  requires 0 <= i
+  requires i < alen(a)
+  decreases 
+  ensures loc_inv_1(result) == a
+  ensures loc_inv_2(result) == i
+{
+  array_loc(a, i)
+}
+
+function any_as(t: any): any
+  decreases 
+
+
+function as_any(t: any): any
+  decreases 
+  ensures any_as(result) == t
+
+
+function opt_get(opt: option[any]): any
+  requires opt != (None(): option[any])
+  decreases 
+  ensures (some(result): option[any]) == opt
+{
+  (option_get(opt): any)
+}
+
+function opt_or_else(opt: option[any], alt: any): any
+  decreases 
+  ensures opt == (None(): option[any]) ==> result == alt
+  ensures opt != (None(): option[any]) ==> result == opt_get(opt)
+{
+  (opt == (None(): option[any]) ? alt : opt_get(opt))
+}
+
+function opt_get1(opt: option[array]): array
+  requires opt != (None(): option[array])
+  decreases 
+  ensures (some(result): option[array]) == opt
+{
+  (option_get(opt): array)
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+method check_sat_counter()
+{
+  assert false
+}
+
+method check_sat_swap(j: Int, xs: Seq[Int], k: Int, i: Int)
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires 0 <= k
+  requires k < |xs| + 1
+{
+  assert false
+}
+
+method check_sat_isApermutation()
+{
+  assert false
+}
+
+method check_sat_property1(xs: Seq[Int], ys: Seq[Int])
+  requires |xs| == |ys|
+{
+  assert false
+}
+
+method check_sat_property2(xs: Seq[Int], ys: Seq[Int])
+  requires |xs| == |ys|
+{
+  assert false
+}
+
+method check_sat_OddPhase()
+{
+  assert false
+}
+
+method OddPhase(tid: Int) returns (res: Ref)
+  ensures acc(res.inp_seq_cur, write)
+  ensures acc(res.inp_seq_all, write)
+{
+  var exc: Ref
+  var return: Ref
+  var OddPhase1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new(inp_seq_cur, inp_seq_all)
+  inhale type(flatten) == 1
+  OddPhase1 := flatten
+  return := OddPhase1
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_concat(xs: Seq[Int], ys: Seq[Int], this: Ref)
+  requires this != null
+  requires |xs| == |ys|
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * i + 1 < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| ==>
+      ys[2 * i + 1] <= ys[2 * (i + 1)])
+  requires (forall i: Int ::0 <= i && i < |xs| ==> xs[i] == ys[i])
+{
+  assert false
+}
+
+method lemma_concat(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int])
+  returns (res: void)
+  requires this != null
+  requires |xs| == |ys|
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * i + 1 < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| ==>
+      ys[2 * i + 1] <= ys[2 * (i + 1)])
+  requires (forall i: Int ::0 <= i && i < |xs| ==> xs[i] == ys[i])
+  ensures (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| ==>
+      ys[2 * i] <= ys[2 * i + 1])
+  ensures (forall i: Int ::0 <= i && i < |ys| / 2 && 2 * (i + 1) < |ys| ==>
+      ys[2 * i + 1] <= ys[2 * (i + 1)])
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_odd_helper(xs: Seq[Int], i: Int, this: Ref)
+  requires this != null
+  requires |xs| % 2 == 1
+  requires 0 <= i
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+{
+  assert false
+}
+
+method lemma_odd_helper(this: Ref, tid: Int, xs: Seq[Int], i: Int)
+  returns (res: void)
+  requires this != null
+  requires |xs| % 2 == 1
+  requires 0 <= i
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+  ensures 2 * (i + 1) < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  ensures 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+  ensures 2 * (i + 1) < |xs| ==> xs[2 * i] <= xs[2 * (i + 1)]
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_odd(this: Ref, xs: Seq[Int])
+  requires this != null
+  requires |xs| % 2 == 1
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i + 1] <= xs[2 * (i + 1)])
+{
+  assert false
+}
+
+method lemma_odd(this: Ref, tid: Int, xs: Seq[Int]) returns (res: void)
+  requires this != null
+  requires |xs| % 2 == 1
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i + 1] <= xs[2 * (i + 1)])
+  ensures (forall i: Int ::0 <= i && i < |xs| - 1 ==> xs[i] <= xs[i + 1])
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs| / 2)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| / 2 + 1
+    invariant (forall t: Int ::0 <= t && t < 2 * k ==> xs[t] <= xs[t + 1]) 
+  {
+    res1 := lemma_odd_helper(this, tid, xs, k)
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_even_helper(xs: Seq[Int], i: Int, this: Ref)
+  requires this != null
+  requires |xs| % 2 == 0
+  requires 0 <= i
+  requires 2 * i + 1 < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+{
+  assert false
+}
+
+method lemma_even_helper(this: Ref, tid: Int, xs: Seq[Int], i: Int)
+  returns (res: void)
+  requires this != null
+  requires |xs| % 2 == 0
+  requires 0 <= i
+  requires 2 * i + 1 < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  requires 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+  ensures 2 * i + 1 < |xs| ==> xs[2 * i] <= xs[2 * i + 1]
+  ensures 2 * (i + 1) < |xs| ==> xs[2 * i + 1] <= xs[2 * (i + 1)]
+  ensures 2 * (i + 1) < |xs| ==> xs[2 * i] <= xs[2 * (i + 1)]
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_even(this: Ref, xs: Seq[Int])
+  requires this != null
+  requires |xs| % 2 == 0
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * i + 1 < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i + 1] <= xs[2 * (i + 1)])
+{
+  assert false
+}
+
+method lemma_even(this: Ref, tid: Int, xs: Seq[Int]) returns (res: void)
+  requires this != null
+  requires |xs| % 2 == 0
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * i + 1 < |xs| ==>
+      xs[2 * i] <= xs[2 * i + 1])
+  requires (forall i: Int ::0 <= i && i < |xs| / 2 && 2 * (i + 1) < |xs| ==>
+      xs[2 * i + 1] <= xs[2 * (i + 1)])
+  ensures (forall i: Int ::0 <= i && i < |xs| - 1 ==> xs[i] <= xs[i + 1])
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs| / 2)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| / 2 + 1
+    invariant k <= |xs| / 2 - 1 ==>
+      (forall t: Int ::0 <= t && t < 2 * k ==> xs[t] <= xs[t + 1])
+    invariant |xs| / 2 - 1 < k ==>
+      (forall t: Int ::0 <= t && t < 2 * k - 1 ==> xs[t] <= xs[t + 1]) 
+  {
+    res1 := lemma_even_helper(this, tid, xs, k)
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_swap_seq_eq(xs: Seq[Int], i: Int, j: Int, this: Ref)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+{
+  assert false
+}
+
+method lemma_swap_seq_eq(this: Ref, tid: Int, xs: Seq[Int], i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  ensures swap(xs, i, j, 0) == xs[i := xs[j]][j := xs[i]]
+  ensures xs[i := xs[j]][j := xs[i]] == swap(xs, i, j, 0)
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_count_empty(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_empty(this: Ref, tid: Int, i: Int) returns (res: void)
+  requires this != null
+  ensures counter(Seq[Int](), i) == 0
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_count_single(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_single(this: Ref, tid: Int, i: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  ensures i == element ==> counter(Seq(i), element) == 1
+  ensures i != element ==> counter(Seq(i), element) == 0
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_count_app(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int], element: Int)
+  returns (res: void)
+  requires this != null
+  ensures |xs| == 0 ==> counter(xs ++ ys, element) == counter(ys, element)
+  ensures |ys| == 0 ==> counter(xs ++ ys, element) == counter(xs, element)
+  ensures |xs ++ ys| == |xs| + |ys|
+  ensures counter(xs[1..] ++ ys, element) ==
+    counter(xs[1..], element) + counter(ys, element)
+  ensures counter(xs ++ ys, element) ==
+    counter(xs, element) + counter(ys, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  exc := null
+  if (0 < |xs|) {
+    res1 := lemma_count_app(this, tid, xs[1..], ys, element)
+    assert xs[1..] ++ ys == xs ++ ys[1..]
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_count_app_all(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app_all(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int])
+  returns (res: void)
+  requires this != null
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs ++ ys, xs[l]) == counter(xs, xs[l]) + counter(ys, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs|)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| + 1
+    invariant (forall l: Int ::0 <= l && l < k ==>
+        counter(xs ++ ys, xs[l]) == counter(xs, xs[l]) + counter(ys, xs[l])) 
+  {
+    res1 := lemma_count_app(this, tid, xs, ys, xs[k])
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_count_app_ext(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app_ext(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int], rs: Seq[Int], zs: Seq[Int], element: Int)
+  returns (res: void)
+  requires this != null
+  ensures counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs, element) + counter(ys, element) + counter(ts, element) +
+    counter(rs, element) +
+    counter(zs, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  var res3: void
+  var res4: void
+  exc := null
+  res1 := lemma_count_app(this, tid, xs ++ ys ++ ts ++ rs, zs, element)
+  assert counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs ++ ys ++ ts ++ rs, element) + counter(zs, element)
+  res2 := lemma_count_app(this, tid, xs ++ ys ++ ts, rs, element)
+  assert counter(xs ++ ys ++ ts ++ rs, element) ==
+    counter(xs ++ ys ++ ts, element) + counter(rs, element)
+  res3 := lemma_count_app(this, tid, xs ++ ys, ts, element)
+  assert counter(xs ++ ys ++ ts, element) ==
+    counter(xs ++ ys, element) + counter(ts, element)
+  res4 := lemma_count_app(this, tid, xs, ys, element)
+  assert counter(xs ++ ys, element) ==
+    counter(xs, element) + counter(ys, element)
+  assert counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs, element) + counter(ys, element) + counter(ts, element) +
+    counter(rs, element) +
+    counter(zs, element)
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_helper(xs: Seq[Int], i: Int, j: Int,
+  this: Ref)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+{
+  assert false
+}
+
+method lemma_swap_permutation_helper(this: Ref, tid: Int, xs: Seq[Int], i: Int,
+  j: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  ensures xs ==
+    xs[0..i] ++ Seq(xs[i]) ++ xs[i + 1..j] ++ Seq(xs[j]) ++ xs[j + 1..|xs|]
+  ensures counter(xs, element) ==
+    counter(xs[0..i] ++ Seq(xs[i]) ++ xs[i + 1..j] ++ Seq(xs[j]) ++
+    xs[j + 1..|xs|], element)
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation(j: Int, this: Ref, ys: Seq[Int], xs: Seq[Int],
+  i: Int)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires ys == swap(xs, i, j, 0)
+{
+  assert false
+}
+
+method lemma_swap_permutation(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  i: Int, j: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires ys == swap(xs, i, j, 0)
+  ensures counter(xs, element) == counter(ys, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  var res3: void
+  var res4: void
+  var res5: void
+  exc := null
+  assert (forall l: Int ::0 <= l && l < |ys| && (l != i && l != j) ==>
+      swap(xs, i, j, 0)[l] == xs[l])
+  assert (forall l: Int ::(0 <= i && i < |ys| ? i : 0) <= l &&
+      l < (0 <= i && i < |ys| ? i + 1 : 0) ==>
+      swap(xs, i, j, 0)[l] == xs[j]) &&
+    (forall l: Int ::(0 <= j && j < |ys| ? j : 0) <= l &&
+      l < (0 <= j && j < |ys| ? j + 1 : 0) ==>
+      ys[l] == xs[i])
+  assert ys ==
+    xs[0..i] ++ Seq(xs[j]) ++ xs[i + 1..j] ++ Seq(xs[i]) ++ xs[j + 1..|xs|]
+  assert counter(ys, element) ==
+    counter(xs[0..i] ++ Seq(xs[j]) ++ xs[i + 1..j] ++ Seq(xs[i]) ++
+    xs[j + 1..|xs|], element)
+  res1 := lemma_count_app_ext(this, tid, xs[0..i], Seq(xs[j]), xs[i + 1..j],
+    Seq(xs[i]), xs[j + 1..|xs|], element)
+  assert counter(ys, element) ==
+    counter(xs[0..i], element) + counter(Seq(xs[j]), element) +
+    counter(xs[i + 1..j], element) +
+    counter(Seq(xs[i]), element) +
+    counter(xs[j + 1..|xs|], element)
+  res2 := lemma_count_single(this, tid, i, element)
+  res3 := lemma_count_single(this, tid, j, element)
+  res4 := lemma_swap_permutation_helper(this, tid, xs, i, j, element)
+  res5 := lemma_count_app_ext(this, tid, xs[0..i], Seq(xs[i]), xs[i + 1..j],
+    Seq(xs[j]), xs[j + 1..|xs|], element)
+  assert counter(xs, element) ==
+    counter(xs[0..i], element) + counter(Seq(xs[i]), element) +
+    counter(xs[i + 1..j], element) +
+    counter(Seq(xs[j]), element) +
+    counter(xs[j + 1..|xs|], element)
+  assert counter(xs, element) == counter(ys, element)
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_all(j: Int, this: Ref, ys: Seq[Int],
+  xs: Seq[Int], i: Int)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires ys == swap(xs, i, j, 0)
+{
+  assert false
+}
+
+method lemma_swap_permutation_all(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires ys == swap(xs, i, j, 0)
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs|)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| + 1
+    invariant (forall l: Int ::0 <= l && l < k ==>
+        counter(xs, xs[l]) == counter(ys, xs[l])) 
+  {
+    res1 := lemma_swap_permutation(this, tid, xs, ys, i, j, xs[k])
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_trans(ys: Seq[Int], xs: Seq[Int], ts: Seq[Int],
+  this: Ref)
+  requires this != null
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(ys, ys[l]) == counter(ts, ys[l]))
+{
+  assert false
+}
+
+method lemma_swap_permutation_trans(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int])
+  returns (res: void)
+  requires this != null
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(ys, ys[l]) == counter(ts, ys[l]))
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ts, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_permutation_apply(ys: Seq[Int], this: Ref, j: Int, ts: Seq[Int],
+  i: Int, xs: Seq[Int])
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires ts == swap(ys, i, j, 0)
+{
+  assert false
+}
+
+method lemma_permutation_apply(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int], i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires ts == swap(ys, i, j, 0)
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ts, xs[l]))
+  ensures swap(ys, i, j, 0) == ys[i := ys[j]][j := ys[i]]
+  ensures ys[i := ys[j]][j := ys[i]] == swap(ys, i, j, 0)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  exc := null
+  res1 := lemma_swap_permutation_all(this, tid, ys, ts, i, j)
+  res2 := lemma_swap_permutation_trans(this, tid, xs, ys, ts)
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_odd_kernel(contrib: option[array], this: Ref, loopCounter: option[array],
+  isSorted: option[array], input: option[array])
+  requires this != null
+  requires input != (None(): option[array])
+  requires isSorted != (None(): option[array])
+  requires contrib != (None(): option[array])
+  requires loopCounter != (None(): option[array])
+  requires 0 < alen(opt_get1(input))
+  requires alen(opt_get1(isSorted)) == 1
+  requires alen(opt_get1(loopCounter)) == 1
+  requires alen(opt_get1(contrib)) == alen(opt_get1(input))
+  requires acc(this.inp_seq_all, 1 * write)
+  requires acc(aloc(opt_get1(loopCounter), 0).int, write)
+  requires 0 <= aloc(opt_get1(loopCounter), 0).int
+  requires |this.inp_seq_all| == aloc(opt_get1(loopCounter), 0).int + 2
+  requires (forall i: Int ::0 <= i &&
+      i < aloc(opt_get1(loopCounter), 0).int + 2 ==>
+      alen(opt_get1(input)) == |this.inp_seq_all[i]|)
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < alen(opt_get1(contrib)) ==>
+      acc(aloc(opt_get1(contrib), i).int, write))
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < 2 * (alen(opt_get1(contrib)) / 2) && i % 2 == 0 &&
+      i < alen(opt_get1(contrib)) ==>
+      aloc(opt_get1(contrib), i).int == 1)
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(contrib)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2) < alen(opt_get1(contrib)) - 1 ==>
+      aloc(opt_get1(contrib), i).int == 0)
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      acc(aloc(opt_get1(input), i).int, write))
+  requires acc(aloc(opt_get1(isSorted), 0).bool, 1 * write)
+  requires acc(this.inp_seq_cur, 1 * write)
+  requires |this.inp_seq_cur| == alen(opt_get1(input))
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      aloc(opt_get1(input), i).int == this.inp_seq_cur[i])
+  requires (forall i: Int ::0 <= i && i < |this.inp_seq_cur| ==>
+      this.inp_seq_cur[i] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][i])
+  requires (exists i: Int :: 0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| / 2 &&
+      2 * i + 1 < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i + 1] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i]) ==>
+    !aloc(opt_get1(isSorted), 0).bool
+  requires aloc(opt_get1(isSorted), 0).bool ==>
+    (forall j: Int ::0 <= j && j < |this.inp_seq_cur| ==>
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][j] ==
+      this.inp_seq_cur[j])
+  requires isApermutation(this.inp_seq_all[0], this.inp_seq_cur)
+{
+  assert false
+}
+
+method odd_kernel(this: Ref, tid: Int, input: option[array], isSorted: option[array],
+  contrib: option[array], loopCounter: option[array])
+  returns (res: void)
+  requires this != null
+  requires input != (None(): option[array])
+  requires isSorted != (None(): option[array])
+  requires contrib != (None(): option[array])
+  requires loopCounter != (None(): option[array])
+  requires 0 < alen(opt_get1(input))
+  requires alen(opt_get1(isSorted)) == 1
+  requires alen(opt_get1(loopCounter)) == 1
+  requires alen(opt_get1(contrib)) == alen(opt_get1(input))
+  requires acc(this.inp_seq_all, 1 * write)
+  requires acc(aloc(opt_get1(loopCounter), 0).int, write)
+  requires 0 <= aloc(opt_get1(loopCounter), 0).int
+  requires |this.inp_seq_all| == aloc(opt_get1(loopCounter), 0).int + 2
+  requires (forall i: Int ::0 <= i &&
+      i < aloc(opt_get1(loopCounter), 0).int + 2 ==>
+      alen(opt_get1(input)) == |this.inp_seq_all[i]|)
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < alen(opt_get1(contrib)) ==>
+      acc(aloc(opt_get1(contrib), i).int, write))
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < 2 * (alen(opt_get1(contrib)) / 2) && i % 2 == 0 &&
+      i < alen(opt_get1(contrib)) ==>
+      aloc(opt_get1(contrib), i).int == 1)
+  requires (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(contrib)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2) < alen(opt_get1(contrib)) - 1 ==>
+      aloc(opt_get1(contrib), i).int == 0)
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      acc(aloc(opt_get1(input), i).int, write))
+  requires acc(aloc(opt_get1(isSorted), 0).bool, 1 * write)
+  requires acc(this.inp_seq_cur, 1 * write)
+  requires |this.inp_seq_cur| == alen(opt_get1(input))
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      aloc(opt_get1(input), i).int == this.inp_seq_cur[i])
+  requires (forall i: Int ::0 <= i && i < |this.inp_seq_cur| ==>
+      this.inp_seq_cur[i] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][i])
+  requires (exists i: Int :: 0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| / 2 &&
+      2 * i + 1 < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i + 1] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i]) ==>
+    !aloc(opt_get1(isSorted), 0).bool
+  requires aloc(opt_get1(isSorted), 0).bool ==>
+    (forall j: Int ::0 <= j && j < |this.inp_seq_cur| ==>
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][j] ==
+      this.inp_seq_cur[j])
+  requires isApermutation(this.inp_seq_all[0], this.inp_seq_cur)
+  ensures input != (None(): option[array])
+  ensures isSorted != (None(): option[array])
+  ensures contrib != (None(): option[array])
+  ensures loopCounter != (None(): option[array])
+  ensures 0 < alen(opt_get1(input))
+  ensures alen(opt_get1(isSorted)) == 1
+  ensures alen(opt_get1(loopCounter)) == 1
+  ensures alen(opt_get1(contrib)) == alen(opt_get1(input))
+  ensures acc(this.inp_seq_all, 1 * write)
+  ensures acc(aloc(opt_get1(loopCounter), 0).int, write)
+  ensures 0 <= aloc(opt_get1(loopCounter), 0).int
+  ensures |this.inp_seq_all| == aloc(opt_get1(loopCounter), 0).int + 2
+  ensures (forall i: Int ::0 <= i &&
+      i < aloc(opt_get1(loopCounter), 0).int + 2 ==>
+      alen(opt_get1(input)) == |this.inp_seq_all[i]|)
+  ensures (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < alen(opt_get1(contrib)) ==>
+      acc(aloc(opt_get1(contrib), i).int, write))
+  ensures (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i && i < 2 * (alen(opt_get1(contrib)) / 2) && i % 2 == 0 &&
+      i < alen(opt_get1(contrib)) ==>
+      aloc(opt_get1(contrib), i).int == 1)
+  ensures (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      acc(aloc(opt_get1(input), i).int, write))
+  ensures acc(aloc(opt_get1(isSorted), 0).bool, 1 * write)
+  ensures acc(this.inp_seq_cur, 1 * write)
+  ensures |this.inp_seq_cur| == alen(opt_get1(input))
+  ensures (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < alen(opt_get1(input)) ==>
+      aloc(opt_get1(input), i).int == this.inp_seq_cur[i])
+  ensures isApermutation(this.inp_seq_all[0], this.inp_seq_cur)
+  ensures (forall i: Int ::
+      { aloc(opt_get1(contrib), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(contrib)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2) < alen(opt_get1(contrib)) - 1 ==>
+      aloc(opt_get1(contrib), i).int == 1)
+  ensures (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| ==>
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1] <=
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)]) ==>
+    (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| ==>
+      this.inp_seq_cur[i] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][i])
+  ensures (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(input)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2 + 1) < alen(opt_get1(input)) ==>
+      aloc(opt_get1(input), i).int <=
+      aloc(opt_get1(input), 2 * ((i - 1) / 2 + 1)).int)
+  ensures (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1] ==>
+      this.inp_seq_cur[2 * i + 1] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)])
+  ensures (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1] ==>
+      this.inp_seq_cur[2 * (i + 1)] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1])
+  ensures (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1] <=
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)] ==>
+      this.inp_seq_cur[2 * i + 1] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1])
+  ensures (forall i: Int ::0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1] <=
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)] ==>
+      this.inp_seq_cur[2 * (i + 1)] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)])
+  ensures (exists i: Int :: 0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| / 2 &&
+      2 * i + 1 < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i + 1] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][2 * i]) ||
+    (exists i: Int :: 0 <= i &&
+      i < |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1]| &&
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * (i + 1)] <
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][2 * i + 1]) ==>
+    !aloc(opt_get1(isSorted), 0).bool
+  ensures aloc(opt_get1(isSorted), 0).bool ==>
+    (forall j: Int ::0 <= j && j < |this.inp_seq_cur| ==>
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int][j] ==
+      this.inp_seq_all[aloc(opt_get1(loopCounter), 0).int + 1][j])
+{
+  var exc: Ref
+  var return: void
+  var contrib1: option[array]
+  var this1: Ref
+  var loopCounter1: option[array]
+  var input1: option[array]
+  var isSorted1: option[array]
+  var lo_tid: Int
+  var tid_hi: Int
+  var tid1: Int
+  var temp: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Ref
+  var flatten1: Int
+  var flatten2: Int
+  var flatten3: Bool
+  var flatten4: Bool
+  var res1: void
+  var flatten5: Int
+  var flatten6: Int
+  var flatten7: Int
+  var flatten8: Ref
+  var flatten9: Seq[Int]
+  var flatten10: Int
+  var flatten11: Ref
+  var flatten12: Seq[Int]
+  var flatten13: Int
+  var flatten14: Bool
+  var flatten15: Int
+  var flatten16: Int
+  var excBeforeLoop: Ref
+  exc := null
+  contrib1 := contrib
+  flatten := this
+  this1 := flatten
+  loopCounter1 := loopCounter
+  input1 := input
+  isSorted1 := isSorted
+  exhale acc(aloc(opt_get1(isSorted1), 0).bool, write) &&
+    acc(this1.inp_seq_cur, 1 * write) &&
+    alen(opt_get1(input1)) == |this1.inp_seq_cur| &&
+    alen(opt_get1(contrib1)) == alen(opt_get1(input1)) &&
+    acc(aloc(opt_get1(loopCounter1), 0).int, write) &&
+    acc(this1.inp_seq_all, 1 * write) &&
+    (0 <= aloc(opt_get1(loopCounter1), 0).int &&
+    |this1.inp_seq_all| == aloc(opt_get1(loopCounter1), 0).int + 2) &&
+    (forall i: Int ::0 <= i && i < aloc(opt_get1(loopCounter1), 0).int + 2 ==>
+      alen(opt_get1(input1)) == |this1.inp_seq_all[i]|) &&
+    (forall i: Int ::
+      { aloc(opt_get1(contrib1), i) }
+      0 <= i && i < alen(opt_get1(contrib1)) ==>
+      acc(aloc(opt_get1(contrib1), i).int, 1 * write / 2)) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i) }
+      0 <= i && i < alen(opt_get1(input1)) ==>
+      acc(aloc(opt_get1(input1), i).int, write)) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i), this1.inp_seq_cur[i] }
+      0 <= i && i < alen(opt_get1(input1)) ==>
+      aloc(opt_get1(input1), i).int == this1.inp_seq_cur[i]) &&
+    isApermutation(this1.inp_seq_all[0], this1.inp_seq_cur) &&
+    ((forall i: Int ::
+      { aloc(opt_get1(contrib1), i) }
+      0 <= i && i < alen(opt_get1(contrib1)) ==>
+      aloc(opt_get1(contrib1), i).int == 0) ==>
+    (forall j: Int ::
+      { this1.inp_seq_cur[j] }
+      0 <= j && j < |this1.inp_seq_cur| ==>
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j] ==
+      this1.inp_seq_cur[j])) &&
+    property2(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+    0).int +
+    1]) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(input1)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2 + 1) < alen(opt_get1(input1)) &&
+      aloc(opt_get1(contrib1), i).int == 1 ==>
+      aloc(opt_get1(input1), i).int <=
+      aloc(opt_get1(input1), 2 * ((i - 1) / 2 + 1)).int) &&
+    ((forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+      this1.inp_seq_cur[2 * i + 1] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1]) &&
+    (forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+      this1.inp_seq_cur[2 * (i + 1)] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)])) &&
+    ((forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+      this1.inp_seq_cur[2 * i + 1] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)]) &&
+    (forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+      this1.inp_seq_cur[2 * (i + 1)] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1])) &&
+    property1(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+    0).int +
+    1]) &&
+    ((exists i: Int :: 0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| / 2 &&
+      2 * i + 1 < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| &&
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i + 1] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i]) ==>
+    !aloc(opt_get1(isSorted1), 0).bool) &&
+    ((exists i: Int :: 0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1)) ==>
+    !aloc(opt_get1(isSorted1), 0).bool) &&
+    (aloc(opt_get1(isSorted1), 0).bool ==>
+    (forall j: Int ::
+      { this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] }
+      0 <= j && j < |this1.inp_seq_cur| ==>
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j]))
+  flatten1 := 0
+  lo_tid := flatten1
+  flatten2 := alen(opt_get1(input)) / 2
+  tid_hi := flatten2
+  if (0 < tid_hi) {
+    inhale indet >= 0
+    inhale indet < 2
+    if (indet == 0) {
+      exhale input != (None(): option[array]) &&
+        isSorted != (None(): option[array]) &&
+        contrib != (None(): option[array]) &&
+        loopCounter != (None(): option[array]) &&
+        0 < alen(opt_get1(input)) &&
+        alen(opt_get1(isSorted)) == 1 &&
+        alen(opt_get1(loopCounter)) == 1 &&
+        alen(opt_get1(contrib)) == alen(opt_get1(input)) &&
+        (forall tid2: Int ::
+          { aloc(opt_get1(contrib), tid2) }
+          0 <= tid2 - 1 && tid2 - 1 < 2 * tid_hi && (tid2 - 1) % 2 == 0 &&
+          (tid2 - 1) / 2 * 2 < alen(opt_get1(contrib)) - 1 ==>
+          acc(aloc(opt_get1(contrib), tid2).int, 1 * write / 2)) &&
+        (forall tid2: Int ::
+          { aloc(opt_get1(contrib), tid2) }
+          0 <= tid2 - 1 && tid2 - 1 < 2 * tid_hi && (tid2 - 1) % 2 == 0 &&
+          (tid2 - 1) / 2 * 2 < alen(opt_get1(contrib)) - 1 ==>
+          aloc(opt_get1(contrib), tid2).int == 0)
+      inhale input != (None(): option[array]) &&
+        isSorted != (None(): option[array]) &&
+        contrib != (None(): option[array]) &&
+        loopCounter != (None(): option[array]) &&
+        0 < alen(opt_get1(input)) &&
+        alen(opt_get1(isSorted)) == 1 &&
+        alen(opt_get1(loopCounter)) == 1 &&
+        alen(opt_get1(contrib)) == alen(opt_get1(input)) &&
+        (forall tid2: Int ::
+          { aloc(opt_get1(contrib), tid2) }
+          0 <= tid2 - 1 && tid2 - 1 < 2 * tid_hi && (tid2 - 1) % 2 == 0 &&
+          (tid2 - 1) / 2 * 2 < alen(opt_get1(contrib)) - 1 ==>
+          acc(aloc(opt_get1(contrib), tid2).int, 1 * write / 2)) &&
+        (forall tid2: Int ::
+          { aloc(opt_get1(contrib), tid2) }
+          0 <= tid2 - 1 && tid2 - 1 < 2 * tid_hi && (tid2 - 1) % 2 == 0 &&
+          (tid2 - 1) / 2 * 2 < alen(opt_get1(contrib)) - 1 ==>
+          aloc(opt_get1(contrib), tid2).int == 1)
+    } elseif (indet == 1) {
+      inhale indet1 >= 0
+      inhale indet1 < tid_hi
+      tid1 := indet1
+      label beforeFrame
+      excBeforeLoop := exc
+      flatten3 := true
+      once := flatten3
+      while (once)
+        invariant exc == excBeforeLoop
+        invariant once ==>
+          input != (None(): option[array]) &&
+          isSorted != (None(): option[array]) &&
+          contrib != (None(): option[array]) &&
+          loopCounter != (None(): option[array]) &&
+          0 < alen(opt_get1(input)) &&
+          alen(opt_get1(isSorted)) == 1 &&
+          alen(opt_get1(loopCounter)) == 1 &&
+          alen(opt_get1(contrib)) == alen(opt_get1(input)) &&
+          ((tid1 * 2 + 1 < alen(opt_get1(contrib)) ==>
+          acc(aloc(opt_get1(contrib), tid1 * 2 + 1).int, 1 * write / 2)) &&
+          (tid1 * 2 + 1 < alen(opt_get1(contrib)) ==>
+          aloc(opt_get1(contrib), tid1 * 2 + 1).int == 0)) &&
+          [(forperm
+            obj: Ref [obj.inp_seq_cur] :: obj.inp_seq_cur ==
+            old[beforeFrame](obj.inp_seq_cur)) &&
+          (forperm
+            obj: Ref [obj.inp_seq_all] :: obj.inp_seq_all ==
+            old[beforeFrame](obj.inp_seq_all)) &&
+          (forperm
+            obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)) &&
+          (forperm
+            obj: Ref [obj.bool] :: obj.bool == old[beforeFrame](obj.bool)),
+          true]
+        invariant !once ==>
+          input != (None(): option[array]) &&
+          isSorted != (None(): option[array]) &&
+          contrib != (None(): option[array]) &&
+          loopCounter != (None(): option[array]) &&
+          0 < alen(opt_get1(input)) &&
+          alen(opt_get1(isSorted)) == 1 &&
+          alen(opt_get1(loopCounter)) == 1 &&
+          alen(opt_get1(contrib)) == alen(opt_get1(input)) &&
+          ((tid1 * 2 + 1 < alen(opt_get1(contrib)) ==>
+          acc(aloc(opt_get1(contrib), tid1 * 2 + 1).int, 1 * write / 2)) &&
+          (tid1 * 2 + 1 < alen(opt_get1(contrib)) ==>
+          aloc(opt_get1(contrib), tid1 * 2 + 1).int == 1))
+        decreases  
+      {
+        inhale acc(aloc(opt_get1(isSorted1), 0).bool, write) &&
+          acc(this1.inp_seq_cur, 1 * write) &&
+          alen(opt_get1(input1)) == |this1.inp_seq_cur| &&
+          alen(opt_get1(contrib1)) == alen(opt_get1(input1)) &&
+          acc(aloc(opt_get1(loopCounter1), 0).int, write) &&
+          acc(this1.inp_seq_all, 1 * write) &&
+          (0 <= aloc(opt_get1(loopCounter1), 0).int &&
+          |this1.inp_seq_all| == aloc(opt_get1(loopCounter1), 0).int + 2) &&
+          (forall i: Int ::0 <= i &&
+            i < aloc(opt_get1(loopCounter1), 0).int + 2 ==>
+            alen(opt_get1(input1)) == |this1.inp_seq_all[i]|) &&
+          (forall i: Int ::
+            { aloc(opt_get1(contrib1), i) }
+            0 <= i && i < alen(opt_get1(contrib1)) ==>
+            acc(aloc(opt_get1(contrib1), i).int, 1 * write / 2)) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i) }
+            0 <= i && i < alen(opt_get1(input1)) ==>
+            acc(aloc(opt_get1(input1), i).int, write)) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i), this1.inp_seq_cur[i] }
+            0 <= i && i < alen(opt_get1(input1)) ==>
+            aloc(opt_get1(input1), i).int == this1.inp_seq_cur[i]) &&
+          isApermutation(this1.inp_seq_all[0], this1.inp_seq_cur) &&
+          ((forall i: Int ::
+            { aloc(opt_get1(contrib1), i) }
+            0 <= i && i < alen(opt_get1(contrib1)) ==>
+            aloc(opt_get1(contrib1), i).int == 0) ==>
+          (forall j: Int ::
+            { this1.inp_seq_cur[j] }
+            0 <= j && j < |this1.inp_seq_cur| ==>
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j] ==
+            this1.inp_seq_cur[j])) &&
+          property2(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+          0).int +
+          1]) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i) }
+            0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(input1)) / 2) &&
+            (i - 1) % 2 == 0 &&
+            2 * ((i - 1) / 2 + 1) < alen(opt_get1(input1)) &&
+            aloc(opt_get1(contrib1), i).int == 1 ==>
+            aloc(opt_get1(input1), i).int <=
+            aloc(opt_get1(input1), 2 * ((i - 1) / 2 + 1)).int) &&
+          ((forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+            this1.inp_seq_cur[2 * i + 1] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1]) &&
+          (forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+            this1.inp_seq_cur[2 * (i + 1)] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)])) &&
+          ((forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+            this1.inp_seq_cur[2 * i + 1] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)]) &&
+          (forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+            this1.inp_seq_cur[2 * (i + 1)] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1])) &&
+          property1(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+          0).int +
+          1]) &&
+          ((exists i: Int :: 0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| / 2 &&
+            2 * i + 1 <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| &&
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i +
+            1] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i]) ==>
+          !aloc(opt_get1(isSorted1), 0).bool) &&
+          ((exists i: Int :: 0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1)) ==>
+          !aloc(opt_get1(isSorted1), 0).bool) &&
+          (aloc(opt_get1(isSorted1), 0).bool ==>
+          (forall j: Int ::
+            { this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] }
+            0 <= j && j < |this1.inp_seq_cur| ==>
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j]))
+        if ((tid1 + 1) * 2 < alen(opt_get1(input)) &&
+        aloc(opt_get1(input), (tid1 + 1) * 2).int <
+        aloc(opt_get1(input), tid1 * 2 + 1).int) {
+          res1 := lemma_permutation_apply(this, tid, this.inp_seq_all[0], this.inp_seq_cur,
+            swap(this.inp_seq_cur, tid1 * 2 + 1, (tid1 + 1) * 2, 0), tid1 *
+            2 +
+            1, (tid1 + 1) * 2)
+          flatten5 := aloc(opt_get1(input), tid1 * 2 + 1).int
+          temp := flatten5
+          flatten6 := tid1 * 2 + 1
+          flatten7 := aloc(opt_get1(input), (tid1 + 1) * 2).int
+          aloc(opt_get1(input), flatten6).int := flatten7
+          flatten8 := this
+          flatten9 := this.inp_seq_cur[tid1 * 2 + 1 :=
+            aloc(opt_get1(input), (tid1 + 1) * 2).int]
+          flatten8.inp_seq_cur := flatten9
+          flatten10 := (tid1 + 1) * 2
+          aloc(opt_get1(input), flatten10).int := temp
+          flatten11 := this
+          flatten12 := this.inp_seq_cur[(tid1 + 1) * 2 := temp]
+          flatten11.inp_seq_cur := flatten12
+          flatten13 := 0
+          flatten14 := false
+          aloc(opt_get1(isSorted), flatten13).bool := flatten14
+          assert isApermutation(this.inp_seq_all[0], this.inp_seq_cur)
+        }
+        if (tid1 * 2 + 1 < alen(opt_get1(contrib))) {
+          flatten15 := tid1 * 2 + 1
+          flatten16 := 1
+          aloc(opt_get1(contrib), flatten15).int := flatten16
+        }
+        assert isApermutation(this.inp_seq_all[0], this.inp_seq_cur)
+        exhale acc(aloc(opt_get1(isSorted1), 0).bool, write) &&
+          acc(this1.inp_seq_cur, 1 * write) &&
+          alen(opt_get1(input1)) == |this1.inp_seq_cur| &&
+          alen(opt_get1(contrib1)) == alen(opt_get1(input1)) &&
+          acc(aloc(opt_get1(loopCounter1), 0).int, write) &&
+          acc(this1.inp_seq_all, 1 * write) &&
+          (0 <= aloc(opt_get1(loopCounter1), 0).int &&
+          |this1.inp_seq_all| == aloc(opt_get1(loopCounter1), 0).int + 2) &&
+          (forall i: Int ::0 <= i &&
+            i < aloc(opt_get1(loopCounter1), 0).int + 2 ==>
+            alen(opt_get1(input1)) == |this1.inp_seq_all[i]|) &&
+          (forall i: Int ::
+            { aloc(opt_get1(contrib1), i) }
+            0 <= i && i < alen(opt_get1(contrib1)) ==>
+            acc(aloc(opt_get1(contrib1), i).int, 1 * write / 2)) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i) }
+            0 <= i && i < alen(opt_get1(input1)) ==>
+            acc(aloc(opt_get1(input1), i).int, write)) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i), this1.inp_seq_cur[i] }
+            0 <= i && i < alen(opt_get1(input1)) ==>
+            aloc(opt_get1(input1), i).int == this1.inp_seq_cur[i]) &&
+          isApermutation(this1.inp_seq_all[0], this1.inp_seq_cur) &&
+          ((forall i: Int ::
+            { aloc(opt_get1(contrib1), i) }
+            0 <= i && i < alen(opt_get1(contrib1)) ==>
+            aloc(opt_get1(contrib1), i).int == 0) ==>
+          (forall j: Int ::
+            { this1.inp_seq_cur[j] }
+            0 <= j && j < |this1.inp_seq_cur| ==>
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j] ==
+            this1.inp_seq_cur[j])) &&
+          property2(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+          0).int +
+          1]) &&
+          (forall i: Int ::
+            { aloc(opt_get1(input1), i) }
+            0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(input1)) / 2) &&
+            (i - 1) % 2 == 0 &&
+            2 * ((i - 1) / 2 + 1) < alen(opt_get1(input1)) &&
+            aloc(opt_get1(contrib1), i).int == 1 ==>
+            aloc(opt_get1(input1), i).int <=
+            aloc(opt_get1(input1), 2 * ((i - 1) / 2 + 1)).int) &&
+          ((forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+            this1.inp_seq_cur[2 * i + 1] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1]) &&
+          (forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+            this1.inp_seq_cur[2 * (i + 1)] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)])) &&
+          ((forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+            this1.inp_seq_cur[2 * i + 1] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)]) &&
+          (forall i: Int ::0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+            this1.inp_seq_cur[2 * (i + 1)] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1])) &&
+          property1(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+          0).int +
+          1]) &&
+          ((exists i: Int :: 0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| / 2 &&
+            2 * i + 1 <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| &&
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i +
+            1] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i]) ==>
+          !aloc(opt_get1(isSorted1), 0).bool) &&
+          ((exists i: Int :: 0 <= i &&
+            i <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| /
+            2 &&
+            2 * (i + 1) <
+            |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+            (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            (i + 1)] <
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+            i +
+            1] &&
+            aloc(opt_get1(contrib1), 2 * i + 1).int == 1)) ==>
+          !aloc(opt_get1(isSorted1), 0).bool) &&
+          (aloc(opt_get1(isSorted1), 0).bool ==>
+          (forall j: Int ::
+            { this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] }
+            0 <= j && j < |this1.inp_seq_cur| ==>
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] ==
+            this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j]))
+        flatten4 := false
+        once := flatten4
+      }
+      inhale false
+    }
+  }
+  inhale acc(aloc(opt_get1(isSorted1), 0).bool, write) &&
+    acc(this1.inp_seq_cur, 1 * write) &&
+    alen(opt_get1(input1)) == |this1.inp_seq_cur| &&
+    alen(opt_get1(contrib1)) == alen(opt_get1(input1)) &&
+    acc(aloc(opt_get1(loopCounter1), 0).int, write) &&
+    acc(this1.inp_seq_all, 1 * write) &&
+    (0 <= aloc(opt_get1(loopCounter1), 0).int &&
+    |this1.inp_seq_all| == aloc(opt_get1(loopCounter1), 0).int + 2) &&
+    (forall i: Int ::0 <= i && i < aloc(opt_get1(loopCounter1), 0).int + 2 ==>
+      alen(opt_get1(input1)) == |this1.inp_seq_all[i]|) &&
+    (forall i: Int ::
+      { aloc(opt_get1(contrib1), i) }
+      0 <= i && i < alen(opt_get1(contrib1)) ==>
+      acc(aloc(opt_get1(contrib1), i).int, 1 * write / 2)) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i) }
+      0 <= i && i < alen(opt_get1(input1)) ==>
+      acc(aloc(opt_get1(input1), i).int, write)) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i), this1.inp_seq_cur[i] }
+      0 <= i && i < alen(opt_get1(input1)) ==>
+      aloc(opt_get1(input1), i).int == this1.inp_seq_cur[i]) &&
+    isApermutation(this1.inp_seq_all[0], this1.inp_seq_cur) &&
+    ((forall i: Int ::
+      { aloc(opt_get1(contrib1), i) }
+      0 <= i && i < alen(opt_get1(contrib1)) ==>
+      aloc(opt_get1(contrib1), i).int == 0) ==>
+    (forall j: Int ::
+      { this1.inp_seq_cur[j] }
+      0 <= j && j < |this1.inp_seq_cur| ==>
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j] ==
+      this1.inp_seq_cur[j])) &&
+    property2(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+    0).int +
+    1]) &&
+    (forall i: Int ::
+      { aloc(opt_get1(input1), i) }
+      0 <= i - 1 && i - 1 < 2 * (alen(opt_get1(input1)) / 2) &&
+      (i - 1) % 2 == 0 &&
+      2 * ((i - 1) / 2 + 1) < alen(opt_get1(input1)) &&
+      aloc(opt_get1(contrib1), i).int == 1 ==>
+      aloc(opt_get1(input1), i).int <=
+      aloc(opt_get1(input1), 2 * ((i - 1) / 2 + 1)).int) &&
+    ((forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+      this1.inp_seq_cur[2 * i + 1] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1]) &&
+    (forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 0) ==>
+      this1.inp_seq_cur[2 * (i + 1)] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)])) &&
+    ((forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+      this1.inp_seq_cur[2 * i + 1] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)]) &&
+    (forall i: Int ::0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1) ==>
+      this1.inp_seq_cur[2 * (i + 1)] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1])) &&
+    property1(this1.inp_seq_cur, this1.inp_seq_all[aloc(opt_get1(loopCounter1),
+    0).int +
+    1]) &&
+    ((exists i: Int :: 0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| / 2 &&
+      2 * i + 1 < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int]| &&
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i + 1] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][2 * i]) ==>
+    !aloc(opt_get1(isSorted1), 0).bool) &&
+    ((exists i: Int :: 0 <= i &&
+      i < |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| / 2 &&
+      2 * (i + 1) <
+      |this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1]| &&
+      (this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 *
+      (i + 1)] <
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][2 * i + 1] &&
+      aloc(opt_get1(contrib1), 2 * i + 1).int == 1)) ==>
+    !aloc(opt_get1(isSorted1), 0).bool) &&
+    (aloc(opt_get1(isSorted1), 0).bool ==>
+    (forall j: Int ::
+      { this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] }
+      0 <= j && j < |this1.inp_seq_cur| ==>
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int][j] ==
+      this1.inp_seq_all[aloc(opt_get1(loopCounter1), 0).int + 1][j]))
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

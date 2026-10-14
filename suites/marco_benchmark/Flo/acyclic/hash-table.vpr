@@ -1,0 +1,327 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/array-util.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Multisets of Keys
+domain FlowDom {
+  function ks(f : FlowDom) : IMap[K,Int]
+  axiom positive {
+    forall p: FlowDom, k: K :: {select(ks(p), k)} select(ks(p), k) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqDefImplies {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) ==> p1 == p2
+  }
+  axiom fdEqDefImplied {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      MapEqual(ks(p1), ks(p2)) ==> fdEq(p1, p2)
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)}
+        select(ks(fdPlus(p1,p2)), k) == select(ks(p1), k) + select(ks(p2), k))
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    forall k: K :: {select(ks(fdZero()), k)} select(ks(fdZero()), k) == 0
+  }
+
+  // This is fixed for every flow domain! Do not modify.
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+  axiom fdLeqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdLeq(p1,p2)}
+      fdLeq(p1,p2) == (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)} select(ks(p1), k) <= select(ks(p2), k))
+  }
+  // Useful endomorphism
+  function mapId() : IMap[FlowDom, FlowDom]
+  axiom mapIdDef {
+    forall p: FlowDom :: {select(mapId(), p)}
+      select(mapId(), p) == p
+  }
+}
+
+define ks_of_out(x, y, k)
+  select(ks(Iout(x.intf, y)), k)
+
+define ks_of_inf(x, k)
+  select(ks(select(inf(x.intf), x)), k)
+
+
+domain NodeType {
+  function root(): NodeType
+  function bucket(): NodeType
+
+  axiom NodeTypeDom {
+    forall ty: NodeType :: root() == ty || bucket() == ty
+  }
+
+  axiom NodeTypeDistinct {
+    root() != bucket()
+  }
+}
+
+// The fields of a node
+field type: NodeType
+field size: Int
+field bkts: Array
+field keys: Array
+field next: Ref
+
+function hash(x: Ref, k: K): Int
+
+define nodeSpatial(x) 
+  acc(x.type) 
+  && acc(x.bkts) && array_Ref(x.bkts)
+  && acc(x.size) && acc(x.keys) && array_K(x.keys) 
+  && acc(x.next)
+
+define hrepUnchanged(x)
+  x.type == old(x.type)
+  && x.bkts == old(x.bkts) && unchanged_array_Ref(x.bkts)
+  && x.size == old(x.size) && x.keys == old(x.keys) && unchanged_array_K(x.keys) && x.next == old(x.next)
+
+define unchanged(x)
+  x.intf == old(x.intf) 
+  && hrepUnchanged(x)
+
+
+// Definition of a node and good condition:
+
+function edge_fn(x: Ref, z: Ref) : IMap[FlowDom, FlowDom]
+  requires nodeSpatial(x)
+  ensures x.type == root() ==> 
+    (forall p: FlowDom, k: K :: {select(ks(select(result, p)), k)} 
+      select(ks(select(result, p)), k) == (0 <= hash(x, k) && hash(x, k) < length(x.bkts) && z == read_Ref(x.bkts, hash(x, k)) ? 1 : 0))
+  ensures x.type == bucket()
+    ==> result == (x.next != null && z == x.next ? mapId() : constMap(fdZero()))
+
+function outset(x: Ref): Set[K]
+  requires nodeSpatial(x)
+  ensures forall k: K :: k in result == (x.type == root() || x.type == bucket() && x.next != null)
+  
+function contents(x: Ref): Set[K]
+  requires nodeSpatial(x) && (x.type == bucket() ==> 0 <= x.size && x.size <= length(x.keys))
+  ensures x.type == root() ==> result == Set[K]()
+  ensures x.type == bucket() ==> result == (x.next == null ? set_of_array(x.keys, 0, x.size) : Set[K]())
+
+define hashtblNode(x, I)
+  node(x)
+  && ((x.type == root()
+        && (forall j: Int :: 0 <= j && j < length(x.bkts) ==> read_Ref(x.bkts, j) != null)
+        && (forall k1: K :: 0 <= hash(x, k1) && hash(x, k1) < length(x.bkts))
+        && ks(Iinf(x.intf, x)) == constMap(1))
+     || (x.type == bucket()
+        && x.next != x
+        && 0 <= x.size && x.size <= length(x.keys)
+        && sorted_Map_K_seg(map_K_of_array(x.keys), 0, x.size)))
+  // -- The good state conditions:
+  // Contents subsetof keyset
+  && (forall k: K :: k in contents(x) ==> select(ks(Iinf(I, x)), k) >= 1)
+  && (forall k: K, y: Ref :: 
+    !(k in contents(x)) || select(ks(Iout(I, y)), k) == 0)
+  // Edgesets are disjoint
+  && (forall k: K, y: Ref, z: Ref :: y == z
+      || select(ks(Iout(I, y)), k) == 0
+      || select(ks(Iout(I, z)), k) == 0)
+  
+method keyset_implies_bucket(x: Ref, key: K)
+  requires hashtblNode(x, x.intf)
+  requires forall y: Ref :: ks_of_out(x, y, key) == 0
+  requires ks_of_inf(x, key) == 1 
+  ensures hashtblNode(x, x.intf) && unchanged(x)
+  ensures outset(x) == Set[K]()
+  ensures x.type == bucket()
+
+
+/* -------------------- Actual code -------------------- */
+
+
+/** member */
+method member(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires hashtblNode(n, n.intf)
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures hashtblNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, n.intf, res, k):
+  ensures succ ==> (res == key in contents(n))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  keyset_implies_bucket(n, key);
+
+  var idx: Int
+  var old_size: Int := n.size
+  var old_keys: Array := n.keys 
+  res, idx := arr_find(old_keys, old_size, key)
+
+  succ := true
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+}
+
+/** insert */
+method insert(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool, X1: Set[Ref])
+  requires X == Set(n)
+  requires hashtblNode(n, n.intf)
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures n in X1
+  ensures forall z1: Ref :: {z1 in X1} z1 in X1 ==> hashtblNode(z1, z1.intf) 
+  ensures intLeq(old(intCompSet(X)), intCompSet(X1))
+  // decisiveOpSpec(n, n.intf, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) union Set(key) && (res == !(key in old(contents(n))))
+{     
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_bucket(n, key);
+
+  var old_size: Int := n.size
+  var old_keys: Array := n.keys 
+ 
+  if (n.size < length(n.keys) - 1) {
+    _field_read(n, n.next)
+    var xnext: Ref := n.next
+    assert ks_of_out(n, xnext, key) == 0
+    assert xnext == null
+    
+    var m: IMap[Int, K] := map_K_of_array(old_keys);
+
+   
+    var idx: Int;
+    var new_size: Int;
+
+    idx, new_size := arr_insert(old_keys, key, old_size);
+
+    _make_dirty(n)
+    n.size := new_size;
+    
+
+    // ---- Post code sync:
+    _post_code_sync(FP, pre_sync)
+
+    // Define Ix1 to be Ix, but with k added to contents
+    succ := true
+    res := new_size != old_size
+    X1 := X
+
+    map_K_insert_content_set(m, map_K_of_array(n.keys), idx, key, old_size, new_size);
+    
+  } else {
+    succ := false
+    res := false
+    X1 := X
+
+    // ---- Post code sync:
+    _post_code_sync(FP, pre_sync1)
+  }
+}
+
+/** delete */
+method delete(n: Ref, key: K, X: Set[Ref])
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires hashtblNode(n, n.intf)
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures hashtblNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) setminus Set(key) && (res == (key in old(contents(n))))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_bucket(n, key)
+
+  _field_read(n, n.next)
+  var xnext: Ref := n.next
+  assert ks_of_out(n, xnext, key) == 0
+  assert n.next == null
+
+  var m: IMap[Int, K] := map_K_of_array(n.keys)
+
+  var old_size: Int := n.size
+  var new_size: Int
+  var idx: Int
+
+  new_size, idx := arr_delete(n.keys, key, n.size)
+   
+  map_K_delete_content_set(m, map_K_of_array(n.keys), old_size, new_size, idx, key)
+
+  _make_dirty(n)
+  n.size := new_size;
+  
+  // Define Ix1 to be Ix, but with k removed from contents
+  
+  succ := true;
+
+  res := new_size != old_size;
+
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+}

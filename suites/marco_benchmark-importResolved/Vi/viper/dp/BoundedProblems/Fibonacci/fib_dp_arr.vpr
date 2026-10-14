@@ -1,0 +1,108 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// resolved: import "../../_preambles/defs.vpr"
+
+
+// recursive implementation of Fibonacci
+function fibRec(n : Int) : Int
+    requires n >= 0
+    decreases n
+{
+    n <= 1 ? n : fibRec(n - 1) + fibRec(n - 2)
+} 
+
+// Pair domain, denoting an array of size 2
+domain Pair[A, B] {
+    function getFirst(p: Pair[A, B]): A
+    function getSecond(p : Pair[A, B]): B
+}
+
+field f0 : Int
+field f1 : Int
+
+
+// iterative Fibonacci using pairs, also heap-based, defined above
+method fibIt(n : Int) returns (res : Int)
+    requires n >= 0
+    ensures res == fibRec(n)
+    decreases
+{
+    var count : Int
+
+    var fibs : Pair[Ref, Ref] 
+    inhale acc(getFirst(fibs).f0)
+    inhale acc(getSecond(fibs).f1)
+
+    count := 0
+    getFirst(fibs).f0 := 0
+    getSecond(fibs).f1 := 1
+    res := 0
+
+    while (count < n)
+        invariant acc(getSecond(fibs).f1) && acc(getFirst(fibs).f0)
+        invariant count >= 0 && count <= n
+        invariant getFirst(fibs).f0 == fibRec(count)
+        invariant getSecond(fibs).f1 == fibRec(count + 1)
+        decreases n - count
+    {
+        var temp : Int := getFirst(fibs).f0 + getSecond(fibs).f1
+        getFirst(fibs).f0 := getSecond(fibs).f1
+        getSecond(fibs).f1 := temp
+        count := count + 1
+    }
+    res := getFirst(fibs).f0
+    exhale acc(getFirst(fibs).f0)
+    exhale acc(getSecond(fibs).f1)
+}
+
+method fib_seq (n: Int) returns (res: Int) 
+    requires n >= 0
+    ensures res == fibRec(n)
+{
+    var count: Int := 0
+    var fibs: Seq[Int] := Seq(0, 1)
+
+    while (count < n) 
+        invariant count >= 0 && count <= n
+        invariant |fibs| == 2
+        invariant fibs[0] == fibRec(count)
+        invariant fibs[1] == fibRec(count + 1)
+        decreases n - count
+    {
+        fibs := Seq(fibs[1], fibs[0] + fibs[1])
+        count := count + 1
+    }
+    res := fibs[0]
+}

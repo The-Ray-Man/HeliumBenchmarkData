@@ -1,0 +1,857 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Bool  {
+  
+  axiom s_Param_typ_def_make_generic_s_Bool {
+    (forall x: Bool ::
+      { make_generic_s_Bool(x) }
+      s_Param_typ(make_generic_s_Bool(x)) == s_Bool_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Bool {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Bool, s_Param_typ(p) }
+      s_Param_typ(p) == s_Bool_type() ==>
+      make_generic_s_Bool(p.make_concrete_s_Bool) == p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$option$col$$col$Option {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$option$col$$col$Option_type(T$0)) }
+      inhabited(s_core$col$$col$option$col$$col$Option_type(T$0)) ==
+      (true || inhabited(T$0)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_2_Tuple {
+    (forall T$0: Type, U$1: Type ::
+      { inhabited(s_2_Tuple_type(T$0, U$1)) }
+      inhabited(s_2_Tuple_type(T$0, U$1)) ==
+      (inhabited(T$0) && inhabited(U$1)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_core$col$$col$option$col$$col$Option  {
+  
+  axiom s_core$col$$col$option$col$$col$Option_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$option$col$$col$Option_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$option$col$$col$Option_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$option$col$$col$Option_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$option$col$$col$Option_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$option$col$$col$Option_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_2_Tuple  {
+  
+  axiom s_2_Tuple_Sized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+  
+  axiom s_2_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_u8_val: s_UInt_u8
+
+field p_Bool_val: Bool
+
+function mir_binop_Le_UInt_u8_UInt_u8(arg1: s_UInt_u8, arg2: s_UInt_u8): Bool
+{
+  s_UInt_u8_value(arg1) <= s_UInt_u8_value(arg2)
+}
+
+function mir_binop_SubWithOverflow_UInt_u8_UInt_u8(arg1: s_UInt_u8, arg2: s_UInt_u8): s_2_Tuple
+{
+  (let val ==
+    (s_UInt_u8_value(arg1) - s_UInt_u8_value(arg2)) in
+    (let wrapped_val ==
+      (val % 256) in
+      s_2_Tuple_cons(make_generic_s_UInt_u8(s_UInt_u8_cons(wrapped_val)), make_generic_s_Bool(wrapped_val !=
+      val))))
+}
+
+function mir_binop_AddWithOverflow_UInt_u8_UInt_u8(arg1: s_UInt_u8, arg2: s_UInt_u8): s_2_Tuple
+{
+  (let val ==
+    (s_UInt_u8_value(arg1) + s_UInt_u8_value(arg2)) in
+    (let wrapped_val ==
+      (val % 256) in
+      s_2_Tuple_cons(make_generic_s_UInt_u8(s_UInt_u8_cons(wrapped_val)), make_generic_s_Bool(wrapped_val !=
+      val))))
+}
+
+function s_core$col$$col$option$col$$col$Option_unreachable(T$0: Type): s_core$col$$col$option$col$$col$Option
+  ensures false
+
+
+function s_core$col$$col$option$col$$col$Option_1_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$option$col$$col$Option_discr(self: s_core$col$$col$option$col$$col$Option): s_Int_isize
+{
+  (self.iss_core$col$$col$option$col$$col$Option_1_cons ?
+    s_Int_isize_cons(1) :
+    s_Int_isize_cons(0))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_2_Tuple_unreachable(T$0: Type, U$1: Type): s_2_Tuple
+  ensures false
+
+
+function s_2_Tuple_field_0(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_2_Tuple_field_1(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_core$col$$col$option$col$$col$Option_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_core$col$$col$option$col$$col$Option_snap(self: Ref, T$0: Type): s_core$col$$col$option$col$$col$Option
+  requires acc(p_core$col$$col$option$col$$col$Option(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$option$col$$col$Option(self, T$0), write) in
+    (p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+    s_Int_isize_cons(1) ?
+      (unfolding acc(p_core$col$$col$option$col$$col$Option_1_owned(self, T$0), write) in
+        s_core$col$$col$option$col$$col$Option_1_cons(p_Param_snap(s_core$col$$col$option$col$$col$Option_1_field_0(self,
+        T$0), T$0))) :
+      (p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+      s_Int_isize_cons(0) ?
+        (unfolding acc(p_core$col$$col$option$col$$col$Option_0_owned(self,
+          T$0), write) in
+          s_core$col$$col$option$col$$col$Option_0_cons()) :
+        s_core$col$$col$option$col$$col$Option_unreachable(T$0))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_2_Tuple_snap(self: Ref, T$0: Type, U$1: Type): s_2_Tuple
+  requires acc(p_2_Tuple(self, T$0, U$1), write)
+{
+  (unfolding acc(p_2_Tuple(self, T$0, U$1), write) in
+    s_2_Tuple_cons(p_Param_snap(s_2_Tuple_field_0(self, T$0, U$1), T$0), p_Param_snap(s_2_Tuple_field_1(self,
+    T$0, U$1), U$1)))
+}
+
+predicate p_core$col$$col$option$col$$col$Option_0_owned(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_core$col$$col$option$col$$col$Option_1_owned(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_core$col$$col$option$col$$col$Option_1_field_0(self, T$0), T$0), write)
+}
+
+predicate p_core$col$$col$option$col$$col$Option(self: Ref, T$0: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_core$col$$col$option$col$$col$Option_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1)) &&
+  ((p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_core$col$$col$option$col$$col$Option_0_owned(self, T$0), write)) &&
+  (p_Int_isize_snap(p_core$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(T$0) &&
+  acc(p_core$col$$col$option$col$$col$Option_1_owned(self, T$0), write))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_2_Tuple(self: Ref, T$0: Type, U$1: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_2_Tuple_field_0(self, T$0, U$1), T$0), write) &&
+  (inhabited(U$1) &&
+  acc(p_Param(s_2_Tuple_field_1(self, T$0, U$1), U$1), write))
+}
+
+method m_read$col$$col$decode_hex_val_slow(_0p: Ref, _1p: Ref)
+  requires inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_1p), write)
+  ensures inhabited(s_core$col$$col$option$col$$col$Option_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$option$col$$col$Option(_0p, s_UInt_u8_type()), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _13p: Ref
+  var _14p: Ref
+  var _15p: Ref
+  var _16p: Ref
+  var _17p: Ref
+  var _18p: Ref
+  var _19p: Ref
+  var _20p: Ref
+  var _from_bb4_to_bb11: Bool
+  var _from_bb10_to_bb16: Bool
+  var _from_bb1_to_bb18: Bool
+  var _from_bb12_to_bb13: Bool
+  var _from_bb8_to_bb5: Bool
+  var _from_bb6_to_bb10: Bool
+  var _from_bb17_to_bb18: Bool
+  var _from_bb9_to_bb2: Bool
+  var _from_bb3_to_bb8: Bool
+  var _from_bb13_to_bb18: Bool
+  var _from_bb5_to_bb1: Bool
+  var _from_bb16_to_bb17: Bool
+  var _from_bb15_to_bb18: Bool
+  var _from_bb14_to_bb15: Bool
+  var _from_bb11_to_bb14: Bool
+  var _from_bb3_to_bb5: Bool
+  var _from_bb9_to_bb3: Bool
+  var _from_bb2_to_bb12: Bool
+  var _from_bb8_to_bb4: Bool
+  var _from_bb5_to_bb7: Bool
+  var _from_bb7_to_bb6: Bool
+  var _from_bb0_to_bb9: Bool
+  var _from_bb7_to_bb1: Bool
+  var _from_bb0_to_bb3: Bool
+  var _tmp0: s_UInt_u8
+  var _tmp1: Bool
+  var _tmp2: Bool
+  var _tmp3: s_UInt_u8
+  var _tmp4: Bool
+  var _tmp5: Bool
+  var _tmp6: s_UInt_u8
+  var _tmp7: s_UInt_u8
+  var _tmp8: Bool
+  var _tmp9: s_UInt_u8
+  var _tmp10: s_UInt_u8
+  var _tmp11: s_UInt_u8
+  var _tmp12: Bool
+  var _tmp13: Bool
+  var _tmp14: s_UInt_u8
+  var _tmp15: Bool
+  var _tmp16: Bool
+  var _tmp17: s_UInt_u8
+  var _tmp18: s_UInt_u8
+  var _tmp19: Bool
+  var _tmp20: s_UInt_u8
+  var _tmp21: s_UInt_u8
+  var _tmp22: Bool
+  var _tmp23: s_UInt_u8
+  var _tmp24: s_UInt_u8
+  var _tmp25: s_UInt_u8
+  var _tmp26: Bool
+  var _tmp27: Bool
+  var _tmp28: s_UInt_u8
+  var _tmp29: Bool
+  var _tmp30: Bool
+  var _tmp31: s_UInt_u8
+  var _tmp32: s_UInt_u8
+  var _tmp33: Bool
+  var _tmp34: s_UInt_u8
+  var _tmp35: s_UInt_u8
+  var _tmp36: Bool
+  var _tmp37: s_UInt_u8
+  var _tmp38: s_UInt_u8
+  label start
+  _from_bb4_to_bb11 := false
+  _from_bb10_to_bb16 := false
+  _from_bb1_to_bb18 := false
+  _from_bb12_to_bb13 := false
+  _from_bb8_to_bb5 := false
+  _from_bb6_to_bb10 := false
+  _from_bb17_to_bb18 := false
+  _from_bb9_to_bb2 := false
+  _from_bb3_to_bb8 := false
+  _from_bb13_to_bb18 := false
+  _from_bb5_to_bb1 := false
+  _from_bb16_to_bb17 := false
+  _from_bb15_to_bb18 := false
+  _from_bb14_to_bb15 := false
+  _from_bb11_to_bb14 := false
+  _from_bb3_to_bb5 := false
+  _from_bb9_to_bb3 := false
+  _from_bb2_to_bb12 := false
+  _from_bb8_to_bb4 := false
+  _from_bb5_to_bb7 := false
+  _from_bb7_to_bb6 := false
+  _from_bb0_to_bb9 := false
+  _from_bb7_to_bb1 := false
+  _from_bb0_to_bb3 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_6p, mir_binop_Le_UInt_u8_UInt_u8(s_UInt_u8_cons(48), _tmp0))
+  label _before_0_2
+  _tmp1 := p_Bool_snap(_6p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_6p), write)
+  _tmp2 := _tmp1
+  label _after_0
+  if (_tmp2 == false) {
+    _from_bb0_to_bb3 := true
+    goto bb_3
+  } else {
+    _from_bb0_to_bb9 := true
+    goto bb_9
+  }
+  label bb_9
+  label _before_9_0
+  _tmp3 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_7p, mir_binop_Le_UInt_u8_UInt_u8(_tmp3, s_UInt_u8_cons(57)))
+  label _before_9_1
+  _tmp4 := p_Bool_snap(_7p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_7p), write)
+  _tmp5 := _tmp4
+  label _after_9
+  if (_tmp5 == false) {
+    _from_bb9_to_bb3 := true
+    goto bb_3
+  } else {
+    _from_bb9_to_bb2 := true
+    goto bb_2
+  }
+  label bb_2
+  label _before_2_0
+  label _after_2
+  _from_bb2_to_bb12 := true
+  goto bb_12
+  label bb_12
+  label _before_12_0
+  label _before_12_1
+  label _before_12_2
+  _tmp6 := p_UInt_u8_snap(_1p)
+  p_UInt_u8_assign(_9p, _tmp6)
+  label _before_12_3
+  _tmp7 := p_UInt_u8_snap(_9p)
+  p_2_Tuple_assign(_10p, s_UInt_u8_type(), s_Bool_type(), mir_binop_SubWithOverflow_UInt_u8_UInt_u8(_tmp7,
+    s_UInt_u8_cons(48)))
+  label _before_12_4
+  unfold acc(p_2_Tuple(_10p, s_UInt_u8_type(), s_Bool_type()), write)
+  make_concrete_UInt_u8(s_2_Tuple_field_0(_10p, s_UInt_u8_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_10p, s_UInt_u8_type(), s_Bool_type()))
+  _tmp8 := p_Bool_snap(s_2_Tuple_field_1(_10p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_10p, s_UInt_u8_type(), s_Bool_type())), write)
+  exhale _tmp8 == false
+  label _after_12
+  _from_bb12_to_bb13 := true
+  goto bb_13
+  label bb_13
+  label _before_13_0
+  _tmp9 := p_UInt_u8_snap(s_2_Tuple_field_0(_10p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_u8_type()) &&
+    acc(p_UInt_u8(s_2_Tuple_field_0(_10p, s_UInt_u8_type(), s_Bool_type())), write)
+  p_UInt_u8_assign(_8p, _tmp9)
+  label _before_13_1
+  label _before_13_2
+  _tmp10 := p_UInt_u8_snap(_8p)
+  exhale inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_8p), write)
+  p_core$col$$col$option$col$$col$Option_assign(_0p, s_UInt_u8_type(), s_core$col$$col$option$col$$col$Option_1_cons(make_generic_s_UInt_u8(_tmp10)))
+  label _before_13_3
+  label _before_13_4
+  label _after_13
+  _from_bb13_to_bb18 := true
+  goto bb_18
+  label bb_3
+  label _before_3_0
+  _tmp11 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_4p, mir_binop_Le_UInt_u8_UInt_u8(s_UInt_u8_cons(65), _tmp11))
+  label _before_3_1
+  _tmp12 := p_Bool_snap(_4p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_4p), write)
+  _tmp13 := _tmp12
+  label _after_3
+  if (_tmp13 == false) {
+    _from_bb3_to_bb5 := true
+    goto bb_5
+  } else {
+    _from_bb3_to_bb8 := true
+    goto bb_8
+  }
+  label bb_8
+  label _before_8_0
+  _tmp14 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_5p, mir_binop_Le_UInt_u8_UInt_u8(_tmp14, s_UInt_u8_cons(70)))
+  label _before_8_1
+  _tmp15 := p_Bool_snap(_5p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_5p), write)
+  _tmp16 := _tmp15
+  label _after_8
+  if (_tmp16 == false) {
+    _from_bb8_to_bb5 := true
+    goto bb_5
+  } else {
+    _from_bb8_to_bb4 := true
+    goto bb_4
+  }
+  label bb_4
+  label _before_4_0
+  label _after_4
+  _from_bb4_to_bb11 := true
+  goto bb_11
+  label bb_11
+  label _before_11_0
+  label _before_11_1
+  label _before_11_2
+  label _before_11_3
+  _tmp17 := p_UInt_u8_snap(_1p)
+  p_UInt_u8_assign(_13p, _tmp17)
+  label _before_11_4
+  _tmp18 := p_UInt_u8_snap(_13p)
+  p_2_Tuple_assign(_14p, s_UInt_u8_type(), s_Bool_type(), mir_binop_SubWithOverflow_UInt_u8_UInt_u8(_tmp18,
+    s_UInt_u8_cons(65)))
+  label _before_11_5
+  unfold acc(p_2_Tuple(_14p, s_UInt_u8_type(), s_Bool_type()), write)
+  make_concrete_UInt_u8(s_2_Tuple_field_0(_14p, s_UInt_u8_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_14p, s_UInt_u8_type(), s_Bool_type()))
+  _tmp19 := p_Bool_snap(s_2_Tuple_field_1(_14p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_14p, s_UInt_u8_type(), s_Bool_type())), write)
+  exhale _tmp19 == false
+  label _after_11
+  _from_bb11_to_bb14 := true
+  goto bb_14
+  label bb_14
+  label _before_14_0
+  _tmp20 := p_UInt_u8_snap(s_2_Tuple_field_0(_14p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_u8_type()) &&
+    acc(p_UInt_u8(s_2_Tuple_field_0(_14p, s_UInt_u8_type(), s_Bool_type())), write)
+  p_UInt_u8_assign(_12p, _tmp20)
+  label _before_14_1
+  label _before_14_2
+  _tmp21 := p_UInt_u8_snap(_12p)
+  p_2_Tuple_assign(_15p, s_UInt_u8_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_u8_UInt_u8(_tmp21,
+    s_UInt_u8_cons(10)))
+  label _before_14_3
+  unfold acc(p_2_Tuple(_15p, s_UInt_u8_type(), s_Bool_type()), write)
+  make_concrete_UInt_u8(s_2_Tuple_field_0(_15p, s_UInt_u8_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_15p, s_UInt_u8_type(), s_Bool_type()))
+  _tmp22 := p_Bool_snap(s_2_Tuple_field_1(_15p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_15p, s_UInt_u8_type(), s_Bool_type())), write)
+  exhale _tmp22 == false
+  label _after_14
+  _from_bb14_to_bb15 := true
+  goto bb_15
+  label bb_15
+  label _before_15_0
+  _tmp23 := p_UInt_u8_snap(s_2_Tuple_field_0(_15p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_u8_type()) &&
+    acc(p_UInt_u8(s_2_Tuple_field_0(_15p, s_UInt_u8_type(), s_Bool_type())), write)
+  p_UInt_u8_assign(_11p, _tmp23)
+  label _before_15_1
+  label _before_15_2
+  _tmp24 := p_UInt_u8_snap(_11p)
+  exhale inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_11p), write)
+  p_core$col$$col$option$col$$col$Option_assign(_0p, s_UInt_u8_type(), s_core$col$$col$option$col$$col$Option_1_cons(make_generic_s_UInt_u8(_tmp24)))
+  label _before_15_3
+  label _before_15_4
+  label _after_15
+  _from_bb15_to_bb18 := true
+  goto bb_18
+  label bb_5
+  label _before_5_0
+  _tmp25 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_2p, mir_binop_Le_UInt_u8_UInt_u8(s_UInt_u8_cons(97), _tmp25))
+  label _before_5_1
+  _tmp26 := p_Bool_snap(_2p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_2p), write)
+  _tmp27 := _tmp26
+  label _after_5
+  if (_tmp27 == false) {
+    _from_bb5_to_bb1 := true
+    goto bb_1
+  } else {
+    _from_bb5_to_bb7 := true
+    goto bb_7
+  }
+  label bb_7
+  label _before_7_0
+  _tmp28 := p_UInt_u8_snap(_1p)
+  p_Bool_assign(_3p, mir_binop_Le_UInt_u8_UInt_u8(_tmp28, s_UInt_u8_cons(102)))
+  label _before_7_1
+  _tmp29 := p_Bool_snap(_3p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_3p), write)
+  _tmp30 := _tmp29
+  label _after_7
+  if (_tmp30 == false) {
+    _from_bb7_to_bb1 := true
+    goto bb_1
+  } else {
+    _from_bb7_to_bb6 := true
+    goto bb_6
+  }
+  label bb_6
+  label _before_6_0
+  label _after_6
+  _from_bb6_to_bb10 := true
+  goto bb_10
+  label bb_10
+  label _before_10_0
+  label _before_10_1
+  label _before_10_2
+  label _before_10_3
+  _tmp31 := p_UInt_u8_snap(_1p)
+  p_UInt_u8_assign(_18p, _tmp31)
+  label _before_10_4
+  _tmp32 := p_UInt_u8_snap(_18p)
+  p_2_Tuple_assign(_19p, s_UInt_u8_type(), s_Bool_type(), mir_binop_SubWithOverflow_UInt_u8_UInt_u8(_tmp32,
+    s_UInt_u8_cons(97)))
+  label _before_10_5
+  unfold acc(p_2_Tuple(_19p, s_UInt_u8_type(), s_Bool_type()), write)
+  make_concrete_UInt_u8(s_2_Tuple_field_0(_19p, s_UInt_u8_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_19p, s_UInt_u8_type(), s_Bool_type()))
+  _tmp33 := p_Bool_snap(s_2_Tuple_field_1(_19p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_19p, s_UInt_u8_type(), s_Bool_type())), write)
+  exhale _tmp33 == false
+  label _after_10
+  _from_bb10_to_bb16 := true
+  goto bb_16
+  label bb_16
+  label _before_16_0
+  _tmp34 := p_UInt_u8_snap(s_2_Tuple_field_0(_19p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_u8_type()) &&
+    acc(p_UInt_u8(s_2_Tuple_field_0(_19p, s_UInt_u8_type(), s_Bool_type())), write)
+  p_UInt_u8_assign(_17p, _tmp34)
+  label _before_16_1
+  label _before_16_2
+  _tmp35 := p_UInt_u8_snap(_17p)
+  p_2_Tuple_assign(_20p, s_UInt_u8_type(), s_Bool_type(), mir_binop_AddWithOverflow_UInt_u8_UInt_u8(_tmp35,
+    s_UInt_u8_cons(10)))
+  label _before_16_3
+  unfold acc(p_2_Tuple(_20p, s_UInt_u8_type(), s_Bool_type()), write)
+  make_concrete_UInt_u8(s_2_Tuple_field_0(_20p, s_UInt_u8_type(), s_Bool_type()))
+  make_concrete_Bool(s_2_Tuple_field_1(_20p, s_UInt_u8_type(), s_Bool_type()))
+  _tmp36 := p_Bool_snap(s_2_Tuple_field_1(_20p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_Bool_type()) &&
+    acc(p_Bool(s_2_Tuple_field_1(_20p, s_UInt_u8_type(), s_Bool_type())), write)
+  exhale _tmp36 == false
+  label _after_16
+  _from_bb16_to_bb17 := true
+  goto bb_17
+  label bb_17
+  label _before_17_0
+  _tmp37 := p_UInt_u8_snap(s_2_Tuple_field_0(_20p, s_UInt_u8_type(), s_Bool_type()))
+  exhale inhabited(s_UInt_u8_type()) &&
+    acc(p_UInt_u8(s_2_Tuple_field_0(_20p, s_UInt_u8_type(), s_Bool_type())), write)
+  p_UInt_u8_assign(_16p, _tmp37)
+  label _before_17_1
+  label _before_17_2
+  _tmp38 := p_UInt_u8_snap(_16p)
+  exhale inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_16p), write)
+  p_core$col$$col$option$col$$col$Option_assign(_0p, s_UInt_u8_type(), s_core$col$$col$option$col$$col$Option_1_cons(make_generic_s_UInt_u8(_tmp38)))
+  label _before_17_3
+  label _before_17_4
+  label _after_17
+  _from_bb17_to_bb18 := true
+  goto bb_18
+  label bb_19
+  assert false
+  goto end
+  label bb_1
+  label _before_1_0
+  p_core$col$$col$option$col$$col$Option_assign(_0p, s_UInt_u8_type(), s_core$col$$col$option$col$$col$Option_0_cons())
+  label _before_1_1
+  label _after_1
+  _from_bb1_to_bb18 := true
+  goto bb_18
+  label bb_18
+  label _before_18_0
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method make_generic_Bool(self: Ref)
+  requires acc(p_Bool(self), write)
+  ensures acc(p_Param(self, s_Bool_type()), write)
+  ensures old(make_generic_s_Bool(p_Bool_snap(self))) ==
+    p_Param_snap(self, s_Bool_type())
+
+
+method make_concrete_Bool(self: Ref)
+  requires acc(p_Param(self, s_Bool_type()), write)
+  ensures acc(p_Bool(self), write)
+  ensures old(p_Param_snap(self, s_Bool_type())) ==
+    make_generic_s_Bool(p_Bool_snap(self))
+
+
+method p_core$col$$col$option$col$$col$Option_assign(self: Ref, T$0: Type, value: s_core$col$$col$option$col$$col$Option)
+  ensures acc(p_core$col$$col$option$col$$col$Option(self, T$0), write)
+  ensures p_core$col$$col$option$col$$col$Option_snap(self, T$0) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_2_Tuple_assign(self: Ref, T$0: Type, U$1: Type, value: s_2_Tuple)
+  ensures acc(p_2_Tuple(self, T$0, U$1), write)
+  ensures p_2_Tuple_snap(self, T$0, U$1) == value
+
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  make_generic_s_Bool(make_concrete_s_Bool: Bool)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_core$col$$col$option$col$$col$Option {
+  s_core$col$$col$option$col$$col$Option_0_cons()
+  s_core$col$$col$option$col$$col$Option_1_cons(s_core$col$$col$option$col$$col$Option_1_0: s_Param)
+}
+
+adt s_2_Tuple {
+  s_2_Tuple_cons(s_2_Tuple_0: s_Param, s_2_Tuple_1: s_Param)
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_core$col$$col$option$col$$col$Option_type(s_core$col$$col$option$col$$col$Option_typaram_T$0: Type)
+  s_UInt_u8_type()
+  s_Bool_type()
+  s_2_Tuple_type(s_2_Tuple_typaram_T$0: Type, s_2_Tuple_typaram_U$1: Type)
+  Unknown_type(id: Int)
+}

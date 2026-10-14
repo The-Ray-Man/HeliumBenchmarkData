@@ -1,0 +1,74 @@
+// Rod Cutting Problem using dynamic programming and verified using sequences
+
+// These functions are the recursive definition of Rod Cutting implemented in Viper.
+
+import "../../../_preambles/defs.vpr"
+
+define valid_rodCutting_seq (prices, n) |prices| >= n && n >= 0 && forall k: Int :: {prices[k]} 0 <= k < |prices| ==> prices[k] >= 0
+
+function rc_rec(prices: Seq[Int], n: Int): Int
+  requires valid_rodCutting_seq(prices, n)
+  decreases n
+{
+  // Base Case: if the length of the rod is 0, the price is 0.
+  n == 0 ? 0 : 
+  // Otherwise, we redirect the the call to a helper function cutFirst that additionally takes an argument representing where the first cut is made.
+  cutFirst(prices, n, n)
+}
+
+function cutFirst(prices: Seq[Int], n: Int, firstCut: Int): Int
+  requires valid_rodCutting_seq(prices, n)
+  requires 0 <= firstCut <= n
+  decreases n, firstCut
+{
+  // Base cases: either the length pf the rod is 0 or the first cut is at 0.
+  n == 0 || firstCut == 0 ? 0 :
+
+  // Base case: if the first cut is at 1, we either cut at 1 and add the corresponding price or do not cut at 1 and move on.
+  firstCut == 1 ? max(prices[0] + rc_rec(prices, n - 1), 0) :
+
+  // We either cut at firstCut and add the corresponding price or do not cut at firstCut and move on.
+  max(prices[firstCut - 1] + rc_rec(prices, n - firstCut), cutFirst(prices, n, firstCut - 1))
+}
+
+method rodCutting_dp(prices: Seq[Int], n: Int) returns (res: Int)
+    requires valid_rodCutting_seq(prices, n)
+    // property that we aim to verify
+    ensures res == rc_rec(prices, n)
+    decreases
+{
+    var dp: Seq[Int]
+    // For convenience, we use asserts to define the size of the DP table.
+    assume |dp| == n + 1
+
+    // Base Case: if the length of the rod is 0, the price is 0.
+    dp := dp[0 := 0]
+    var i: Int := 1
+
+    while (i <= n)
+        invariant 0 < i <= n + 1
+        invariant |dp| == n + 1
+        // all DP entries k up until i contain the maximum cut for a rod of length k
+        invariant forall k: Int :: {dp[k]} 0 <= k < i ==> dp[k] == rc_rec(prices, k)
+        decreases n - i
+    {
+        var currBest: Int := 0
+        var prevBest: Int := currBest
+        var j: Int := 1
+        while (j <= i)
+            invariant 0 < i <= n
+            invariant 0 < j <= i + 1
+            invariant |dp| == n + 1
+            // The current best cut is the maximum of the previous best cut and the price of cutting the rod at length j.
+            invariant cutFirst(prices, i, j - 1) == currBest
+            decreases i - j
+        {
+            prevBest := currBest
+            currBest := max(prevBest, prices[j - 1] + dp[i - j])
+            j := j + 1
+        }
+        dp := dp[i := currBest]
+        i := i + 1
+    }
+    res := dp[n]
+}

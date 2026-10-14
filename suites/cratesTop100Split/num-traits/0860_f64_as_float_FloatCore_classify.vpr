@@ -1,0 +1,373 @@
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$num$col$$col$FpCategory {
+    inhabited(s_core$col$$col$num$col$$col$FpCategory_type()) ==
+    (true || true || (true || (true || true)))
+  }
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_float$col$$col$FloatCore  {
+  
+  function float$col$$col$FloatCore_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_core$col$$col$num$col$$col$FpCategory  {
+  
+  axiom s_core$col$$col$num$col$$col$FpCategory_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$num$col$$col$FpCategory_type())
+  }
+  
+  axiom s_core$col$$col$num$col$$col$FpCategory_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$num$col$$col$FpCategory_type())
+  }
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain trait_float$col$$col$FloatCore_impl_num_traits_Float_f64_306_condition  {
+  
+  axiom float$col$$col$FloatCore_impl_num_traits_Float_f64_306_condition {
+    float$col$$col$FloatCore_impl(s_Float_f64_type())
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_Float_f64_val: s_Float_f64
+
+function s_core$col$$col$num$col$$col$FpCategory_unreachable(): s_core$col$$col$num$col$$col$FpCategory
+  ensures false
+
+
+function s_core$col$$col$num$col$$col$FpCategory_discr(self: s_core$col$$col$num$col$$col$FpCategory): s_Int_isize
+{
+  (self.iss_core$col$$col$num$col$$col$FpCategory_4_cons ?
+    s_Int_isize_cons(4) :
+    (self.iss_core$col$$col$num$col$$col$FpCategory_3_cons ?
+      s_Int_isize_cons(3) :
+      (self.iss_core$col$$col$num$col$$col$FpCategory_2_cons ?
+        s_Int_isize_cons(2) :
+        (self.iss_core$col$$col$num$col$$col$FpCategory_1_cons ?
+          s_Int_isize_cons(1) :
+          s_Int_isize_cons(0)))))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function p_core$col$$col$num$col$$col$FpCategory_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_core$col$$col$num$col$$col$FpCategory_snap(self: Ref): s_core$col$$col$num$col$$col$FpCategory
+  requires acc(p_core$col$$col$num$col$$col$FpCategory(self), write)
+{
+  (unfolding acc(p_core$col$$col$num$col$$col$FpCategory(self), write) in
+    (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+    s_Int_isize_cons(4) ?
+      (unfolding acc(p_core$col$$col$num$col$$col$FpCategory_4_owned(self), write) in
+        s_core$col$$col$num$col$$col$FpCategory_4_cons()) :
+      (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+      s_Int_isize_cons(3) ?
+        (unfolding acc(p_core$col$$col$num$col$$col$FpCategory_3_owned(self), write) in
+          s_core$col$$col$num$col$$col$FpCategory_3_cons()) :
+        (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+        s_Int_isize_cons(2) ?
+          (unfolding acc(p_core$col$$col$num$col$$col$FpCategory_2_owned(self), write) in
+            s_core$col$$col$num$col$$col$FpCategory_2_cons()) :
+          (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+          s_Int_isize_cons(1) ?
+            (unfolding acc(p_core$col$$col$num$col$$col$FpCategory_1_owned(self), write) in
+              s_core$col$$col$num$col$$col$FpCategory_1_cons()) :
+            (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+            s_Int_isize_cons(0) ?
+              (unfolding acc(p_core$col$$col$num$col$$col$FpCategory_0_owned(self), write) in
+                s_core$col$$col$num$col$$col$FpCategory_0_cons()) :
+              s_core$col$$col$num$col$$col$FpCategory_unreachable()))))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory_0_owned(self: Ref) {
+  true
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory_1_owned(self: Ref) {
+  true
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory_2_owned(self: Ref) {
+  true
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory_3_owned(self: Ref) {
+  true
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory_4_owned(self: Ref) {
+  true
+}
+
+predicate p_core$col$$col$num$col$$col$FpCategory(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(2) ||
+  (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(3) ||
+  p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(4)))) &&
+  ((p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true && acc(p_core$col$$col$num$col$$col$FpCategory_0_owned(self), write)) &&
+  (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  true && acc(p_core$col$$col$num$col$$col$FpCategory_1_owned(self), write)) &&
+  ((p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  true && acc(p_core$col$$col$num$col$$col$FpCategory_2_owned(self), write)) &&
+  ((p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(3) ==>
+  true && acc(p_core$col$$col$num$col$$col$FpCategory_3_owned(self), write)) &&
+  (p_Int_isize_snap(p_core$col$$col$num$col$$col$FpCategory_field_discr(self)) ==
+  s_Int_isize_cons(4) ==>
+  true && acc(p_core$col$$col$num$col$$col$FpCategory_4_owned(self), write))))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+method m_$lt$f64$sp$as$sp$float$col$$col$FloatCore$gt$$col$$col$classify(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  ensures inhabited(s_core$col$$col$num$col$$col$FpCategory_type()) &&
+    acc(p_core$col$$col$num$col$$col$FpCategory(_0p), write)
+{
+  var _2p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Float_f64
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Float_f64_snap(_1p)
+  p_Float_f64_assign(_2p, _tmp0)
+  label _before_0_2
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_core$col$$col$f64$col$$col$$lt$impl$sp$f64$gt$$col$$col$classify(_0p, _2p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$f64$col$$col$$lt$impl$sp$f64$gt$$col$$col$classify(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  ensures inhabited(s_core$col$$col$num$col$$col$FpCategory_type()) &&
+    acc(p_core$col$$col$num$col$$col$FpCategory(_0p), write)
+
+
+method p_core$col$$col$num$col$$col$FpCategory_assign(self: Ref, value: s_core$col$$col$num$col$$col$FpCategory)
+  ensures acc(p_core$col$$col$num$col$$col$FpCategory(self), write)
+  ensures p_core$col$$col$num$col$$col$FpCategory_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method trait_float$col$$col$FloatCore_impl_Float_f64_306_fn_pre_weaken_$lt$f64$sp$as$sp$float$col$$col$FloatCore$gt$$col$$col$classify(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+{
+  label start
+}
+
+method trait_float$col$$col$FloatCore_impl_Float_f64_306_fn_post_strengthen_$lt$f64$sp$as$sp$float$col$$col$FloatCore$gt$$col$$col$classify(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  requires inhabited(s_core$col$$col$num$col$$col$FpCategory_type()) &&
+    acc(p_core$col$$col$num$col$$col$FpCategory(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_core$col$$col$num$col$$col$FpCategory {
+  s_core$col$$col$num$col$$col$FpCategory_0_cons()
+  s_core$col$$col$num$col$$col$FpCategory_1_cons()
+  s_core$col$$col$num$col$$col$FpCategory_2_cons()
+  s_core$col$$col$num$col$$col$FpCategory_3_cons()
+  s_core$col$$col$num$col$$col$FpCategory_4_cons()
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_core$col$$col$num$col$$col$FpCategory_type()
+  s_Float_f64_type()
+  Unknown_type(id: Int)
+}

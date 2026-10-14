@@ -1,0 +1,235 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_buf$col$$col$limit$col$$col$Limit {
+    (forall T$0: Type ::
+      { inhabited(s_buf$col$$col$limit$col$$col$Limit_type(T$0)) }
+      inhabited(s_buf$col$$col$limit$col$$col$Limit_type(T$0)) ==
+      (inhabited(T$0) && inhabited(s_UInt_usize_type())))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_buf$col$$col$limit$col$$col$Limit  {
+  
+  axiom s_buf$col$$col$limit$col$$col$Limit_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_buf$col$$col$limit$col$$col$Limit_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_buf$col$$col$limit$col$$col$Limit_type(T$0)))
+  }
+  
+  axiom s_buf$col$$col$limit$col$$col$Limit_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_buf$col$$col$limit$col$$col$Limit_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_buf$col$$col$limit$col$$col$Limit_type(T$0)))
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_buf$col$$col$limit$col$$col$Limit_unreachable(T$0: Type): s_buf$col$$col$limit$col$$col$Limit
+  ensures false
+
+
+function s_buf$col$$col$limit$col$$col$Limit_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_buf$col$$col$limit$col$$col$Limit_field_1(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_buf$col$$col$limit$col$$col$Limit_snap(self: Ref, T$0: Type): s_buf$col$$col$limit$col$$col$Limit
+  requires acc(p_buf$col$$col$limit$col$$col$Limit(self, T$0), write)
+{
+  (unfolding acc(p_buf$col$$col$limit$col$$col$Limit(self, T$0), write) in
+    s_buf$col$$col$limit$col$$col$Limit_cons(p_Param_snap(s_buf$col$$col$limit$col$$col$Limit_field_0(self,
+    T$0), T$0), p_UInt_usize_snap(s_buf$col$$col$limit$col$$col$Limit_field_1(self,
+    T$0))))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_buf$col$$col$limit$col$$col$Limit(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_buf$col$$col$limit$col$$col$Limit_field_0(self, T$0), T$0), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_buf$col$$col$limit$col$$col$Limit_field_1(self, T$0)), write))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_buf$col$$col$limit$col$$col$new(_0p: Ref, _1p: Ref, _2p: Ref, T$0: Type)
+  requires inhabited(T$0) && acc(p_Param(_1p, T$0), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  ensures inhabited(s_buf$col$$col$limit$col$$col$Limit_type(T$0)) &&
+    acc(p_buf$col$$col$limit$col$$col$Limit(_0p, T$0), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_Param
+  var _tmp3: s_UInt_usize
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(T$0)
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Param_snap(_1p, T$0)
+  exhale inhabited(T$0) && acc(p_Param(_1p, T$0), write)
+  p_Param_assign(_3p, T$0, _tmp0)
+  label _before_0_2
+  label _before_0_3
+  _tmp1 := p_UInt_usize_snap(_2p)
+  p_UInt_usize_assign(_4p, _tmp1)
+  label _before_0_4
+  _tmp2 := p_Param_snap(_3p, T$0)
+  exhale inhabited(T$0) && acc(p_Param(_3p, T$0), write)
+  _tmp3 := p_UInt_usize_snap(_4p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_4p), write)
+  p_buf$col$$col$limit$col$$col$Limit_assign(_0p, T$0, s_buf$col$$col$limit$col$$col$Limit_cons(_tmp2, _tmp3))
+  label _before_0_5
+  label _before_0_6
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label package_post0
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label end
+}
+
+method p_buf$col$$col$limit$col$$col$Limit_assign(self: Ref, T$0: Type, value: s_buf$col$$col$limit$col$$col$Limit)
+  ensures acc(p_buf$col$$col$limit$col$$col$Limit(self, T$0), write)
+  ensures p_buf$col$$col$limit$col$$col$Limit_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_buf$col$$col$limit$col$$col$Limit {
+  s_buf$col$$col$limit$col$$col$Limit_cons(s_buf$col$$col$limit$col$$col$Limit_0: s_Param,
+  s_buf$col$$col$limit$col$$col$Limit_1: s_UInt_usize)
+}
+
+adt Type {
+  s_UInt_usize_type()
+  s_buf$col$$col$limit$col$$col$Limit_type(s_buf$col$$col$limit$col$$col$Limit_typaram_T$0: Type)
+  Unknown_type(id: Int)
+}

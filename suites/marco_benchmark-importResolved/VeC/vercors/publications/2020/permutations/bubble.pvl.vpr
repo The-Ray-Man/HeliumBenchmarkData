@@ -1,0 +1,879 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+domain void  {
+  
+  function unit(): void 
+  
+  axiom {
+    (forall v: void ::true ==> unit() == v)
+  }
+}
+
+domain array  {
+  
+  function array_loc(a: array, i: Int): Ref 
+  
+  function alen(a: array): Int 
+  
+  function loc_inv_1(loc: Ref): array 
+  
+  function loc_inv_2(loc: Ref): Int 
+  
+  axiom {
+    (forall a: array, i: Int ::
+      { array_loc(a, i) }
+      loc_inv_1(array_loc(a, i)) == a && loc_inv_2(array_loc(a, i)) == i)
+  }
+  
+  axiom {
+    (forall a: array :: { alen(a) } alen(a) >= 0)
+  }
+}
+
+domain any  {
+  
+  
+}
+
+domain option[T1]  {
+  
+  function None(): option[T1] 
+  
+  function some(x: T1): option[T1] 
+  
+  function option_get(opt: option[T1]): T1 
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (None(): option[T1]) != (some(x): option[T1]))
+  }
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (option_get((some(x): option[T1])): T1) == x)
+  }
+  
+  axiom {
+    (forall opt: option[T1] ::
+      { (some((option_get(opt): T1)): option[T1]) }
+      (some((option_get(opt): T1)): option[T1]) == opt)
+  }
+}
+
+field int: Int
+
+function counter(ys: Seq[Int], element: Int): Int
+  ensures 0 <= result
+  ensures (forall j: Int ::0 <= j && j < |ys| ==> element != ys[j]) ==>
+    result == 0
+  ensures result == 0 ==>
+    (forall j: Int ::0 <= j && j < |ys| ==> element != ys[j])
+  ensures (forall j: Int ::0 <= j && j < |ys| ==> element == ys[j]) ==>
+    result == |ys|
+  ensures result == |ys| ==>
+    (forall j: Int ::0 <= j && j < |ys| ==> element == ys[j])
+  ensures result <= |ys|
+  ensures (element in ys) ==> 0 < result
+  ensures 0 < result ==> (element in ys)
+{
+  (0 < |ys| ?
+    (ys[0] == element ?
+      1 + counter(ys[1..], element) :
+      counter(ys[1..], element)) :
+    0)
+}
+
+function swap(xs: Seq[Int], i: Int, j: Int, k: Int): Seq[Int]
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires 0 <= k
+  requires k < |xs| + 1
+  ensures |result| == |xs| - k
+  ensures j < k ==>
+    (forall l: Int ::0 <= l && l < |result| ==> result[l] == xs[l + k])
+  ensures j <= k ==>
+    (forall l: Int ::0 <= l && l < |result| && l + k != j ==>
+      result[l] == xs[l + k])
+  ensures j <= k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures i < k ==>
+    (forall l: Int ::0 <= l && l < |result| && l + k != j ==>
+      result[l] == xs[l + k])
+  ensures i < k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures i <= k ==>
+    (forall l: Int ::0 <= l && l < |result| && (l + k != i && l + k != j) ==>
+      result[l] == xs[l + k])
+  ensures i <= k && (0 <= i - k && i - k < |result|) ==>
+    result[i - k] == xs[j]
+  ensures i <= k && (0 <= j - k && j - k < |result|) ==>
+    result[j - k] == xs[i]
+  ensures (forall l: Int ::0 <= l && l < |result| &&
+      (l + k != i && l + k != j) ==>
+      result[l] == xs[l + k])
+  ensures 0 <= i - k && i - k < |result| ==> result[i - k] == xs[j]
+  ensures 0 <= j - k && j - k < |result| ==> result[j - k] == xs[i]
+{
+  (k < |xs| ?
+    (k == i ?
+      Seq(xs[j]) ++ swap(xs, i, j, k + 1) :
+      (k == j ?
+        Seq(xs[i]) ++ swap(xs, i, j, k + 1) :
+        Seq(xs[k]) ++ swap(xs, i, j, k + 1))) :
+    Seq[Int]())
+}
+
+function isApermutation(xs: Seq[Int], ys: Seq[Int]): Bool
+{
+  |xs| == |ys| &&
+  (forall l: Int ::0 <= l && l < |xs| ==>
+    counter(xs, xs[l]) == counter(ys, xs[l]))
+}
+
+function aloc(a: array, i: Int): Ref
+  requires 0 <= i
+  requires i < alen(a)
+  decreases 
+  ensures loc_inv_1(result) == a
+  ensures loc_inv_2(result) == i
+{
+  array_loc(a, i)
+}
+
+function any_as(t: any): any
+  decreases 
+
+
+function as_any(t: any): any
+  decreases 
+  ensures any_as(result) == t
+
+
+function opt_get(opt: option[any]): any
+  requires opt != (None(): option[any])
+  decreases 
+  ensures (some(result): option[any]) == opt
+{
+  (option_get(opt): any)
+}
+
+function opt_or_else(opt: option[any], alt: any): any
+  decreases 
+  ensures opt == (None(): option[any]) ==> result == alt
+  ensures opt != (None(): option[any]) ==> result == opt_get(opt)
+{
+  (opt == (None(): option[any]) ? alt : opt_get(opt))
+}
+
+function opt_get1(opt: option[array]): array
+  requires opt != (None(): option[array])
+  decreases 
+  ensures (some(result): option[array]) == opt
+{
+  (option_get(opt): array)
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+method check_sat_counter()
+{
+  assert false
+}
+
+method check_sat_swap(j: Int, xs: Seq[Int], k: Int, i: Int)
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires 0 <= k
+  requires k < |xs| + 1
+{
+  assert false
+}
+
+method check_sat_isApermutation()
+{
+  assert false
+}
+
+method check_sat_BubbleSort()
+{
+  assert false
+}
+
+method BubbleSort(tid: Int) returns (res: Ref)
+{
+  var exc: Ref
+  var return: Ref
+  var BubbleSort1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new()
+  inhale type(flatten) == 1
+  BubbleSort1 := flatten
+  return := BubbleSort1
+  goto end
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_seq_eq(xs: Seq[Int], i: Int, j: Int, this: Ref)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+{
+  assert false
+}
+
+method lemma_swap_seq_eq(this: Ref, tid: Int, xs: Seq[Int], i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  ensures swap(xs, i, j, 0) == xs[i := xs[j]][j := xs[i]]
+  ensures xs[i := xs[j]][j := xs[i]] == swap(xs, i, j, 0)
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_base(xs: Seq[Int], i: Int, j: Int, this: Ref)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i == j
+{
+  assert false
+}
+
+method lemma_swap_base(this: Ref, tid: Int, xs: Seq[Int], i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i == j
+  ensures swap(xs, i, j, 0) == xs
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_count_empty(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_empty(this: Ref, tid: Int, i: Int) returns (res: void)
+  requires this != null
+  ensures counter(Seq[Int](), i) == 0
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_count_single(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_single(this: Ref, tid: Int, i: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  ensures i == element ==> counter(Seq(i), element) == 1
+  ensures i != element ==> counter(Seq(i), element) == 0
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_count_app(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int], element: Int)
+  returns (res: void)
+  requires this != null
+  ensures |xs| == 0 ==> counter(xs ++ ys, element) == counter(ys, element)
+  ensures |ys| == 0 ==> counter(xs ++ ys, element) == counter(xs, element)
+  ensures |xs ++ ys| == |xs| + |ys|
+  ensures counter(xs[1..] ++ ys, element) ==
+    counter(xs[1..], element) + counter(ys, element)
+  ensures counter(xs ++ ys, element) ==
+    counter(xs, element) + counter(ys, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  exc := null
+  if (0 < |xs|) {
+    res1 := lemma_count_app(this, tid, xs[1..], ys, element)
+    assert xs[1..] ++ ys == xs ++ ys[1..]
+  }
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_count_app_all(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app_all(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int])
+  returns (res: void)
+  requires this != null
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs ++ ys, xs[l]) == counter(xs, xs[l]) + counter(ys, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs|)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| + 1
+    invariant (forall l: Int ::0 <= l && l < k ==>
+        counter(xs ++ ys, xs[l]) == counter(xs, xs[l]) + counter(ys, xs[l])) 
+  {
+    res1 := lemma_count_app(this, tid, xs, ys, xs[k])
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_count_app_ext(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_count_app_ext(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int], rs: Seq[Int], zs: Seq[Int], element: Int)
+  returns (res: void)
+  requires this != null
+  ensures counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs, element) + counter(ys, element) + counter(ts, element) +
+    counter(rs, element) +
+    counter(zs, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  var res3: void
+  var res4: void
+  exc := null
+  res1 := lemma_count_app(this, tid, xs ++ ys ++ ts ++ rs, zs, element)
+  assert counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs ++ ys ++ ts ++ rs, element) + counter(zs, element)
+  res2 := lemma_count_app(this, tid, xs ++ ys ++ ts, rs, element)
+  assert counter(xs ++ ys ++ ts ++ rs, element) ==
+    counter(xs ++ ys ++ ts, element) + counter(rs, element)
+  res3 := lemma_count_app(this, tid, xs ++ ys, ts, element)
+  assert counter(xs ++ ys ++ ts, element) ==
+    counter(xs ++ ys, element) + counter(ts, element)
+  res4 := lemma_count_app(this, tid, xs, ys, element)
+  assert counter(xs ++ ys, element) ==
+    counter(xs, element) + counter(ys, element)
+  assert counter(xs ++ ys ++ ts ++ rs ++ zs, element) ==
+    counter(xs, element) + counter(ys, element) + counter(ts, element) +
+    counter(rs, element) +
+    counter(zs, element)
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_helper(xs: Seq[Int], i: Int, j: Int,
+  this: Ref)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+{
+  assert false
+}
+
+method lemma_swap_permutation_helper(this: Ref, tid: Int, xs: Seq[Int], i: Int,
+  j: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i < j
+  ensures xs ==
+    xs[0..i] ++ Seq(xs[i]) ++ xs[i + 1..j] ++ Seq(xs[j]) ++ xs[j + 1..|xs|]
+  ensures counter(xs, element) ==
+    counter(xs[0..i] ++ Seq(xs[i]) ++ xs[i + 1..j] ++ Seq(xs[j]) ++
+    xs[j + 1..|xs|], element)
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation(j: Int, this: Ref, ys: Seq[Int], xs: Seq[Int],
+  i: Int)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires ys == swap(xs, i, j, 0)
+{
+  assert false
+}
+
+method lemma_swap_permutation(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  i: Int, j: Int, element: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires ys == swap(xs, i, j, 0)
+  ensures counter(xs, element) == counter(ys, element)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  var res3: void
+  var res4: void
+  var res5: void
+  var res6: void
+  exc := null
+  assert (forall l: Int ::0 <= l && l < |ys| && (l != i && l != j) ==>
+      swap(xs, i, j, 0)[l] == xs[l])
+  assert (forall l: Int ::(0 <= i && i < |ys| ? i : 0) <= l &&
+      l < (0 <= i && i < |ys| ? i + 1 : 0) ==>
+      swap(xs, i, j, 0)[l] == xs[j]) &&
+    (forall l: Int ::(0 <= j && j < |ys| ? j : 0) <= l &&
+      l < (0 <= j && j < |ys| ? j + 1 : 0) ==>
+      ys[l] == xs[i])
+  if (i == j) {
+    res1 := lemma_swap_base(this, tid, xs, i, j)
+    assert xs == ys
+    assert counter(xs, element) == counter(ys, element)
+  }
+  if (i < j) {
+    assert ys ==
+      xs[0..i] ++ Seq(xs[j]) ++ xs[i + 1..j] ++ Seq(xs[i]) ++
+      xs[j + 1..|xs|]
+    assert counter(ys, element) ==
+      counter(xs[0..i] ++ Seq(xs[j]) ++ xs[i + 1..j] ++ Seq(xs[i]) ++
+      xs[j + 1..|xs|], element)
+    res2 := lemma_count_app_ext(this, tid, xs[0..i], Seq(xs[j]), xs[i + 1..j],
+      Seq(xs[i]), xs[j + 1..|xs|], element)
+    assert counter(ys, element) ==
+      counter(xs[0..i], element) + counter(Seq(xs[j]), element) +
+      counter(xs[i + 1..j], element) +
+      counter(Seq(xs[i]), element) +
+      counter(xs[j + 1..|xs|], element)
+    res3 := lemma_count_single(this, tid, i, element)
+    res4 := lemma_count_single(this, tid, j, element)
+    res5 := lemma_swap_permutation_helper(this, tid, xs, i, j, element)
+    res6 := lemma_count_app_ext(this, tid, xs[0..i], Seq(xs[i]), xs[i + 1..j],
+      Seq(xs[j]), xs[j + 1..|xs|], element)
+    assert counter(xs, element) ==
+      counter(xs[0..i], element) + counter(Seq(xs[i]), element) +
+      counter(xs[i + 1..j], element) +
+      counter(Seq(xs[j]), element) +
+      counter(xs[j + 1..|xs|], element)
+    assert counter(xs, element) == counter(ys, element)
+  }
+  assert counter(xs, element) == counter(ys, element)
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_all(j: Int, this: Ref, ys: Seq[Int],
+  xs: Seq[Int], i: Int)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires ys == swap(xs, i, j, 0)
+{
+  assert false
+}
+
+method lemma_swap_permutation_all(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires ys == swap(xs, i, j, 0)
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  var k: Int
+  var flatten: Int
+  var res1: void
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  k := flatten
+  label loop
+  excBeforeLoop := exc
+  while (k < |xs|)
+    invariant exc == excBeforeLoop
+    invariant 0 <= k
+    invariant k < |xs| + 1
+    invariant (forall l: Int ::0 <= l && l < k ==>
+        counter(xs, xs[l]) == counter(ys, xs[l])) 
+  {
+    res1 := lemma_swap_permutation(this, tid, xs, ys, i, j, xs[k])
+    flatten1 := k + 1
+    k := flatten1
+  }
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_swap_permutation_trans(ys: Seq[Int], xs: Seq[Int], ts: Seq[Int],
+  this: Ref)
+  requires this != null
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(ys, ys[l]) == counter(ts, ys[l]))
+{
+  assert false
+}
+
+method lemma_swap_permutation_trans(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int])
+  returns (res: void)
+  requires this != null
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(ys, ys[l]) == counter(ts, ys[l]))
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ts, xs[l]))
+{
+  var exc: Ref
+  var return: void
+  exc := null
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_lemma_permutation_apply(ys: Seq[Int], this: Ref, j: Int, ts: Seq[Int],
+  i: Int, xs: Seq[Int])
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires ts == swap(ys, i, j, 0)
+{
+  assert false
+}
+
+method lemma_permutation_apply(this: Ref, tid: Int, xs: Seq[Int], ys: Seq[Int],
+  ts: Seq[Int], i: Int, j: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= i
+  requires i < |xs|
+  requires 0 <= j
+  requires j < |xs|
+  requires i <= j
+  requires |xs| == |ys|
+  requires |ys| == |ts|
+  requires (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ys, xs[l]))
+  requires ts == swap(ys, i, j, 0)
+  ensures (forall l: Int ::0 <= l && l < |xs| ==>
+      counter(xs, xs[l]) == counter(ts, xs[l]))
+  ensures swap(ys, i, j, 0) == ys[i := ys[j]][j := ys[i]]
+  ensures ys[i := ys[j]][j := ys[i]] == swap(ys, i, j, 0)
+{
+  var exc: Ref
+  var return: void
+  var res1: void
+  var res2: void
+  exc := null
+  res1 := lemma_swap_permutation_all(this, tid, ys, ts, i, j)
+  res2 := lemma_swap_permutation_trans(this, tid, xs, ys, ts)
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_bubble(size: Int, input: option[array], inp_seq: Seq[Int],
+  this: Ref)
+  requires this != null
+  requires input != (None(): option[array])
+  requires alen(opt_get1(input)) == size
+  requires 0 < size
+  requires |inp_seq| == size
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> acc(aloc(opt_get1(input), i).int, write))
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> aloc(opt_get1(input), i).int == inp_seq[i])
+{
+  assert false
+}
+
+method bubble(this: Ref, tid: Int, input: option[array], size: Int, inp_seq: Seq[Int])
+  returns (res: void, out_seq: Seq[Int])
+  requires this != null
+  requires input != (None(): option[array])
+  requires alen(opt_get1(input)) == size
+  requires 0 < size
+  requires |inp_seq| == size
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> acc(aloc(opt_get1(input), i).int, write))
+  requires (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> aloc(opt_get1(input), i).int == inp_seq[i])
+  ensures input != (None(): option[array])
+  ensures alen(opt_get1(input)) == size
+  ensures 0 < size
+  ensures |inp_seq| == size
+  ensures (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> acc(aloc(opt_get1(input), i).int, write))
+  ensures |out_seq| == size
+  ensures (forall i: Int ::
+      { aloc(opt_get1(input), i) }
+      0 <= i && i < size ==> aloc(opt_get1(input), i).int == out_seq[i])
+  ensures isApermutation(inp_seq, out_seq)
+{
+  var exc: Ref
+  var return: void
+  var outerLoop: Int
+  var innerLoop: Int
+  var temp: Int
+  var flatten: Int
+  var flatten1: Int
+  var flatten2: Int
+  var res1: void
+  var flatten3: Int
+  var flatten4: Int
+  var flatten5: Seq[Int]
+  var flatten6: Int
+  var flatten7: Seq[Int]
+  var flatten8: Int
+  var flatten9: Int
+  var excBeforeLoop: Ref
+  var excBeforeLoop1: Ref
+  exc := null
+  flatten := 0
+  outerLoop := flatten
+  flatten1 := 0
+  innerLoop := flatten1
+  out_seq := inp_seq
+  label loop
+  excBeforeLoop := exc
+  while (outerLoop < size - 1)
+    invariant exc == excBeforeLoop
+    invariant input != (None(): option[array])
+    invariant alen(opt_get1(input)) == size
+    invariant 0 < size
+    invariant 0 <= outerLoop
+    invariant outerLoop < size
+    invariant (forall i: Int ::
+        { aloc(opt_get1(input), i) }
+        0 <= i && i < size ==> acc(aloc(opt_get1(input), i).int, write))
+    invariant |out_seq| == size
+    invariant (forall i: Int ::
+        { aloc(opt_get1(input), i) }
+        0 <= i && i < size ==> aloc(opt_get1(input), i).int == out_seq[i])
+    invariant isApermutation(inp_seq, out_seq) 
+  {
+    flatten2 := 0
+    innerLoop := flatten2
+    label loop1
+    excBeforeLoop1 := exc
+    while (innerLoop < size - outerLoop - 1)
+      invariant exc == excBeforeLoop1
+      invariant input != (None(): option[array])
+      invariant alen(opt_get1(input)) == size
+      invariant 0 < size
+      invariant 0 <= outerLoop
+      invariant outerLoop < size - 1
+      invariant 0 <= innerLoop
+      invariant innerLoop < size - outerLoop
+      invariant (forall i: Int ::
+          { aloc(opt_get1(input), i) }
+          0 <= i && i < size ==> acc(aloc(opt_get1(input), i).int, write))
+      invariant |out_seq| == size
+      invariant (forall i: Int ::
+          { aloc(opt_get1(input), i) }
+          0 <= i && i < size ==> aloc(opt_get1(input), i).int == out_seq[i])
+      invariant isApermutation(inp_seq, out_seq) 
+    {
+      if (aloc(opt_get1(input), innerLoop + 1).int <
+      aloc(opt_get1(input), innerLoop).int) {
+        res1 := lemma_permutation_apply(this, tid, inp_seq, out_seq, swap(out_seq,
+          innerLoop, innerLoop + 1, 0), innerLoop, innerLoop + 1)
+        flatten3 := aloc(opt_get1(input), innerLoop).int
+        temp := flatten3
+        flatten4 := aloc(opt_get1(input), innerLoop + 1).int
+        aloc(opt_get1(input), innerLoop).int := flatten4
+        flatten5 := out_seq[innerLoop :=
+          aloc(opt_get1(input), innerLoop + 1).int]
+        out_seq := flatten5
+        flatten6 := innerLoop + 1
+        aloc(opt_get1(input), flatten6).int := temp
+        flatten7 := out_seq[innerLoop + 1 := temp]
+        out_seq := flatten7
+      }
+      flatten8 := innerLoop + 1
+      innerLoop := flatten8
+    }
+    flatten9 := outerLoop + 1
+    outerLoop := flatten9
+  }
+  label end
+  res := return
+  label bubble1
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

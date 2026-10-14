@@ -1,0 +1,172 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+domain TriggerWisdoms {
+    function __learn_trigger__($b$: Bool): Bool
+    function __trigger_ref__($r$: Ref): Bool
+    function __learn_edge__($e$: Edge): Bool
+    function __trigger_path($p$: Ref): Bool
+
+    axiom ax_Dummy {
+        forall $b$:Bool :: 
+            { __learn_trigger__($b$) } 
+                __learn_trigger__($b$)
+    }
+}
+
+domain Edge {
+    function edge_pred(e0: Edge): Ref
+    function edge_succ(e0: Edge): Ref
+
+    function create_edge(x0:Ref, y0:Ref): Edge
+    function create_edge_(x0:Ref, y0:Ref): Edge
+
+    axiom edge_injectivity {
+        forall x0:Ref, y0:Ref ::
+            { create_edge(x0,y0) }
+                edge_pred( create_edge(x0,y0) ) == x0 &&
+                edge_succ( create_edge(x0,y0) ) == y0
+    }
+}
+
+domain TrClo {
+
+    function exists_path(EG:Set[Edge], from:Ref, to:Ref): Bool
+    function exists_path_(EG:Set[Edge], from:Ref, to:Ref): Bool
+    function exists_spath(EG:Set[Edge], from:Set[Ref], to:Ref): Bool
+    function exists_paths(EG:Set[Edge], from:Ref, to:Set[Ref]): Bool
+
+    /** axiomatization of the set for instantiating color axioms with unary reachability */
+    function inst_uReach(EG:Set[Edge], x0:Ref): Set[Ref]
+    function inst_uReach_rev(EG:Set[Edge], x0:Ref): Set[Ref]
+
+    /** The properties of the edge relation. */
+    function acyclic_graph(EG:Set[Edge]): Bool
+    function unshared_graph(EG:Set[Edge]): Bool
+    function func_graph(EG:Set[Edge]): Bool
+
+
+    function edge(EG:Set[Edge], p0:Ref, s0:Ref): Bool
+    function edge_(EG:Set[Edge], p0:Ref, s0:Ref): Bool
+
+    function succs(EG:Set[Edge], pred:Ref): Set[Ref]
+
+    axiom ax_Succs {
+        forall EG:Set[Edge], pred:Ref, succ:Ref ::
+            { succ in succs(EG,pred) }
+                succ in succs(EG,pred) <==> edge_(EG,pred,succ)
+    }
+
+    axiom ax_EdgeSynonim {
+        forall EG:Set[Edge], p0:Ref, s0:Ref ::
+            { edge(EG,p0,s0) }
+                edge(EG,p0,s0) <==> edge_(EG,p0,s0)
+    }
+    
+    axiom ax_Edge {
+        forall EG:Set[Edge], p0:Ref, s0:Ref ::
+            { create_edge(p0,s0) in EG }
+            { edge(EG,p0,s0) }
+                edge_(EG,p0,s0) <==> create_edge(p0,s0) in EG
+    }
+
+    axiom ax_instantiation_uReach {
+        forall EG:Set[Edge], x0:Ref, v0: Ref ::
+            { v0 in inst_uReach(EG,x0) }
+            { exists_path(EG,x0,v0) }
+                v0 in inst_uReach(EG,x0) <==> exists_path(EG,x0,v0)
+    }
+
+    axiom ax_instantiation_uReach_rev {
+        forall EG:Set[Edge], u0: Ref, y0:Ref ::
+            { u0 in inst_uReach_rev(EG,y0) }
+            { exists_path(EG,u0,y0) }
+                u0 in inst_uReach_rev(EG,y0) <==> exists_path(EG,u0,y0)
+    }
+
+    axiom ax_Alias {
+        forall EG:Set[Edge], from:Ref, to:Ref ::
+            { exists_path(EG,from,to) }
+                exists_path(EG,from,to) <==> exists_path_(EG,from,to)
+    }
+
+    axiom ax_EdgeMeansPath {
+        forall EG:Set[Edge], from:Ref, to:Ref ::
+            { exists_path(EG, from, to) }
+                edge(EG, from, to) ==> exists_path(EG, from, to)
+    }
+
+    /** T1 -- Ref-oriented encoding */
+    axiom ax_ExistsPath {
+        (forall EG: Set[Edge], from: Ref, to: Ref ::
+            { exists_path(EG, from, to) }
+            //{ edge(EG, from, to) } -- using ax_EdgeMeansPath instead
+                exists_path_(EG, from, to) ==> (from == to || (edge(EG, from, skolem_w(EG,from,to)) && exists_path_(EG, skolem_w(EG,from,to), to))))
+        &&
+        (forall EG: Set[Edge], from: Ref, middle: Ref, to: Ref ::
+            { edge(EG, from, middle), exists_path(EG, middle, to) }
+            { edge(EG, from, middle), exists_path(EG, from, to) }
+            { exists_path(EG, middle, to), exists_path(EG, from, to) }
+                (from == to || (edge(EG, from, middle) && exists_path_(EG, middle, to))) ==> exists_path_(EG, from, to) )
+    }
+
+    /** Follows from T1 && IND */
+    axiom ax_ExistsPathTrans {
+        forall EG:Set[Edge], u0:Ref, v0:Ref, w0:Ref ::
+            { exists_path(EG,u0,w0), exists_path(EG,w0,v0) } //TODO multipattern
+            { exists_path_(EG,u0,w0), exists_path(EG,w0,v0) }
+            { exists_path(EG,u0,w0), exists_path_(EG,w0,v0) }
+                exists_path_(EG,u0,w0) && exists_path_(EG,w0,v0) ==> exists_path_(EG,u0,v0)
+    }
+
+    axiom ax_AcyclicGraph {
+        forall EG:Set[Edge] ::
+            { acyclic_graph(EG) }
+                acyclic_graph(EG) <==>
+                    forall v1:Ref, v2:Ref ::
+                        { edge(EG,v1,v2) }
+                        { exists_path(EG,v2,v1) }
+                            !edge(EG,v1,v2) || !exists_path(EG,v2,v1)
+    }
+
+    axiom ax_UnsharedGraph {
+        forall EG:Set[Edge] ::
+            { unshared_graph(EG) }
+                unshared_graph(EG) <==>
+                    forall v1:Ref, v2:Ref, v0:Ref ::
+                        { edge(EG,v1,v0), edge(EG,v2,v0) } //TODO multipattern
+                            edge(EG,v1,v0) && edge(EG,v2,v0) ==> v1 == v2
+    }
+
+    axiom ax_FuncGraph {
+        forall EG:Set[Edge] ::
+            { func_graph(EG) }
+                func_graph(EG) <==>
+                    forall v1:Ref, v2:Ref, v0:Ref ::
+                        { edge(EG,v0,v1), edge(EG,v0,v2) }
+                            edge(EG,v0,v1) && edge(EG,v0,v2) ==> v1 == v2
+    }
+
+    axiom ax_ExistsSetPath {
+        forall EG:Set[Edge], from:Set[Ref], to:Ref ::
+            { exists_spath(EG,from,to) }
+                exists_spath(EG,from,to) <==>
+                    !(forall f0:Ref ::
+                        { f0 in from }
+                        { exists_path(EG, f0, to) }
+                            !(f0 in from && exists_path(EG,f0,to)))
+    }
+
+    axiom ax_ExistsPathSet {
+        forall EG:Set[Edge], from:Ref, to:Set[Ref] ::
+            { exists_paths(EG,from,to) }
+                exists_paths(EG,from,to) <==>
+                    !(forall t0:Ref ::
+                        { t0 in to }
+                        { exists_path(EG, from, t0) }
+                            !(t0 in to && exists_path(EG,from,t0)))
+    }
+}

@@ -1,0 +1,1657 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_alloc$col$$col$alloc$col$$col$Global  {
+  
+  axiom s_Param_typ_def_make_generic_s_alloc$col$$col$alloc$col$$col$Global {
+    (forall x: s_alloc$col$$col$alloc$col$$col$Global ::
+      { make_generic_s_alloc$col$$col$alloc$col$$col$Global(x) }
+      s_Param_typ(make_generic_s_alloc$col$$col$alloc$col$$col$Global(x)) ==
+      s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_alloc$col$$col$alloc$col$$col$Global {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_alloc$col$$col$alloc$col$$col$Global_type()) }
+      s_Param_typ(p) == s_alloc$col$$col$alloc$col$$col$Global_type() ==>
+      make_generic_s_alloc$col$$col$alloc$col$$col$Global(s_alloc$col$$col$alloc$col$$col$Global_cons()) ==
+      p)
+  }
+  
+  axiom make_generic_s_alloc$col$$col$alloc$col$$col$Global_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_alloc$col$$col$alloc$col$$col$Global }
+      p.make_concrete_s_alloc$col$$col$alloc$col$$col$Global ==
+      s_alloc$col$$col$alloc$col$$col$Global_cons())
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_core$col$$col$ptr$col$$col$NonNull {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) ==
+      inhabited(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom inhabited_alloc$col$$col$rc$col$$col$RcInner {
+    (forall T$0: Type ::
+      { inhabited(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)) }
+      inhabited(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)) ==
+      (inhabited(s_core$col$$col$cell$col$$col$Cell_type(s_UInt_usize_type())) &&
+      (inhabited(s_core$col$$col$cell$col$$col$Cell_type(s_UInt_usize_type())) &&
+      inhabited(T$0))))
+  }
+  
+  axiom inhabited_core$col$$col$cell$col$$col$Cell {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$cell$col$$col$Cell_type(T$0)) }
+      inhabited(s_core$col$$col$cell$col$$col$Cell_type(T$0)) ==
+      inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+  
+  axiom inhabited_core$col$$col$cell$col$$col$UnsafeCell {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_alloc$col$$col$rc$col$$col$Rc {
+    (forall T$0: Type, A$1: Type ::
+      { inhabited(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)) }
+      inhabited(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)) ==
+      (inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0))) &&
+      (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0))) &&
+      inhabited(A$1))))
+  }
+  
+  axiom inhabited_rand_core$col$$col$block$col$$col$BlockRng {
+    (forall G$0: Type ::
+      { inhabited(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)) }
+      inhabited(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)) ==
+      (inhabited(rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(G$0)) &&
+      inhabited(G$0)))
+  }
+  
+  axiom inhabited_rngs$col$$col$thread$col$$col$ReseedingCore {
+    inhabited(s_rngs$col$$col$thread$col$$col$ReseedingCore_type()) ==
+    inhabited(s_chacha20$col$$col$ChaChaCore_type(s_chacha20$col$$col$R12_type(), s_chacha20$col$$col$variants$col$$col$Legacy_type()))
+  }
+  
+  axiom inhabited_chacha20$col$$col$ChaChaCore {
+    (forall R$0: Type, V$1: Type ::
+      { inhabited(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) }
+      inhabited(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) ==
+      (inhabited(s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(16))) &&
+      (inhabited(s_2_Tuple_type(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type(), s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type())) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_2_Tuple_type(R$0, V$1))))))
+  }
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_2_Tuple {
+    (forall T$0: Type, U$1: Type ::
+      { inhabited(s_2_Tuple_type(T$0, U$1)) }
+      inhabited(s_2_Tuple_type(T$0, U$1)) ==
+      (inhabited(T$0) && inhabited(U$1)))
+  }
+  
+  axiom inhabited_chacha20$col$$col$avx2_cpuid$col$$col$InitToken {
+    inhabited(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type()) ==
+    inhabited(s_0_Tuple_type())
+  }
+  
+  axiom inhabited_0_Tuple {
+    inhabited(s_0_Tuple_type()) == true
+  }
+  
+  axiom inhabited_chacha20$col$$col$sse2_cpuid$col$$col$InitToken {
+    inhabited(s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type()) ==
+    inhabited(s_0_Tuple_type())
+  }
+  
+  axiom inhabited_chacha20$col$$col$R12 {
+    inhabited(s_chacha20$col$$col$R12_type()) == true
+  }
+  
+  axiom inhabited_chacha20$col$$col$variants$col$$col$Legacy {
+    inhabited(s_chacha20$col$$col$variants$col$$col$Legacy_type()) == false
+  }
+  
+  axiom inhabited_alloc$col$$col$alloc$col$$col$Global {
+    inhabited(s_alloc$col$$col$alloc$col$$col$Global_type()) == true
+  }
+  
+  axiom inhabited_rngs$col$$col$thread$col$$col$ThreadRng {
+    inhabited(s_rngs$col$$col$thread$col$$col$ThreadRng_type()) ==
+    inhabited(s_alloc$col$$col$rc$col$$col$Rc_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(s_rand_core$col$$col$block$col$$col$BlockRng_type(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())), s_alloc$col$$col$alloc$col$$col$Global_type()))
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_rand_core$col$$col$block$col$$col$Generator  {
+  
+  function rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(arg0: Type): Type 
+  
+  function rand_core$col$$col$block$col$$col$Generator_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$default$col$$col$Default  {
+  
+  function core$col$$col$default$col$$col$Default_impl(arg0: Type): Bool 
+}
+
+domain trait_chacha20$col$$col$variants$col$$col$Variant  {
+  
+  function chacha20$col$$col$variants$col$$col$Variant_assoc_type_chacha20$col$$col$variants$col$$col$Variant$col$$col$Counter(arg0: Type): Type 
+  
+  function chacha20$col$$col$variants$col$$col$Variant_impl(arg0: Type): Bool 
+}
+
+domain trait_chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed  {
+  
+  function chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl(arg0: Type): Bool 
+}
+
+domain trait_chacha20$col$$col$Rounds  {
+  
+  function chacha20$col$$col$Rounds_assoc_const_chacha20$col$$col$Rounds$col$$col$COUNT(arg0: Type): s_UInt_usize 
+  
+  function chacha20$col$$col$Rounds_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy  {
+  
+  function core$col$$col$marker$col$$col$Copy_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone  {
+  
+  function core$col$$col$clone$col$$col$Clone_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Thin  {
+  
+  function core$col$$col$ptr$col$$col$Thin_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$alloc$col$$col$Allocator  {
+  
+  function core$col$$col$alloc$col$$col$Allocator_impl(arg0: Type): Bool 
+}
+
+domain sizedness_alloc$col$$col$rc$col$$col$RcInner  {
+  
+  axiom s_alloc$col$$col$rc$col$$col$RcInner_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)))
+  }
+  
+  axiom s_alloc$col$$col$rc$col$$col$RcInner_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$cell$col$$col$UnsafeCell  {
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain sizedness_rand_core$col$$col$block$col$$col$BlockRng  {
+  
+  axiom s_rand_core$col$$col$block$col$$col$BlockRng_Sized {
+    (forall G$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)))
+  }
+  
+  axiom s_rand_core$col$$col$block$col$$col$BlockRng_MetaSized {
+    (forall G$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(G$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)))
+  }
+}
+
+domain sizedness_rngs$col$$col$thread$col$$col$ReseedingCore  {
+  
+  axiom s_rngs$col$$col$thread$col$$col$ReseedingCore_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())
+  }
+  
+  axiom s_rngs$col$$col$thread$col$$col$ReseedingCore_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())
+  }
+}
+
+domain sizedness_alloc$col$$col$alloc$col$$col$Global  {
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$ptr$col$$col$NonNull  {
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$cell$col$$col$Cell  {
+  
+  axiom s_core$col$$col$cell$col$$col$Cell_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$cell$col$$col$Cell_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_alloc$col$$col$rc$col$$col$Rc  {
+  
+  axiom s_alloc$col$$col$rc$col$$col$Rc_Sized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)))
+  }
+  
+  axiom s_alloc$col$$col$rc$col$$col$Rc_MetaSized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(A$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)))
+  }
+}
+
+domain sizedness_chacha20$col$$col$ChaChaCore  {
+  
+  axiom s_chacha20$col$$col$ChaChaCore_Sized {
+    (forall R$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)))
+  }
+  
+  axiom s_chacha20$col$$col$ChaChaCore_MetaSized {
+    (forall R$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)))
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_2_Tuple  {
+  
+  axiom s_2_Tuple_Sized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+  
+  axiom s_2_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+}
+
+domain sizedness_chacha20$col$$col$avx2_cpuid$col$$col$InitToken  {
+  
+  axiom s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type())
+  }
+  
+  axiom s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain sizedness_chacha20$col$$col$sse2_cpuid$col$$col$InitToken  {
+  
+  axiom s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type())
+  }
+  
+  axiom s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_chacha20$col$$col$R12  {
+  
+  axiom s_chacha20$col$$col$R12_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$R12_type())
+  }
+  
+  axiom s_chacha20$col$$col$R12_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$R12_type())
+  }
+}
+
+domain sizedness_chacha20$col$$col$variants$col$$col$Legacy  {
+  
+  axiom s_chacha20$col$$col$variants$col$$col$Legacy_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+  
+  axiom s_chacha20$col$$col$variants$col$$col$Legacy_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+}
+
+domain sizedness_rngs$col$$col$thread$col$$col$ThreadRng  {
+  
+  axiom s_rngs$col$$col$thread$col$$col$ThreadRng_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_rngs$col$$col$thread$col$$col$ThreadRng_type())
+  }
+  
+  axiom s_rngs$col$$col$thread$col$$col$ThreadRng_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_rngs$col$$col$thread$col$$col$ThreadRng_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_rand_rngs$col$$col$thread$col$$col$ThreadRng_296_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_rand_rngs$col$$col$thread$col$$col$ThreadRng_296_condition {
+    core$col$$col$default$col$$col$Default_impl(s_rngs$col$$col$thread$col$$col$ThreadRng_type())
+  }
+}
+
+domain trait_rand_core$col$$col$block$col$$col$Generator_impl_rand_rngs$col$$col$thread$col$$col$ReseedingCore_293_condition  {
+  
+  axiom rand_core$col$$col$block$col$$col$Generator_impl_rand_rngs$col$$col$thread$col$$col$ReseedingCore_293_condition {
+    rand_core$col$$col$block$col$$col$Generator_impl(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())
+  }
+}
+
+domain trait_rand_core$col$$col$block$col$$col$Generator_impl_chacha20_chacha20$col$$col$ChaChaCore_33_condition  {
+  
+  axiom rand_core$col$$col$block$col$$col$Generator_impl_chacha20_chacha20$col$$col$ChaChaCore_33_condition {
+    (forall R$0: Type, V$1: Type ::
+      { rand_core$col$$col$block$col$$col$Generator_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) }
+      chacha20$col$$col$variants$col$$col$Variant_impl(V$1) &&
+      (chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl(V$1) &&
+      chacha20$col$$col$Rounds_impl(R$0)) &&
+      (core$col$$col$marker$col$$col$Copy_impl(R$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(R$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(R$0))) ==>
+      rand_core$col$$col$block$col$$col$Generator_impl(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$ptr$col$$col$Thin_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_impl(T$0) &&
+      (core$col$$col$marker$col$$col$MetaSized_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0) ==
+      s_0_Tuple_type()) ==>
+      core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition {
+    core$col$$col$default$col$$col$Default_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_u32_1969_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_u32_1969_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_u32_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1993_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1993_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(32))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(32))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1994_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1994_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(31))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(31))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1995_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1995_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(30))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(30))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1996_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1996_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(29))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(29))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1997_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1997_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(28))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(28))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1998_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1998_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(27))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(27))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1999_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1999_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(26))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(26))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2000_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2000_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(25))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(25))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2001_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2001_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(24))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(24))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2002_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2002_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(23))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(23))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2003_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2003_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(22))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(22))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2004_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2004_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(21))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(21))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2005_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2005_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(20))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(20))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2006_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2006_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(19))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(19))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2007_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2007_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(18))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(18))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2008_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2008_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(17))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(17))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2009_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2009_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(16))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(16))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2010_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2010_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(15))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(15))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2011_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2011_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(14))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(14))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2012_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2012_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(13))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(13))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2013_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2013_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(12))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(12))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2014_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2014_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(11))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(11))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2015_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2015_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(10))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(10))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2016_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2016_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(9))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(9))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2017_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2017_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(8))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(8))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2018_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2018_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(7))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(7))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2019_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2019_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(6))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(6))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2020_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2020_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(5))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(5))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2021_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2021_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(4))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(4))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2022_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2022_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(3))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(3))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2023_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2023_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(2))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(2))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2024_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2024_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(1))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(1))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2025_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2025_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(0))) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(0))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$Cell_2030_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$Cell_2030_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$UnsafeCell_2032_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$UnsafeCell_2032_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_2_Tuple_2081_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_2_Tuple_2081_condition {
+    (forall U$0: Type, T$1: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_2_Tuple_type(U$0, T$1)) }
+      core$col$$col$default$col$$col$Default_impl(T$1) &&
+      core$col$$col$default$col$$col$Default_impl(U$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(T$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(U$0)) ==>
+      core$col$$col$default$col$$col$Default_impl(s_2_Tuple_type(U$0, T$1)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition {
+    core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$rc$col$$col$Rc_152_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$rc$col$$col$Rc_152_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())))
+  }
+}
+
+domain trait_chacha20$col$$col$variants$col$$col$Variant_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_28_condition  {
+  
+  axiom chacha20$col$$col$variants$col$$col$Variant_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_28_condition {
+    chacha20$col$$col$variants$col$$col$Variant_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+}
+
+domain trait_chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_26_condition  {
+  
+  axiom chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_26_condition {
+    chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+}
+
+domain trait_chacha20$col$$col$Rounds_impl_chacha20_chacha20$col$$col$R12_47_condition  {
+  
+  axiom chacha20$col$$col$Rounds_impl_chacha20_chacha20$col$$col$R12_47_condition {
+    chacha20$col$$col$Rounds_impl(s_chacha20$col$$col$R12_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$NonNull_1566_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$ptr$col$$col$NonNull_1566_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_usize_1577_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_usize_1577_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_u32_1580_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_u32_1580_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_u32_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_RawPtr_immutable_1595_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_RawPtr_immutable_1595_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$marker$col$$col$PhantomData_1599_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_core$col$$col$marker$col$$col$PhantomData_1599_condition {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_Array_1609_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_Array_1609_condition {
+    (forall T$0: Type, N$1: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Copy_impl(s_Array_type(T$0, N$1)) }
+      core$col$$col$marker$col$$col$Copy_impl(T$0) &&
+      (core$col$$col$clone$col$$col$Clone_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$marker$col$$col$Copy_impl(s_Array_type(T$0, N$1)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_alloc_alloc$col$$col$alloc$col$$col$Global_52_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_alloc_alloc$col$$col$alloc$col$$col$Global_52_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_8_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_8_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$R12_10_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$R12_10_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_chacha20$col$$col$R12_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_12_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_12_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_13_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_chacha20_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_13_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$NonNull_668_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$ptr$col$$col$NonNull_668_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_usize_670_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_usize_670_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_u32_673_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_u32_673_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_u32_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_RawPtr_immutable_689_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_RawPtr_immutable_689_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$marker$col$$col$PhantomData_703_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$marker$col$$col$PhantomData_703_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_Array_719_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_Array_719_condition {
+    (forall T$0: Type, N$1: s_UInt_usize ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_Array_type(T$0, N$1)) }
+      core$col$$col$clone$col$$col$Clone_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_Array_type(T$0, N$1)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$cell$col$$col$Cell_724_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_core$col$$col$cell$col$$col$Cell_724_condition {
+    (forall T$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)) }
+      core$col$$col$marker$col$$col$Copy_impl(T$0) &&
+      (core$col$$col$clone$col$$col$Clone_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0)) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_core$col$$col$cell$col$$col$Cell_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$alloc$col$$col$Global_55_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$alloc$col$$col$Global_55_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$rc$col$$col$Rc_104_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_alloc_alloc$col$$col$rc$col$$col$Rc_104_condition {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)) }
+      core$col$$col$clone$col$$col$Clone_impl(A$1) &&
+      core$col$$col$alloc$col$$col$Allocator_impl(A$1) &&
+      (core$col$$col$marker$col$$col$Sized_impl(A$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0)) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_alloc$col$$col$rc$col$$col$Rc_type(T$0, A$1)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_rand_core_rand_core$col$$col$block$col$$col$BlockRng_0_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_rand_core_rand_core$col$$col$block$col$$col$BlockRng_0_condition {
+    (forall G$0: Type ::
+      { core$col$$col$clone$col$$col$Clone_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)) }
+      core$col$$col$clone$col$$col$Clone_impl(rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(G$0)) &&
+      core$col$$col$marker$col$$col$Sized_impl(rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(G$0)) &&
+      (rand_core$col$$col$block$col$$col$Generator_impl(G$0) &&
+      (core$col$$col$clone$col$$col$Clone_impl(G$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(G$0))) ==>
+      core$col$$col$clone$col$$col$Clone_impl(s_rand_core$col$$col$block$col$$col$BlockRng_type(G$0)))
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_1_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_1_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_chacha20$col$$col$variants$col$$col$Legacy_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$R12_3_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$R12_3_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_chacha20$col$$col$R12_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_5_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_5_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_6_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_chacha20_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_6_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_rand_rngs$col$$col$thread$col$$col$ThreadRng_294_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_rand_rngs$col$$col$thread$col$$col$ThreadRng_294_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_rngs$col$$col$thread$col$$col$ThreadRng_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_u64_1970_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_u64_1970_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Copy_impl_core_UInt_u64_1581_condition  {
+  
+  axiom core$col$$col$marker$col$$col$Copy_impl_core_UInt_u64_1581_condition {
+    core$col$$col$marker$col$$col$Copy_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$clone$col$$col$Clone_impl_core_UInt_u64_674_condition  {
+  
+  axiom core$col$$col$clone$col$$col$Clone_impl_core_UInt_u64_674_condition {
+    core$col$$col$clone$col$$col$Clone_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$alloc$col$$col$Allocator_impl_alloc_alloc$col$$col$alloc$col$$col$Global_256_condition  {
+  
+  axiom core$col$$col$alloc$col$$col$Allocator_impl_alloc_alloc$col$$col$alloc$col$$col$Global_256_condition {
+    core$col$$col$alloc$col$$col$Allocator_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_rand_core$col$$col$block$col$$col$Generator_impl_rand_rngs$col$$col$thread$col$$col$ReseedingCore_293_$lt$rngs$col$$col$thread$col$$col$ReseedingCore$sp$as$sp$rand_core$col$$col$block$col$$col$Generator$gt$$col$$col$Output  {
+  
+  axiom rand_core$col$$col$block$col$$col$Generator_impl_rand_rngs$col$$col$thread$col$$col$ReseedingCore_293_assoc_type_$lt$rngs$col$$col$thread$col$$col$ReseedingCore$sp$as$sp$rand_core$col$$col$block$col$$col$Generator$gt$$col$$col$Output {
+    rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(s_rngs$col$$col$thread$col$$col$ReseedingCore_type()) ==
+    s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(64))
+  }
+}
+
+domain trait_rand_core$col$$col$block$col$$col$Generator_impl_chacha20_chacha20$col$$col$ChaChaCore_33_chacha20$col$$col$rng$col$$col$$lt$impl$sp$rand_core$col$$col$block$col$$col$Generator$sp$for$sp$chacha20$col$$col$ChaChaCore$lt$R$com$$sp$V$gt$$gt$$col$$col$Output  {
+  
+  axiom rand_core$col$$col$block$col$$col$Generator_impl_chacha20_chacha20$col$$col$ChaChaCore_33_assoc_type_chacha20$col$$col$rng$col$$col$$lt$impl$sp$rand_core$col$$col$block$col$$col$Generator$sp$for$sp$chacha20$col$$col$ChaChaCore$lt$R$com$$sp$V$gt$$gt$$col$$col$Output {
+    (forall R$0: Type, V$1: Type ::
+      { rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) }
+      chacha20$col$$col$variants$col$$col$Variant_impl(V$1) &&
+      (chacha20$col$$col$variants$col$$col$sealed$col$$col$Sealed_impl(V$1) &&
+      chacha20$col$$col$Rounds_impl(R$0)) &&
+      (core$col$$col$marker$col$$col$Copy_impl(R$0) &&
+      core$col$$col$clone$col$$col$Clone_impl(R$0) &&
+      (core$col$$col$marker$col$$col$Sized_impl(V$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(R$0))) ==>
+      rand_core$col$$col$block$col$$col$Generator_assoc_type_rand_core$col$$col$block$col$$col$Generator$col$$col$Output(s_chacha20$col$$col$ChaChaCore_type(R$0, V$1)) ==
+      s_Array_type(s_UInt_u32_type(), s_UInt_usize_cons(64)))
+  }
+}
+
+domain trait_chacha20$col$$col$variants$col$$col$Variant_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_28_$lt$chacha20$col$$col$variants$col$$col$Legacy$sp$as$sp$chacha20$col$$col$variants$col$$col$Variant$gt$$col$$col$Counter  {
+  
+  axiom chacha20$col$$col$variants$col$$col$Variant_impl_chacha20_chacha20$col$$col$variants$col$$col$Legacy_28_assoc_type_$lt$chacha20$col$$col$variants$col$$col$Legacy$sp$as$sp$chacha20$col$$col$variants$col$$col$Variant$gt$$col$$col$Counter {
+    chacha20$col$$col$variants$col$$col$Variant_assoc_type_chacha20$col$$col$variants$col$$col$Variant$col$$col$Counter(s_chacha20$col$$col$variants$col$$col$Legacy_type()) ==
+    s_UInt_u64_type()
+  }
+}
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+function s_rngs$col$$col$thread$col$$col$ThreadRng_unreachable(): s_rngs$col$$col$thread$col$$col$ThreadRng
+  ensures false
+
+
+function s_rngs$col$$col$thread$col$$col$ThreadRng_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$rc$col$$col$Rc_unreachable(T$0: Type, A$1: Type): s_alloc$col$$col$rc$col$$col$Rc
+  ensures false
+
+
+function s_alloc$col$$col$rc$col$$col$Rc_field_0(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$rc$col$$col$Rc_field_1(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$rc$col$$col$Rc_field_2(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_unreachable(T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function s_alloc$col$$col$alloc$col$$col$Global_unreachable(): s_alloc$col$$col$alloc$col$$col$Global
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_rngs$col$$col$thread$col$$col$ThreadRng_snap(self: Ref): s_rngs$col$$col$thread$col$$col$ThreadRng
+  requires acc(p_rngs$col$$col$thread$col$$col$ThreadRng(self), write)
+{
+  (unfolding acc(p_rngs$col$$col$thread$col$$col$ThreadRng(self), write) in
+    s_rngs$col$$col$thread$col$$col$ThreadRng_cons(p_alloc$col$$col$rc$col$$col$Rc_snap(s_rngs$col$$col$thread$col$$col$ThreadRng_field_0(self),
+    s_core$col$$col$cell$col$$col$UnsafeCell_type(s_rand_core$col$$col$block$col$$col$BlockRng_type(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())),
+    s_alloc$col$$col$alloc$col$$col$Global_type())))
+}
+
+function p_alloc$col$$col$rc$col$$col$Rc_snap(self: Ref, T$0: Type, A$1: Type): s_alloc$col$$col$rc$col$$col$Rc
+  requires acc(p_alloc$col$$col$rc$col$$col$Rc(self, T$0, A$1), write)
+{
+  (unfolding acc(p_alloc$col$$col$rc$col$$col$Rc(self, T$0, A$1), write) in
+    s_alloc$col$$col$rc$col$$col$Rc_cons(p_core$col$$col$ptr$col$$col$NonNull_snap(s_alloc$col$$col$rc$col$$col$Rc_field_0(self,
+    T$0, A$1), s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)), p_core$col$$col$marker$col$$col$PhantomData_snap(s_alloc$col$$col$rc$col$$col$Rc_field_1(self,
+    T$0, A$1), s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)), p_Param_snap(s_alloc$col$$col$rc$col$$col$Rc_field_2(self,
+    T$0, A$1), A$1)))
+}
+
+function p_core$col$$col$ptr$col$$col$NonNull_snap(self: Ref, T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  requires acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write) in
+    s_core$col$$col$ptr$col$$col$NonNull_cons(p_RawPtr_immutable_snap(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+    T$0), T$0)))
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+function p_alloc$col$$col$alloc$col$$col$Global_snap(self: Ref): s_alloc$col$$col$alloc$col$$col$Global
+  requires acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+{
+  (unfolding acc(p_alloc$col$$col$alloc$col$$col$Global(self), write) in
+    s_alloc$col$$col$alloc$col$$col$Global_cons())
+}
+
+predicate p_rngs$col$$col$thread$col$$col$ThreadRng(self: Ref) {
+  inhabited(s_alloc$col$$col$rc$col$$col$Rc_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(s_rand_core$col$$col$block$col$$col$BlockRng_type(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())), s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+  acc(p_alloc$col$$col$rc$col$$col$Rc(s_rngs$col$$col$thread$col$$col$ThreadRng_field_0(self),
+  s_core$col$$col$cell$col$$col$UnsafeCell_type(s_rand_core$col$$col$block$col$$col$BlockRng_type(s_rngs$col$$col$thread$col$$col$ReseedingCore_type())),
+  s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+}
+
+predicate p_alloc$col$$col$rc$col$$col$Rc(self: Ref, T$0: Type, A$1: Type) {
+  inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0))) &&
+  acc(p_core$col$$col$ptr$col$$col$NonNull(s_alloc$col$$col$rc$col$$col$Rc_field_0(self,
+  T$0, A$1), s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_alloc$col$$col$rc$col$$col$RcInner_type(T$0))) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_alloc$col$$col$rc$col$$col$Rc_field_1(self,
+  T$0, A$1), s_alloc$col$$col$rc$col$$col$RcInner_type(T$0)), write) &&
+  (inhabited(A$1) &&
+  acc(p_Param(s_alloc$col$$col$rc$col$$col$Rc_field_2(self, T$0, A$1), A$1), write)))
+}
+
+predicate p_core$col$$col$ptr$col$$col$NonNull(self: Ref, T$0: Type) {
+  inhabited(s_RawPtr_immutable_type(T$0)) &&
+  acc(p_RawPtr_immutable(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_alloc$col$$col$alloc$col$$col$Global(self: Ref) {
+  true
+}
+
+method m_$lt$rngs$col$$col$thread$col$$col$ThreadRng$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  ensures inhabited(s_rngs$col$$col$thread$col$$col$ThreadRng_type()) &&
+    acc(p_rngs$col$$col$thread$col$$col$ThreadRng(_0p), write)
+{
+  var _from_bb0_to_bb1: Bool
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_rngs$col$$col$thread$col$$col$rng(_0p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_rngs$col$$col$thread$col$$col$rng(_0p: Ref)
+  ensures inhabited(s_rngs$col$$col$thread$col$$col$ThreadRng_type()) &&
+    acc(p_rngs$col$$col$thread$col$$col$ThreadRng(_0p), write)
+
+
+method make_generic_alloc$col$$col$alloc$col$$col$Global(self: Ref)
+  requires acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures acc(p_Param(self, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+  ensures old(make_generic_s_alloc$col$$col$alloc$col$$col$Global(p_alloc$col$$col$alloc$col$$col$Global_snap(self))) ==
+    p_Param_snap(self, s_alloc$col$$col$alloc$col$$col$Global_type())
+
+
+method make_concrete_alloc$col$$col$alloc$col$$col$Global(self: Ref)
+  requires acc(p_Param(self, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+  ensures acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures old(p_Param_snap(self, s_alloc$col$$col$alloc$col$$col$Global_type())) ==
+    make_generic_s_alloc$col$$col$alloc$col$$col$Global(p_alloc$col$$col$alloc$col$$col$Global_snap(self))
+
+
+method p_rngs$col$$col$thread$col$$col$ThreadRng_assign(self: Ref, value: s_rngs$col$$col$thread$col$$col$ThreadRng)
+  ensures acc(p_rngs$col$$col$thread$col$$col$ThreadRng(self), write)
+  ensures p_rngs$col$$col$thread$col$$col$ThreadRng_snap(self) == value
+
+
+method p_alloc$col$$col$rc$col$$col$Rc_assign(self: Ref, T$0: Type, A$1: Type,
+  value: s_alloc$col$$col$rc$col$$col$Rc)
+  ensures acc(p_alloc$col$$col$rc$col$$col$Rc(self, T$0, A$1), write)
+  ensures p_alloc$col$$col$rc$col$$col$Rc_snap(self, T$0, A$1) == value
+
+
+method p_core$col$$col$ptr$col$$col$NonNull_assign(self: Ref, T$0: Type, value: s_core$col$$col$ptr$col$$col$NonNull)
+  ensures acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+  ensures p_core$col$$col$ptr$col$$col$NonNull_snap(self, T$0) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method p_alloc$col$$col$alloc$col$$col$Global_assign(self: Ref, value: s_alloc$col$$col$alloc$col$$col$Global)
+  ensures acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures p_alloc$col$$col$alloc$col$$col$Global_snap(self) == value
+
+
+method trait_core$col$$col$default$col$$col$Default_impl_rngs$col$$col$thread$col$$col$ThreadRng_296_fn_pre_weaken_$lt$rngs$col$$col$thread$col$$col$ThreadRng$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+{
+  label start
+}
+
+method trait_core$col$$col$default$col$$col$Default_impl_rngs$col$$col$thread$col$$col$ThreadRng_296_fn_post_strengthen_$lt$rngs$col$$col$thread$col$$col$ThreadRng$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  requires inhabited(s_rngs$col$$col$thread$col$$col$ThreadRng_type()) &&
+    acc(p_rngs$col$$col$thread$col$$col$ThreadRng(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_alloc$col$$col$alloc$col$$col$Global(make_concrete_s_alloc$col$$col$alloc$col$$col$Global: s_alloc$col$$col$alloc$col$$col$Global)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_rngs$col$$col$thread$col$$col$ThreadRng {
+  s_rngs$col$$col$thread$col$$col$ThreadRng_cons(s_rngs$col$$col$thread$col$$col$ThreadRng_0: s_alloc$col$$col$rc$col$$col$Rc)
+}
+
+adt s_alloc$col$$col$rc$col$$col$Rc {
+  s_alloc$col$$col$rc$col$$col$Rc_cons(s_alloc$col$$col$rc$col$$col$Rc_0: s_core$col$$col$ptr$col$$col$NonNull,
+  s_alloc$col$$col$rc$col$$col$Rc_1: s_core$col$$col$marker$col$$col$PhantomData,
+  s_alloc$col$$col$rc$col$$col$Rc_2: s_Param)
+}
+
+adt s_core$col$$col$ptr$col$$col$NonNull {
+  s_core$col$$col$ptr$col$$col$NonNull_cons(s_core$col$$col$ptr$col$$col$NonNull_0: s_RawPtr_immutable)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt s_alloc$col$$col$alloc$col$$col$Global {
+  s_alloc$col$$col$alloc$col$$col$Global_cons()
+}
+
+adt Type {
+  s_alloc$col$$col$rc$col$$col$RcInner_type(s_alloc$col$$col$rc$col$$col$RcInner_typaram_T$0: Type)
+  s_core$col$$col$cell$col$$col$UnsafeCell_type(s_core$col$$col$cell$col$$col$UnsafeCell_typaram_T$0: Type)
+  s_rand_core$col$$col$block$col$$col$BlockRng_type(s_rand_core$col$$col$block$col$$col$BlockRng_typaram_G$0: Type)
+  s_rngs$col$$col$thread$col$$col$ReseedingCore_type()
+  s_alloc$col$$col$alloc$col$$col$Global_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_core$col$$col$ptr$col$$col$NonNull_type(s_core$col$$col$ptr$col$$col$NonNull_typaram_T$0: Type)
+  s_core$col$$col$cell$col$$col$Cell_type(s_core$col$$col$cell$col$$col$Cell_typaram_T$0: Type)
+  s_UInt_usize_type()
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_alloc$col$$col$rc$col$$col$Rc_type(s_alloc$col$$col$rc$col$$col$Rc_typaram_T$0: Type,
+  s_alloc$col$$col$rc$col$$col$Rc_typaram_A$1: Type)
+  s_chacha20$col$$col$ChaChaCore_type(s_chacha20$col$$col$ChaChaCore_typaram_R$0: Type,
+  s_chacha20$col$$col$ChaChaCore_typaram_V$1: Type)
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_UInt_u32_type()
+  s_2_Tuple_type(s_2_Tuple_typaram_T$0: Type, s_2_Tuple_typaram_U$1: Type)
+  s_chacha20$col$$col$avx2_cpuid$col$$col$InitToken_type()
+  s_chacha20$col$$col$sse2_cpuid$col$$col$InitToken_type()
+  s_0_Tuple_type()
+  s_chacha20$col$$col$R12_type()
+  s_chacha20$col$$col$variants$col$$col$Legacy_type()
+  s_rngs$col$$col$thread$col$$col$ThreadRng_type()
+  s_UInt_u64_type()
+  Unknown_type(id: Int)
+}

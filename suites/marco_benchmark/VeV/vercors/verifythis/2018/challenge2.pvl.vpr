@@ -1,0 +1,942 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+domain array  {
+  
+  function array_loc(a: array, i: Int): Ref 
+  
+  function alen(a: array): Int 
+  
+  function loc_inv_1(loc: Ref): array 
+  
+  function loc_inv_2(loc: Ref): Int 
+  
+  axiom {
+    (forall a: array, i: Int ::
+      { array_loc(a, i) }
+      loc_inv_1(array_loc(a, i)) == a && loc_inv_2(array_loc(a, i)) == i)
+  }
+  
+  axiom {
+    (forall a: array :: { alen(a) } alen(a) >= 0)
+  }
+}
+
+domain any  {
+  
+  
+}
+
+domain option[T1]  {
+  
+  function None(): option[T1] 
+  
+  function some(x: T1): option[T1] 
+  
+  function option_get(opt: option[T1]): T1 
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (None(): option[T1]) != (some(x): option[T1]))
+  }
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (option_get((some(x): option[T1])): T1) == x)
+  }
+  
+  axiom {
+    (forall opt: option[T1] ::
+      { (some((option_get(opt): T1)): option[T1]) }
+      (some((option_get(opt): T1)): option[T1]) == opt)
+  }
+}
+
+domain void  {
+  
+  function unit(): void 
+  
+  axiom {
+    (forall v: void ::true ==> unit() == v)
+  }
+}
+
+field int: Int
+
+function aloc(a: array, i: Int): Ref
+  requires 0 <= i
+  requires i < alen(a)
+  decreases 
+  ensures loc_inv_1(result) == a
+  ensures loc_inv_2(result) == i
+{
+  array_loc(a, i)
+}
+
+function any_as(t: any): any
+  decreases 
+
+
+function as_any(t: any): any
+  decreases 
+  ensures any_as(result) == t
+
+
+function opt_get(opt: option[any]): any
+  requires opt != (None(): option[any])
+  decreases 
+  ensures (some(result): option[any]) == opt
+{
+  (option_get(opt): any)
+}
+
+function opt_or_else(opt: option[any], alt: any): any
+  decreases 
+  ensures opt == (None(): option[any]) ==> result == alt
+  ensures opt != (None(): option[any]) ==> result == opt_get(opt)
+{
+  (opt == (None(): option[any]) ? alt : opt_get(opt))
+}
+
+function opt_get1(opt: option[array]): array
+  requires opt != (None(): option[array])
+  decreases 
+  ensures (some(result): option[array]) == opt
+{
+  (option_get(opt): array)
+}
+
+function validSequence(this: Ref, s: Seq[Bool], n: Int): Bool
+  requires this != null
+{
+  |s| == n &&
+  (forall i: Int ::0 <= i && i < n && s[i] ==>
+    2 <= i && s[i - 2] && s[i - 1] ||
+    1 <= i && i < n - 1 && s[i - 1] && s[i + 1] ||
+    i < n - 2 && s[i + 1] && s[i + 2])
+}
+
+function unique1(this: Ref, s: Seq[Seq[Bool]]): Bool
+  requires this != null
+{
+  (forall i: Int ::0 <= i && i < |s| ==>
+    (forall j: Int ::0 <= j && j < |s| && s[i] == s[j] ==> i == j))
+}
+
+function has_false_in_prefix(this: Ref, s: Seq[Bool], k: Int): Bool
+  requires this != null
+{
+  (exists y: Int :: 0 <= y && y < (k + 1 < |s| ? k + 1 : |s|) &&
+    s[y] == false)
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+method check_sat_ColoredTiles()
+{
+  assert false
+}
+
+method ColoredTiles(tid: Int) returns (res: Ref)
+{
+  var exc: Ref
+  var return: Ref
+  var ColoredTiles1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new()
+  inhale type(flatten) == 1
+  ColoredTiles1 := flatten
+  return := ColoredTiles1
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_make_array(dim0: Int)
+  requires 0 <= dim0
+{
+  assert false
+}
+
+method make_array(tid: Int, dim0: Int) returns (res: option[array])
+  requires 0 <= dim0
+  ensures res != (None(): option[array])
+  ensures alen(opt_get1(res)) == dim0
+  ensures (forall i0: Int ::
+      { aloc(opt_get1(res), i0) }
+      0 <= i0 && i0 < dim0 ==> acc(aloc(opt_get1(res), i0).int, write))
+  ensures (forall i0: Int ::
+      { aloc(opt_get1(res), i0) }
+      0 <= i0 && i0 < dim0 ==> aloc(opt_get1(res), i0).int == 0)
+
+
+method check_sat_validSequence(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method check_sat_unique(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method check_sat_has_false_in_prefix(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method check_sat_lemma_uniqueness_prefix(this: Ref)
+  requires this != null
+{
+  assert false
+}
+
+method lemma_uniqueness_prefix(this: Ref, tid: Int, s1: Seq[Bool], s2: Seq[Bool],
+  prefix: Seq[Bool])
+  returns (res: void)
+  requires this != null
+  ensures (s1 == s2) == (prefix ++ s1 == prefix ++ s2)
+{
+  var exc: Ref
+  var return: void
+  var s3: Seq[Bool]
+  var s4: Seq[Bool]
+  var lo_y: Int
+  var y_hi: Int
+  var y: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Seq[Bool]
+  var flatten1: Seq[Bool]
+  var flatten2: Int
+  var flatten3: Int
+  var flatten4: Bool
+  var flatten5: Bool
+  var flatten6: void
+  var excBeforeLoop: Ref
+  exc := null
+  if (|s1| == |s2|) {
+    flatten := prefix ++ s1
+    s3 := flatten
+    flatten1 := prefix ++ s2
+    s4 := flatten1
+    flatten2 := 0
+    lo_y := flatten2
+    flatten3 := |s1|
+    y_hi := flatten3
+    if (0 < y_hi) {
+      inhale indet >= 0
+      inhale indet < 2
+      if (indet == 0) {
+        exhale s3 == prefix ++ s1 && s4 == prefix ++ s2 && |s1| == |s2|
+        inhale (forall y1: Int ::0 <= y1 && y1 < y_hi ==>
+            (s1[y1] == s2[y1]) == (s3[|prefix| + y1] == s4[|prefix| + y1]))
+      } elseif (indet == 1) {
+        inhale indet1 >= 0
+        inhale indet1 < y_hi
+        y := indet1
+        label beforeFrame
+        excBeforeLoop := exc
+        flatten4 := true
+        once := flatten4
+        while (once)
+          invariant exc == excBeforeLoop
+          invariant once ==>
+            s3 == prefix ++ s1 && s4 == prefix ++ s2 && |s1| == |s2| &&
+            [(forperm
+              obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)),
+            true]
+          invariant !once ==>
+            (s1[y] == s2[y]) == (s3[|prefix| + y] == s4[|prefix| + y])
+          decreases  
+        {
+          flatten5 := false
+          once := flatten5
+        }
+        inhale false
+      }
+    }
+  }
+  flatten6 := unit()
+  return := flatten6
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_existence_of_l(k: Int, l: Int, last: Seq[Seq[Bool]],
+  this: Ref)
+  requires this != null
+  requires 0 <= l
+  requires l < k + 1
+  requires 0 < |last| ==> 0 <= l
+  requires (forall z: Int ::0 <= z && z < |last| ==> l < |last[z]|)
+  requires (forall z: Int ::0 <= z && z < |last| ==> last[z][l] == false)
+{
+  assert false
+}
+
+method lemma_existence_of_l(this: Ref, tid: Int, last: Seq[Seq[Bool]], k: Int,
+  l: Int)
+  returns (res: void)
+  requires this != null
+  requires 0 <= l
+  requires l < k + 1
+  requires 0 < |last| ==> 0 <= l
+  requires (forall z: Int ::0 <= z && z < |last| ==> l < |last[z]|)
+  requires (forall z: Int ::0 <= z && z < |last| ==> last[z][l] == false)
+  ensures (forall z: Int ::0 <= z && z < |last| ==>
+      has_false_in_prefix(this, last[z], k))
+{
+  var exc: Ref
+  var return: void
+  var lo_z: Int
+  var z_hi: Int
+  var z: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Int
+  var flatten1: Int
+  var flatten2: Bool
+  var flatten3: Bool
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  lo_z := flatten
+  flatten1 := |last|
+  z_hi := flatten1
+  if (0 < z_hi) {
+    inhale indet >= 0
+    inhale indet < 2
+    if (indet == 0) {
+      exhale 0 <= l &&
+        (forall z1: Int ::0 <= z1 && z1 < z_hi ==> l < |last[z1]|) &&
+        (forall z1: Int ::0 <= z1 && z1 < z_hi ==> last[z1][l] == false) &&
+        l <= k &&
+        0 <= l
+      inhale (forall z1: Int ::0 <= z1 && z1 < z_hi ==>
+          has_false_in_prefix(this, last[z1], k))
+    } elseif (indet == 1) {
+      inhale indet1 >= 0
+      inhale indet1 < z_hi
+      z := indet1
+      label beforeFrame
+      excBeforeLoop := exc
+      flatten2 := true
+      once := flatten2
+      while (once)
+        invariant exc == excBeforeLoop
+        invariant once ==>
+          0 <= l && l < |last[z]| && last[z][l] == false && l <= k &&
+          0 <= l &&
+          [(forperm
+            obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)),
+          true]
+        invariant !once ==> has_false_in_prefix(this, last[z], k)
+        decreases  
+      {
+        flatten3 := false
+        once := flatten3
+      }
+      inhale false
+    }
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_uniqueness_implies_unequal(res: Seq[Seq[Bool]], j: Int,
+  this: Ref)
+  requires this != null
+  requires unique1(this, res)
+  requires 0 <= j
+  requires j < |res|
+{
+  assert false
+}
+
+method lemma_uniqueness_implies_unequal(this: Ref, tid: Int, res: Seq[Seq[Bool]],
+  j: Int, prefix: Seq[Bool])
+  returns (res1: void)
+  requires this != null
+  requires unique1(this, res)
+  requires 0 <= j
+  requires j < |res|
+  ensures (forall y: Int ::0 <= y && y < j ==>
+      prefix ++ res[y] != prefix ++ res[j])
+{
+  var exc: Ref
+  var return: void
+  var lo_y: Int
+  var y_hi: Int
+  var y: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Int
+  var flatten1: Bool
+  var flatten2: Bool
+  var res2: void
+  var flatten3: void
+  var excBeforeLoop: Ref
+  exc := null
+  assert (forall y1: Int ::0 <= y1 && y1 < j ==> res[y1] != res[j])
+  flatten := 0
+  lo_y := flatten
+  y_hi := j
+  if (0 < y_hi) {
+    inhale indet >= 0
+    inhale indet < 2
+    if (indet == 0) {
+      exhale j < |res| && (0 < y_hi ==> y_hi - 1 < |res|) &&
+        (forall y1: Int ::0 <= y1 && y1 < y_hi ==> res[y1] != res[j])
+      inhale j < |res| && (0 < y_hi ==> y_hi - 1 < |res|) &&
+        (forall y1: Int ::0 <= y1 && y1 < y_hi ==>
+          prefix ++ res[y1] != prefix ++ res[j])
+    } elseif (indet == 1) {
+      inhale indet1 >= 0
+      inhale indet1 < y_hi
+      y := indet1
+      label beforeFrame
+      excBeforeLoop := exc
+      flatten1 := true
+      once := flatten1
+      while (once)
+        invariant exc == excBeforeLoop
+        invariant once ==>
+          j < |res| && y < |res| && res[y] != res[j] &&
+          [(forperm
+            obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)),
+          true]
+        invariant !once ==>
+          j < |res| && y < |res| && prefix ++ res[y] != prefix ++ res[j]
+        decreases  
+      {
+        res2 := lemma_uniqueness_prefix(this, tid, res[y], res[j], prefix)
+        flatten2 := false
+        once := flatten2
+      }
+      inhale false
+    }
+  }
+  flatten3 := unit()
+  return := flatten3
+  goto end
+  label end
+  res1 := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_unique_add_one(ini: Seq[Seq[Bool]], elm: Seq[Bool], this: Ref)
+  requires this != null
+  requires unique1(this, ini)
+  requires (forall y: Int ::0 <= y && y < |ini| ==> ini[y] != elm)
+{
+  assert false
+}
+
+method lemma_unique_add_one(this: Ref, tid: Int, ini: Seq[Seq[Bool]], elm: Seq[Bool])
+  returns (res: void)
+  requires this != null
+  requires unique1(this, ini)
+  requires (forall y: Int ::0 <= y && y < |ini| ==> ini[y] != elm)
+  ensures unique1(this, ini ++ Seq(elm))
+{
+  var exc: Ref
+  var return: void
+  var res1: Seq[Seq[Bool]]
+  var lo_z: Int
+  var z_hi: Int
+  var z: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Seq[Seq[Bool]]
+  var flatten1: Int
+  var flatten2: Int
+  var flatten3: Bool
+  var flatten4: Bool
+  var flatten5: void
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := ini ++ Seq(elm)
+  res1 := flatten
+  flatten1 := 0
+  lo_z := flatten1
+  flatten2 := |ini| + 1
+  z_hi := flatten2
+  if (0 < z_hi) {
+    inhale indet >= 0
+    inhale indet < 2
+    if (indet == 0) {
+      exhale res1 == ini ++ Seq(elm) && |res1| == |ini| + 1 &&
+        (forall z1: Int ::0 <= z1 && z1 < z_hi &&
+          (0 <= z1 && z1 < |ini| && ini[z1] == elm) ==>
+          z1 == |ini|) &&
+        (forall y: Int, z1: Int ::0 <= z1 && z1 < z_hi &&
+          (0 <= y && y < |ini|) &&
+          ini[y] == res1[z1] ==>
+          y == z1)
+      inhale res1 == ini ++ Seq(elm) && |res1| == |ini| + 1 &&
+        (forall y: Int, z1: Int ::0 <= z1 && z1 < z_hi &&
+          (0 <= y && y < |res1|) &&
+          res1[y] == res1[z1] ==>
+          y == z1)
+    } elseif (indet == 1) {
+      inhale indet1 >= 0
+      inhale indet1 < z_hi
+      z := indet1
+      label beforeFrame
+      excBeforeLoop := exc
+      flatten3 := true
+      once := flatten3
+      while (once)
+        invariant exc == excBeforeLoop
+        invariant once ==>
+          res1 == ini ++ Seq(elm) && |res1| == |ini| + 1 &&
+          (0 <= z && z < |ini| && ini[z] == elm ==> z == |ini|) &&
+          (forall y: Int ::0 <= y && y < |ini| && ini[y] == res1[z] ==>
+            y == z) &&
+          [(forperm
+            obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)),
+          true]
+        invariant !once ==>
+          res1 == ini ++ Seq(elm) && |res1| == |ini| + 1 &&
+          (forall y: Int ::0 <= y && y < |res1| && res1[y] == res1[z] ==>
+            y == z)
+        decreases  
+      {
+        flatten4 := false
+        once := flatten4
+      }
+      inhale false
+    }
+  }
+  flatten5 := unit()
+  return := flatten5
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lemma_has_false_in_prefix_mono(k2: Int, k: Int, s: Seq[Seq[Bool]],
+  this: Ref)
+  requires this != null
+  requires k < k2
+  requires (forall y: Int ::0 <= y && y < |s| ==>
+      has_false_in_prefix(this, s[y], k))
+{
+  assert false
+}
+
+method lemma_has_false_in_prefix_mono(this: Ref, tid: Int, s: Seq[Seq[Bool]],
+  k: Int, k2: Int)
+  returns (res: void)
+  requires this != null
+  requires k < k2
+  requires (forall y: Int ::0 <= y && y < |s| ==>
+      has_false_in_prefix(this, s[y], k))
+  ensures k < k2
+  ensures (forall y: Int ::0 <= y && y < |s| ==>
+      has_false_in_prefix(this, s[y], k2))
+{
+  var exc: Ref
+  var return: void
+  var lo_y: Int
+  var y_hi: Int
+  var y: Int
+  var indet: Int
+  var indet1: Int
+  var once: Bool
+  var flatten: Int
+  var flatten1: Int
+  var flatten2: Bool
+  var flatten3: Bool
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  lo_y := flatten
+  flatten1 := |s|
+  y_hi := flatten1
+  if (0 < y_hi) {
+    inhale indet >= 0
+    inhale indet < 2
+    if (indet == 0) {
+      exhale k < k2 &&
+        (forall y1: Int ::0 <= y1 && y1 < y_hi ==>
+          has_false_in_prefix(this, s[y1], k))
+      inhale k < k2 &&
+        (forall y1: Int ::0 <= y1 && y1 < y_hi ==>
+          has_false_in_prefix(this, s[y1], k2))
+    } elseif (indet == 1) {
+      inhale indet1 >= 0
+      inhale indet1 < y_hi
+      y := indet1
+      label beforeFrame
+      excBeforeLoop := exc
+      flatten2 := true
+      once := flatten2
+      while (once)
+        invariant exc == excBeforeLoop
+        invariant once ==>
+          k < k2 && has_false_in_prefix(this, s[y], k) &&
+          [(forperm
+            obj: Ref [obj.int] :: obj.int == old[beforeFrame](obj.int)),
+          true]
+        invariant !once ==> k < k2 && has_false_in_prefix(this, s[y], k2)
+        decreases  
+      {
+        flatten3 := false
+        once := flatten3
+      }
+      inhale false
+    }
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_countSequences(this: Ref, i: Int)
+  requires this != null
+  requires 3 < i
+{
+  assert false
+}
+
+method countSequences(this: Ref, tid: Int, i: Int, testPresence: Seq[Bool])
+  returns (res: Int)
+  requires this != null
+  requires 3 < i
+{
+  var exc: Ref
+  var return: Int
+  var count: option[array]
+  var res1: Seq[Seq[Seq[Bool]]]
+  var n: Int
+  var last: Seq[Seq[Bool]]
+  var j: Int
+  var k: Int
+  var startBlock: Seq[Bool]
+  var j1: Int
+  var nxtblock: Seq[Seq[Bool]]
+  var countn: Int
+  var nxtelm: Seq[Bool]
+  var res2: option[array]
+  var flatten: option[array]
+  var flatten1: Seq[Seq[Seq[Bool]]]
+  var flatten2: Int
+  var flatten3: Int
+  var flatten4: Seq[Seq[Seq[Bool]]]
+  var flatten5: Int
+  var flatten6: Int
+  var flatten7: Seq[Seq[Seq[Bool]]]
+  var flatten8: Int
+  var flatten9: Int
+  var flatten10: Seq[Seq[Seq[Bool]]]
+  var flatten11: Int
+  var flatten12: Int
+  var flatten13: Seq[Seq[Seq[Bool]]]
+  var flatten14: Int
+  var flatten15: Seq[Seq[Bool]]
+  var flatten16: Int
+  var flatten17: Int
+  var res3: void
+  var flatten18: Seq[Seq[Bool]]
+  var flatten19: Int
+  var flatten20: Int
+  var res4: void
+  var flatten21: Seq[Bool]
+  var flatten22: Int
+  var flatten23: Seq[Seq[Bool]]
+  var flatten24: Int
+  var flatten25: Seq[Bool]
+  var res5: void
+  var res6: void
+  var flatten26: Seq[Seq[Bool]]
+  var flatten27: Int
+  var flatten28: Int
+  var flatten29: Seq[Seq[Bool]]
+  var flatten30: Int
+  var flatten31: Seq[Bool]
+  var flatten32: Seq[Seq[Bool]]
+  var flatten33: Int
+  var flatten34: Int
+  var flatten35: Seq[Seq[Seq[Bool]]]
+  var flatten36: Int
+  var excBeforeLoop: Ref
+  var excBeforeLoop1: Ref
+  var excBeforeLoop2: Ref
+  var excBeforeLoop3: Ref
+  exc := null
+  res2 := make_array(tid, i)
+  flatten := res2
+  count := flatten
+  flatten1 := Seq[Seq[Seq[Bool]]]()
+  res1 := flatten1
+  flatten2 := 0
+  flatten3 := 1
+  aloc(opt_get1(count), flatten2).int := flatten3
+  flatten4 := res1 ++ Seq(Seq(Seq[Bool]()))
+  res1 := flatten4
+  flatten5 := 1
+  flatten6 := 1
+  aloc(opt_get1(count), flatten5).int := flatten6
+  flatten7 := res1 ++ Seq(Seq(Seq(false)))
+  res1 := flatten7
+  flatten8 := 2
+  flatten9 := 1
+  aloc(opt_get1(count), flatten8).int := flatten9
+  flatten10 := res1 ++ Seq(Seq(Seq(false, false)))
+  res1 := flatten10
+  flatten11 := 3
+  flatten12 := 2
+  aloc(opt_get1(count), flatten11).int := flatten12
+  flatten13 := res1 ++
+    Seq(Seq(Seq(false, false, false), Seq(true, true, true)))
+  res1 := flatten13
+  assert |res1[0]| == aloc(opt_get1(count), 0).int
+  assert |res1[1]| == aloc(opt_get1(count), 1).int
+  assert |res1[2]| == aloc(opt_get1(count), 2).int
+  assert |res1[3]| == aloc(opt_get1(count), 3).int
+  assert unique1(this, res1[0])
+  assert unique1(this, res1[1])
+  assert unique1(this, res1[2])
+  assert res1[3][0][0] != res1[3][1][0]
+  assert unique1(this, res1[3])
+  flatten14 := 4
+  n := flatten14
+  label loop
+  excBeforeLoop := exc
+  while (n < i)
+    invariant exc == excBeforeLoop
+    invariant 4 <= n
+    invariant n < i + 1
+    invariant |res1| == n
+    invariant (forall j2: Int ::
+        { aloc(opt_get1(count), j2) }
+        0 <= j2 && j2 < i ==> acc(aloc(opt_get1(count), j2).int, write))
+    invariant (forall j2: Int ::
+        { aloc(opt_get1(count), j2) }
+        0 <= j2 && j2 < n ==> |res1[j2]| == aloc(opt_get1(count), j2).int)
+    invariant (forall z: Int, y: Int ::0 <= z && z < n &&
+        (0 <= y && y < |res1[z]|) ==>
+        validSequence(this, res1[z][y], z))
+    invariant (forall z: Int ::0 <= z && z < n ==> unique1(this, res1[z])) 
+  {
+    flatten15 := Seq[Seq[Bool]]()
+    last := flatten15
+    flatten16 := aloc(opt_get1(count), n - 1).int
+    aloc(opt_get1(count), n).int := flatten16
+    flatten17 := 0
+    j := flatten17
+    label loop1
+    excBeforeLoop1 := exc
+    while (j < |res1[n - 1]|)
+      invariant exc == excBeforeLoop1
+      invariant |last| == j
+      invariant 0 <= j
+      invariant j < |res1[n - 1]| + 1
+      invariant (forall z: Int ::
+          { aloc(opt_get1(count), z) }
+          0 <= z && z < i ==> acc(aloc(opt_get1(count), z).int, write))
+      invariant (forall z: Int ::
+          { aloc(opt_get1(count), z) }
+          0 <= z && z < n ==> |res1[z]| == aloc(opt_get1(count), z).int)
+      invariant aloc(opt_get1(count), n).int ==
+        aloc(opt_get1(count), n - 1).int
+      invariant (forall y: Int ::0 <= y && y < j ==>
+          validSequence(this, last[y], n))
+      invariant (forall z: Int ::0 <= z && z < j ==> 0 < |last[z]|)
+      invariant (forall z: Int ::0 <= z && z < j ==> last[z][0] == false)
+      invariant (forall z: Int ::0 <= z && z < |res1| ==>
+          unique1(this, res1[z]))
+      invariant (forall z: Int ::0 <= z && z < j ==>
+          last[z] == Seq(false) ++ res1[n - 1][z])
+      invariant (forall z: Int ::0 <= z && z < j ==> last[z][0] == false)
+      invariant unique1(this, last) 
+    {
+      res3 := lemma_uniqueness_implies_unequal(this, tid, res1[n - 1], j, Seq(false))
+      assert (forall y: Int ::0 <= y && y < |last| ==>
+          Seq(false) ++ res1[n - 1][y] != Seq(false) ++ res1[n - 1][j])
+      flatten18 := last ++ Seq(Seq(false) ++ res1[n - 1][j])
+      last := flatten18
+      flatten19 := j + 1
+      j := flatten19
+    }
+    flatten20 := 3
+    k := flatten20
+    res4 := lemma_existence_of_l(this, tid, last, k - 1, 0)
+    flatten21 := Seq(true, true, true)
+    startBlock := flatten21
+    label loop2
+    excBeforeLoop2 := exc
+    while (k < n)
+      invariant exc == excBeforeLoop2
+      invariant (3 <= |startBlock| && |startBlock| < n + 1 ?
+          |startBlock| :
+          0) <=
+        k
+      invariant k <
+        (3 <= |startBlock| && |startBlock| < n + 1 ? |startBlock| + 1 : 0)
+      invariant (forall j2: Int ::
+          { aloc(opt_get1(count), j2) }
+          0 <= j2 && j2 < i ==> acc(aloc(opt_get1(count), j2).int, write))
+      invariant (forall z: Int ::
+          { aloc(opt_get1(count), z) }
+          0 <= z && z < n ==> |res1[z]| == aloc(opt_get1(count), z).int)
+      invariant |last| == aloc(opt_get1(count), n).int
+      invariant (forall y: Int ::0 <= y && y < |last| ==>
+          validSequence(this, last[y], n))
+      invariant (forall y: Int ::0 <= y && y < |startBlock| ==>
+          startBlock[y])
+      invariant (forall z: Int ::0 <= z && z < |last| ==>
+          has_false_in_prefix(this, last[z], k - 1))
+      invariant unique1(this, last) 
+    {
+      flatten22 := 0
+      j1 := flatten22
+      flatten23 := Seq[Seq[Bool]]()
+      nxtblock := flatten23
+      flatten24 := aloc(opt_get1(count), n).int
+      countn := flatten24
+      label loop3
+      excBeforeLoop3 := exc
+      while (j1 < |res1[n - k - 1]|)
+        invariant exc == excBeforeLoop3
+        invariant 0 <= j1
+        invariant j1 < |res1[n - k - 1]| + 1
+        invariant (forall z: Int ::
+            { aloc(opt_get1(count), z) }
+            0 <= z && z < i ==> acc(aloc(opt_get1(count), z).int, write))
+        invariant (forall z: Int ::
+            { aloc(opt_get1(count), z) }
+            0 <= z && z < n ==> |res1[z]| == aloc(opt_get1(count), z).int)
+        invariant |nxtblock| == j1
+        invariant aloc(opt_get1(count), n).int == countn
+        invariant (forall y: Int ::0 <= y && y < j1 ==>
+            validSequence(this, nxtblock[y], n))
+        invariant 3 <= k
+        invariant k == |startBlock|
+        invariant (forall y: Int ::0 <= y && y < k ==> startBlock[y])
+        invariant (forall y: Int ::0 <= y && y < j1 ==>
+            !has_false_in_prefix(this, nxtblock[y], k - 1))
+        invariant (forall y: Int ::0 <= y && y < j1 ==>
+            has_false_in_prefix(this, nxtblock[y], k))
+        invariant (forall y: Int ::0 <= y && y < j1 ==>
+            nxtblock[y] == startBlock ++ Seq(false) ++ res1[n - k - 1][y])
+        invariant unique1(this, nxtblock) 
+      {
+        flatten25 := startBlock ++ Seq(false) ++ res1[n - k - 1][j1]
+        nxtelm := flatten25
+        res5 := lemma_uniqueness_implies_unequal(this, tid, res1[n - k - 1],
+          j1, startBlock ++ Seq(false))
+        assert !(nxtelm[k])
+        assert has_false_in_prefix(this, nxtelm, k)
+        res6 := lemma_unique_add_one(this, tid, nxtblock, nxtelm)
+        flatten26 := nxtblock ++ Seq(nxtelm)
+        nxtblock := flatten26
+        assert (forall y: Int ::0 <= y && y < |nxtblock| &&
+            nxtblock[y] == nxtelm ==>
+            y == |nxtblock| - 1)
+        flatten27 := j1 + 1
+        j1 := flatten27
+      }
+      flatten28 := aloc(opt_get1(count), n).int +
+        aloc(opt_get1(count), n - k - 1).int
+      aloc(opt_get1(count), n).int := flatten28
+      assert (forall z: Int ::0 <= z && z < |last| ==>
+          has_false_in_prefix(this, last[z], k))
+      flatten29 := last ++ nxtblock
+      last := flatten29
+      assert |last| == aloc(opt_get1(count), n).int
+      flatten30 := k + 1
+      k := flatten30
+      flatten31 := startBlock ++ Seq(true)
+      startBlock := flatten31
+    }
+    assert |last| == aloc(opt_get1(count), n).int
+    flatten32 := last ++ Seq(startBlock)
+    last := flatten32
+    flatten33 := aloc(opt_get1(count), n).int + 1
+    aloc(opt_get1(count), n).int := flatten33
+    flatten34 := n + 1
+    n := flatten34
+    flatten35 := res1 ++ Seq(last)
+    res1 := flatten35
+  }
+  assert |res1[i - 1]| == aloc(opt_get1(count), i - 1).int
+  assert (forall y: Int ::0 <= y && y < |res1[i - 1]| ==>
+      validSequence(this, res1[i - 1][y], i - 1))
+  assert unique1(this, res1[i - 1])
+  flatten36 := aloc(opt_get1(count), i - 1).int
+  return := flatten36
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

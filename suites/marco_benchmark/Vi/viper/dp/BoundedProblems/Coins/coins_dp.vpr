@@ -1,0 +1,93 @@
+import "../../_preambles/defs.vpr"
+
+// coins: a list of coins
+// start & end: range of coins that have not been taken yet. 
+// The function should initially be called with start = 0 and end = |coins| - 1
+function coins_rec(coins: Seq[Int], start: Int, end: Int): Int
+    requires 0 <= start <= end
+    requires end < |coins|
+    decreases end - start
+{
+    // Base Case: there is only 1 coin left to take
+    start == end ? coins[start] :
+     
+    // Base Case: there are exactly 2 coins left to take and we take the larger one
+    end == start + 1 ? max(coins[start], coins[end]) :
+
+    // We take 1 coin from the left and 1 from the right
+    let one_left_one_right == (coins_rec(coins, start + 1, end - 1)) in 
+    // We take 2 coins from the left
+    let two_left == (coins_rec(coins, start + 2, end)) in 
+    // We take 2 coins from the right
+    let two_right == (coins_rec(coins, start, end - 2)) in
+
+    // We find the maximum between taking the left coin and the right coin taking into consideration what the opponent will do
+    max(coins[start] + min(one_left_one_right, two_left), 
+    coins[end] + min(one_left_one_right, two_right))
+}
+
+// coins: a list of coins
+method coins_dp(coins: Seq[Int]) returns (maxProfit: Int)
+    requires |coins| > 0
+    ensures maxProfit == coins_rec(coins, 0, |coins| - 1)
+    decreases 
+{
+    var dp: Seq[Seq[Int]]
+    // For convenience, we use asserts to define the size of the DP table.
+    assume |dp| == |coins|
+    assume forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |coins| 
+
+    var left: Int := 0
+    var right: Int := |coins| - 1
+    var gap: Int := 0
+
+    // We iterate through all possible gaps between the left and right coins
+    while (gap < |coins|) 
+        invariant 0 <= gap <= |coins|
+        invariant 0 <= left <= right <= |coins|
+        // bounds for DP table
+        invariant |dp| == |coins| 
+        invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |coins|
+        // invariant: for all (k, j) pairs that have a gap smaller than the current gap, the DP table entry should be equal to the result of the recursive function
+        invariant forall k: Int, j: Int :: {dp[k][j]} 0 <= k < |dp| && k <= j < |dp[k]| && 0 <= j - k < gap ==> coins_rec(coins, k, j) == dp[k][j]
+        decreases |coins| - gap
+    {
+        right := gap
+
+        // We iterate through all possible pairs of (right, left) with a gap of the current gap
+        while (right < |coins|)
+            invariant right != gap ==> left == right - 1 - gap
+            invariant 0 <= gap <= right <= |coins|
+            // bounds for dp table
+            invariant |dp| == |coins|
+            invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |coins|
+            // invariant of outer loop:
+            invariant forall k: Int, j: Int :: {dp[k][j]} 0 <= k < |dp| && k <= j < |dp[k]| && 0 <= j - k < gap ==> coins_rec(coins, k, j) == dp[k][j]
+            // invariant: iterating through all possible pairs of (k, j) with a gap of the current gap
+            invariant forall k: Int, j: Int :: {dp[k][j]} 0 <= k < |dp| && gap <= j < right && j - k == gap ==> coins_rec(coins, k, j) == dp[k][j]
+            decreases |coins| - right
+        {
+            // We make sure that gap between right & left is current gap
+            left := right - gap
+
+            // Base Case: there is only 1 coin left to take
+            if (left == right) {
+                dp := dp[left := dp[left][right := coins[left]]]
+            } 
+            // Base Case: there are exactly 2 coins left to take and we take the larger one
+            elseif (left + 1 == right) {
+                dp := dp[left := dp[left][right := max(coins[left], coins[right])]]
+            } 
+            // We simulate our move and the opponent's move and find the one most beneficial to us
+            else {
+                var one_left_one_right: Int := dp[left + 1][right - 1]
+                var two_left: Int := dp[left + 2][right]
+                var two_right: Int := dp[left][right - 2]
+                dp := dp[left := dp[left][right := max(coins[left] + min(one_left_one_right, two_left), coins[right] + min(one_left_one_right, two_right))]]
+            }
+            right := right + 1
+        }
+        gap := gap + 1
+    }
+    maxProfit := dp[0][|coins| - 1]
+}

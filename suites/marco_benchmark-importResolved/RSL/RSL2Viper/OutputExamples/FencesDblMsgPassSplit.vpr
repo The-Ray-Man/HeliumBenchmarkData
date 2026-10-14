@@ -1,0 +1,410 @@
+domain parallelHeaps {
+  
+  function up(x: Ref): Ref
+  
+  function down(x: Ref): Ref
+  
+  function up_inv(x: Ref): Ref
+  
+  function down_inv(x: Ref): Ref
+  
+  function temp(x: Ref): Ref
+  
+  function temp_inv(x: Ref): Ref
+  
+  function heap(x: Ref): Int
+  
+  function is_ghost(x: Ref): Bool
+  
+  axiom inv_up {
+    (forall r: Ref :: { up(r) } up_inv(up(r)) == r && (is_ghost(r) ? up(r) == r : heap(up(r)) == heap(r) + 1))
+  }
+  
+  axiom inv_up_inv {
+    (forall r: Ref :: { up_inv(r) } up(up_inv(r)) == r && (is_ghost(r) ? up_inv(r) == r : heap(up_inv(r)) == heap(r) - 1))
+  }
+  
+  axiom inv_down {
+    (forall r: Ref :: { down(r) } down_inv(down(r)) == r && (is_ghost(r) ? down(r) == r : heap(down(r)) == heap(r) - 1))
+  }
+  
+  axiom inv_down_inv {
+    (forall r: Ref :: { down_inv(r) } down(down_inv(r)) == r && (is_ghost(r) ? down_inv(r) == r : heap(down_inv(r)) == heap(r) + 1))
+  }
+  
+  axiom inv_temp {
+    (forall r: Ref :: { temp(r) } temp_inv(temp(r)) == r && (is_ghost(r) ? temp(r) == r : heap(temp(r)) == heap(r) - 3))
+  }
+  
+  axiom inv_temp_inv {
+    (forall r: Ref :: { temp_inv(r) } temp(temp_inv(r)) == r && (is_ghost(r) ? temp_inv(r) == r : heap(temp_inv(r)) == heap(r) + 3))
+  }
+}
+
+field val: Int
+
+field init: Bool
+
+field rel: Int
+
+field acq: Bool
+
+function AcqConjunctTrigger(x: Ref, idx: Int): Bool 
+{
+  true
+}
+
+function valsRead(x: Ref, index: Int): Set[Int]
+  requires acc(AcqConjunct(x, index), write) 
+
+
+predicate AcqConjunct(x: Ref, idx: Int) 
+
+method havocedInt() returns (x: Int)
+{
+  inhale false
+}
+
+method havocedBool() returns (x: Bool)
+{
+  inhale false
+}
+
+method havocedRefSet() returns (x: Set[Ref])
+{
+  inhale false
+}
+
+method havocedIntSet() returns (x: Set[Int])
+{
+  inhale false
+}
+
+method outerscope() returns (Result: Int)
+  requires true
+  ensures true
+{
+  var b: Ref
+  var tmp: Int
+  var a: Ref
+  var x: Ref
+  // allocNonAtomic(a)
+  a := new()
+  inhale !is_ghost(a) && heap(a) == 0
+  inhale acc(a.init, write) && (acc(a.val, write) && !a.init)
+  // allocNonAtomic(b)
+  b := new()
+  inhale !is_ghost(b) && heap(b) == 0
+  inhale acc(b.init, write) && (acc(b.val, write) && !b.init)
+  // Translation of x := alloc((((v==0)?True:(acc(a)&&(*a==42)))&&((v==0)?True:(acc(b)&&(*b==7)))))_AR
+  // allocAtomic(x,0,Set(1, 2),false)
+  x := new()
+  inhale !is_ghost(x) && heap(x) == 0
+  inhale acc(x.rel, wildcard) && x.rel == 0 && (acc(x.acq, wildcard) && x.acq == true && (acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == Set[Int]()) && (acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == Set[Int]()))
+  // Translation of [x]_Rlx := 0
+  // atomicWrite(x,0,false)
+  assert acc(x.rel, wildcard)
+  if (x.rel == 2) {
+    exhale (0 == 0 ? true : acc(up(b).val, write) && (acc(up(b).init, write) && up(b).init) && up(b).val == 7)
+  }
+  if (x.rel == 1) {
+    exhale (0 == 0 ? true : acc(up(a).val, write) && (acc(up(a).init, write) && up(a).init) && up(a).val == 42)
+  }
+  if (x.rel == 0) {
+    exhale (0 == 0 ? true : acc(up(a).val, write) && (acc(up(a).init, write) && up(a).init) && up(a).val == 42) && (0 == 0 ? true : acc(up(b).val, write) && (acc(up(b).init, write) && up(b).init) && up(b).val == 7)
+  }
+  inhale acc(x.init, wildcard)
+  // Translation of t1 := fork(left)
+  label fork_t1
+  exhale acc(x.acq, wildcard) && x.acq == true && (acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == Set[Int]()) && acc(x.init, wildcard)
+  // Translation of t2 := fork(right)
+  label fork_t2
+  exhale acc(x.acq, wildcard) && x.acq == true && (acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == Set[Int]()) && acc(x.init, wildcard)
+  // Translation of t3 := fork(middle)
+  label fork_t3
+  exhale acc(a.init, write) && (acc(a.val, write) && !a.init) && (acc(b.init, write) && (acc(b.val, write) && !b.init)) && (acc(x.rel, wildcard) && x.rel == 0)
+  // Translation of tmp := join(t1)
+  tmp := havocedInt()
+  inhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 43
+  // Translation of tmp := join(t2)
+  tmp := havocedInt()
+  inhale acc(b.val, write) && (acc(b.init, write) && b.init) && b.val == 8
+  // Translation of tmp := join(t3)
+  tmp := havocedInt()
+  inhale acc(x.init, wildcard) && (acc(x.rel, wildcard) && x.rel == 0)
+  exhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 43 && (acc(b.val, write) && (acc(b.init, write) && b.init) && b.val == 8)
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
+
+method left(x: Ref, a: Ref, b: Ref) returns (Result: Int)
+  requires acc(x.acq, wildcard) && x.acq == true && (acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == Set[Int]()) && acc(x.init, wildcard)
+  requires !is_ghost(x) && heap(x) == 0
+  requires !is_ghost(a) && heap(a) == 0
+  requires !is_ghost(b) && heap(b) == 0
+  ensures true
+{
+  var tmp: Int
+  var tmpintSet: Set[Int]
+  var FenceAcqRefSet: Set[Ref]
+  // waitOnAtomicRead(x,0,false)
+  tmpintSet := havocedIntSet()
+  assert acc(x.init, wildcard) && acc(x.acq, wildcard)
+  tmp := havocedInt()
+  if (x.acq) {
+    if (perm(AcqConjunct(x, 2)) >= write && AcqConjunctTrigger(x, 2) && (false || !((tmp in valsRead(x, 2))))) {
+      tmpintSet := valsRead(x, 2)
+      exhale acc(AcqConjunct(x, 2), write)
+      assert perm(AcqConjunct(x, 2)) == none
+      inhale acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+    }
+    if (perm(AcqConjunct(x, 1)) >= write && AcqConjunctTrigger(x, 1) && (false || !((tmp in valsRead(x, 1))))) {
+      tmpintSet := valsRead(x, 1)
+      exhale acc(AcqConjunct(x, 1), write)
+      assert perm(AcqConjunct(x, 1)) == none
+      inhale acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42)
+    }
+    if (perm(AcqConjunct(x, 0)) >= write && AcqConjunctTrigger(x, 0) && (false || !((tmp in valsRead(x, 0))))) {
+      tmpintSet := valsRead(x, 0)
+      exhale acc(AcqConjunct(x, 0), write)
+      assert perm(AcqConjunct(x, 0)) == none
+      inhale acc(AcqConjunct(x, 0), write) && valsRead(x, 0) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42) && (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+    }
+  }
+  if (tmp == 0) {
+    assert acc(x.init, wildcard) && acc(x.acq, wildcard)
+    tmp := havocedInt()
+    if (x.acq) {
+      if (perm(AcqConjunct(x, 2)) >= write && AcqConjunctTrigger(x, 2) && (false || !((tmp in valsRead(x, 2))))) {
+        tmpintSet := valsRead(x, 2)
+        exhale acc(AcqConjunct(x, 2), write)
+        assert perm(AcqConjunct(x, 2)) == none
+        inhale acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+      }
+      if (perm(AcqConjunct(x, 1)) >= write && AcqConjunctTrigger(x, 1) && (false || !((tmp in valsRead(x, 1))))) {
+        tmpintSet := valsRead(x, 1)
+        exhale acc(AcqConjunct(x, 1), write)
+        assert perm(AcqConjunct(x, 1)) == none
+        inhale acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42)
+      }
+      if (perm(AcqConjunct(x, 0)) >= write && AcqConjunctTrigger(x, 0) && (false || !((tmp in valsRead(x, 0))))) {
+        tmpintSet := valsRead(x, 0)
+        exhale acc(AcqConjunct(x, 0), write)
+        assert perm(AcqConjunct(x, 0)) == none
+        inhale acc(AcqConjunct(x, 0), write) && valsRead(x, 0) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42) && (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+      }
+    }
+    inhale tmp != 0
+  }
+  // FENCEAcq
+  // Move init
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).init) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).init) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.init, perm(down(r).init)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.init == down(r).init)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).init, perm(down(r).init)))
+  // Move val
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).val) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).val) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.val, perm(down(r).val)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.val == down(r).val)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).val, perm(down(r).val)))
+  // Move rel
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).rel) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).rel) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.rel, perm(down(r).rel)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.rel == down(r).rel)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).rel, perm(down(r).rel)))
+  // Move acq
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).acq) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).acq) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.acq, perm(down(r).acq)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.acq == down(r).acq)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).acq, perm(down(r).acq)))
+  // Move acquire conjuncts
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 2)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 2)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 2), perm(AcqConjunct(down(r), 2))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 2), perm(AcqConjunct(down(r), 2))))
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 1)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 1)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 1), perm(AcqConjunct(down(r), 1))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 1), perm(AcqConjunct(down(r), 1))))
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 0)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 0)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 0), perm(AcqConjunct(down(r), 0))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 0), perm(AcqConjunct(down(r), 0))))
+  // Translation of tmp := [a]_NA
+  assert acc(a.init, write) && a.init
+  tmp := a.val
+  // Translation of [a]_NA := (tmp+1)
+  a.val := tmp + 1
+  a.init := true
+  exhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 43
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
+
+method right(x: Ref, a: Ref, b: Ref) returns (Result: Int)
+  requires acc(x.acq, wildcard) && x.acq == true && (acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == Set[Int]()) && acc(x.init, wildcard)
+  requires !is_ghost(x) && heap(x) == 0
+  requires !is_ghost(a) && heap(a) == 0
+  requires !is_ghost(b) && heap(b) == 0
+  ensures true
+{
+  var tmp: Int
+  var tmpintSet: Set[Int]
+  var FenceAcqRefSet: Set[Ref]
+  // waitOnAtomicRead(x,0,false)
+  tmpintSet := havocedIntSet()
+  assert acc(x.init, wildcard) && acc(x.acq, wildcard)
+  tmp := havocedInt()
+  if (x.acq) {
+    if (perm(AcqConjunct(x, 2)) >= write && AcqConjunctTrigger(x, 2) && (false || !((tmp in valsRead(x, 2))))) {
+      tmpintSet := valsRead(x, 2)
+      exhale acc(AcqConjunct(x, 2), write)
+      assert perm(AcqConjunct(x, 2)) == none
+      inhale acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+    }
+    if (perm(AcqConjunct(x, 1)) >= write && AcqConjunctTrigger(x, 1) && (false || !((tmp in valsRead(x, 1))))) {
+      tmpintSet := valsRead(x, 1)
+      exhale acc(AcqConjunct(x, 1), write)
+      assert perm(AcqConjunct(x, 1)) == none
+      inhale acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42)
+    }
+    if (perm(AcqConjunct(x, 0)) >= write && AcqConjunctTrigger(x, 0) && (false || !((tmp in valsRead(x, 0))))) {
+      tmpintSet := valsRead(x, 0)
+      exhale acc(AcqConjunct(x, 0), write)
+      assert perm(AcqConjunct(x, 0)) == none
+      inhale acc(AcqConjunct(x, 0), write) && valsRead(x, 0) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42) && (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+    }
+  }
+  if (tmp == 0) {
+    assert acc(x.init, wildcard) && acc(x.acq, wildcard)
+    tmp := havocedInt()
+    if (x.acq) {
+      if (perm(AcqConjunct(x, 2)) >= write && AcqConjunctTrigger(x, 2) && (false || !((tmp in valsRead(x, 2))))) {
+        tmpintSet := valsRead(x, 2)
+        exhale acc(AcqConjunct(x, 2), write)
+        assert perm(AcqConjunct(x, 2)) == none
+        inhale acc(AcqConjunct(x, 2), write) && valsRead(x, 2) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+      }
+      if (perm(AcqConjunct(x, 1)) >= write && AcqConjunctTrigger(x, 1) && (false || !((tmp in valsRead(x, 1))))) {
+        tmpintSet := valsRead(x, 1)
+        exhale acc(AcqConjunct(x, 1), write)
+        assert perm(AcqConjunct(x, 1)) == none
+        inhale acc(AcqConjunct(x, 1), write) && valsRead(x, 1) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42)
+      }
+      if (perm(AcqConjunct(x, 0)) >= write && AcqConjunctTrigger(x, 0) && (false || !((tmp in valsRead(x, 0))))) {
+        tmpintSet := valsRead(x, 0)
+        exhale acc(AcqConjunct(x, 0), write)
+        assert perm(AcqConjunct(x, 0)) == none
+        inhale acc(AcqConjunct(x, 0), write) && valsRead(x, 0) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(down(a).val, write) && (acc(down(a).init, write) && down(a).init) && down(a).val == 42) && (tmp == 0 ? true : acc(down(b).val, write) && (acc(down(b).init, write) && down(b).init) && down(b).val == 7)
+      }
+    }
+    inhale tmp != 0
+  }
+  // FENCEAcq
+  // Move init
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).init) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).init) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.init, perm(down(r).init)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.init == down(r).init)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).init, perm(down(r).init)))
+  // Move val
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).val) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).val) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.val, perm(down(r).val)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.val == down(r).val)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).val, perm(down(r).val)))
+  // Move rel
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).rel) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).rel) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.rel, perm(down(r).rel)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.rel == down(r).rel)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).rel, perm(down(r).rel)))
+  // Move acq
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(down(r).acq) > none))
+  inhale (forall r: Ref :: { down(r) } perm(down(r).acq) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(r.acq, perm(down(r).acq)))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } { down(r) } (r in FenceAcqRefSet) ==> r.acq == down(r).acq)
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(down(r).acq, perm(down(r).acq)))
+  // Move acquire conjuncts
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 2)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 2)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 2), perm(AcqConjunct(down(r), 2))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 2), perm(AcqConjunct(down(r), 2))))
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 1)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 1)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 1), perm(AcqConjunct(down(r), 1))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 1), perm(AcqConjunct(down(r), 1))))
+  FenceAcqRefSet := havocedRefSet()
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> heap(r) == 0 && (!is_ghost(r) && perm(AcqConjunct(down(r), 0)) > none))
+  inhale (forall r: Ref :: { down(r) } perm(AcqConjunct(down(r), 0)) > none && !is_ghost(r) ==> (r in FenceAcqRefSet))
+  inhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(r, 0), perm(AcqConjunct(down(r), 0))))
+  exhale (forall r: Ref :: { (r in FenceAcqRefSet) } (r in FenceAcqRefSet) ==> acc(AcqConjunct(down(r), 0), perm(AcqConjunct(down(r), 0))))
+  // Translation of tmp := [b]_NA
+  assert acc(b.init, write) && b.init
+  tmp := b.val
+  // Translation of [b]_NA := (tmp+1)
+  b.val := tmp + 1
+  b.init := true
+  exhale acc(b.val, write) && (acc(b.init, write) && b.init) && b.val == 8
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
+
+method middle(x: Ref, a: Ref, b: Ref) returns (Result: Int)
+  requires acc(a.init, write) && (acc(a.val, write) && !a.init) && (acc(b.init, write) && (acc(b.val, write) && !b.init)) && (acc(x.rel, wildcard) && x.rel == 0)
+  requires !is_ghost(x) && heap(x) == 0
+  requires !is_ghost(a) && heap(a) == 0
+  requires !is_ghost(b) && heap(b) == 0
+  ensures true
+{
+  // Translation of [a]_NA := 42
+  a.val := 42
+  a.init := true
+  // Translation of [b]_NA := 7
+  b.val := 7
+  b.init := true
+  // Translation of FenceRel(((acc(a)&&(*a==42))&&(acc(b)&&(*b==7))))
+  exhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 42 && (acc(b.val, write) && (acc(b.init, write) && b.init) && b.val == 7)
+  inhale acc(up(a).val, write) && (acc(up(a).init, write) && up(a).init) && up(a).val == 42 && (acc(up(b).val, write) && (acc(up(b).init, write) && up(b).init) && up(b).val == 7)
+  // Translation of [x]_Rlx := 1
+  // atomicWrite(x,1,false)
+  assert acc(x.rel, wildcard)
+  if (x.rel == 2) {
+    exhale (1 == 0 ? true : acc(up(b).val, write) && (acc(up(b).init, write) && up(b).init) && up(b).val == 7)
+  }
+  if (x.rel == 1) {
+    exhale (1 == 0 ? true : acc(up(a).val, write) && (acc(up(a).init, write) && up(a).init) && up(a).val == 42)
+  }
+  if (x.rel == 0) {
+    exhale (1 == 0 ? true : acc(up(a).val, write) && (acc(up(a).init, write) && up(a).init) && up(a).val == 42) && (1 == 0 ? true : acc(up(b).val, write) && (acc(up(b).init, write) && up(b).init) && up(b).val == 7)
+  }
+  inhale acc(x.init, wildcard)
+  exhale acc(x.init, wildcard) && (acc(x.rel, wildcard) && x.rel == 0)
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}

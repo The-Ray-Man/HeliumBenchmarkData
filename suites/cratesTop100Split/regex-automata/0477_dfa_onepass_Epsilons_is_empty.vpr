@@ -1,0 +1,203 @@
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_dfa$col$$col$onepass$col$$col$Epsilons {
+    inhabited(s_dfa$col$$col$onepass$col$$col$Epsilons_type()) ==
+    inhabited(s_UInt_u64_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_dfa$col$$col$onepass$col$$col$Epsilons  {
+  
+  axiom s_dfa$col$$col$onepass$col$$col$Epsilons_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_dfa$col$$col$onepass$col$$col$Epsilons_type())
+  }
+  
+  axiom s_dfa$col$$col$onepass$col$$col$Epsilons_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_dfa$col$$col$onepass$col$$col$Epsilons_type())
+  }
+}
+
+field p_Bool_val: Bool
+
+field p_UInt_u64_val: s_UInt_u64
+
+function mir_binop_Eq_UInt_u64_UInt_u64(arg1: s_UInt_u64, arg2: s_UInt_u64): Bool
+{
+  s_UInt_u64_value(arg1) == s_UInt_u64_value(arg2)
+}
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_dfa$col$$col$onepass$col$$col$Epsilons_unreachable(): s_dfa$col$$col$onepass$col$$col$Epsilons
+  ensures false
+
+
+function s_dfa$col$$col$onepass$col$$col$Epsilons_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_dfa$col$$col$onepass$col$$col$Epsilons_snap(self: Ref): s_dfa$col$$col$onepass$col$$col$Epsilons
+  requires acc(p_dfa$col$$col$onepass$col$$col$Epsilons(self), write)
+{
+  (unfolding acc(p_dfa$col$$col$onepass$col$$col$Epsilons(self), write) in
+    s_dfa$col$$col$onepass$col$$col$Epsilons_cons(p_UInt_u64_snap(s_dfa$col$$col$onepass$col$$col$Epsilons_field_0(self))))
+}
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_dfa$col$$col$onepass$col$$col$Epsilons(self: Ref) {
+  inhabited(s_UInt_u64_type()) &&
+  acc(p_UInt_u64(s_dfa$col$$col$onepass$col$$col$Epsilons_field_0(self)), write)
+}
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+method m_dfa$col$$col$onepass$col$$col$Epsilons$col$$col$is_empty(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_dfa$col$$col$onepass$col$$col$Epsilons_type()) &&
+    acc(p_dfa$col$$col$onepass$col$$col$Epsilons(_1p), write)
+  ensures inhabited(s_Bool_type()) && acc(p_Bool(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: s_UInt_u64
+  var _tmp1: s_UInt_u64
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  unfold acc(p_dfa$col$$col$onepass$col$$col$Epsilons(_1p), write)
+  _tmp0 := p_UInt_u64_snap(s_dfa$col$$col$onepass$col$$col$Epsilons_field_0(_1p))
+  p_UInt_u64_assign(_2p, _tmp0)
+  label _before_0_2
+  fold acc(p_dfa$col$$col$onepass$col$$col$Epsilons(_1p), write)
+  _tmp1 := p_UInt_u64_snap(_2p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_2p), write)
+  p_Bool_assign(_0p, mir_binop_Eq_UInt_u64_UInt_u64(_tmp1, s_UInt_u64_cons(0)))
+  label _before_0_3
+  label _before_0_4
+  label package_post0
+  goto end
+  label end
+}
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_dfa$col$$col$onepass$col$$col$Epsilons_assign(self: Ref, value: s_dfa$col$$col$onepass$col$$col$Epsilons)
+  ensures acc(p_dfa$col$$col$onepass$col$$col$Epsilons(self), write)
+  ensures p_dfa$col$$col$onepass$col$$col$Epsilons_snap(self) == value
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_dfa$col$$col$onepass$col$$col$Epsilons {
+  s_dfa$col$$col$onepass$col$$col$Epsilons_cons(s_dfa$col$$col$onepass$col$$col$Epsilons_0: s_UInt_u64)
+}
+
+adt Type {
+  s_Bool_type()
+  s_UInt_u64_type()
+  s_dfa$col$$col$onepass$col$$col$Epsilons_type()
+  Unknown_type(id: Int)
+}

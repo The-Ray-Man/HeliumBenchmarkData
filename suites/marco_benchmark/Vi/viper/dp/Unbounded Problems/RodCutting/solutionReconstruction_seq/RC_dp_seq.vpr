@@ -1,0 +1,111 @@
+// Rod Cutting Problem using dynamic programming and verified using sequences and solution reconstruction
+
+// THis file contains all definitions needed to verify the Rod Cutting problem using sequences and solution reconstruction
+
+import "../../../_preambles/defs.vpr"
+
+// This defines the preconditions that are reused for all versions of the rod cutting problem when using the solution reconstruction approach.
+define preconds_solution_reconstruction_rod_cutting_seqs(prices, rod_length) (rod_length >= 0) && (forall k: Int :: {prices[k]} 0 <= k < |prices| ==> prices[k] >= 0)
+
+// This macro defines what a valid way of cutting a rod is. 
+// The sum of all the cuts must be equal to the length of the rod and all cuts must be greater than 0 and less than or equal to the length of the rod.
+define valid_cut(cut, rod_length)  (sum_rec(cut) == rod_length && forall i: Int :: {cut[i]} 0 <= i < |cut| ==> cut[i] > 0 && cut[i] <= rod_length)
+
+// This macro defines what a maximum cut is, i.e. what our result schould be. 
+// To show that a cut is maximal, we compare the given cut to all possible valid cuts. 
+define max_cut(cut, rod_length) (valid_cut(cut, rod_length) && forall all_possible: Seq[Int] :: {price(all_possible, prices), sum_rec(all_possible)} valid_cut(all_possible, rod_length) ==> price(cut, prices) >= price(all_possible, prices))
+
+// This macro defines that all elements of a sequence must be greater than 0.
+define allPos(sequence) forall i: Int :: {sequence[i]} 0 <= i < |sequence| ==> sequence[i] > 0
+// This macro defines that all elements of a sequence must be less than or equal to the sum of all elements.
+define lessThanSum(sequence) forall i: Int :: {sequence[i]} 0 <= i < |sequence| ==> sequence[i] <= sum_rec(sequence)
+
+// This proves that if all elements of a sequence are larger than 0, all elements must be smaller or equal to the sum of all elements as well
+method allElemsLTSum (sequence: Seq[Int]) 
+    requires allPos(sequence)
+    ensures lessThanSum(sequence)
+    decreases |sequence|
+{
+    // inductively prove that all elements are less than or equal to the sum of all elements
+    if (|sequence| != 0) {
+        assert sum_rec(sequence[1..]) == sum_rec(sequence) - sequence[0]
+        allElemsLTSum(sequence[1..])
+    }
+}
+
+// Since Viper is unable to generalize the above lemma for all possible sequences, we need this.
+method lemma_forall_introduction()
+  // Our goal is to prove that for all possible sequences, if all elements are positive, then all elements are less than or equal to the sum of all elements.
+  ensures [forall ys: Seq[Int] :: {sum_rec(ys)} allPos(ys) ==> lessThanSum(ys), true]
+  decreases
+{
+  var xs: Seq[Int]
+
+  assume forall i: Int :: {xs[i]} 0 <= i < |xs| ==> xs[i] > 0
+  allElemsLTSum(xs)
+  assert forall i: Int :: {xs[i]} 0 <= i < |xs| ==> xs[i] <= sum_rec(xs)
+}
+
+// Given a sequence of cuts and a sequence of prices, this function calculates the price of the cuts.
+// price(cuts, prices) == sum(prices[cuts[i] - 1]) for i in range len(cuts)
+function price(cuts: Seq[Int], prices: Seq[Int]): Int
+    requires forall i: Int :: {cuts[i]} 0 <= i < |cuts| ==> 0 < cuts[i] <= |prices|
+{
+    // As long as cuts is not empty, we add the price for the first cut in the cuts sequence (values[cuts[0] - 1]) to the price of the remaining cuts.
+    // We want to get the values' entry at cuts[0] - 1 becuase values[0] represents the value of a rod with length 1 and so on (rods with length 0 have no value).
+    |cuts| == 0 ? 0 : prices[cuts[0] - 1] + price(cuts[1..], prices)
+}
+
+
+method rodCutting_dp(prices: Seq[Int], n: Int) returns (res: Seq[Int])
+    requires preconds_solution_reconstruction_rod_cutting_seqs(prices, n)
+    requires |prices| == n
+    ensures max_cut(res, n)
+    decreases
+{
+    var dp: Seq[Seq[Int]]
+    dp := Seq(Seq[Int]())
+    // For convenience, we use asserts to define the size of the DP table.
+    assume |dp| == n + 1
+
+    var i: Int := 1
+    while (i <= n) 
+        invariant 0 < i <= n + 1
+        invariant |dp| == n + 1
+        // All DP entries k < i contain the maximum cut for a rod of length k
+        invariant forall k: Int :: {dp[k]} 0 <= k < i ==> max_cut(dp[k], k)
+        decreases n - i
+    {
+        dp := dp[i := Seq(i)]
+        var currentBest: Seq[Int] := dp[i]
+        // This assert is needed to help Viper see that the sum of one element is the element itself.
+        assert sum_rec(currentBest) == i + sum_rec(Seq[Int]())
+
+        var j: Int := 1
+        while (j <= i) 
+            invariant 0 < j <= i + 1
+            invariant |dp| == n + 1
+            invariant valid_cut(currentBest, i)
+            // For all valid cuts of a rod of length i and whose first cut is of length < j, the price of said cut is less than or equal to the price of the current best cut
+            // "proving" the the currentBest cut is actually the current best for all the cuts we've seen so far
+            invariant forall xs: Seq[Int] :: {sum_rec(xs), price(xs, prices)} valid_cut(xs, i) && 0 < xs[0] < j ==> price(xs, prices) <= price(currentBest, prices)
+            invariant forall k: Int :: {dp[k]} 0 <= k < i ==> max_cut(dp[k], k)
+            decreases i - j
+        {
+            var temp: Seq[Int] := dp[i - j]
+            var cut: Seq[Int] := Seq(j) ++ temp
+
+            if (price(currentBest, prices) < price(cut, prices)) {
+                currentBest := cut
+            }
+            dp := dp[i := currentBest]
+
+            // Lemma needed so that Viper can prove the invariants.
+            lemma_forall_introduction()
+
+            j := j + 1
+        }
+        i := i + 1
+    }
+    res := dp[n]
+}

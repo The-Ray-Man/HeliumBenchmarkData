@@ -1,0 +1,763 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Slice  {
+  
+  axiom s_Param_typ_def_make_generic_s_Slice {
+    (forall x: s_Slice, T$0: Type ::
+      { make_generic_s_Slice(x, T$0) }
+      s_Param_typ(make_generic_s_Slice(x, T$0)) == s_Slice_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Slice {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Slice, s_Param_typ(p) }
+      s_Param_typ(p) == s_Slice_type(s_Param_typ(p).s_Slice_typaram_T$0) ==>
+      make_generic_s_Slice(p.make_concrete_s_Slice, s_Param_typ(p).s_Slice_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain ParamTyp_make_generic_s_Ref_immutable  {
+  
+  axiom s_Param_typ_def_make_generic_s_Ref_immutable {
+    (forall x: s_Ref_immutable, U$1: Type ::
+      { make_generic_s_Ref_immutable(x, U$1) }
+      s_Param_typ(make_generic_s_Ref_immutable(x, U$1)) ==
+      s_Ref_immutable_type(U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Ref_immutable {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Ref_immutable, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Ref_immutable_type(s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==>
+      make_generic_s_Ref_immutable(p.make_concrete_s_Ref_immutable, s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==
+      p)
+  }
+}
+
+domain s_Slice  {
+  
+  function s_Slice_index(arg0: s_Slice, arg1: Int): s_Param 
+  
+  function s_Slice_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_traits$col$$col$Flags  {
+  
+  function traits$col$$col$Flags_assoc_const_traits$col$$col$Flags$col$$col$FLAGS(arg0: Type): s_Ref_immutable 
+  
+  function traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(arg0: Type): Type 
+  
+  function traits$col$$col$Flags_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor  {
+  
+  function core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(arg0: Type,
+  arg1: Type): Type 
+  
+  function core$col$$col$ops$col$$col$BitXor_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Slice  {
+  
+  axiom s_Slice_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)))
+  }
+}
+
+domain sizedness_traits$col$$col$Flag  {
+  
+  axiom s_traits$col$$col$Flag_Sized {
+    (forall B$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_traits$col$$col$Flag_type(B$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_traits$col$$col$Flag_type(B$0)))
+  }
+  
+  axiom s_traits$col$$col$Flag_MetaSized {
+    (forall B$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_traits$col$$col$Flag_type(B$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(B$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_traits$col$$col$Flag_type(B$0)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_fns_traits$col$$col$Flags_traits$col$$col$Flags$col$$col$bits  {
+  
+  function traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$bits(arg0: s_Ref_immutable,
+  arg1: Type): Bool 
+  
+  function traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$bits(arg0: s_Param,
+  arg1: s_Ref_immutable, arg2: Type): Bool 
+  
+  axiom traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$bits_base {
+    (forall _1s: s_Ref_immutable, Self$0: Type ::
+      { traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$bits(_1s,
+      Self$0) }
+      true ==>
+      traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$bits(_1s,
+      Self$0))
+  }
+  
+  axiom traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$bits_base {
+    (forall _0s: s_Param, _1s: s_Ref_immutable, Self$0: Type ::
+      { traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$bits(_0s,
+      _1s, Self$0) }
+      traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$bits(_0s,
+      _1s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_fns_core$col$$col$ops$col$$col$BitXor_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor  {
+  
+  function core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(arg0: s_Param,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  function core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(arg0: s_Param,
+  arg1: s_Param, arg2: s_Param, arg3: Type, arg4: Type): Bool 
+  
+  axiom core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor_base {
+    (forall _1s: s_Param, _2s: s_Param, Self$0: Type, Rhs$1: Type ::
+      { core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_1s,
+      _2s, Self$0, Rhs$1) }
+      true ==>
+      core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_1s,
+      _2s, Self$0, Rhs$1))
+  }
+  
+  axiom core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor_base {
+    (forall _0s: s_Param, _1s: s_Param, _2s: s_Param, Self$0: Type, Rhs$1: Type ::
+      { core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_0s,
+      _1s, _2s, Self$0, Rhs$1) }
+      core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_0s,
+      _1s, _2s, Self$0, Rhs$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_fns_traits$col$$col$Flags_traits$col$$col$Flags$col$$col$from_bits_retain  {
+  
+  function traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$from_bits_retain(arg0: s_Param,
+  arg1: Type): Bool 
+  
+  function traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$from_bits_retain(arg0: s_Param,
+  arg1: s_Param, arg2: Type): Bool 
+  
+  axiom traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$from_bits_retain_base {
+    (forall _1s: s_Param, Self$0: Type ::
+      { traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$from_bits_retain(_1s,
+      Self$0) }
+      true ==>
+      traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$from_bits_retain(_1s,
+      Self$0))
+  }
+  
+  axiom traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$from_bits_retain_base {
+    (forall _0s: s_Param, _1s: s_Param, Self$0: Type ::
+      { traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$from_bits_retain(_0s,
+      _1s, Self$0) }
+      traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$from_bits_retain(_0s,
+      _1s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_condition {
+    core$col$$col$ops$col$$col$BitXor_impl(s_UInt_usize_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_condition {
+    core$col$$col$ops$col$$col$BitXor_impl(s_Ref_immutable_type(s_UInt_usize_type()),
+    s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_condition {
+    core$col$$col$ops$col$$col$BitXor_impl(s_UInt_usize_type(), s_Ref_immutable_type(s_UInt_usize_type()))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_condition {
+    core$col$$col$ops$col$$col$BitXor_impl(s_Ref_immutable_type(s_UInt_usize_type()),
+    s_Ref_immutable_type(s_UInt_usize_type()))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_assoc_type_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$gt$$col$$col$Output {
+    core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(s_UInt_usize_type(),
+    s_UInt_usize_type()) ==
+    s_UInt_usize_type()
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$gt$$col$$col$bitxor  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_fn_pre_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$gt$$col$$col$bitxor {
+    (forall _1s: s_UInt_usize, _2s: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_1s),
+      make_generic_s_UInt_usize(_2s), s_UInt_usize_type(), s_UInt_usize_type()) }
+      true ==>
+      core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_1s),
+      make_generic_s_UInt_usize(_2s), s_UInt_usize_type(), s_UInt_usize_type()))
+  }
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5020_fn_post_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$gt$$col$$col$bitxor {
+    (forall _0s: s_UInt_usize, _1s: s_UInt_usize, _2s: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_UInt_usize(_1s), make_generic_s_UInt_usize(_2s), s_UInt_usize_type(),
+      s_UInt_usize_type()) }
+      core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_UInt_usize(_1s), make_generic_s_UInt_usize(_2s), s_UInt_usize_type(),
+      s_UInt_usize_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$usize$gt$$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_assoc_type_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$usize$gt$$gt$$col$$col$Output {
+    core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(s_Ref_immutable_type(s_UInt_usize_type()),
+    s_UInt_usize_type()) ==
+    s_UInt_usize_type()
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_assoc_type_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$Output {
+    core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(s_UInt_usize_type(),
+    s_Ref_immutable_type(s_UInt_usize_type())) ==
+    s_UInt_usize_type()
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$usize$gt$$gt$$col$$col$bitxor  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_fn_pre_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$usize$gt$$gt$$col$$col$bitxor {
+    (forall _1s: s_Ref_immutable, _2s: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()),
+      make_generic_s_UInt_usize(_2s), s_Ref_immutable_type(s_UInt_usize_type()),
+      s_UInt_usize_type()) }
+      true ==>
+      core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()),
+      make_generic_s_UInt_usize(_2s), s_Ref_immutable_type(s_UInt_usize_type()),
+      s_UInt_usize_type()))
+  }
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5021_fn_post_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$usize$gt$$gt$$col$$col$bitxor {
+    (forall _0s: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_UInt_usize ::
+      { core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()), make_generic_s_UInt_usize(_2s),
+      s_Ref_immutable_type(s_UInt_usize_type()), s_UInt_usize_type()) }
+      core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()), make_generic_s_UInt_usize(_2s),
+      s_Ref_immutable_type(s_UInt_usize_type()), s_UInt_usize_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_fn_pre_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor {
+    (forall _1s: s_UInt_usize, _2s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_1s),
+      make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()), s_UInt_usize_type(),
+      s_Ref_immutable_type(s_UInt_usize_type())) }
+      true ==>
+      core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_1s),
+      make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()), s_UInt_usize_type(),
+      s_Ref_immutable_type(s_UInt_usize_type())))
+  }
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_UInt_usize_5022_fn_post_$lt$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor {
+    (forall _0s: s_UInt_usize, _1s: s_UInt_usize, _2s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_UInt_usize(_1s), make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()),
+      s_UInt_usize_type(), s_Ref_immutable_type(s_UInt_usize_type())) }
+      core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_UInt_usize(_1s), make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()),
+      s_UInt_usize_type(), s_Ref_immutable_type(s_UInt_usize_type())) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_assoc_type_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$Output {
+    core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(s_Ref_immutable_type(s_UInt_usize_type()),
+    s_Ref_immutable_type(s_UInt_usize_type())) ==
+    s_UInt_usize_type()
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor  {
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_fn_pre_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor {
+    (forall _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()),
+      make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()), s_Ref_immutable_type(s_UInt_usize_type()),
+      s_Ref_immutable_type(s_UInt_usize_type())) }
+      true ==>
+      core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()),
+      make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()), s_Ref_immutable_type(s_UInt_usize_type()),
+      s_Ref_immutable_type(s_UInt_usize_type())))
+  }
+  
+  axiom core$col$$col$ops$col$$col$BitXor_impl_core_Ref_immutable_5023_fn_post_$lt$$amp$usize$sp$as$sp$core$col$$col$ops$col$$col$BitXor$lt$$amp$usize$gt$$gt$$col$$col$bitxor {
+    (forall _0s: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()), make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()),
+      s_Ref_immutable_type(s_UInt_usize_type()), s_Ref_immutable_type(s_UInt_usize_type())) }
+      core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(make_generic_s_UInt_usize(_0s),
+      make_generic_s_Ref_immutable(_1s, s_UInt_usize_type()), make_generic_s_Ref_immutable(_2s, s_UInt_usize_type()),
+      s_Ref_immutable_type(s_UInt_usize_type()), s_Ref_immutable_type(s_UInt_usize_type())) ==>
+      true)
+  }
+}
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Slice_unreachable(T$0: Type): s_Slice
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_traits$col$$col$Flags$col$$col$symmetric_difference(_0p: Ref, _1p: Ref,
+  _2p: Ref, Self$0: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(Self$0) && acc(p_Param(_2p, Self$0), write)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb4_to_bb5: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb5_to_bb6: Bool
+  var _from_bb0_to_bb1: Bool
+  label start
+  inhale traits$col$$col$Flags_impl(Self$0)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Self$0)
+  _from_bb1_to_bb2 := false
+  _from_bb4_to_bb5 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb5_to_bb6 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  label _before_0_3
+  p_Ref_immutable_assign(_5p, Self$0, s_Ref_immutable_cons(_1p, make_generic_s_0_Tuple(s_0_Tuple_cons()), p_Param_snap(_1p,
+    Self$0)))
+  label _before_0_4
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  traits$col$$col$Flags_fn_stub_traits$col$$col$Flags$col$$col$bits(_4p, _5p,
+    Self$0)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  p_Ref_immutable_assign(_7p, Self$0, s_Ref_immutable_cons(_2p, make_generic_s_0_Tuple(s_0_Tuple_cons()), p_Param_snap(_2p,
+    Self$0)))
+  label _before_1_4
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  traits$col$$col$Flags_fn_stub_traits$col$$col$Flags$col$$col$bits(_6p, _7p,
+    Self$0)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  goto bb_term_2
+  label bb_term_2
+  label pre4
+  core$col$$col$ops$col$$col$BitXor_fn_stub_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_3p,
+    _4p, _6p, traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0),
+    traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0))
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  label _before_3_2
+  goto bb_term_3
+  label bb_term_3
+  label pre6
+  traits$col$$col$Flags_fn_stub_traits$col$$col$Flags$col$$col$from_bits_retain(_0p,
+    _3p, Self$0)
+  label post7
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _after_5
+  _from_bb5_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  label package_post8
+  goto end
+  label bb_7
+  assert false
+  goto end
+  label bb_8
+  assert false
+  goto end
+  label bb_9
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_UInt_usize(self: Ref)
+  requires acc(p_UInt_usize(self), write)
+  ensures acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures old(make_generic_s_UInt_usize(p_UInt_usize_snap(self))) ==
+    p_Param_snap(self, s_UInt_usize_type())
+
+
+method make_concrete_UInt_usize(self: Ref)
+  requires acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures acc(p_UInt_usize(self), write)
+  ensures old(p_Param_snap(self, s_UInt_usize_type())) ==
+    make_generic_s_UInt_usize(p_UInt_usize_snap(self))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method traits$col$$col$Flags_fn_stub_traits$col$$col$Flags$col$$col$bits(_0p: Ref,
+  _1p: Ref, Self$0: Type)
+  requires inhabited(s_Ref_immutable_type(Self$0)) &&
+    acc(p_Ref_immutable(_1p, Self$0), write)
+  requires traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$bits(p_Ref_immutable_snap(_1p,
+    Self$0), Self$0)
+  ensures inhabited(traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)) &&
+    acc(p_Param(_0p, traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)), write)
+  ensures traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$bits(p_Param_snap(_0p,
+    traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)),
+    old(p_Ref_immutable_snap(_1p, Self$0)), Self$0)
+
+
+method core$col$$col$ops$col$$col$BitXor_fn_stub_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(_0p: Ref,
+  _1p: Ref, _2p: Ref, Self$0: Type, Rhs$1: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(Rhs$1) && acc(p_Param(_2p, Rhs$1), write)
+  requires core$col$$col$ops$col$$col$BitXor_fn_pre_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(p_Param_snap(_1p,
+    Self$0), p_Param_snap(_2p, Rhs$1), Self$0, Rhs$1)
+  ensures inhabited(core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(Self$0,
+    Rhs$1)) &&
+    acc(p_Param(_0p, core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(Self$0,
+    Rhs$1)), write)
+  ensures core$col$$col$ops$col$$col$BitXor_fn_post_core$col$$col$ops$col$$col$BitXor$col$$col$bitxor(p_Param_snap(_0p,
+    core$col$$col$ops$col$$col$BitXor_assoc_type_core$col$$col$ops$col$$col$BitXor$col$$col$Output(Self$0,
+    Rhs$1)), old(p_Param_snap(_1p, Self$0)), old(p_Param_snap(_2p, Rhs$1)),
+    Self$0, Rhs$1)
+
+
+method traits$col$$col$Flags_fn_stub_traits$col$$col$Flags$col$$col$from_bits_retain(_0p: Ref,
+  _1p: Ref, Self$0: Type)
+  requires inhabited(traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)) &&
+    acc(p_Param(_1p, traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)), write)
+  requires traits$col$$col$Flags_fn_pre_traits$col$$col$Flags$col$$col$from_bits_retain(p_Param_snap(_1p,
+    traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0)),
+    Self$0)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+  ensures traits$col$$col$Flags_fn_post_traits$col$$col$Flags$col$$col$from_bits_retain(p_Param_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, traits$col$$col$Flags_assoc_type_traits$col$$col$Flags$col$$col$Bits(Self$0))),
+    Self$0)
+
+
+adt s_Param {
+  make_generic_s_Slice(make_concrete_s_Slice: s_Slice, make_generic_s_Slice_typaram_T$0: Type)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  make_generic_s_Ref_immutable(make_concrete_s_Ref_immutable: s_Ref_immutable,
+  make_generic_s_Ref_immutable_typaram_U$1: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt Type {
+  s_Slice_type(s_Slice_typaram_T$0: Type)
+  s_traits$col$$col$Flag_type(s_traits$col$$col$Flag_typaram_B$0: Type)
+  s_UInt_usize_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_0_Tuple_type()
+  Unknown_type(id: Int)
+}

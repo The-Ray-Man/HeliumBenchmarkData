@@ -1,0 +1,1936 @@
+domain MetadataCast  {
+  
+  function metadata_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom metadata_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { metadata_cast(input, same, same) }
+      metadata_cast(input, same, same) == input)
+  }
+}
+
+domain UnsizeValueCast  {
+  
+  function unsize_value_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom unsize_value_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { unsize_value_cast(input, same, same) }
+      unsize_value_cast(input, same, same) == input)
+  }
+}
+
+domain MetadataCastArraySlice  {
+  
+  axiom metadata_cast_array_slice {
+    (forall input: s_Param, U$1: Type, M$0: s_UInt_usize ::
+      { metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) }
+      metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) ==
+      make_generic_s_UInt_usize(M$0))
+  }
+}
+
+domain UnsizeValueCastArraySlice  {
+  
+  axiom unsize_value_cast_array_slice {
+    (forall arr: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { unsize_value_cast(make_generic_s_Array(arr, U$1, M$0), s_Array_type(U$1, M$0),
+      s_Slice_type(U$1)) }
+      (forall idx: Int ::
+        { s_Array_index(arr, idx) }
+        s_Array_index(arr, idx) ==
+        s_Slice_index(unsize_value_cast(make_generic_s_Array(arr, U$1, M$0),
+        s_Array_type(U$1, M$0), s_Slice_type(U$1)).make_concrete_s_Slice, idx)))
+  }
+}
+
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Ref_immutable  {
+  
+  axiom s_Param_typ_def_make_generic_s_Ref_immutable {
+    (forall x: s_Ref_immutable, U$1: Type ::
+      { make_generic_s_Ref_immutable(x, U$1) }
+      s_Param_typ(make_generic_s_Ref_immutable(x, U$1)) ==
+      s_Ref_immutable_type(U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Ref_immutable {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Ref_immutable, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Ref_immutable_type(s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==>
+      make_generic_s_Ref_immutable(p.make_concrete_s_Ref_immutable, s_Param_typ(p).s_Ref_immutable_typaram_U$1) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain ParamTyp_make_generic_s_Char  {
+  
+  axiom s_Param_typ_def_make_generic_s_Char {
+    (forall x: s_Char ::
+      { make_generic_s_Char(x) }
+      s_Param_typ(make_generic_s_Char(x)) == s_Char_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Char {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Char, s_Param_typ(p) }
+      s_Param_typ(p) == s_Char_type() ==>
+      make_generic_s_Char(p.make_concrete_s_Char) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Slice  {
+  
+  axiom s_Param_typ_def_make_generic_s_Slice {
+    (forall x: s_Slice, T$0: Type ::
+      { make_generic_s_Slice(x, T$0) }
+      s_Param_typ(make_generic_s_Slice(x, T$0)) == s_Slice_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Slice {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Slice, s_Param_typ(p) }
+      s_Param_typ(p) == s_Slice_type(s_Param_typ(p).s_Slice_typaram_T$0) ==>
+      make_generic_s_Slice(p.make_concrete_s_Slice, s_Param_typ(p).s_Slice_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Array  {
+  
+  axiom s_Param_typ_def_make_generic_s_Array {
+    (forall x: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { make_generic_s_Array(x, U$1, M$0) }
+      s_Param_typ(make_generic_s_Array(x, U$1, M$0)) ==
+      s_Array_type(U$1, M$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Array {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Array, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Array_type(s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==>
+      make_generic_s_Array(p.make_concrete_s_Array, s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_ascii$col$$col$caseless$col$$col$Caseless  {
+  
+  axiom s_Param_typ_def_make_generic_s_ascii$col$$col$caseless$col$$col$Caseless {
+    (forall x: s_ascii$col$$col$caseless$col$$col$Caseless, T$0: Type ::
+      { make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(x, T$0) }
+      s_Param_typ(make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(x, T$0)) ==
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_ascii$col$$col$caseless$col$$col$Caseless {
+    (forall p: s_Param ::
+      { p.make_concrete_s_ascii$col$$col$caseless$col$$col$Caseless, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Param_typ(p).s_ascii$col$$col$caseless$col$$col$Caseless_typaram_T$0) ==>
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(p.make_concrete_s_ascii$col$$col$caseless$col$$col$Caseless, s_Param_typ(p).s_ascii$col$$col$caseless$col$$col$Caseless_typaram_T$0) ==
+      p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Char  {
+  
+  function s_Char_cons(arg0: Int): s_Char 
+  
+  function s_Char_value(arg0: s_Char): Int 
+  
+  axiom s_Char_ax_cons {
+    (forall s: s_Char ::
+      { s_Char_value(s) }
+      s_Char_cons(s_Char_value(s)) == s)
+  }
+  
+  axiom s_Char_ax_value {
+    (forall value: Int ::
+      { s_Char_cons(value) }
+      s_Char_value(s_Char_cons(value)) == value)
+  }
+}
+
+domain s_Slice  {
+  
+  function s_Slice_index(arg0: s_Slice, arg1: Int): s_Param 
+  
+  function s_Slice_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_stream$col$$col$CompareResult {
+    inhabited(s_stream$col$$col$CompareResult_type()) ==
+    (inhabited(s_UInt_usize_type()) || (true || true))
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Slice {
+    (forall T$0: Type ::
+      { inhabited(s_Slice_type(T$0)) }
+      inhabited(s_Slice_type(T$0)) == true)
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_ascii$col$$col$caseless$col$$col$Caseless {
+    (forall T$0: Type ::
+      { inhabited(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)) }
+      inhabited(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_Char {
+    inhabited(s_Char_type()) == true
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+  
+  axiom inhabited_Ref_mutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_mutable_type(U$1)) }
+      inhabited(s_Ref_mutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$ptr$col$$col$Pointee  {
+  
+  function std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function std$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_stream$col$$col$Compare  {
+  
+  function stream$col$$col$Compare_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_stream$col$$col$CompareResult  {
+  
+  axiom s_stream$col$$col$CompareResult_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_stream$col$$col$CompareResult_type())
+  }
+  
+  axiom s_stream$col$$col$CompareResult_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_stream$col$$col$CompareResult_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Slice  {
+  
+  axiom s_Slice_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_ascii$col$$col$caseless$col$$col$Caseless  {
+  
+  axiom s_ascii$col$$col$caseless$col$$col$Caseless_Sized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)))
+  }
+  
+  axiom s_ascii$col$$col$caseless$col$$col$Caseless_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      std$col$$col$marker$col$$col$MetaSized_impl(s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)))
+  }
+}
+
+domain sizedness_Char  {
+  
+  axiom s_Char_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Char_type())
+  }
+  
+  axiom s_Char_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Char_type())
+  }
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_Ref_mutable  {
+  
+  axiom s_Ref_mutable_Sized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)))
+  }
+  
+  axiom s_Ref_mutable_MetaSized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)))
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain trait_fns_stream$col$$col$Compare_stream$col$$col$Compare$col$$col$compare  {
+  
+  function stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(arg0: s_Ref_immutable,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  function stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(arg0: s_stream$col$$col$CompareResult,
+  arg1: s_Ref_immutable, arg2: s_Param, arg3: Type, arg4: Type): Bool 
+  
+  axiom stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare_base {
+    (forall _1s: s_Ref_immutable, _2s: s_Param, Self$0: Type, T$1: Type ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      _2s, Self$0, T$1) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      _2s, Self$0, T$1))
+  }
+  
+  axiom stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare_base {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Param,
+    Self$0: Type, T$1: Type ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, _2s, Self$0, T$1) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, _2s, Self$0, T$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_436_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_436_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type()))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_336_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_336_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Str_type()), s_Char_type())
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_333_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_333_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_UInt_u8_type())
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_334_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_334_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_Char_type())
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_335_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_335_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Str_type()), s_Ref_immutable_type(s_Str_type()))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_438_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_438_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type()))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_330_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_330_condition {
+    (forall LEN$1: s_UInt_usize ::
+      { stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)) }
+      stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_332_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_332_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_Ref_immutable_type(s_Str_type()))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_435_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_435_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_ascii$col$$col$caseless$col$$col$Caseless_type(s_UInt_u8_type()))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_437_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_437_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type())))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_329_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_329_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_331_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_331_condition {
+    (forall LEN$2: s_UInt_usize ::
+      { stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))) }
+      stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_432_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_432_condition {
+    (forall LEN$1: s_UInt_usize ::
+      { stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))) }
+      stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_434_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_434_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type())))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_431_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_431_condition {
+    stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_433_condition  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_433_condition {
+    (forall LEN$2: s_UInt_usize ::
+      { stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))) }
+      stream$col$$col$Compare_impl(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))))
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_336_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_336_fn_pre_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_Char ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Char(_2s), s_Ref_immutable_type(s_Str_type()), s_Char_type()) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Char(_2s), s_Ref_immutable_type(s_Str_type()), s_Char_type()))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_336_fn_post_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Char ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Char(_2s), s_Ref_immutable_type(s_Str_type()), s_Char_type()) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Char(_2s), s_Ref_immutable_type(s_Str_type()), s_Char_type()) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_333_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$u8$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_333_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$u8$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_UInt_u8 ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_UInt_u8(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_UInt_u8_type()) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_UInt_u8(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_UInt_u8_type()))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_333_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$u8$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_UInt_u8 ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_UInt_u8(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_UInt_u8_type()) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_UInt_u8(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_UInt_u8_type()) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_334_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_334_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_Char ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Char(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Char_type()) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Char(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Char_type()))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_334_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$char$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Char ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Char(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Char_type()) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Char(_2s), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Char_type()) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_335_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_335_fn_pre_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Str_type()),
+      s_Ref_immutable_type(s_Str_type())) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Str_type()),
+      s_Ref_immutable_type(s_Str_type())))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_335_fn_post_$lt$$amp$str$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Str_type()),
+      s_Ref_immutable_type(s_Str_type())) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Str_type()),
+      s_Ref_immutable_type(s_Str_type())) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_438_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_438_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_438_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_330_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_330_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare {
+    (forall LEN$1: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_Array ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Array(_2s, s_UInt_u8_type(), LEN$1), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Array(_2s, s_UInt_u8_type(), LEN$1), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_330_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare {
+    (forall LEN$1: s_UInt_usize, _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable,
+    _2s: s_Array ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Array(_2s, s_UInt_u8_type(), LEN$1), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Array(_2s, s_UInt_u8_type(), LEN$1), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Array_type(s_UInt_u8_type(), LEN$1)) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_332_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_332_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Str_type())) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Str_type())))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_332_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$str$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Str_type())) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Str_type()), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Str_type())) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_435_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$u8$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_435_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$u8$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_UInt_u8_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_UInt_u8_type())) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_UInt_u8_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_UInt_u8_type())))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_435_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$u8$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_UInt_u8_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_UInt_u8_type())) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_UInt_u8_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_UInt_u8_type())) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_436_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_436_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_436_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Char_type()),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_437_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_437_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_437_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$str$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Str_type()), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_329_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_329_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_329_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Slice_type(s_UInt_u8_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_331_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_331_fn_pre_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare {
+    (forall LEN$2: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Array_type(s_UInt_u8_type(), LEN$2)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_Ref_immutable(_2s, s_Array_type(s_UInt_u8_type(), LEN$2)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_331_fn_post_$lt$$amp$$lb$u8$rb$$sp$as$sp$stream$col$$col$Compare$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$col$$col$compare {
+    (forall LEN$2: s_UInt_usize, _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable,
+    _2s: s_Ref_immutable ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Array_type(s_UInt_u8_type(), LEN$2)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_Ref_immutable(_2s, s_Array_type(s_UInt_u8_type(), LEN$2)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_432_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_432_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall LEN$1: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Array_type(s_UInt_u8_type(), LEN$1)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Array_type(s_UInt_u8_type(), LEN$1)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_432_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall LEN$1: s_UInt_usize, _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable,
+    _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Array_type(s_UInt_u8_type(), LEN$1)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Array_type(s_UInt_u8_type(), LEN$1)),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Array_type(s_UInt_u8_type(), LEN$1))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_434_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_434_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_434_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$str$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Str_type())),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Str_type()))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_431_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_431_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_431_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) ==>
+      true)
+  }
+}
+
+domain trait_stream$col$$col$Compare_impl_winnow_Ref_immutable_433_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare  {
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_433_fn_pre_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall LEN$2: s_UInt_usize, _1s: s_Ref_immutable, _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))) }
+      true ==>
+      stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(_1s,
+      make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))))
+  }
+  
+  axiom stream$col$$col$Compare_impl_winnow_Ref_immutable_433_fn_post_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$$amp$$sq$b$sp$$lb$u8$sc$$sp$LEN$rb$$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare {
+    (forall LEN$2: s_UInt_usize, _0s: s_stream$col$$col$CompareResult, _1s: s_Ref_immutable,
+    _2s: s_ascii$col$$col$caseless$col$$col$Caseless ::
+      { stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))) }
+      stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(_0s,
+      _1s, make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(_2s, s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2))),
+      s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Array_type(s_UInt_u8_type(), LEN$2)))) ==>
+      true)
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+field p_Char_val: s_Char
+
+field p_Ref_mutable_addr: Ref
+
+field p_Ref_mutable_metadata: s_Param
+
+field p_UInt_u8_val: s_UInt_u8
+
+function mir_cast_unsize_Ref_mutable_to_Ref_mutable(arg: s_Ref_mutable, U$0: Type,
+  V$1: Type): s_Ref_mutable
+{
+  s_Ref_mutable_cons(arg.s_Ref_mutable_0, metadata_cast(arg.s_Ref_mutable_1,
+  U$0, V$1), unsize_value_cast(arg.s_Ref_mutable_2, U$0, V$1))
+}
+
+function s_stream$col$$col$CompareResult_unreachable(): s_stream$col$$col$CompareResult
+  ensures false
+
+
+function s_stream$col$$col$CompareResult_0_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_stream$col$$col$CompareResult_discr(self: s_stream$col$$col$CompareResult): s_Int_isize
+{
+  (self.iss_stream$col$$col$CompareResult_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_stream$col$$col$CompareResult_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function s_ascii$col$$col$caseless$col$$col$Caseless_unreachable(T$0: Type): s_ascii$col$$col$caseless$col$$col$Caseless
+  ensures false
+
+
+function s_ascii$col$$col$caseless$col$$col$Caseless_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Char_unreachable(): s_Char
+  ensures false
+
+
+function s_Slice_unreachable(T$0: Type): s_Slice
+  ensures false
+
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_Ref_mutable_unreachable(U$1: Type): s_Ref_mutable
+  ensures false
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function p_stream$col$$col$CompareResult_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_stream$col$$col$CompareResult_snap(self: Ref): s_stream$col$$col$CompareResult
+  requires acc(p_stream$col$$col$CompareResult(self), write)
+{
+  (unfolding acc(p_stream$col$$col$CompareResult(self), write) in
+    (p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_stream$col$$col$CompareResult_2_owned(self), write) in
+        s_stream$col$$col$CompareResult_2_cons()) :
+      (p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_stream$col$$col$CompareResult_1_owned(self), write) in
+          s_stream$col$$col$CompareResult_1_cons()) :
+        (p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_stream$col$$col$CompareResult_0_owned(self), write) in
+            s_stream$col$$col$CompareResult_0_cons(p_UInt_usize_snap(s_stream$col$$col$CompareResult_0_field_0(self)))) :
+          s_stream$col$$col$CompareResult_unreachable()))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_ascii$col$$col$caseless$col$$col$Caseless_snap(self: Ref, T$0: Type): s_ascii$col$$col$caseless$col$$col$Caseless
+  requires acc(p_ascii$col$$col$caseless$col$$col$Caseless(self, T$0), write)
+{
+  (unfolding acc(p_ascii$col$$col$caseless$col$$col$Caseless(self, T$0), write) in
+    s_ascii$col$$col$caseless$col$$col$Caseless_cons(p_Param_snap(s_ascii$col$$col$caseless$col$$col$Caseless_field_0(self,
+    T$0), T$0)))
+}
+
+function p_Char_snap(self: Ref): s_Char
+  requires acc(p_Char(self), write)
+{
+  (unfolding acc(p_Char(self), write) in self.p_Char_val)
+}
+
+function p_Slice_index_frame(self: Ref, index: Int, T$0: Type): s_Slice
+  requires acc(p_Slice_index(self, index, T$0), write)
+
+
+function p_Slice_snap(self: Ref, T$0: Type): s_Slice
+  requires acc(p_Slice(self, T$0), write)
+
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+function p_Ref_mutable_arbitrary_value(r: Ref, metadata: s_Param, U$1: Type): s_Ref_mutable
+  ensures result.s_Ref_mutable_0 == r
+  ensures result.s_Ref_mutable_1 == metadata
+
+
+function p_Ref_mutable_snap(self: Ref, U$1: Type): s_Ref_mutable
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_mutable_1) ==
+    std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+{
+  (unfolding acc(p_Ref_mutable(self, U$1), write) in
+    p_Ref_mutable_arbitrary_value(self.p_Ref_mutable_addr, self.p_Ref_mutable_metadata,
+    U$1))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+predicate p_stream$col$$col$CompareResult_0_owned(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_stream$col$$col$CompareResult_0_field_0(self)), write)
+}
+
+predicate p_stream$col$$col$CompareResult_1_owned(self: Ref) {
+  true
+}
+
+predicate p_stream$col$$col$CompareResult_2_owned(self: Ref) {
+  true
+}
+
+predicate p_stream$col$$col$CompareResult(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_stream$col$$col$CompareResult_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_stream$col$$col$CompareResult_0_owned(self), write)) &&
+  ((p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  true && acc(p_stream$col$$col$CompareResult_1_owned(self), write)) &&
+  (p_Int_isize_snap(p_stream$col$$col$CompareResult_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  true && acc(p_stream$col$$col$CompareResult_2_owned(self), write)))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_ascii$col$$col$caseless$col$$col$Caseless(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_ascii$col$$col$caseless$col$$col$Caseless_field_0(self, T$0),
+  T$0), write)
+}
+
+predicate p_Char(self: Ref) {
+  acc(self.p_Char_val, write)
+}
+
+predicate p_Slice(self: Ref, T$0: Type) 
+
+predicate p_Slice_index(self: Ref, index: Int, T$0: Type) 
+
+predicate p_Str(self: Ref) 
+
+predicate p_Ref_mutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_mutable_addr, write) &&
+  (acc(self.p_Ref_mutable_metadata, write) &&
+  s_Param_typ(self.p_Ref_mutable_metadata) ==
+  std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1))
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+method m_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) &&
+    acc(p_Ref_immutable(_1p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))), write)
+  requires inhabited(s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) &&
+    acc(p_ascii$col$$col$caseless$col$$col$Caseless(_2p, s_Char_type()), write)
+  ensures inhabited(s_stream$col$$col$CompareResult_type()) &&
+    acc(p_stream$col$$col$CompareResult(_0p), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb2_to_bb3: Bool
+  var _tmp0: s_Char
+  var _tmp1: s_Array
+  var _tmp2: s_Ref_mutable
+  var _tmp3: s_Ref_immutable
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  _from_bb2_to_bb3 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  p_Ref_immutable_assign(_3p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_Ref_immutable_cons(p_Ref_immutable_snap(_1p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))).s_Ref_immutable_0, make_generic_s_0_Tuple(p_Ref_immutable_snap(_1p,
+    s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))).s_Ref_immutable_1.make_concrete_s_0_Tuple), make_generic_s_Ref_immutable(p_Ref_immutable_snap(_1p,
+    s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))).s_Ref_immutable_2.make_concrete_s_Ref_immutable, s_Slice_type(s_UInt_u8_type()))))
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  label _before_0_5
+  label _before_0_6
+  label _before_0_7
+  unfold acc(p_ascii$col$$col$caseless$col$$col$Caseless(_2p, s_Char_type()), write)
+  make_concrete_Char(s_ascii$col$$col$caseless$col$$col$Caseless_field_0(_2p,
+    s_Char_type()))
+  _tmp0 := p_Char_snap(s_ascii$col$$col$caseless$col$$col$Caseless_field_0(_2p,
+    s_Char_type()))
+  p_Char_assign(_8p, _tmp0)
+  label _before_0_8
+  make_generic_Char(s_ascii$col$$col$caseless$col$$col$Caseless_field_0(_2p,
+    s_Char_type()))
+  fold acc(p_ascii$col$$col$caseless$col$$col$Caseless(_2p, s_Char_type()), write)
+  label _before_0_9
+  label _before_0_10
+  label _before_0_11
+  label _before_0_12
+  inhale (forall idx: Int ::
+      { s_Array_index(_tmp1, idx).make_concrete_s_UInt_u8 }
+      s_Array_index(_tmp1, idx).make_concrete_s_UInt_u8 ==
+      s_UInt_u8_cons(0))
+  p_Array_assign(_12p, s_UInt_u8_type(), s_UInt_usize_cons(4), _tmp1)
+  label _before_0_13
+  p_Ref_mutable_assign(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)),
+    p_Ref_mutable_arbitrary_value(_12p, make_generic_s_0_Tuple(s_0_Tuple_cons()),
+    s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))))
+  make_generic_Array(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  label _before_0_14
+  make_concrete_Array(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  p_Ref_mutable_assign(_10p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    make_generic_s_0_Tuple(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_1.make_concrete_s_0_Tuple),
+    s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))))
+  make_generic_Array(p_Ref_mutable_snap(_10p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  label _before_0_15
+  _tmp2 := p_Ref_mutable_snap(_10p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)))) &&
+    acc(p_Ref_mutable(_10p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))), write)
+  mir_unsize_Ref_mutable_to_Ref_mutable(_tmp2, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)),
+    s_Slice_type(s_UInt_u8_type()))
+  p_Ref_mutable_assign(_9p, s_Slice_type(s_UInt_u8_type()), mir_cast_unsize_Ref_mutable_to_Ref_mutable(_tmp2,
+    s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)), s_Slice_type(s_UInt_u8_type())))
+  label _before_0_16
+  label _before_0_17
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_std$col$$col$char$col$$col$methods$col$$col$$lt$impl$sp$char$gt$$col$$col$encode_utf8(_7p,
+    _8p, _9p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  make_concrete_Str(p_Ref_mutable_snap(_7p, s_Str_type()).s_Ref_mutable_0)
+  p_Ref_immutable_assign(_6p, s_Str_type(), s_Ref_immutable_cons(p_Ref_mutable_snap(_7p,
+    s_Str_type()).s_Ref_mutable_0, make_generic_s_UInt_usize(p_Ref_mutable_snap(_7p,
+    s_Str_type()).s_Ref_mutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Str_snap(p_Ref_mutable_snap(_7p,
+    s_Str_type()).s_Ref_mutable_0))))
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_bytes(_5p, _6p)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  _tmp3 := p_Ref_immutable_snap(_5p, s_Slice_type(s_UInt_u8_type()))
+  exhale inhabited(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))) &&
+    acc(p_Ref_immutable(_5p, s_Slice_type(s_UInt_u8_type())), write)
+  p_ascii$col$$col$caseless$col$$col$Caseless_assign(_4p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())),
+    s_ascii$col$$col$caseless$col$$col$Caseless_cons(make_generic_s_Ref_immutable(_tmp3, s_Slice_type(s_UInt_u8_type()))))
+  label _before_2_2
+  label _before_2_3
+  goto bb_term_2
+  label bb_term_2
+  label pre4
+  make_generic_ascii$col$$col$caseless$col$$col$Caseless(_4p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))
+  stream$col$$col$Compare_fn_stub_stream$col$$col$Compare$col$$col$compare(_0p,
+    _3p, _4p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())), s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))))
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  make_generic_Str(p_Ref_mutable_snap(_7p, s_Str_type()).s_Ref_mutable_0)
+  apply inhabited(s_Str_type()) &&
+    acc(p_Param(old[post1](p_Ref_mutable_snap(_7p, s_Str_type())).s_Ref_mutable_0,
+    s_Str_type()), write) --*
+    inhabited(s_Slice_type(s_UInt_u8_type())) &&
+    acc(p_Param(old[pre0](p_Ref_mutable_snap(_9p, s_Slice_type(s_UInt_u8_type()))).s_Ref_mutable_0,
+    s_Slice_type(s_UInt_u8_type())), write)
+  mir_undo_unsize_Ref_mutable_to_Ref_mutable(old[_before_0_15](p_Ref_mutable_snap(_10p,
+    s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)))), s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)),
+    s_Slice_type(s_UInt_u8_type()))
+  make_concrete_Array(old[_before_0_15](p_Ref_mutable_snap(old[_before_0_15](_10p),
+    s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0),
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  make_generic_Array(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  make_concrete_Array(p_Ref_mutable_snap(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))).s_Ref_mutable_0,
+    s_UInt_u8_type(), s_UInt_usize_cons(4))
+  exhale inhabited(s_Ref_mutable_type(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4)))) &&
+    acc(p_Ref_mutable(_11p, s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))), write)
+  label _before_3_1
+  label _before_3_2
+  label _before_3_3
+  label _before_3_4
+  label _before_3_5
+  label package_post6
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label end
+}
+
+method m_std$col$$col$char$col$$col$methods$col$$col$$lt$impl$sp$char$gt$$col$$col$encode_utf8(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Char_type()) && acc(p_Char(_1p), write)
+  requires inhabited(s_Ref_mutable_type(s_Slice_type(s_UInt_u8_type()))) &&
+    acc(p_Ref_mutable(_2p, s_Slice_type(s_UInt_u8_type())), write)
+  requires inhabited(s_Slice_type(s_UInt_u8_type())) &&
+    acc(p_Param(p_Ref_mutable_snap(_2p, s_Slice_type(s_UInt_u8_type())).s_Ref_mutable_0,
+    s_Slice_type(s_UInt_u8_type())), write)
+  ensures inhabited(s_Ref_mutable_type(s_Str_type())) &&
+    acc(p_Ref_mutable(_0p, s_Str_type()), write)
+  ensures inhabited(s_Str_type()) &&
+    acc(p_Param(p_Ref_mutable_snap(_0p, s_Str_type()).s_Ref_mutable_0, s_Str_type()), write)
+  ensures (let wand_result ==
+      (p_Ref_mutable_snap(_0p, s_Str_type())) in
+      inhabited(s_Str_type()) &&
+      acc(p_Param(wand_result.s_Ref_mutable_0, s_Str_type()), write) --*
+      inhabited(s_Slice_type(s_UInt_u8_type())) &&
+      acc(p_Param(old(p_Ref_mutable_snap(_2p, s_Slice_type(s_UInt_u8_type()))).s_Ref_mutable_0,
+      s_Slice_type(s_UInt_u8_type())), write))
+
+
+method m_core$col$$col$str$col$$col$$lt$impl$sp$str$gt$$col$$col$as_bytes(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  ensures inhabited(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))) &&
+    acc(p_Ref_immutable(_0p, s_Slice_type(s_UInt_u8_type())), write)
+
+
+method mir_unsize_Ref_mutable_to_Ref_mutable(src: s_Ref_mutable, U$0: Type,
+  V$1: Type)
+  requires inhabited(U$0) && acc(p_Param(src.s_Ref_mutable_0, U$0), write)
+  ensures inhabited(V$1) && acc(p_Param(src.s_Ref_mutable_0, V$1), write)
+  ensures p_Param_snap(src.s_Ref_mutable_0, V$1) ==
+    unsize_value_cast(old(p_Param_snap(src.s_Ref_mutable_0, U$0)), U$0, V$1)
+
+
+method mir_undo_unsize_Ref_mutable_to_Ref_mutable(src: s_Ref_mutable, U$0: Type,
+  V$1: Type)
+  requires inhabited(V$1) && acc(p_Param(src.s_Ref_mutable_0, V$1), write)
+  ensures inhabited(U$0) && acc(p_Param(src.s_Ref_mutable_0, U$0), write)
+  ensures old(p_Param_snap(src.s_Ref_mutable_0, V$1)) ==
+    unsize_value_cast(p_Param_snap(src.s_Ref_mutable_0, U$0), U$0, V$1)
+
+
+method make_generic_Ref_immutable(self: Ref, U$1: Type)
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures acc(p_Param(self, s_Ref_immutable_type(U$1)), write)
+  ensures old(make_generic_s_Ref_immutable(p_Ref_immutable_snap(self, U$1), U$1)) ==
+    p_Param_snap(self, s_Ref_immutable_type(U$1))
+
+
+method make_concrete_Ref_immutable(self: Ref, U$1: Type)
+  requires acc(p_Param(self, s_Ref_immutable_type(U$1)), write)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures old(p_Param_snap(self, s_Ref_immutable_type(U$1))) ==
+    make_generic_s_Ref_immutable(p_Ref_immutable_snap(self, U$1), U$1)
+
+
+method make_generic_Char(self: Ref)
+  requires acc(p_Char(self), write)
+  ensures acc(p_Param(self, s_Char_type()), write)
+  ensures old(make_generic_s_Char(p_Char_snap(self))) ==
+    p_Param_snap(self, s_Char_type())
+
+
+method make_concrete_Char(self: Ref)
+  requires acc(p_Param(self, s_Char_type()), write)
+  ensures acc(p_Char(self), write)
+  ensures old(p_Param_snap(self, s_Char_type())) ==
+    make_generic_s_Char(p_Char_snap(self))
+
+
+method make_generic_Slice(self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures old(make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)) ==
+    p_Param_snap(self, s_Slice_type(T$0))
+
+
+method make_concrete_Slice(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures old(p_Param_snap(self, s_Slice_type(T$0))) ==
+    make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)
+
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method make_generic_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures old(make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)) ==
+    p_Param_snap(self, s_Array_type(U$1, M$0))
+
+
+method make_concrete_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures old(p_Param_snap(self, s_Array_type(U$1, M$0))) ==
+    make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)
+
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method make_generic_ascii$col$$col$caseless$col$$col$Caseless(self: Ref, T$0: Type)
+  requires acc(p_ascii$col$$col$caseless$col$$col$Caseless(self, T$0), write)
+  ensures acc(p_Param(self, s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)), write)
+  ensures old(make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(p_ascii$col$$col$caseless$col$$col$Caseless_snap(self,
+    T$0), T$0)) ==
+    p_Param_snap(self, s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0))
+
+
+method make_concrete_ascii$col$$col$caseless$col$$col$Caseless(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0)), write)
+  ensures acc(p_ascii$col$$col$caseless$col$$col$Caseless(self, T$0), write)
+  ensures old(p_Param_snap(self, s_ascii$col$$col$caseless$col$$col$Caseless_type(T$0))) ==
+    make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(p_ascii$col$$col$caseless$col$$col$Caseless_snap(self,
+    T$0), T$0)
+
+
+method p_stream$col$$col$CompareResult_assign(self: Ref, value: s_stream$col$$col$CompareResult)
+  ensures acc(p_stream$col$$col$CompareResult(self), write)
+  ensures p_stream$col$$col$CompareResult_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_ascii$col$$col$caseless$col$$col$Caseless_assign(self: Ref, T$0: Type,
+  value: s_ascii$col$$col$caseless$col$$col$Caseless)
+  ensures acc(p_ascii$col$$col$caseless$col$$col$Caseless(self, T$0), write)
+  ensures p_ascii$col$$col$caseless$col$$col$Caseless_snap(self, T$0) ==
+    value
+
+
+method p_Char_assign(self: Ref, value: s_Char)
+  ensures acc(p_Char(self), write)
+  ensures p_Char_snap(self) == value
+
+
+method p_Slice_assign(self: Ref, T$0: Type, value: s_Slice)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures p_Slice_snap(self, T$0) == value
+
+
+method p_Slice_fold_index(index: Int, self: Ref, T$0: Type)
+  requires inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  requires acc(p_Slice_index(self, index, T$0), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures (forall idx: Int ::
+      { s_Slice_index(p_Slice_snap(self, T$0), idx) }
+      s_Slice_index(p_Slice_snap(self, T$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0)) :
+        old(s_Slice_index(p_Slice_index_frame(self, index, T$0), idx))))
+
+
+method p_Slice_unfold_index(index: Int, self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  ensures acc(p_Slice_index(self, index, T$0), write)
+  ensures p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0) ==
+    old(s_Slice_index(p_Slice_snap(self, T$0), index))
+  ensures p_Slice_index_frame(self, index, T$0) ==
+    old(p_Slice_snap(self, T$0))
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method p_Ref_mutable_assign(self: Ref, U$1: Type, value: s_Ref_mutable)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures p_Ref_mutable_snap(self, U$1) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method stream$col$$col$Compare_fn_stub_stream$col$$col$Compare$col$$col$compare(_0p: Ref,
+  _1p: Ref, _2p: Ref, Self$0: Type, T$1: Type)
+  requires inhabited(s_Ref_immutable_type(Self$0)) &&
+    acc(p_Ref_immutable(_1p, Self$0), write)
+  requires inhabited(T$1) && acc(p_Param(_2p, T$1), write)
+  requires stream$col$$col$Compare_fn_pre_stream$col$$col$Compare$col$$col$compare(p_Ref_immutable_snap(_1p,
+    Self$0), p_Param_snap(_2p, T$1), Self$0, T$1)
+  ensures inhabited(s_stream$col$$col$CompareResult_type()) &&
+    acc(p_stream$col$$col$CompareResult(_0p), write)
+  ensures stream$col$$col$Compare_fn_post_stream$col$$col$Compare$col$$col$compare(p_stream$col$$col$CompareResult_snap(_0p),
+    old(p_Ref_immutable_snap(_1p, Self$0)), old(p_Param_snap(_2p, T$1)), Self$0,
+    T$1)
+
+
+method trait_stream$col$$col$Compare_impl_Ref_immutable_436_fn_pre_weaken_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) &&
+    acc(p_Ref_immutable(_1p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))), write)
+  requires inhabited(s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) &&
+    acc(p_ascii$col$$col$caseless$col$$col$Caseless(_2p, s_Char_type()), write)
+{
+  label start
+}
+
+method trait_stream$col$$col$Compare_impl_Ref_immutable_436_fn_post_strengthen_ascii$col$$col$caseless$col$$col$$lt$impl$sp$stream$col$$col$Compare$lt$ascii$col$$col$caseless$col$$col$Caseless$lt$char$gt$$gt$$sp$for$sp$$amp$$lb$u8$rb$$gt$$col$$col$compare(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type())))) &&
+    acc(p_Ref_immutable(_1p, s_Ref_immutable_type(s_Slice_type(s_UInt_u8_type()))), write)
+  requires inhabited(s_ascii$col$$col$caseless$col$$col$Caseless_type(s_Char_type())) &&
+    acc(p_ascii$col$$col$caseless$col$$col$Caseless(_2p, s_Char_type()), write)
+  requires inhabited(s_stream$col$$col$CompareResult_type()) &&
+    acc(p_stream$col$$col$CompareResult(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Ref_immutable(make_concrete_s_Ref_immutable: s_Ref_immutable,
+  make_generic_s_Ref_immutable_typaram_U$1: Type)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  make_generic_s_Char(make_concrete_s_Char: s_Char)
+  make_generic_s_Slice(make_concrete_s_Slice: s_Slice, make_generic_s_Slice_typaram_T$0: Type)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_Array(make_concrete_s_Array: s_Array, make_generic_s_Array_typaram_U$1: Type,
+  make_generic_s_Array_constparam_M$0: s_UInt_usize)
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  make_generic_s_ascii$col$$col$caseless$col$$col$Caseless(make_concrete_s_ascii$col$$col$caseless$col$$col$Caseless: s_ascii$col$$col$caseless$col$$col$Caseless,
+  make_generic_s_ascii$col$$col$caseless$col$$col$Caseless_typaram_T$0: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_stream$col$$col$CompareResult {
+  s_stream$col$$col$CompareResult_0_cons(s_stream$col$$col$CompareResult_0_0: s_UInt_usize)
+  s_stream$col$$col$CompareResult_1_cons()
+  s_stream$col$$col$CompareResult_2_cons()
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt s_ascii$col$$col$caseless$col$$col$Caseless {
+  s_ascii$col$$col$caseless$col$$col$Caseless_cons(s_ascii$col$$col$caseless$col$$col$Caseless_0: s_Param)
+}
+
+adt s_Ref_mutable {
+  s_Ref_mutable_cons(s_Ref_mutable_0: Ref, s_Ref_mutable_1: s_Param, s_Ref_mutable_2: s_Param)
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_UInt_usize_type()
+  s_stream$col$$col$CompareResult_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Slice_type(s_Slice_typaram_T$0: Type)
+  s_UInt_u8_type()
+  s_0_Tuple_type()
+  s_ascii$col$$col$caseless$col$$col$Caseless_type(s_ascii$col$$col$caseless$col$$col$Caseless_typaram_T$0: Type)
+  s_Char_type()
+  s_Str_type()
+  s_Ref_mutable_type(s_Ref_mutable_typaram_U$1: Type)
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  Unknown_type(id: Int)
+}

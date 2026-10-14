@@ -1,0 +1,771 @@
+// ===== begin import: Flo/_preambles/Maps.vpr =====
+domain IMap[Key,V] {
+  function select(m: IMap[Key,V], key: Key) : V
+  function store(m:IMap[Key,V], key: Key, value: V) : IMap[Key,V]
+
+  axiom select_store_same {
+    forall m: IMap[Key,V], k: Key, v: V :: {select(store(m,k,v),k)} select(store(m,k,v),k) == v
+  }
+
+  axiom select_store_diff {
+    forall m: IMap[Key,V], k1: Key, k2: Key, v : V :: {select(store(m,k1,v),k2)} {select(m,k2),store(m,k1,v)} k1 != k2 ==> select(store(m,k1,v),k2) == select(m,k2)
+  }
+
+  function MapEqual(m1: IMap[Key,V], m2: IMap[Key,V]) : Bool
+
+  axiom observationally_equal {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} (forall k:Key :: select(m1,k) == select(m2,k)) ==> MapEqual(m1,m2)
+  }
+
+  axiom extensionality {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} MapEqual(m1,m2) ==> m1==m2
+  }
+
+  function constMap(v: V) : IMap[Key,V]
+
+  axiom select_const {
+    forall k: Key, v: V :: {select(constMap(v),k)} select(constMap(v),k) == v
+  }
+
+  // chaining of maps representing functions
+  function pipe(m1:IMap[V,V], m2:IMap[V,V]) : IMap[V,V]
+  axiom selectPipe 
+  {
+    forall v:V, m1:IMap[V,V], m2:IMap[V,V] :: {select(pipe(m1,m2),v)}
+      select(pipe(m1,m2),v) == select(m2,select(m1,v))
+  }
+
+  function singMap(x: Key, i: V, d: V) : IMap[Key, V]
+  axiom singMapDef1 {
+   forall x: Key, i: V, d: V :: {singMap(x, i, d)} select(singMap(x, i, d), x) == i
+  }
+  axiom singMapDef2 {
+    forall x: Key, y: Key, i: V, d: V :: {select(singMap(x, i, d), y)}
+      (y != x ==> select(singMap(x, i, d), y) == d) && (y == x ==> select(singMap(x, i, d), y) == i)
+  }
+
+  // TODO: not sure this is needed any more?
+  // TODO also create select terms for dblMap
+  function dblMap(x1: Key, i1: V, x2: Key, i2: V, d: V) : IMap[Key, V]
+  // axiom dblMapDef1 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x1) == i1
+  // }
+  // axiom dblMapDef2 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x2) == i2
+  // }
+  axiom dblMapDef {
+    forall x1: Key, i1: V, x2: Key, i2: V, d: V, y: Key :: {select(dblMap(x1, i1, x2, i2, d), y)}
+      select(dblMap(x1, i1, x2, i2, d), y) == (y == x1? i1 : (y == x2 ? i2 : d))
+  }
+}
+// ===== end import: Flo/_preambles/Maps.vpr =====
+
+// ===== begin import: Flo/_preambles/Lists.vpr =====
+
+domain List[T] {
+  function nil() : List[T]
+  function cons(t:T, l:List[T]) : List[T]
+  // no injectivity/surjectivity needed? For now, the property below seems enough:
+
+  function remove(l:List[T], t:T) : List[T]
+
+  axiom remove_nils {
+    forall t:T :: {remove(nil(),t)} remove(nil(),t) == nil()
+  }
+
+  axiom remove_cons {
+    forall s:T, l:List[T], t:T :: {remove(cons(s,l),t)} remove(cons(s,l),t) == (s==t ? l : (cons(s,remove(l,t)) : List[T]))// note: we assume lists without duplicates / removal of first occurrence only
+  }
+
+  axiom diffconstructors {
+      forall t:T, l:List[T] :: {cons(t,l)} nil() != cons(t,l)
+  }
+}
+// ===== end import: Flo/_preambles/Lists.vpr =====
+
+// ===== begin import: Flo/_preambles/flows-new.vpr =====
+//:: IgnoreFile(/Carbon/issue/000/)
+ 
+/* -------------------- Flows library -------------------- */
+
+// Interfaces
+domain Interface {
+  // Constructor
+  function interface(i: IMap[Ref, FlowDom], o: IMap[Ref, FlowDom],
+    F: Set[Ref]) : Interface
+  // Destructors
+  function inf(I: Interface) : IMap[Ref, FlowDom] // inflow
+  function out(I: Interface) : IMap[Ref, FlowDom] // outflow
+  function dom(I: Interface) : Set[Ref] // footprint
+
+  // Validity
+  function intValid(I: Interface) : Bool
+
+  axiom interfaceDef {
+    forall i: IMap[Ref, FlowDom], o: IMap[Ref, FlowDom],
+        F: Set[Ref] :: {interface(i, o, F)}
+      inf(interface(i, o, F)) == i
+      && out(interface(i, o, F)) == o
+      && dom(interface(i, o, F)) == F
+  }
+
+  axiom injective_interface {
+    forall I: Interface :: {inf(I), out(I), dom(I)}
+      I == interface(inf(I), out(I), dom(I))
+  }
+
+  // Interface contextual extension (allows increasing domain)
+  function intLeq(I1: Interface, I2: Interface) : Bool
+
+  axiom intLeq_eq {
+    forall I: Interface :: {intLeq(I, I)} intLeq(I, I)
+  }
+  
+  axiom intLeq_implies {
+    forall I1: Interface, I2: Interface :: {intLeq(I1, I2)}
+      intLeq(I1, I2)
+      ==> intValid(I1) && intValid(I2)
+        && dom(I1) subset dom(I2)
+        && (forall n: Ref :: {Iinf(I2, n)}
+          n in dom(I1) ==> fdEq(Iinf(I1, n), Iinf(I2, n)))
+        && (forall m: Ref :: {Iout(I2, m)}
+          !(m in dom(I2)) ==> fdEq(Iout(I1, m), Iout(I2, m)))
+  }
+
+  axiom intLeq_transitive {
+    forall I1: Interface, I2: Interface, I3: Interface ::
+        {intLeq(I1, I2), intLeq(I2, I3), intLeq(I1, I3)}
+      intLeq(I1, I2) && intLeq(I2, I3) ==> intLeq(I1, I3)
+  }
+}
+
+// Macros to simplify specs
+define Iinf(I, x) select(inf(I), x)
+define Iout(I, y) select(out(I), y)
+
+// Helper lemma to prove validity of singleton interfaces
+method _lemma_prove_intValid(yy: Ref)
+  requires nodeSpatial(yy) && acc(yy.intf) && dom(yy.intf) == Set(yy)
+  // Outflow consistent with edge_fn
+  requires (forall z: Ref :: {Iout(yy.intf, z)}{edge_fn(yy, z)}
+    fdEq(Iout(yy.intf, z), select(edge_fn(yy, z),Iinf(yy.intf, yy))))
+  ensures nodeSpatial(yy) && acc(yy.intf)
+  ensures hrepUnchanged(yy) && yy.intf == old(yy.intf)
+  ensures intValid(intCompSet(Set(yy)))
+
+// Helper lemma to prove intLeq
+method _lemma_prove_intLeq(I1: Interface, I2: Interface)
+  requires dom(I1) subset dom(I2)
+  requires intValid(I1) && intValid(I2)
+  requires (forall n: Ref :: {Iinf(I2, n)}
+          n in dom(I1) ==> fdEq(Iinf(I1, n), Iinf(I2, n)))
+  requires (forall m: Ref :: {Iout(I2, m)}
+          !(m in dom(I2)) ==> fdEq(Iout(I1, m), Iout(I2, m)))
+  ensures intLeq(I1, I2)
+
+// Compute footprints after a method call
+define _compute_footprints(X, X1, Y, Y1) {
+  // // compute appropriate X1:
+  // assume forall z: Ref :: {z in X1} z in X1 ==> perm(z.intf) == 1/1
+  // assume forperm z: Ref [z.intf] :: z in X1
+  X1 := X union (Y1 setminus Y)
+}
+
+// Apply the Replacement Theorem
+define _replacement_theorem(X, X1, Y, Y1, pre) {
+  // This is an instantiation of the Replacement Theorem:
+  assume intLeq(old[pre](intCompSet(Y)), intCompSet(Y1))
+    ==> intLeq(old[pre](intCompSet(X)), intCompSet(X1))
+  // By defn of composition, new nodes' inflow given by inflow of method's footprint
+  assume forall z: Ref :: {Iinf(intCompSet(X1), z)}
+    z in (X1 setminus X) ==> Iinf(intCompSet(X1), z) == Iinf(intCompSet(Y1), z)
+}
+
+// ---- Basic elements of encoding: intf field and N predicate
+
+field intf: Interface
+
+// This is defined outside the domain as it is state-dependent
+function intCompSet(X: Set[Ref]) : Interface
+  requires forall xx: Ref :: {xx.intf} xx in X ==> acc(xx.intf)
+  ensures dom(result) == X
+  // The empty interface
+  ensures X == Set[Ref]() 
+    ==> (forall xx: Ref :: {Iinf(result, xx)} fdEq(Iinf(result, xx), fdZero()))
+  ensures X == Set[Ref]() 
+    ==> (forall xx: Ref :: {Iout(result, xx)} fdEq(Iout(result, xx), fdZero()))
+  ensures X == Set[Ref]() ==> intValid(result)
+  // The singleton interface
+  ensures forall xx: Ref :: {intCompSet(Set(xx))} X == Set(xx) && xx in X ==> result == xx.intf 
+  //ensures forall xx: Ref :: {xx in X} |X| == 1 && xx in X ==> result == xx.intf 
+  decreases _
+
+define node(x)
+  nodeSpatial(x) && acc(x.intf) && dom(x.intf) == Set(x)
+  && (forall z: Ref :: {Iout(x.intf, z)}{edge_fn(x, z)}
+    fdEq(Iout(x.intf, z), select(edge_fn(x, z),Iinf(x.intf, x))))
+
+
+// ---- Clever tricks to compute unbounded sums
+
+// Compute capacity (approximately)
+domain Cap {
+  function mapPlus(m1: IMap[FlowDom, FlowDom], m2: IMap[FlowDom, FlowDom])
+    : IMap[FlowDom, FlowDom]
+  axiom mapPlusLookup {
+    forall m1: IMap[FlowDom, FlowDom], m2: IMap[FlowDom, FlowDom], f: FlowDom ::
+        {select(mapPlus(m1, m2), f)}
+      select(mapPlus(m1, m2), f) == fdPlus(select(m1, f), select(m2, f))
+  }
+
+  function capAux(m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+    through: List[Ref]) : IMap[FlowDom, FlowDom]
+
+  axiom capDirect {
+    forall m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]] ::
+        {capAux(m, n, edges, nil())} 
+      capAux(m, n, edges, nil()) == select(select(edges, m), n)
+      //+ (m==n ? 1 : 0) // we decided against this - it can be added later
+  }
+
+  axiom capMaybeThrough {
+    forall m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+        i: Ref, rest: List[Ref] ::
+        {capAux(m, n, edges, cons(i, rest))} 
+      capAux(m, n, edges, cons(i, rest))
+      == mapPlus(capAux(m, n, edges, rest),
+          pipe(capAux(m, i, edges, rest), capAux(i, n, edges, rest)))
+  }
+}
+define cap(n0, n1, m, d) capAux(n0, n1, m, remove(remove(d, n0), n1))
+
+// The sum of outflow from a given region
+domain OutflowSum {
+  function outflowAux(n: Ref, flows: IMap[Ref, FlowDom],
+    edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]], l: List[Ref]) : FlowDom
+
+  axiom OutflowSumBase {
+    forall n: Ref, flows: IMap[Ref, FlowDom],
+        edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]] ::
+        {outflowAux(n, flows, edges, nil())} 
+      outflowAux(n, flows, edges, nil()) == fdZero()
+  }
+
+  axiom OutflowSumMaybeThrough {
+    forall n: Ref, flows: IMap[Ref, FlowDom],
+        edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]], m: Ref, rest: List[Ref] ::
+        {outflowAux(n, flows, edges, cons(m, rest))} 
+      outflowAux(n, flows, edges, cons(m, rest))
+        == fdPlus(outflowAux(n, flows, edges, rest),
+           select(select(select(edges, m), n), select(flows, m))) // flow(m) |> edge(m, n)
+  }
+}
+define outflowSum(n, f, e, D) outflowAux(n, f, e, remove(D, n))
+
+
+// ---- Macros for flow annotations to be automatically added:
+
+// (Re)-initialize all variables
+define _init_vars() {
+  dirty := Set[Ref]()
+  dirtyList := nil()
+  // edge_fns[n][n'] is e(n, n')
+  edge_fns := havoc_map_map_edge()
+  // edge_fns_new[n][n'] is e'(n, n')
+  edge_fns_new := havoc_map_map_edge()
+  // infs_small[n] is In.inf[n]
+  infs_small := havoc_map()
+  // infs_small_new[n] is In'.inf[n]
+  infs_small_new := havoc_map()
+  // inf_D is inflow of interface of dirty region
+  inf_D := havoc_map()
+}
+
+// Add n to the dirty region
+define _make_dirty(n0) { // could also parameterise by assigned-to variables
+  if(n0 != null && !(n0 in dirty)) {
+    dirty := dirty union Set(n0)
+    dirtyList := cons(n0, dirtyList)
+  }
+}
+
+define _set_edge_fns(edge_fns, X) {
+  assume forall x: Ref, y: Ref :: {select(select(edge_fns, x), y)}
+    x in X ==> select(select(edge_fns, x), y) == edge_fn(x, y)
+}
+
+define _set_infs_and_fms(infs_small, edge_fns_new, X) {
+  assume forall x: Ref :: {select(infs_small, x)}
+    x in dirty ==> select(infs_small, x) == Iinf(x.intf, x)
+  _set_edge_fns(edge_fns_new, X)
+}
+
+define _assume_flow_eqn(infs_small, edge_fns, inf_D) {
+  assume forall x: Ref :: {select(infs_small, x)} {select(inf_D, x)}
+    x in dirty ==> select(infs_small, x)
+      == fdPlus(select(inf_D, x), outflowSum(x, infs_small, edge_fns, dirtyList))
+}
+
+// General framework lemmas that are always true
+define _assume_global_invs(X) {
+  assume forall x: Ref :: {Iinf(x.intf, x)}
+    x in X ==> fdLeq(Iinf(intCompSet(X), x), Iinf(x.intf, x))
+  assume forall x: Ref, y: Ref :: {trig_gfe(x, y)}
+    x in X && y in X ==> fdLeq(Iout(x.intf, y), Iinf(y.intf, y))
+  // Singleton outflows are edge_fns applied to singleton inflows
+  assume forall x: Ref, y: Ref :: {Iout(x.intf, y)}
+    x in X ==> fdEq(Iout(x.intf, y), select(edge_fn(x, y), Iinf(x.intf, x)))
+}
+
+// Trigger for global flow equation
+function trig_gfe(x: Ref, y: Ref) : Bool { true }
+
+define _field_read(x, xf) {
+  assert trig_gfe(x, xf)
+}
+
+// Assume acyclic based on infs_small (i.e. actual flow), because
+// this is what is known about the pre state
+define _assume_no_cycles(infs_small, edge_fns) {
+  assume (forall x: Ref :: {select(infs_small, x)} x in dirty
+    ==> select(cap(x, x, edge_fns, dirtyList), select(infs_small, x))
+        == fdZero())
+}
+
+// Assert acyclic based on inf_D because this must be the same in the post,
+// and infs_small_new only determined by flow eqn (which is only true if acyclic)
+define _assert_no_cycles(inf_D, edge_fns_new) {
+  assert (forall x: Ref, y: Ref :: {no_match(x), no_match(y)}
+    x in dirty && y in dirty // rather asymmetrical
+    ==> fdEq(
+  select(pipe(cap(x, y, edge_fns_new, dirtyList),
+              cap(y, y, edge_fns_new, dirtyList)),
+         select(inf_D, x)),
+             fdZero()))
+}
+
+// Check path subflow preservation for dirty region
+// This is needed to guarantee that composite graph is also EA
+define _assert_path_subflow_preserved(inf_D, edge_fns, edge_fns_new) {
+  assert forall x: Ref, z: Ref, p: FlowDom ::
+      {no_match(x), no_match(z), no_match_fd(p)}
+    x in dirty && !(z in dirty) && fdLeq(p, select(inf_D, x))
+    ==> fdEq(select(cap(x, z, edge_fns, dirtyList), p),
+          select(cap(x, z, edge_fns_new, dirtyList), p))
+}
+
+define _pre_code(FP) {
+  _init_vars()
+  _assume_global_invs(FP)
+  _set_edge_fns(edge_fns, FP)
+}
+
+define _post_method_call(FP, FP1, Y, Y1, pre) {
+  _compute_footprints(FP, FP1, Y, Y1)
+  _replacement_theorem(FP, FP1, Y, Y1, pre)
+}
+
+define _post_code_sync(FP, lname) {
+  // Summarise infs and fms of singleton interfaces in dirty region
+  _set_infs_and_fms(infs_small, edge_fns_new, FP)
+
+  // Assume flow equation on pre state
+  _assume_flow_eqn(infs_small, edge_fns, inf_D)
+
+  // Assume flow equation on new state
+  _assume_flow_eqn(infs_small_new, edge_fns_new, inf_D)
+
+  {
+  // Check equivalence of flow maps
+  label lname
+  // Check node for each node in dirty and write new interface to x.intf
+  sync(dirty, dirtyList, inf_D, infs_small, infs_small_new, edge_fns, edge_fns_new)
+  _replacement_theorem(FP, FP, dirty, dirty, lname)
+  }
+}
+
+define _post_code_sync_EA(FP) {
+  // Summarise infs and fms of singleton interfaces in dirty region
+  _set_infs_and_fms(infs_small, edge_fns_new, FP)
+
+  // Assume flow equation on pre state
+  _assume_flow_eqn(infs_small, edge_fns, inf_D)
+
+  // Assume that dirty region had no cycles
+  _assume_no_cycles(infs_small, edge_fns)
+
+  // Check that dirty region has no cycles
+  _assert_no_cycles(inf_D, edge_fns_new)
+
+  // Assume flow equation on new state
+  _assume_flow_eqn(infs_small_new, edge_fns_new, inf_D)
+
+  // Check that we won't introduce any cycles in the larger graph
+  _assert_path_subflow_preserved(inf_D, edge_fns, edge_fns_new)
+  
+  {
+  // Check equivalence of flow maps
+  label pre_sync
+  // Check node for each node in dirty and write new interface to x.intf
+  sync(dirty, dirtyList, inf_D, infs_small, infs_small_new, edge_fns, edge_fns_new)
+  _replacement_theorem(FP, FP, dirty, dirty, pre_sync)
+  }
+}
+
+
+// ---- Flow-specific ghost procedures:
+
+// Sync the dirty set of nodes and update their intf fields
+// Requires the interface of dirty to be exactly equal
+method sync(dirty: Set[Ref], dirtyList: List[Ref],
+            inf_D: IMap[Ref, FlowDom],
+            infs_small: IMap[Ref, FlowDom], infs_small_new: IMap[Ref, FlowDom],
+            edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+            edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]])
+
+  requires forall x1: Ref :: {x1 in dirty} x1 in dirty ==> acc(x1.intf)
+  // Check that new interface of dirty == old interface of dirty
+  // We know that dom and inf is equal by construction, so check outflow preserved:
+  requires forall z: Ref :: {no_match(z)} !(z in dirty) 
+    ==> fdEq(outflowSum(z, infs_small, edge_fns, dirtyList),
+      outflowSum(z, infs_small_new, edge_fns_new, dirtyList))
+
+  ensures forall x1: Ref :: {x1 in dirty}
+    x1 in dirty ==> acc(x1.intf) && dom(x1.intf) == Set(x1)
+  // Now x.intf contains the interface given by infs_small_new and fms_small_new
+  ensures forall x1: Ref :: {Iinf(x1.intf, x1)}
+    x1 in dirty ==> Iinf(x1.intf, x1) == select(infs_small_new, x1)
+  ensures forall x1: Ref, y1: Ref :: {Iout(x1.intf, y1)}
+    x1 in dirty ==> Iout(x1.intf, y1)
+      == select(select(select(edge_fns_new, x1), y1), Iinf(x1.intf, x1))
+  // and the interface is the same
+  ensures old(intCompSet(dirty)) == intCompSet(dirty)
+
+
+// ---- Misc util stuff:
+
+// Nondeterministic boolean value
+method nondet() returns (b: Bool)
+
+// Havoc a flow map
+method havoc_map() returns (m: IMap[Ref, FlowDom])
+method havoc_map_map() returns (m: IMap[Ref, IMap[Ref, FlowDom]])
+method havoc_map_map_edge() returns (m: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]])
+
+// Trigger that's never triggered
+domain NoMatching {
+  function no_match(r: Ref) : Bool
+  function no_match_int(x: Int) : Bool
+  function no_match_fd(d: FlowDom) : Bool
+}
+
+// Dummy term to seed triggers
+function dummy(f: FlowDom) : Bool { true }
+// ===== end import: Flo/_preambles/flows-new.vpr =====
+
+// resolved: import "../_preambles/Maps.vpr"
+// resolved: import "../_preambles/Lists.vpr"
+// resolved: import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Product of two natural numbers
+domain FlowDom {
+  function pc1(f : FlowDom) : Int
+  function pc2(f : FlowDom) : Int
+  axiom positive {
+    forall p: FlowDom :: pc1(p) >= 0 && pc2(p) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) == (pc1(p1) == pc1(p2) && pc2(p1) == pc2(p2))
+  }
+  axiom fdEqDef2 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) ==> p1 == p2
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      pc1(fdPlus(p1,p2)) == pc1(p1) + pc1(p2)
+      && pc2(fdPlus(p1,p2)) == pc2(p1) + pc2(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    pc1(fdZero()) == 0 && pc2(fdZero()) == 0
+  }
+
+  // Some useful flow domain elements
+  function fdOneZero() : FlowDom
+  axiom fdOneZeroDef {
+    pc1(fdOneZero()) == 1 && pc2(fdOneZero()) == 0
+  }
+  function fdZeroOne() : FlowDom
+  axiom fdZeroOneDef {
+    pc1(fdZeroOne()) == 0 && pc2(fdZeroOne()) == 1
+  }
+  function fdOneOne() : FlowDom
+  axiom fdOneOneDef {
+    pc1(fdOneOne()) == 1 && pc2(fdOneOne()) == 1
+  }
+
+  // Some useful flow domain endomorphisms
+  function mapIdZero() : IMap[FlowDom, FlowDom]
+  axiom mapIdZeroDef {
+    forall p: FlowDom :: {select(mapIdZero(), p)}
+      pc1(select(mapIdZero(), p)) == pc1(p) && pc2(select(mapIdZero(), p)) == 0
+  }
+  function mapZeroId() : IMap[FlowDom, FlowDom]
+  axiom mapZeroIdDef {
+    forall p: FlowDom :: {select(mapZeroId(), p)}
+      pc1(select(mapZeroId(), p)) == 0 && pc2(select(mapZeroId(), p)) == pc2(p)
+  }
+  function mapId() : IMap[FlowDom, FlowDom]
+  axiom mapIdDef {
+    forall p: FlowDom :: {select(mapId(), p)}
+      select(mapId(), p) == p
+  }
+} 
+
+
+// The fields of a node
+field next: Ref
+field fnext: Ref
+field mark: Bool
+
+define nodeSpatial(x) acc(x.next) && acc(x.fnext) && acc(x.mark)
+define hrepUnchanged(x) x.next == old(x.next)
+  && x.fnext == old(x.fnext) && x.mark == old(x.mark)
+
+
+// Definition of a node and good condition:
+
+function edge_fn(x:Ref, y:Ref) : IMap[FlowDom,FlowDom]
+  requires nodeSpatial(x)
+{
+  y == null ? constMap(fdZero())
+    : (y == x.next && y != x.fnext ? mapIdZero()
+      : (y != x.next && y == x.fnext ? mapZeroId()
+        : (y == x.next && y == x.fnext ? mapId() : constMap(fdZero()))))
+}
+
+
+// These are the invariants that say this structure is a Harris list
+define harrisInv(mh, fh, I) 
+  intValid(I) && mh in dom(I) && fh in dom(I)
+  // Global inflow constraints:
+  && Iinf(I, mh) == fdOneZero() && Iinf(I, fh) == fdZeroOne()
+  && (forall x: Ref :: {x in dom(I), Iinf(I, x)} 
+    (x in dom(I) && x != mh && x != fh) ==> Iinf(I, x) == fdZero())
+  // Data structure is closed
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.next)}
+    x in dom(I) && x.next != null && trig_gfe(x, x.next) ==> x.next in dom(I))
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.fnext)}
+    x in dom(I) && x.fnext != null && trig_gfe(x, x.fnext) ==> x.fnext in dom(I))
+  // All nodes in one of the lists
+  && (forall x: Ref :: {x in dom(I)} x in dom(I)
+    ==> (fdEq(Iinf(x.intf, x), fdOneZero()) || fdEq(Iinf(x.intf, x), fdZeroOne())
+      || fdEq(Iinf(x.intf, x), fdOneOne())))
+  // All nodes on free list are marked (contrapositive for brevity)
+  && (forall x: Ref :: {x in dom(I), x.mark} x in dom(I)
+    ==> (!x.mark ==> Iinf(x.intf, x) == fdOneZero()))
+  // No self-edges
+  && (forall x: Ref :: {x.next, x in dom(I)} x in dom(I) ==> x.next != x)
+  && (forall x: Ref :: {x.fnext, x in dom(I)} x in dom(I) ==> x.fnext != x)
+
+
+/* -------------------- Actual methods -------------------- */
+
+
+// Helper function to create and initialize new node
+method alloc(i: FlowDom, X: Set[Ref]) returns (x: Ref, X1: Set[Ref])
+  requires X == Set[Ref]()
+  ensures X1 == Set(x)
+  ensures forall z: Ref :: {z in X1} z in X1 ==> node(z)
+  ensures fdEq(Iinf(x.intf, x), i)
+    && (forall y: Ref :: Iout(x.intf, y) == fdZero())
+  ensures intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+{
+  x := new(*)
+  x.next := null
+  x.fnext := null
+  x.intf := interface(singMap(x, i, fdZero()), constMap(fdZero()), Set(x))
+  X1 := Set(x)
+  _lemma_prove_intValid(x)
+  _lemma_prove_intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+}
+
+
+// Create a new node and insert it after l
+method insert(l: Ref, mh: Ref, fh: Ref, X: Set[Ref]) returns (X1: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires harrisInv(mh, fh, intCompSet(X))
+  requires l in X && pc1(Iinf(l.intf, l)) == 1 && !l.mark
+  ensures forall x: Ref :: {x in X1} x in X1 ==> node(x)
+  ensures harrisInv(mh, fh, intCompSet(X1))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  var n: Ref
+  var Y: Set[Ref]
+  var Y1: Set[Ref]
+  Y := Set[Ref]()
+
+  label pre_alloc_call
+
+  n, Y1 := alloc(fdZero(), Y)
+
+  // ---- Post method call:
+
+  var FP1: Set[Ref]
+  _post_method_call(FP, FP1, Y, Y1, pre_alloc_call)
+
+  // ---- Flows set-up again after method call:
+
+  _pre_code(FP1)
+
+  // ---- Actual code:
+
+  _field_read(l, l.next)
+  var r: Ref := l.next
+
+  _make_dirty(l)
+  l.next := n;
+
+  _make_dirty(n)
+  n.next := r;
+  n.fnext := null;
+  n.mark := false;
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP1)
+
+  X1 := FP1
+}
+
+
+// Mark a node as logically deleted
+method delete(l: Ref, mh: Ref, fh: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires harrisInv(mh, fh, intCompSet(X))
+  requires l in X && pc1(Iinf(l.intf, l)) == 1 && !l.mark
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures harrisInv(mh, fh, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  // Added based on field reads to trigger global flow eqn
+  _make_dirty(l)
+  l.mark := true;
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+
+method traverse(mh: Ref, fh: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires harrisInv(mh, fh, intCompSet(X))
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures harrisInv(mh, fh, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  var l: Ref := mh
+  var r: Ref
+
+  _field_read(l, l.next)
+  r := l.next
+
+  var nond: Bool
+  nond := nondet()
+  while (nond && r != null)
+    invariant forall x: Ref :: {x in X} x in X ==> node(x)
+    invariant harrisInv(mh, fh, intCompSet(X))
+    invariant l in X && pc1(Iinf(l.intf, l)) == 1
+    invariant r == l.next && (r != null ==> r in X && pc1(Iinf(r.intf, r)) == 1)
+  {
+    _assume_global_invs(FP)
+
+    l := r
+
+    _field_read(l, l.next)
+    r := l.next
+
+    nond := nondet()
+  }
+
+  // Check that we can now call either insert or delete:
+  assert (forall x: Ref :: {x in X} x in X ==> node(x))
+    && harrisInv(mh, fh, intCompSet(X))
+    && l in X && pc1(Iinf(l.intf, l)) == 1
+  if (r != null) {
+    assert (forall x: Ref :: {x in X} x in X ==> node(x))
+      && harrisInv(mh, fh, intCompSet(X))
+      && l in X && l.next in X
+  }
+}

@@ -1,0 +1,49 @@
+/**
+ * We need to import the examples file, in order to get our data
+ * type Unary defined in examples-7.0.vpr.
+ */
+import "examples-7.0.vpr"
+
+/**
+ * For our new Abstract Data Type Unary we will have to define an absolute order
+ * again. To define this absolute order, we need the functions bounded as well
+ * as decreasing. Both of those functions are defined in this decreases/all.vpr
+ * file. 
+ *
+ * This file was not defined by us. It is part of the standard library.
+ */
+import <decreases/all.vpr>
+
+/**
+ * Just like in chapter 6.1, we will define the well-founded order of this data
+ * type using a Domain.
+ */
+domain UnaryWellFoundedOrder {
+
+    /**
+     * This axiom tells us that for each element of type Unary, there exists a
+     * lower bound. The lowest bound for each Unary element is zero().
+     */
+  axiom {
+    forall y: Unary ::
+    bounded(y) 
+  }
+
+  /**
+   * This axiom defines the order of the Unary elements. As we see here, x.pred
+   * is smaller than x. We could have also defined to order to be 
+   * decreasing(x, Suc(x)). 
+   */
+  axiom { 
+    forall x: Unary ::
+    decreasing(x.pred, x)
+  }
+
+  /**
+   * This axiom adds the transitivity of the Unary data type.
+   */
+  axiom {
+    forall x: Unary, y: Unary, z: Unary :: {decreasing(x, y), decreasing(y, z)}
+    decreasing(x, y) && decreasing(y, z) ==> decreasing(x, z)
+  }
+}

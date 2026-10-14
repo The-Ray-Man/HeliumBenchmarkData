@@ -1,0 +1,135 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// resolved: import "../../_preambles/defs.vpr"
+
+define valid_lis(numbers) (forall k: Int :: {numbers[k]} 0 <= k < |numbers| ==> numbers[k] >= 0) && |numbers| >= 0
+
+// The function takes the maximum from all the possible starting points in numbers.
+function lis(numbers: Seq[Int], start: Int): Int
+   requires valid_lis(numbers)
+   requires 0 <= start <= |numbers|
+   decreases |numbers| - start
+{
+   start == |numbers| ? 0 : 
+   max(lis_rec(numbers, start), lis(numbers, start + 1))
+}
+
+// This function calculates the length of the largest increasing subsequence starting at n.
+function lis_rec(numbers: Seq[Int], n: Int): Int
+   requires 0 <= n < |numbers|
+   decreases 
+{
+   |numbers| == 0 ? 0 : numbers[n] + lis_helper(numbers, n, n + 1)
+}
+
+function lis_helper(numbers: Seq[Int], prev: Int, j: Int): Int
+   requires 0 <= j <= |numbers|
+   requires 0 <= prev <= |numbers|
+   decreases |numbers| - j
+{
+   // If prev == |numbers|, we are at the end of the array and cannot jump to any other tile.
+   prev == |numbers| ? 0 :
+
+   // If j == |numbers|, we are at the end of the array and cannot jump to any other tile.
+   j == |numbers| ? 0 :
+
+   // We check if the current tile is larger than the previous tile to determine if we can take the jth tile into the largest increasing subsequence.
+   // If yes, we can either add it up (numbers[j] + lis_helper(numbers, j, j + 1)) or not (lis_helper(numbers, prev, j + 1)).
+   numbers[j] > numbers[prev] ? max(numbers[j] + lis_helper(numbers, j, j + 1), lis_helper(numbers, prev, j + 1)) :
+
+   // If not, we cannot take the jth tile into the largest increasing subsequence and we move on to the next tile.
+   lis_helper(numbers, prev, j + 1)
+}
+
+method lds_dp(numbers: Seq[Int]) returns (res: Int)
+    requires valid_lis(numbers)
+    ensures res == lis(numbers, 0)
+    decreases
+{
+    var dp: Seq[Int]
+    // For convenience, we use asserts to define the size of the DP table.
+    assume |dp| == |numbers|
+
+    dp := numbers
+
+    if (|numbers| == 0) {
+        res := 0
+    }
+
+    var i: Int := |numbers| - 1
+    var currMax: Int := 0
+
+    // A DP entry i represents the length of the largest increasing subsequence starting at i.
+    // currMax keeps track of the current maximum.
+    while (i >= 0)
+        invariant |dp| == |numbers|
+        invariant -1 <= i < |numbers|
+        // If the dp entry i is not entered yet, it is equal to numbers[i] (value of subsequence starting and ending at i).
+        invariant forall k: Int :: {dp[k]} 0 <= k <= i ==> dp[k] == numbers[k]
+        // All DP entries that have been entered so far are the corresponding values of the largest increasing subsequence starting at k.
+        invariant forall k: Int :: {dp[k]} i < k < |numbers| ==> dp[k] == lis_rec(numbers, k)
+        // This makes sure that currMax is actually the current maximum.
+        invariant currMax == lis(numbers, i + 1)
+        decreases i
+    {
+        var j: Int := |numbers| - 1
+        while (j > i)
+            invariant |dp| == |numbers|
+            invariant -1 <= i < |numbers| 
+            invariant i <= j < |numbers|
+            // If the DP entry i is not entered yet, it is equal to numbers[i] (value of subsequence starting and ending at i).
+            invariant forall k: Int :: {dp[k]} 0 <= k < i ==> dp[k] == numbers[k]
+            // All DP entries that have been entered so far are the corresponding values of the largest increasing subsequence starting at k.
+            invariant forall k: Int :: {dp[k]} i < k < |numbers| ==> dp[k] == lis_rec(numbers, k)
+            // dp[i] is the length of the largest increasing subsequence starting at i (due to that we need to add the numbers[i]).
+            invariant dp[i] == numbers[i] + lis_helper(numbers, i, j + 1)
+            invariant currMax == lis(numbers, i + 1)
+            decreases j 
+        {
+            if (numbers[j] > numbers[i]) {
+                dp := dp[i := max(dp[i], dp[j] + numbers[i])]
+            }
+            j := j - 1
+        }
+
+        // currMax is updates to the current maximum of the DP table.
+        if (dp[i] > currMax) {
+            currMax := dp[i]
+        }
+
+        i := i - 1
+    }
+    res := currMax
+}

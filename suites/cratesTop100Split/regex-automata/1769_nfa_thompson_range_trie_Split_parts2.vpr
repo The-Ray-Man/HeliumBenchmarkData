@@ -1,0 +1,674 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange  {
+  
+  axiom s_Param_typ_def_make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange {
+    (forall x: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange ::
+      { make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(x) }
+      s_Param_typ(make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(x)) ==
+      s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange {
+    (forall p: s_Param ::
+      { p.make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange,
+      s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type() ==>
+      make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(p.make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange) ==
+      p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange {
+    inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) ==
+    (inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) ||
+    (inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) ||
+    inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type())))
+  }
+  
+  axiom inhabited_regex_syntax$col$$col$utf8$col$$col$Utf8Range {
+    inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) ==
+    (inhabited(s_UInt_u8_type()) && inhabited(s_UInt_u8_type()))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split {
+    inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_type()) ==
+    (inhabited(s_Array_type(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(), s_UInt_usize_cons(3))) &&
+    inhabited(s_UInt_usize_type()))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange  {
+  
+  axiom s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type())
+  }
+  
+  axiom s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_regex_syntax$col$$col$utf8$col$$col$Utf8Range  {
+  
+  axiom s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type())
+  }
+  
+  axiom s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type())
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split  {
+  
+  axiom s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_type())
+  }
+  
+  axiom s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_type())
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_u8_val: s_UInt_u8
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_unreachable(): s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split
+  ensures false
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_unreachable(): s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  ensures false
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_discr(self: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange): s_Int_isize
+{
+  (self.iss_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_unreachable(): s_regex_syntax$col$$col$utf8$col$$col$Utf8Range
+  ensures false
+
+
+function s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_snap(self: Ref): s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split
+  requires acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split(self), write)
+{
+  (unfolding acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split(self), write) in
+    s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_cons(p_Array_snap(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_0(self),
+    s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(),
+    s_UInt_usize_cons(3)), p_UInt_usize_snap(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_1(self))))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(self: Ref): s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  requires acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self), write)
+{
+  (unfolding acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self), write) in
+    (p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_owned(self), write) in
+        s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_cons(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_field_0(self)))) :
+      (p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_owned(self), write) in
+          s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_cons(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_field_0(self)))) :
+        (p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_owned(self), write) in
+            s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_cons(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_field_0(self)))) :
+          s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_unreachable()))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(self: Ref): s_regex_syntax$col$$col$utf8$col$$col$Utf8Range
+  requires acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(self), write)
+{
+  (unfolding acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(self), write) in
+    s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_cons(p_UInt_u8_snap(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_0(self)), p_UInt_u8_snap(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_1(self))))
+}
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split(self: Ref) {
+  inhabited(s_Array_type(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(), s_UInt_usize_cons(3))) &&
+  acc(p_Array(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_0(self),
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(), s_UInt_usize_cons(3)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_field_1(self)), write))
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_owned(self: Ref) {
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_field_0(self)), write)
+}
+
+predicate p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_owned(self: Ref) {
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_field_0(self)), write)
+}
+
+predicate p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_owned(self: Ref) {
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_field_0(self)), write)
+}
+
+predicate p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_owned(self), write)) &&
+  ((p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_owned(self), write)) &&
+  (p_Int_isize_snap(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+  acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_owned(self), write)))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(self: Ref) {
+  inhabited(s_UInt_u8_type()) &&
+  acc(p_UInt_u8(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_0(self)), write) &&
+  (inhabited(s_UInt_u8_type()) &&
+  acc(p_UInt_u8(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_field_1(self)), write))
+}
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split$col$$col$parts2(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(_1p), write)
+  requires inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(_2p), write)
+  ensures inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split(_0p), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _tmp0: s_regex_syntax$col$$col$utf8$col$$col$Utf8Range
+  var _tmp1: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp2: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp3: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp4: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp5: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp6: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange
+  var _tmp7: s_Array
+  var _tmp8: s_Array
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_assign(_4p, s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_cons(s_UInt_u8_cons(0), s_UInt_u8_cons(0)))
+  label _before_0_3
+  _tmp0 := p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(_4p)
+  exhale inhabited(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()) &&
+    acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(_4p), write)
+  p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_assign(_3p,
+    s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_cons(_tmp0))
+  label _before_0_4
+  label _before_0_5
+  label _before_0_6
+  label _before_0_7
+  label _before_0_8
+  _tmp1 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_1p)
+  p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_assign(_6p,
+    _tmp1)
+  label _before_0_9
+  label _before_0_10
+  _tmp2 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_2p)
+  p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_assign(_7p,
+    _tmp2)
+  label _before_0_11
+  label _before_0_12
+  _tmp3 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_3p)
+  p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_assign(_8p,
+    _tmp3)
+  label _before_0_13
+  _tmp4 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_6p)
+  exhale inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(_6p), write)
+  _tmp5 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_7p)
+  exhale inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(_7p), write)
+  _tmp6 := p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(_8p)
+  exhale inhabited(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()) &&
+    acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(_8p), write)
+  inhale s_Array_index(_tmp7, 0).make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange ==
+    _tmp4
+  inhale s_Array_index(_tmp7, 1).make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange ==
+    _tmp5
+  inhale s_Array_index(_tmp7, 2).make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange ==
+    _tmp6
+  p_Array_assign(_5p, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(),
+    s_UInt_usize_cons(3), _tmp7)
+  label _before_0_14
+  label _before_0_15
+  label _before_0_16
+  label _before_0_17
+  _tmp8 := p_Array_snap(_5p, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(),
+    s_UInt_usize_cons(3))
+  exhale inhabited(s_Array_type(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(), s_UInt_usize_cons(3))) &&
+    acc(p_Array(_5p, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type(),
+    s_UInt_usize_cons(3)), write)
+  p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_assign(_0p, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_cons(_tmp8, s_UInt_usize_cons(2)))
+  label _before_0_18
+  label _before_0_19
+  label _before_0_20
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self: Ref)
+  requires acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self), write)
+  ensures acc(p_Param(self, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()), write)
+  ensures old(make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(self))) ==
+    p_Param_snap(self, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type())
+
+
+method make_concrete_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self: Ref)
+  requires acc(p_Param(self, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()), write)
+  ensures acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self), write)
+  ensures old(p_Param_snap(self, s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type())) ==
+    make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(self))
+
+
+method p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_assign(self: Ref,
+  value: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split)
+  ensures acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split(self), write)
+  ensures p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_snap(self) ==
+    value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_assign(self: Ref,
+  value: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange)
+  ensures acc(p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(self), write)
+  ensures p_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_snap(self) ==
+    value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_assign(self: Ref, value: s_regex_syntax$col$$col$utf8$col$$col$Utf8Range)
+  ensures acc(p_regex_syntax$col$$col$utf8$col$$col$Utf8Range(self), write)
+  ensures p_regex_syntax$col$$col$utf8$col$$col$Utf8Range_snap(self) ==
+    value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+adt s_Param {
+  make_generic_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange(make_concrete_s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange: s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split {
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_cons(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_0: s_Array,
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_1: s_UInt_usize)
+}
+
+adt s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange {
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_cons(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_0_0: s_regex_syntax$col$$col$utf8$col$$col$Utf8Range)
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_cons(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_1_0: s_regex_syntax$col$$col$utf8$col$$col$Utf8Range)
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_cons(s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_2_0: s_regex_syntax$col$$col$utf8$col$$col$Utf8Range)
+}
+
+adt s_regex_syntax$col$$col$utf8$col$$col$Utf8Range {
+  s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_cons(s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_0: s_UInt_u8,
+  s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_1: s_UInt_u8)
+}
+
+adt Type {
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$SplitRange_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_regex_syntax$col$$col$utf8$col$$col$Utf8Range_type()
+  s_UInt_u8_type()
+  s_Int_isize_type()
+  s_UInt_usize_type()
+  s_nfa$col$$col$thompson$col$$col$range_trie$col$$col$Split_type()
+  Unknown_type(id: Int)
+}

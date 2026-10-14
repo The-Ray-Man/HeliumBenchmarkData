@@ -1,0 +1,642 @@
+domain String  {
+  
+  function strLen(id: Int): Int 
+  
+  function strConcat(l: Int, r: Int): Int 
+  
+  unique function stringLit(): Int 
+  
+  axiom {
+    (forall l: Int, r: Int ::
+      { strLen(strConcat(l, r)) }
+      strLen(strConcat(l, r)) == strLen(l) + strLen(r))
+  }
+  
+  axiom {
+    (forall str: Int :: { strLen(str) } 0 <= strLen(str))
+  }
+  
+  axiom {
+    strLen(stringLit()) == 0
+  }
+}
+
+domain ComparableInterfaceDomain  {
+  
+  function comparableInterface(i: Tuple2[Ref, Types]): Bool 
+  
+  axiom {
+    (forall i: Tuple2[Ref, Types] ::
+      { comparableInterface(i) }
+      comparableType_Types((get1of2(i): Types)) ==> comparableInterface(i))
+  }
+}
+
+domain Types  {
+  
+  function empty_interface_Types(): Types 
+  
+  unique function empty_interface_Types_tag(): Int 
+  
+  function behavioral_subtype_Types(l: Types, r: Types): Bool 
+  
+  function nil_Types(): Types 
+  
+  unique function nil_Types_tag(): Int 
+  
+  function tag_Types(t: Types): Int 
+  
+  function comparableType_Types(t: Types): Bool 
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, empty_interface_Types()) }
+      behavioral_subtype_Types(a, empty_interface_Types()))
+  }
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, a) }
+      behavioral_subtype_Types(a, a))
+  }
+  
+  axiom {
+    (forall a: Types, b: Types, c: Types ::
+      { behavioral_subtype_Types(a, b), behavioral_subtype_Types(b, c) }
+      behavioral_subtype_Types(a, b) && behavioral_subtype_Types(b, c) ==>
+      behavioral_subtype_Types(a, c))
+  }
+  
+  axiom {
+    comparableType_Types(empty_interface_Types()) == false
+  }
+  
+  axiom {
+    tag_Types(empty_interface_Types()) == empty_interface_Types_tag()
+  }
+  
+  axiom {
+    comparableType_Types(nil_Types()) == true
+  }
+  
+  axiom {
+    tag_Types(nil_Types()) == nil_Types_tag()
+  }
+}
+
+domain ShStruct2[T0, T1]  {
+  
+  function ShStructrev0of2(v0: T0): ShStruct2[T0, T1] 
+  
+  function ShStructrev1of2(v1: T1): ShStruct2[T0, T1] 
+  
+  function ShStructget0of2(x: ShStruct2[T0, T1]): T0 
+  
+  function ShStructget1of2(x: ShStruct2[T0, T1]): T1 
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1], y: ShStruct2[T0, T1] ::
+      { (eq(x, y): Bool) }
+      (eq(x, y): Bool) ==
+      ((ShStructget0of2(x): T0) == (ShStructget0of2(y): T0) &&
+      (ShStructget1of2(x): T1) == (ShStructget1of2(y): T1)))
+  }
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1] ::
+      { (ShStructget0of2(x): T0) }
+      (ShStructrev0of2((ShStructget0of2(x): T0)): ShStruct2[T0, T1]) == x)
+  }
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1] ::
+      { (ShStructget1of2(x): T1) }
+      (ShStructrev1of2((ShStructget1of2(x): T1)): ShStruct2[T0, T1]) == x)
+  }
+}
+
+domain Equality[T]  {
+  
+  function eq(l: T, r: T): Bool 
+  
+  axiom {
+    (forall l: T, r: T ::
+      { (eq(l, r): Bool) }
+      (eq(l, r): Bool) == (l == r))
+  }
+}
+
+domain Tuple2[T0, T1]  {
+  
+  function tuple2(t0: T0, t1: T1): Tuple2[T0, T1] 
+  
+  function get0of2(p: Tuple2[T0, T1]): T0 
+  
+  function get1of2(p: Tuple2[T0, T1]): T1 
+  
+  axiom getter_over_tuple2 {
+    (forall t0: T0, t1: T1 ::
+      { (tuple2(t0, t1): Tuple2[T0, T1]) }
+      (get0of2((tuple2(t0, t1): Tuple2[T0, T1])): T0) == t0 &&
+      (get1of2((tuple2(t0, t1): Tuple2[T0, T1])): T1) == t1)
+  }
+  
+  axiom tuple2_over_getter {
+    (forall p: Tuple2[T0, T1] ::
+      { (get0of2(p): T0) }
+      { (get1of2(p): T1) }
+      (tuple2((get0of2(p): T0), (get1of2(p): T1)): Tuple2[T0, T1]) == p)
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+field Interfaceempty_interface$$$$_E_$$$: Tuple2[Ref, Types]
+
+field PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$: ShStruct2[Ref, Ref]
+
+// decreases _
+function shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$(): ShStruct2[Ref, Ref]
+  ensures (ShStructget0of2(result): Ref) == null &&
+    (ShStructget1of2(result): Ref) == null
+
+
+// decreases 
+function assertArg2_Bool(b: Bool, y: Bool): Bool
+  requires b
+{
+  y
+}
+
+function contains_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref], value_V0: Tuple2[Ref, Types]): Bool
+  requires acc(list_e1ec35fe_F(ptr_V0), write)
+{
+  (unfolding acc(list_e1ec35fe_F(ptr_V0), write) in
+    assertArg2_Bool(comparableInterface((ShStructget0of2(ptr_V0): Ref).Interfaceempty_interface$$$$_E_$$$) ||
+    comparableInterface(value_V0), (ShStructget0of2(ptr_V0): Ref).Interfaceempty_interface$$$$_E_$$$ ==
+    value_V0) ||
+    !((ShStructget1of2(ptr_V0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) &&
+    contains_e1ec35fe_F((ShStructget1of2(ptr_V0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$,
+    value_V0))
+}
+
+// decreases 
+function IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types]): Bool
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), wildcard)
+
+
+predicate list_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref]) {
+  acc((ShStructget0of2(ptr_V0): Ref).Interfaceempty_interface$$$$_E_$$$, write) &&
+  comparableInterface((ShStructget0of2(ptr_V0): Ref).Interfaceempty_interface$$$$_E_$$$) &&
+  acc((ShStructget1of2(ptr_V0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$, write) &&
+  (!((ShStructget1of2(ptr_V0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ ==
+  shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+  acc(list_e1ec35fe_F((ShStructget1of2(ptr_V0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$), write))
+}
+
+predicate ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types]) 
+
+method tail_reverse_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref], rev_V0: ShStruct2[Ref, Ref])
+  returns (res_V0: ShStruct2[Ref, Ref])
+  requires !(ptr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    acc(list_e1ec35fe_F(ptr_V0), write)
+  requires !(rev_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    acc(list_e1ec35fe_F(rev_V0), write)
+  ensures ptr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$() ==>
+    res_V0 == rev_V0
+  ensures !(ptr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    !(res_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$())
+  ensures !(res_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    acc(list_e1ec35fe_F(res_V0), write)
+{
+  inhale res_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+  
+  // decl ptr_V0_CN0: *node_e1ec35fe_T@°°, rev_V0_CN1: *node_e1ec35fe_T@°°, res_V0_CN2: *node_e1ec35fe_T@°°
+  {
+    var res_V0_CN2: ShStruct2[Ref, Ref]
+    var rev_V0_CN1: ShStruct2[Ref, Ref]
+    var ptr_V0_CN0: ShStruct2[Ref, Ref]
+    
+    
+    
+    // init ptr_V0_CN0
+    inhale ptr_V0_CN0 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init rev_V0_CN1
+    inhale rev_V0_CN1 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init res_V0_CN2
+    inhale res_V0_CN2 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // ptr_V0_CN0 = ptr_V0
+    ptr_V0_CN0 := ptr_V0
+    
+    // rev_V0_CN1 = rev_V0
+    rev_V0_CN1 := rev_V0
+    
+    // decl 
+    
+    // if(ptr_V0_CN0 == (nil:*node_e1ec35fe_T@°)) {...} else {...}
+    if (ptr_V0_CN0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) {
+      
+      // decl 
+      
+      // res_V0_CN2 = rev_V0_CN1
+      res_V0_CN2 := rev_V0_CN1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl tmp_V1: *node_e1ec35fe_T@°°, N3: *node_e1ec35fe_T@°°
+      {
+        var N3: ShStruct2[Ref, Ref]
+        var tmp_V1: ShStruct2[Ref, Ref]
+        
+        // unfold acc(list_e1ec35fe_F(ptr_V0_CN0))
+        unfold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+        
+        // init tmp_V1
+        inhale tmp_V1 ==
+          shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+        
+        // tmp_V1 = ptr_V0_CN0
+        tmp_V1 := ptr_V0_CN0
+        
+        // ptr_V0_CN0 = *ptr_V0_CN0.nextA
+        ptr_V0_CN0 := (ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$
+        
+        // *tmp_V1.nextA = rev_V0_CN1
+        (ShStructget1of2(tmp_V1): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ := rev_V0_CN1
+        
+        // fold acc(list_e1ec35fe_F(tmp_V1))
+        fold acc(list_e1ec35fe_F(tmp_V1), write)
+        
+        // N3 = tail_reverse_e1ec35fe_F(ptr_V0_CN0, tmp_V1)
+        N3 := tail_reverse_e1ec35fe_F(ptr_V0_CN0, tmp_V1)
+        
+        // res_V0_CN2 = N3
+        res_V0_CN2 := N3
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+    
+    // res_V0 = res_V0_CN2
+    res_V0 := res_V0_CN2
+  }
+}
+
+method reverse_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref])
+  returns (res_V0: ShStruct2[Ref, Ref])
+  requires acc(list_e1ec35fe_F(ptr_V0), write)
+  ensures acc(list_e1ec35fe_F(res_V0), write)
+{
+  inhale res_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+  
+  // decl ptr_V0_CN0: *node_e1ec35fe_T@°°, res_V0_CN1: *node_e1ec35fe_T@°°
+  {
+    var res_V0_CN1: ShStruct2[Ref, Ref]
+    var ptr_V0_CN0: ShStruct2[Ref, Ref]
+    
+    
+    
+    // init ptr_V0_CN0
+    inhale ptr_V0_CN0 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init res_V0_CN1
+    inhale res_V0_CN1 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // ptr_V0_CN0 = ptr_V0
+    ptr_V0_CN0 := ptr_V0
+    
+    // decl N2: *node_e1ec35fe_T@°°
+    {
+      var N2: ShStruct2[Ref, Ref]
+      
+      // N2 = tail_reverse_e1ec35fe_F(ptr_V0_CN0, (nil:*node_e1ec35fe_T@°))
+      N2 := tail_reverse_e1ec35fe_F(ptr_V0_CN0, shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$())
+      
+      // res_V0_CN1 = N2
+      res_V0_CN1 := N2
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+    
+    // res_V0 = res_V0_CN1
+    res_V0 := res_V0_CN1
+  }
+}
+
+method insert_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref], value_V0: Tuple2[Ref, Types])
+  returns (idx_V0: Int)
+  requires acc(list_e1ec35fe_F(ptr_V0), write) &&
+    comparableInterface(value_V0)
+  ensures acc(list_e1ec35fe_F(ptr_V0), write)
+  ensures idx_V0 >= 0
+  ensures contains_e1ec35fe_F(ptr_V0, value_V0)
+{
+  inhale idx_V0 == 0
+  
+  // decl ptr_V0_CN0: *node_e1ec35fe_T@°°, value_V0_CN1: interface{ name is empty_interface }°°, idx_V0_CN2: int°°
+  {
+    var idx_V0_CN2: Int
+    var value_V0_CN1: Tuple2[Ref, Types]
+    var ptr_V0_CN0: ShStruct2[Ref, Ref]
+    
+    
+    
+    // init ptr_V0_CN0
+    inhale ptr_V0_CN0 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init value_V0_CN1
+    inhale value_V0_CN1 == (tuple2(null, nil_Types()): Tuple2[Ref, Types])
+    
+    // init idx_V0_CN2
+    inhale idx_V0_CN2 == 0
+    
+    // ptr_V0_CN0 = ptr_V0
+    ptr_V0_CN0 := ptr_V0
+    
+    // value_V0_CN1 = value_V0
+    value_V0_CN1 := value_V0
+    
+    // decl 
+    
+    // unfold acc(list_e1ec35fe_F(ptr_V0_CN0))
+    unfold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+    
+    // if(*ptr_V0_CN0.nextA == (nil:*node_e1ec35fe_T@°)) {...} else {...}
+    if ((ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) {
+      
+      // decl N5: *node_e1ec35fe_T@°°, newNode_V1: *node_e1ec35fe_T@°°
+      {
+        var newNode_V1: ShStruct2[Ref, Ref]
+        var N5: ShStruct2[Ref, Ref]
+        
+        // N5 = new(node_e1ec35fe_T°{value_V0_CN1, dflt[*node_e1ec35fe_T@°]})
+        {
+          var fn$$0: ShStruct2[Ref, Ref]
+          inhale (let fn$$1 ==
+              (fn$$0) in
+              acc((ShStructget0of2(fn$$1): Ref).Interfaceempty_interface$$$$_E_$$$, write) &&
+              acc((ShStructget1of2(fn$$1): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$, write)) &&
+            (let fn$$2 ==
+              (fn$$0) in
+              (let fn$$3 ==
+                ((tuple2(value_V0_CN1, shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()): Tuple2[Tuple2[Ref, Types], ShStruct2[Ref, Ref]])) in
+                (ShStructget0of2(fn$$2): Ref).Interfaceempty_interface$$$$_E_$$$ ==
+                (get0of2(fn$$3): Tuple2[Ref, Types]) &&
+                (ShStructget1of2(fn$$2): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ ==
+                (get1of2(fn$$3): ShStruct2[Ref, Ref])))
+          N5 := fn$$0
+        }
+        
+        // init newNode_V1
+        inhale newNode_V1 ==
+          shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+        
+        // newNode_V1 = N5
+        newNode_V1 := N5
+        
+        // fold acc(list_e1ec35fe_F(newNode_V1))
+        fold acc(list_e1ec35fe_F(newNode_V1), write)
+        
+        // *ptr_V0_CN0.nextA = newNode_V1
+        (ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ := newNode_V1
+        
+        // idx_V0_CN2 = 1
+        idx_V0_CN2 := 1
+      }
+    } else {
+      
+      // decl N4: int°°
+      {
+        var N4: Int
+        
+        // N4 = insert_e1ec35fe_F(*ptr_V0_CN0.nextA, value_V0_CN1)
+        N4 := insert_e1ec35fe_F((ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$,
+          value_V0_CN1)
+        
+        // idx_V0_CN2 = N4 + 1
+        idx_V0_CN2 := N4 + 1
+      }
+    }
+    
+    // fold acc(list_e1ec35fe_F(ptr_V0_CN0))
+    fold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+    label returnLabel
+    
+    // idx_V0 = idx_V0_CN2
+    idx_V0 := idx_V0_CN2
+  }
+}
+
+method removeAllOccurrances_e1ec35fe_F(ptr_V0: ShStruct2[Ref, Ref], value_V0: Tuple2[Ref, Types])
+  returns (rPtr_V0: ShStruct2[Ref, Ref])
+  requires acc(list_e1ec35fe_F(ptr_V0), write)
+  ensures !(rPtr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    acc(list_e1ec35fe_F(rPtr_V0), write)
+  ensures !(rPtr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()) ==>
+    !contains_e1ec35fe_F(rPtr_V0, value_V0)
+{
+  inhale rPtr_V0 ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+  
+  // decl ptr_V0_CN0: *node_e1ec35fe_T@°°, value_V0_CN1: interface{ name is empty_interface }°°, rPtr_V0_CN2: *node_e1ec35fe_T@°°
+  {
+    var rPtr_V0_CN2: ShStruct2[Ref, Ref]
+    var value_V0_CN1: Tuple2[Ref, Types]
+    var ptr_V0_CN0: ShStruct2[Ref, Ref]
+    
+    
+    
+    // init ptr_V0_CN0
+    inhale ptr_V0_CN0 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init value_V0_CN1
+    inhale value_V0_CN1 == (tuple2(null, nil_Types()): Tuple2[Ref, Types])
+    
+    // init rPtr_V0_CN2
+    inhale rPtr_V0_CN2 ==
+      shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+    
+    // ptr_V0_CN0 = ptr_V0
+    ptr_V0_CN0 := ptr_V0
+    
+    // value_V0_CN1 = value_V0
+    value_V0_CN1 := value_V0
+    
+    // decl 
+    
+    // unfold acc(list_e1ec35fe_F(ptr_V0_CN0))
+    unfold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+    
+    // if(*ptr_V0_CN0.nextA != (nil:*node_e1ec35fe_T@°)) {...} else {...}
+    if (!((ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ ==
+    shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$())) {
+      
+      // decl N4: *node_e1ec35fe_T@°°, newNext_V1: *node_e1ec35fe_T@°°
+      {
+        var newNext_V1: ShStruct2[Ref, Ref]
+        var N4: ShStruct2[Ref, Ref]
+        
+        // N4 = removeAllOccurrances_e1ec35fe_F(*ptr_V0_CN0.nextA, value_V0_CN1)
+        N4 := removeAllOccurrances_e1ec35fe_F((ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$,
+          value_V0_CN1)
+        
+        // init newNext_V1
+        inhale newNext_V1 ==
+          shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+        
+        // newNext_V1 = N4
+        newNext_V1 := N4
+        
+        // if(*ptr_V0_CN0.valueA == value_V0_CN1) {...} else {...}
+        if (assertArg2_Bool(comparableInterface((ShStructget0of2(ptr_V0_CN0): Ref).Interfaceempty_interface$$$$_E_$$$) ||
+        comparableInterface(value_V0_CN1), (ShStructget0of2(ptr_V0_CN0): Ref).Interfaceempty_interface$$$$_E_$$$ ==
+        value_V0_CN1)) {
+          
+          // decl 
+          
+          // rPtr_V0_CN2 = newNext_V1
+          rPtr_V0_CN2 := newNext_V1
+        } else {
+          
+          // decl 
+          
+          // *ptr_V0_CN0.nextA = newNext_V1
+          (ShStructget1of2(ptr_V0_CN0): Ref).PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$$_E_$$$ := newNext_V1
+          
+          // fold acc(list_e1ec35fe_F(ptr_V0_CN0))
+          fold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+          
+          // rPtr_V0_CN2 = ptr_V0_CN0
+          rPtr_V0_CN2 := ptr_V0_CN0
+        }
+      }
+    } else {
+      
+      // if(*ptr_V0_CN0.valueA == value_V0_CN1) {...} else {...}
+      if (assertArg2_Bool(comparableInterface((ShStructget0of2(ptr_V0_CN0): Ref).Interfaceempty_interface$$$$_E_$$$) ||
+      comparableInterface(value_V0_CN1), (ShStructget0of2(ptr_V0_CN0): Ref).Interfaceempty_interface$$$$_E_$$$ ==
+      value_V0_CN1)) {
+        
+        // decl 
+        
+        // rPtr_V0_CN2 = (nil:*node_e1ec35fe_T@°)
+        rPtr_V0_CN2 := shStructDefault_$valueA_Interfaceempty_interface$$$_S_$$$_nextA_PointerDefinednode_e1ec35fe_T$$$_S_$$$$$$_S_$$$$()
+      } else {
+        
+        // decl 
+        
+        // fold acc(list_e1ec35fe_F(ptr_V0_CN0))
+        fold acc(list_e1ec35fe_F(ptr_V0_CN0), write)
+        
+        // rPtr_V0_CN2 = ptr_V0_CN0
+        rPtr_V0_CN2 := ptr_V0_CN0
+      }
+    }
+    
+    // return
+    goto returnLabel
+    label returnLabel
+    
+    // rPtr_V0 = rPtr_V0_CN2
+    rPtr_V0 := rPtr_V0_CN2
+  }
+}
+
+method $IMPORTS_e1ec35fe_e1ec35fe()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_e1ec35fe_bffb141e()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_e1ec35fe_7d4219d9()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method panic_bffb141e_F(v_V0: Tuple2[Ref, Types])
+  requires false
+
+
+// decreases 
+method Error_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types])
+  returns (P0_PO0: Int)
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+
+
+// decreases 
+method Duplicate_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types])
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e_(thisItf) ==>
+    acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+
+
+// decreases 
+method IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e__pres_termination_proof(thisItf: Tuple2[Ref, Types])
+{
+  var $condInEx: Bool
+  if (!(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))) {
+    inhale acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), wildcard)
+  }
+}

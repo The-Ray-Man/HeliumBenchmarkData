@@ -1,0 +1,206 @@
+domain s_Char  {
+  
+  function s_Char_cons(arg0: Int): s_Char 
+  
+  function s_Char_value(arg0: s_Char): Int 
+  
+  axiom s_Char_ax_cons {
+    (forall s: s_Char ::
+      { s_Char_value(s) }
+      s_Char_cons(s_Char_value(s)) == s)
+  }
+  
+  axiom s_Char_ax_value {
+    (forall value: Int ::
+      { s_Char_cons(value) }
+      s_Char_value(s_Char_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Char {
+    inhabited(s_Char_type()) == true
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_stream$col$$col$AsChar  {
+  
+  function stream$col$$col$AsChar_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Char  {
+  
+  axiom s_Char_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Char_type())
+  }
+  
+  axiom s_Char_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Char_type())
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_stream$col$$col$AsChar_impl_winnow_UInt_u8_394_condition  {
+  
+  axiom stream$col$$col$AsChar_impl_winnow_UInt_u8_394_condition {
+    stream$col$$col$AsChar_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_stream$col$$col$AsChar_impl_winnow_Char_396_condition  {
+  
+  axiom stream$col$$col$AsChar_impl_winnow_Char_396_condition {
+    stream$col$$col$AsChar_impl(s_Char_type())
+  }
+}
+
+field p_Char_val: s_Char
+
+field p_UInt_u8_val: s_UInt_u8
+
+function mir_cast_i2i_UInt_u8_to_Char(arg: s_UInt_u8): s_Char
+{
+  s_Char_cons(s_UInt_u8_value(arg))
+}
+
+function s_Char_unreachable(): s_Char
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function p_Char_snap(self: Ref): s_Char
+  requires acc(p_Char(self), write)
+{
+  (unfolding acc(p_Char(self), write) in self.p_Char_val)
+}
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+predicate p_Char(self: Ref) {
+  acc(self.p_Char_val, write)
+}
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+method m_$lt$u8$sp$as$sp$stream$col$$col$AsChar$gt$$col$$col$as_char(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_1p), write)
+  ensures inhabited(s_Char_type()) && acc(p_Char(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: s_UInt_u8
+  var _tmp1: s_UInt_u8
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_UInt_u8_snap(_1p)
+  p_UInt_u8_assign(_2p, _tmp0)
+  label _before_0_2
+  _tmp1 := p_UInt_u8_snap(_2p)
+  exhale inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_2p), write)
+  p_Char_assign(_0p, mir_cast_i2i_UInt_u8_to_Char(_tmp1))
+  label _before_0_3
+  label _before_0_4
+  label package_post0
+  goto end
+  label end
+}
+
+method p_Char_assign(self: Ref, value: s_Char)
+  ensures acc(p_Char(self), write)
+  ensures p_Char_snap(self) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method trait_stream$col$$col$AsChar_impl_UInt_u8_394_fn_pre_weaken_$lt$u8$sp$as$sp$stream$col$$col$AsChar$gt$$col$$col$as_char(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_1p), write)
+{
+  label start
+}
+
+method trait_stream$col$$col$AsChar_impl_UInt_u8_394_fn_post_strengthen_$lt$u8$sp$as$sp$stream$col$$col$AsChar$gt$$col$$col$as_char(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u8_type()) && acc(p_UInt_u8(_1p), write)
+  requires inhabited(s_Char_type()) && acc(p_Char(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Char_type()
+  s_UInt_u8_type()
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,388 @@
+// ===== begin import: <std>/decreases/declaration.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain WellFoundedOrder[T]{
+    // arg1 is smaller then arg2
+    function decreasing(arg1:T, arg2:T):Bool
+    function bounded(arg1:T):Bool
+}
+// ===== end import: <std>/decreases/declaration.vpr =====
+
+// ===== begin import: <std>/decreases/bool.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain BoolWellFoundedOrder{
+    //Booleans
+    axiom bool_ax_dec{
+        decreasing(false, true)
+    }
+    axiom bool_ax_bound{
+        forall bool1: Bool :: {bounded(bool1)}
+            bounded(bool1)
+    }
+}
+// ===== end import: <std>/decreases/bool.vpr =====
+
+// ===== begin import: <std>/decreases/int.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain IntWellFoundedOrder{
+	//Integers
+    axiom integer_ax_dec{
+        forall int1: Int, int2: Int :: {decreasing(int1, int2)}
+            (int1 < int2) ==> decreasing(int1, int2)
+    }
+    axiom integer_ax_bound{
+        forall int1: Int :: {bounded(int1)}
+            int1 >= 0 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/int.vpr =====
+
+// ===== begin import: <std>/decreases/multiset.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain MultiSetWellFoundedOrder[S]{
+    //MultiSet
+    axiom multiset_ax_dec{
+        forall mSet1: Multiset[S], mSet2: Multiset[S] :: {decreasing(mSet1, mSet2)}
+            (|mSet1| < |mSet2|) ==> decreasing(mSet1, mSet2)
+    }
+    axiom multiset_ax_bound{
+        forall mSet1: Multiset[S] :: {bounded(mSet1)}
+            bounded(mSet1)
+    }
+}
+// ===== end import: <std>/decreases/multiset.vpr =====
+
+// ===== begin import: <std>/predicateinstance/pi.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain PredicateInstance{}
+// ===== end import: <std>/predicateinstance/pi.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance_nested.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesNestedRelation{
+    function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance) : Bool
+
+    //Transitivity of the nested-Function
+    axiom nestedTrans{
+        forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance :: {nestedPredicates(l1, l2), nestedPredicates(l2, l3)}
+            nestedPredicates(l1,l2) && nestedPredicates(l2,l3) ==> nestedPredicates(l1,l3)
+    }
+
+    //A predicate cannot be nested inside itself
+    axiom nestedReflex{
+        forall l1: PredicateInstance ::
+            !nestedPredicates(l1, l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance_nested.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+// resolved: import "predicate_instance_nested.vpr"
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesWellFoundedOrder {
+    axiom predicate_instances_ax_dec{
+        forall l1: PredicateInstance, l2: PredicateInstance :: {nestedPredicates(l1,l2)}
+            decreasing(l1, l2) <==> nestedPredicates(l1,l2)
+    }
+
+    axiom predicate_instances_ax_bound{
+        forall l1: PredicateInstance :: {bounded(l1)}
+            bounded(l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance.vpr =====
+
+// ===== begin import: <std>/decreases/perm.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain PermWellFoundedOrder{
+	//Rationals
+    axiom rational_ax_dec{
+        forall int1: Perm, int2: Perm :: {decreasing(int1, int2)}
+            (int1 <= int2 - 1/1) ==> decreasing(int1, int2)
+    }
+    axiom rational_ax_bound{
+        forall int1: Perm :: {bounded(int1)}
+            int1 >= 0/1 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/perm.vpr =====
+
+// ===== begin import: <std>/decreases/ref.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain RefWellFoundedOrder{
+    //References
+	axiom ref_ax_dec{
+        forall ref1: Ref :: {decreasing(null,ref1)}
+            ref1 != null ==> decreasing(null, ref1)
+    }
+    axiom ref_ax_bound{
+        forall ref1: Ref :: {bounded(ref1)}
+            bounded(ref1)
+    }
+}
+// ===== end import: <std>/decreases/ref.vpr =====
+
+// ===== begin import: <std>/decreases/seq.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SeqWellFoundedOrder[S]{
+    //Sequences
+    axiom seq_ax_dec{
+        forall seq1: Seq[S], seq2: Seq[S] :: {decreasing(seq1,seq2)}
+            (|seq1| < |seq2|) ==> decreasing(seq1, seq2)
+    }
+    axiom seq_ax_bound{
+        forall seq1: Seq[S] :: {bounded(seq1)}
+            (|seq1| >= 0) ==> bounded(seq1)
+    }
+}
+// ===== end import: <std>/decreases/seq.vpr =====
+
+// ===== begin import: <std>/decreases/set.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SetWellFoundedOrder[S]{
+    //Sets
+    axiom set_ax_dec{
+        forall set1: Set[S], set2: Set[S] :: {decreasing(set1, set2)}
+            (|set1| < |set2|) ==> decreasing(set1, set2)
+    }
+    axiom set_ax_bound{
+        forall set1: Set[S] ::  {bounded(set1)}
+            bounded(set1)
+    }
+}
+// ===== end import: <std>/decreases/set.vpr =====
+
+// ===== begin import: <std>/decreases/all.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "bool.vpr"
+// resolved: import "int.vpr"
+// resolved: import "multiset.vpr"
+// resolved: import "predicate_instance.vpr"
+// resolved: import "perm.vpr"
+// resolved: import "ref.vpr"
+// resolved: import "seq.vpr"
+// resolved: import "set.vpr"
+// ===== end import: <std>/decreases/all.vpr =====
+
+/**
+ * This chapter in the book is mainly focused on while loops.
+ * For the start of this Chapter, we will not use termination
+ * proofs, since they will be introduced in chapter 11.2.
+ */
+
+ method Loop11020(x: Int)
+    requires x % 2 == 0
+ {
+    var y: Int
+    y := x
+    /**
+     * As long as x is even, the method verifies, otherwise x would
+     * violate the invariant upon entry.
+     */
+    while(y < 300)
+        invariant y % 2 == 0
+    /**
+     * Dafny uses abstract loops, so loops without a body. Viper does not support this.
+     * If we were to leave the body empty then we would never terminate on all traces
+     * where y < 300.
+     *
+     * To avoid this, we will create a simple loop body for all the functions in this section.
+     */
+    {
+        y := y + 2
+    }
+ }
+
+method Loop11021(a: Int)
+        requires a <= 99 && a >= 0
+{
+    var b: Int
+    b := a
+    while(b%2==1)
+        invariant 0 <= b && b <= 100
+    {
+        b := b + 1
+    }
+}
+
+// resolved: import <decreases/all.vpr>
+
+method Loop11022()
+{
+    var c: Int
+    c := 2
+    while(c < 50)
+        invariant c % 2 == 0
+    {
+        c := 2 + c
+    }
+
+    assert 50 <= c && c % 2 == 0
+}
+
+method Loop11023()
+{
+    var d: Int
+    d := 0
+    while (d % 2 == 0)
+        invariant 0 <= d && d <= 20
+    {
+        if (d == 0)
+        {
+            d := d + 1
+        }
+        else 
+        {
+            d := d - 1
+        }
+    }
+    /**
+     * No matter what the function body is, we cannot prove that d == 19.
+     * This is because d could be any odd number between 1 to 19.
+     *
+     * assert d == 19
+     */
+}
+
+method Loop11030()
+{
+    var i: Int
+    /**
+     * Here we are introduced to i as a loop index.
+     */
+    i := 0
+    while (i != 100)
+        invariant 0 <= i && i <= 100
+    {
+        i := i + 1
+    }
+
+    assert i == 100
+}
+
+method Loop11031()
+{
+    var i: Int
+    i := 0
+    while(i < 100)
+        invariant 0 <= i && i <= 100
+    {
+        i := i + 1
+    }
+
+    assert i == 100
+
+    /**
+     * i := 0
+     * while(i < 100)
+     *     invariant true
+     * assert i == 100
+     *
+     * This is not provable, since here the negation of the
+     * loop condition and the invariant do not guarantee 
+     * i == 100 upon exit of the loop.
+     */
+}
+
+method Loop11040()
+{
+    var x: Int
+    var y: Int
+    x := 0
+    y := 0
+    while(x < 300)
+        invariant 2*x == 3*y
+    {
+        x := x + 3
+        y := y + 2
+    }
+
+    assert 200 <= y
+}
+
+method Loop11041()
+{
+    var x: Int
+    var y: Int
+    x := 0
+    y := 191
+    while(!(0 <= y && y < 7))
+        invariant 7 * x + y == 191
+    {
+        x := x + 1
+        y := y - 7
+    }
+
+    assert x == 191 / 7 && y == 191 % 7
+}
+
+method Loop11042()
+{
+    var n: Int
+    var s: Int
+    n := 0
+    s := 0
+    while(n!=33)
+        invariant s == n * (n - 1) / 2
+    {
+        s := s + n
+        n := n + 1
+    }
+}
+
+method Loop11043()
+{
+    var r: Int
+    var N: Int
+    r := 0
+    N := 104
+    while((r + 1) * (r + 1) <= N)
+        invariant 0 <= r && r * r <= N
+    {
+        r := r + 1
+    }
+
+    assert 0 <= r && r * r <= N && N < (r + 1) * (r + 1)
+}

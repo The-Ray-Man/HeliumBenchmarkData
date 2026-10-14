@@ -1,0 +1,61 @@
+domain IMap[Key,V] {
+  function select(m: IMap[Key,V], key: Key) : V
+  function store(m:IMap[Key,V], key: Key, value: V) : IMap[Key,V]
+
+  axiom select_store_same {
+    forall m: IMap[Key,V], k: Key, v: V :: {select(store(m,k,v),k)} select(store(m,k,v),k) == v
+  }
+
+  axiom select_store_diff {
+    forall m: IMap[Key,V], k1: Key, k2: Key, v : V :: {select(store(m,k1,v),k2)} {select(m,k2),store(m,k1,v)} k1 != k2 ==> select(store(m,k1,v),k2) == select(m,k2)
+  }
+
+  function MapEqual(m1: IMap[Key,V], m2: IMap[Key,V]) : Bool
+
+  axiom observationally_equal {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} (forall k:Key :: select(m1,k) == select(m2,k)) ==> MapEqual(m1,m2)
+  }
+
+  axiom extensionality {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} MapEqual(m1,m2) ==> m1==m2
+  }
+
+  function constMap(v: V) : IMap[Key,V]
+
+  axiom select_const {
+    forall k: Key, v: V :: {select(constMap(v),k)} select(constMap(v),k) == v
+  }
+
+  // chaining of maps representing functions
+  function pipe(m1:IMap[V,V], m2:IMap[V,V]) : IMap[V,V]
+  axiom selectPipe 
+  {
+    forall v:V, m1:IMap[V,V], m2:IMap[V,V] :: {select(pipe(m1,m2),v)}
+      select(pipe(m1,m2),v) == select(m2,select(m1,v))
+  }
+
+  function singMap(x: Key, i: V, d: V) : IMap[Key, V]
+  axiom singMapDef1 {
+   forall x: Key, i: V, d: V :: {singMap(x, i, d)} select(singMap(x, i, d), x) == i
+  }
+  axiom singMapDef2 {
+    forall x: Key, y: Key, i: V, d: V :: {select(singMap(x, i, d), y)}
+      (y != x ==> select(singMap(x, i, d), y) == d) && (y == x ==> select(singMap(x, i, d), y) == i)
+  }
+
+  // TODO: not sure this is needed any more?
+  // TODO also create select terms for dblMap
+  function dblMap(x1: Key, i1: V, x2: Key, i2: V, d: V) : IMap[Key, V]
+  // axiom dblMapDef1 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x1) == i1
+  // }
+  // axiom dblMapDef2 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x2) == i2
+  // }
+  axiom dblMapDef {
+    forall x1: Key, i1: V, x2: Key, i2: V, d: V, y: Key :: {select(dblMap(x1, i1, x2, i2, d), y)}
+      select(dblMap(x1, i1, x2, i2, d), y) == (y == x1? i1 : (y == x2 ? i2 : d))
+  }
+}

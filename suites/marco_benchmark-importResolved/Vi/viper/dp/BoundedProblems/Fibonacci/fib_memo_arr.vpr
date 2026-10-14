@@ -1,0 +1,121 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs_arrays.vpr =====
+// definitions needed when working with the IArray domain
+
+field val: Int
+
+// full access from element "from" until element "to" in array arr
+define access(arr, from, to) forall z: Int :: {slot(arr, z)} from <= z < to ==> acc(slot(arr, z).val)
+
+// half access from element "from" until element "to" in array arr
+define half_access(arr, from, to) forall z: Int :: {slot(arr, z)} from <= z < to ==> acc(slot(arr, z).val, 1/2)
+
+domain IArray {
+    // slot function to access the z-th element of array a
+    function slot(a: IArray, i: Int): Ref
+    // len function to access the length of array a
+    function len(a: IArray): Int
+    // when given a call slot(a, i), first returns a
+    function first(r: Ref): IArray
+    // when given a call slot(a, i), second returns i
+    function second(r: Ref): Int
+
+    // ensures that slot is an injective mapping
+    axiom all_diff {
+        forall a: IArray, i: Int :: { slot(a,i) }
+        first(slot(a,i)) == a && second(slot(a,i)) == i
+    }
+
+    // ensures that the length of an array is non-negative
+    axiom len_nonneg {
+        forall a: IArray :: { len(a) }
+        len(a) >= 0
+    }
+}
+
+// function to calculate the sum of all elements in an array starting from element p
+function sum_rec(xs: IArray, p: Int): Int 
+  requires forall z: Int :: {slot(xs, z)} p <= z < len(xs) ==> acc(slot(xs, z).val, 1/2)
+  requires 0 <= p <= len(xs)
+  decreases len(xs) - p
+{  
+  p == len(xs) ? 0 : slot(xs, p).val + sum_rec(xs, p + 1)
+}
+
+// function to determine the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// function to determine the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// function to determine the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs_arrays.vpr =====
+
+// resolved: import "../../_preambles/defs_arrays.vpr"
+
+
+// recursive implementation of Fibonacci
+function fibRec(n : Int) : Int
+    requires n >= 0
+    decreases n
+{
+    n <= 1 ? n : fibRec(n - 1) + fibRec(n - 2)
+} 
+
+// Fibonacci with memoization and using heap-based arrays
+method fibMem(n : Int) returns (res : Int)
+    requires n >= 0
+    ensures res == fibRec(n)
+    decreases n
+{
+    var mem : IArray
+    inhale forall i : Int :: {slot(mem, i)} 0 <= i && i <= len(mem) ==> acc(slot(mem, i).val)
+    inhale len(mem) == n + 1
+    var k : Int := 0
+    while (k < len(mem))
+        invariant forall i : Int :: {slot(mem, i)} 0 <= i && i <= len(mem) ==> acc(slot(mem, i).val)
+        invariant k <= len(mem) && k >= 0
+        invariant forall j : Int :: 0 <= j && j < k ==> slot(mem, j).val == 0
+        decreases len(mem) - k
+    {
+        slot(mem, k).val := 0
+        k := k + 1
+    }
+    res := fibAux(n, mem)
+}
+
+method fibAux(n : Int, mem : IArray) returns (res : Int)
+    requires forall i: Int :: {slot(mem, i)} 0 <= i && i < len(mem) ==> acc(slot(mem, i).val)
+    requires n >= 0 && n < len(mem)
+    requires forall i: Int :: {slot(mem, i).val} 0 <= i && i < len(mem) ==> (slot(mem, i).val != 0 ==> slot(mem, i).val == fibRec(i))
+
+    ensures forall i: Int :: {slot(mem, i)} 0 <= i && i < len(mem) ==> acc(slot(mem, i).val)
+    ensures forall i: Int :: {slot(mem, i).val} 0 <= i && i < len(mem) ==> (slot(mem, i).val != 0 ==> slot(mem, i).val == fibRec(i))
+    ensures res == fibRec(n)
+    decreases n
+{
+    if (n <= 1) {
+        res := n
+    } else {
+        if (slot(mem, n).val != 0) {
+            res := slot(mem, n).val
+        } else {
+            var fib_1 : Int := fibAux(n - 2, mem)
+            var fib_0 : Int := fibAux(n - 1, mem)
+            slot(mem, n).val := fib_0 + fib_1
+            res := slot(mem, n).val
+        }
+    }
+}

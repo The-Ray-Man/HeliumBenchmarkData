@@ -1,0 +1,157 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_3_Tuple {
+    (forall T$0: Type, U$1: Type, V$2: Type ::
+      { inhabited(s_3_Tuple_type(T$0, U$1, V$2)) }
+      inhabited(s_3_Tuple_type(T$0, U$1, V$2)) ==
+      (inhabited(T$0) && (inhabited(U$1) && inhabited(V$2))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_3_Tuple  {
+  
+  axiom s_3_Tuple_Sized {
+    (forall T$0: Type, U$1: Type, V$2: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_3_Tuple_type(T$0, U$1, V$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(V$2) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_3_Tuple_type(T$0, U$1, V$2)))
+  }
+  
+  axiom s_3_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type, V$2: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_3_Tuple_type(T$0, U$1, V$2)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(V$2) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_3_Tuple_type(T$0, U$1, V$2)))
+  }
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_3_Tuple_unreachable(T$0: Type, U$1: Type, V$2: Type): s_3_Tuple
+  ensures false
+
+
+function s_3_Tuple_field_0(self: Ref, T$0: Type, U$1: Type, V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_3_Tuple_field_1(self: Ref, T$0: Type, U$1: Type, V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_3_Tuple_field_2(self: Ref, T$0: Type, U$1: Type, V$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_3_Tuple_snap(self: Ref, T$0: Type, U$1: Type, V$2: Type): s_3_Tuple
+  requires acc(p_3_Tuple(self, T$0, U$1, V$2), write)
+{
+  (unfolding acc(p_3_Tuple(self, T$0, U$1, V$2), write) in
+    s_3_Tuple_cons(p_Param_snap(s_3_Tuple_field_0(self, T$0, U$1, V$2), T$0), p_Param_snap(s_3_Tuple_field_1(self,
+    T$0, U$1, V$2), U$1), p_Param_snap(s_3_Tuple_field_2(self, T$0, U$1, V$2),
+    V$2)))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_3_Tuple(self: Ref, T$0: Type, U$1: Type, V$2: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_3_Tuple_field_0(self, T$0, U$1, V$2), T$0), write) &&
+  (inhabited(U$1) &&
+  acc(p_Param(s_3_Tuple_field_1(self, T$0, U$1, V$2), U$1), write) &&
+  (inhabited(V$2) &&
+  acc(p_Param(s_3_Tuple_field_2(self, T$0, U$1, V$2), V$2), write)))
+}
+
+method m_util$col$$col$third(_0p: Ref, _1p: Ref, A$0: Type, B$1: Type, C$2: Type)
+  requires inhabited(s_3_Tuple_type(A$0, B$1, C$2)) &&
+    acc(p_3_Tuple(_1p, A$0, B$1, C$2), write)
+  ensures inhabited(C$2) && acc(p_Param(_0p, C$2), write)
+{
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(C$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(B$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(A$0)
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_3_Tuple(_1p, A$0, B$1, C$2), write)
+  _tmp0 := p_Param_snap(s_3_Tuple_field_2(_1p, A$0, B$1, C$2), C$2)
+  exhale inhabited(C$2) &&
+    acc(p_Param(s_3_Tuple_field_2(_1p, A$0, B$1, C$2), C$2), write)
+  p_Param_assign(_0p, C$2, _tmp0)
+  label _before_0_1
+  exhale inhabited(A$0) &&
+    acc(p_Param(s_3_Tuple_field_0(_1p, A$0, B$1, C$2), A$0), write)
+  exhale inhabited(B$1) &&
+    acc(p_Param(s_3_Tuple_field_1(_1p, A$0, B$1, C$2), B$1), write)
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label package_post0
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_3_Tuple_assign(self: Ref, T$0: Type, U$1: Type, V$2: Type, value: s_3_Tuple)
+  ensures acc(p_3_Tuple(self, T$0, U$1, V$2), write)
+  ensures p_3_Tuple_snap(self, T$0, U$1, V$2) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_3_Tuple {
+  s_3_Tuple_cons(s_3_Tuple_0: s_Param, s_3_Tuple_1: s_Param, s_3_Tuple_2: s_Param)
+}
+
+adt Type {
+  s_3_Tuple_type(s_3_Tuple_typaram_T$0: Type, s_3_Tuple_typaram_U$1: Type, s_3_Tuple_typaram_V$2: Type)
+  Unknown_type(id: Int)
+}

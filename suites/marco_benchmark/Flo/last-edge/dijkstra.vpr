@@ -1,0 +1,263 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flow domain definitions -------------------- */
+
+domain Cost {
+  function cst(i: Int) : Cost
+  function val(c: Cost) : Int
+  function infinity() : Cost
+
+  axiom costInjective {
+    forall i : Int :: {cst(i)} val(cst(i)) == i 
+  }
+
+  axiom costSurjective {
+    forall c: Cost :: {val(c)} c == infinity() || cst(val(c)) == c
+  }
+
+  axiom costDistinct {
+    forall i : Int :: {cst(i)} cst(i) != infinity()
+  }
+
+  function costPlus(c1: Cost, c2: Cost) : Cost 
+  
+  axiom costPludDef {
+    forall c1: Cost, c2: Cost :: {costPlus(c1, c2)}
+      costPlus(c1, c2) == ((c1 == infinity() || c2 == infinity()) ? infinity() : cst(val(c1) + val(c2)))
+  }
+
+  function costLeq(c1: Cost, c2: Cost) : Bool
+
+  axiom costLeqDef {
+    forall c1: Cost, c2: Cost :: {costLeq(c1, c2)}
+      costLeq(c1, c2) == (c2 == infinity() || c1 != infinity() && c2 != infinity() && val(c1) <= val(c2))
+  }
+
+}
+
+// Flow domain is multisets of costs, representing costs of sets of paths
+domain FlowDom {
+  function fd(m : Multiset[Cost]) : FlowDom
+    
+  function pc(f : FlowDom) : Multiset[Cost]
+  axiom injective {
+      forall m : Multiset[Cost] :: {fd(m)} pc(fd(m)) == m
+  }
+
+  axiom surjective {
+      forall p : FlowDom :: {pc(p)} fd(pc(p)) == p
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqImplies {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1,p2) ==> (p1 == p2)
+  }
+
+  axiom fdEqImplied {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      (pc(p1) == pc(p2)) ==> fdEq(p1,p2) 
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdPlus(p1,p2) == fd(pc(p1) union pc(p2))
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    fdZero() == fd(Multiset[Cost]())
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  function fdLeq(p1:FlowDom, p2:FlowDom) : Bool
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+  // Domain-specific axiom
+  axiom fdLeqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdLeq(p1,p2)}
+      fdLeq(p1,p2) == (pc(p1) subset pc(p2))
+  }
+}
+
+// The fields of a node
+field e: IMap[Ref, Cost]
+field cost: Cost
+field old_cost: Cost
+field processed: Set[Ref]
+field nodes: Set[Ref]
+
+define nodeSpatial(x) 
+  acc(x.nodes) && acc(x.cost) && acc(x.old_cost) && acc(x.processed) && acc(x.e)
+define hrepUnchanged(x)
+  x.nodes == old(x.nodes)
+  && x.cost == old(x.cost)
+  && x.old_cost == old(x.old_cost)
+  && x.processed == old(x.processed)
+  && x.e == old(x.e)
+
+
+// Definition of a node and good condition:
+
+function min(x: Cost, y: Cost): Cost
+  ensures costLeq(x, y) ? result == x : result == y
+{
+  costLeq(x, y) ? x : y
+}
+
+function ms_min(m: Multiset[Cost]): Cost
+  ensures forall c: Cost :: (c in m) > 0 ==> costLeq(result, c)
+  ensures m == Multiset[Cost]() ? result == infinity() : (result in m) > 0
+
+define edge(x, y) select(x.e, y)
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom,FlowDom]
+  requires nodeSpatial(x)
+{
+  x != y && y in x.nodes ?
+    constMap(fd(Multiset(costPlus((y in x.processed ? x.cost : x.old_cost), edge(x, y)))))
+    : constMap(fdZero())
+}
+
+define globalInv(src, I)
+  true
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) ==> Iinf(I, z) == (z == src ? fd(Multiset(cst(0))) : fdZero()))
+
+define nodeInvIntermediate(I, D, x, W)
+  true
+  // cost estimates are correct
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) ==> z.cost == ms_min(pc(Iinf(z.intf, z))))
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) ==> costLeq(z.cost, z.old_cost))
+  // edge costs are all positive
+  && (forall z: Ref, y: Ref :: {z in dom(I), edge(z, y)} z in dom(I) ==> edge(z, y) == infinity() || val(edge(z, y)) >= 0)
+  // graph is closed
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) ==> z.nodes == D)
+  // nodes not in the workset are fully processed
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) && !(z in W) ==> z.processed == dom(I))
+  // processed nodes are in the domain
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) ==> z.processed subset dom(I) && z in z.processed)
+  && (forall z: Ref :: {z in W} z in (W setminus Set(x)) ==> z.processed != dom(I))
+  && (forall z: Ref :: {z in dom(I)} z in dom(I) && z != x && z.processed != dom(I) ==> z.processed == Set(z))
+
+define nodeInv(I, D)
+  nodeInvIntermediate(I, D, null, Set[Ref]())
+
+
+/* -------------------- Actual code -------------------- */
+
+
+// We abstract from the node selection mechanism 
+function choose(X: Set[Ref]): Ref
+  ensures result in X || X == Set[Ref]()
+
+
+method dijkstra(src: Ref, X: Set[Ref], W: Set[Ref])
+  requires src in X
+  requires W subset X
+  requires forall z: Ref :: {z in X} z in X ==> node(z)
+  requires nodeInvIntermediate(intCompSet(X), X, null, W)
+  requires globalInv(src, intCompSet(X))
+  ensures forall z: Ref :: {z in X} z in X ==> node(z)
+  ensures nodeInv(intCompSet(X), X)
+  ensures globalInv(src, intCompSet(X))
+{
+  var x: Ref := choose(W)
+    
+  if (x in W) {    
+    var U: Set[Ref] := X
+
+    var W1: Set[Ref]
+
+    W1 := update_loop(src, x, X, W)
+    dijkstra(src, X, W1)
+  }
+}
+
+method update_loop(src: Ref, n: Ref, X: Set[Ref], W: Set[Ref])
+  returns (W1: Set[Ref])
+  requires src in X && n in W
+  requires W subset X
+  requires forall z: Ref :: {z in X} z in X ==> node(z)
+  requires nodeInvIntermediate(intCompSet(X), X, n, W)
+  requires globalInv(src, intCompSet(X))
+  ensures W1 subset (X setminus Set(n))
+  ensures forall z: Ref :: {z in X} z in X ==> node(z)
+  ensures nodeInvIntermediate(intCompSet(X), X, n, W1)
+  ensures globalInv(src, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  assert dom(intCompSet(X)) == X
+  
+  if (X setminus n.processed != Set[Ref]()) {
+    // pick an unprocessed node
+    var y: Ref := choose(X setminus n.processed)
+    var new_x_cost: Cost := costPlus(n.cost, edge(n, y))
+    var new_cost: Cost := min(y.cost, new_x_cost)
+    
+    if (new_cost != y.cost) {
+      assume trig_gfe(n, y)
+      _make_dirty(y)
+      if (!(y in W)) {
+        y.old_cost := y.cost
+      }
+      y.cost := new_cost
+      y.processed := Set(y)
+      _make_dirty(n)
+      n.processed := n.processed union Set(y)
+    
+      {
+      // ---- Post code sync:
+      _post_code_sync(FP, pre_sync1)
+
+      }
+
+      // ---- Continue with actual code:
+      
+      //assert pc(Iinf(y.intf, y)) == (old(pc(Iinf(y.intf, y))) setminus Multiset(old_x_cost) union Multiset(new_x_cost))
+      W1 := update_loop(src, n, X, W union Set(y))
+    } else {
+      _make_dirty(n)
+      n.processed := n.processed union Set(y)
+
+      _make_dirty(y)
+            
+      {
+      // ---- Post code sync:
+      _post_code_sync(FP, pre_sync3)
+      }
+
+      // ---- Continue with actual code:
+      
+      W1 := update_loop(src, n, X, W)
+    }
+  } else {
+    W1 := W setminus Set(n)
+  }
+}

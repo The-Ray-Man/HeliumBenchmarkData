@@ -1,0 +1,934 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Int_i32  {
+  
+  axiom s_Param_typ_def_make_generic_s_Int_i32 {
+    (forall x: s_Int_i32 ::
+      { make_generic_s_Int_i32(x) }
+      s_Param_typ(make_generic_s_Int_i32(x)) == s_Int_i32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Int_i32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Int_i32, s_Param_typ(p) }
+      s_Param_typ(p) == s_Int_i32_type() ==>
+      make_generic_s_Int_i32(p.make_concrete_s_Int_i32) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f64 {
+    (forall x: s_Float_f64 ::
+      { make_generic_s_Float_f64(x) }
+      s_Param_typ(make_generic_s_Float_f64(x)) == s_Float_f64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f64_type() ==>
+      make_generic_s_Float_f64(p.make_concrete_s_Float_f64) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u32  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u32 {
+    (forall x: s_UInt_u32 ::
+      { make_generic_s_UInt_u32(x) }
+      s_Param_typ(make_generic_s_UInt_u32(x)) == s_UInt_u32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u32, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u32_type() ==>
+      make_generic_s_UInt_u32(p.make_concrete_s_UInt_u32) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Int_i64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Int_i64 {
+    (forall x: s_Int_i64 ::
+      { make_generic_s_Int_i64(x) }
+      s_Param_typ(make_generic_s_Int_i64(x)) == s_Int_i64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Int_i64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Int_i64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Int_i64_type() ==>
+      make_generic_s_Int_i64(p.make_concrete_s_Int_i64) == p)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain s_Int_i32  {
+  
+  function s_Int_i32_cons(arg0: Int): s_Int_i32 
+  
+  function s_Int_i32_value(arg0: s_Int_i32): Int 
+  
+  axiom s_Int_i32_ax_cons {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      s_Int_i32_cons(s_Int_i32_value(s)) == s)
+  }
+  
+  axiom s_Int_i32_ax_bounds {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      -2147483648 <= s_Int_i32_value(s) && s_Int_i32_value(s) <= 2147483647)
+  }
+  
+  axiom s_Int_i32_ax_value {
+    (forall value: Int ::
+      { s_Int_i32_cons(value) }
+      -2147483648 <= value && value <= 2147483647 ==>
+      s_Int_i32_value(s_Int_i32_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+  
+  axiom inhabited_Int_i32 {
+    inhabited(s_Int_i32_type()) == true
+  }
+  
+  axiom inhabited_time_delta$col$$col$TimeDelta {
+    inhabited(s_time_delta$col$$col$TimeDelta_type()) ==
+    (inhabited(s_Int_i64_type()) && inhabited(s_Int_i32_type()))
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$convert$col$$col$From  {
+  
+  function std$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+domain sizedness_Int_i32  {
+  
+  axiom s_Int_i32_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_i32_type())
+  }
+  
+  axiom s_Int_i32_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_i32_type())
+  }
+}
+
+domain sizedness_time_delta$col$$col$TimeDelta  {
+  
+  axiom s_time_delta$col$$col$TimeDelta_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_time_delta$col$$col$TimeDelta_type())
+  }
+  
+  axiom s_time_delta$col$$col$TimeDelta_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_time_delta$col$$col$TimeDelta_type())
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain trait_fns_std$col$$col$convert$col$$col$From_std$col$$col$convert$col$$col$From$col$$col$from  {
+  
+  function std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(arg0: s_Param,
+  arg1: Type, arg2: Type): Bool 
+  
+  function std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(arg0: s_Param,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  axiom std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from_base {
+    (forall _1s: s_Param, Self$0: Type, T$1: Type ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      Self$0, T$1) }
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      Self$0, T$1))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from_base {
+    (forall _0s: s_Param, _1s: s_Param, Self$0: Type, T$1: Type ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, Self$0, T$1) }
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, Self$0, T$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { std$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Int_i64_2281_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2281_condition {
+    std$col$$col$convert$col$$col$From_impl(s_Int_i64_type(), s_Int_i32_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Int_i64_2291_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2291_condition {
+    std$col$$col$convert$col$$col$From_impl(s_Int_i64_type(), s_UInt_u32_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Float_f64_2304_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2304_condition {
+    std$col$$col$convert$col$$col$From_impl(s_Float_f64_type(), s_Int_i32_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Float_f64_2313_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2313_condition {
+    std$col$$col$convert$col$$col$From_impl(s_Float_f64_type(), s_UInt_u32_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Param_2359_$lt$T$sp$as$sp$std$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_fn_pre_$lt$T$sp$as$sp$std$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from {
+    (forall T$0: Type, _1s: s_Param ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      T$0, T$0))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_fn_post_$lt$T$sp$as$sp$std$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from {
+    (forall T$0: Type, _0s: s_Param, _1s: s_Param ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, T$0, T$0) ==>
+      true)
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Int_i64_2281_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$i64$gt$$col$$col$from  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2281_fn_pre_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$i64$gt$$col$$col$from {
+    (forall _1s: s_Int_i32 ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i32(_1s),
+      s_Int_i64_type(), s_Int_i32_type()) }
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i32(_1s),
+      s_Int_i64_type(), s_Int_i32_type()))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2281_fn_post_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$i64$gt$$col$$col$from {
+    (forall _0s: s_Int_i64, _1s: s_Int_i32 ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i64(_0s),
+      make_generic_s_Int_i32(_1s), s_Int_i64_type(), s_Int_i32_type()) }
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i64(_0s),
+      make_generic_s_Int_i32(_1s), s_Int_i64_type(), s_Int_i32_type()) ==>
+      true)
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Int_i64_2291_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$i64$gt$$col$$col$from  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2291_fn_pre_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$i64$gt$$col$$col$from {
+    (forall _1s: s_UInt_u32 ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u32(_1s),
+      s_Int_i64_type(), s_UInt_u32_type()) }
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u32(_1s),
+      s_Int_i64_type(), s_UInt_u32_type()))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_i64_2291_fn_post_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$i64$gt$$col$$col$from {
+    (forall _0s: s_Int_i64, _1s: s_UInt_u32 ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i64(_0s),
+      make_generic_s_UInt_u32(_1s), s_Int_i64_type(), s_UInt_u32_type()) }
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i64(_0s),
+      make_generic_s_UInt_u32(_1s), s_Int_i64_type(), s_UInt_u32_type()) ==>
+      true)
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Float_f64_2304_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$f64$gt$$col$$col$from  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2304_fn_pre_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _1s: s_Int_i32 ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i32(_1s),
+      s_Float_f64_type(), s_Int_i32_type()) }
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Int_i32(_1s),
+      s_Float_f64_type(), s_Int_i32_type()))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2304_fn_post_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$i32$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _0s: s_Float_f64, _1s: s_Int_i32 ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_Int_i32(_1s), s_Float_f64_type(), s_Int_i32_type()) }
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_Int_i32(_1s), s_Float_f64_type(), s_Int_i32_type()) ==>
+      true)
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Float_f64_2313_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$f64$gt$$col$$col$from  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2313_fn_pre_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _1s: s_UInt_u32 ::
+      { std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u32(_1s),
+      s_Float_f64_type(), s_UInt_u32_type()) }
+      true ==>
+      std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u32(_1s),
+      s_Float_f64_type(), s_UInt_u32_type()))
+  }
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Float_f64_2313_fn_post_std$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$u32$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _0s: s_Float_f64, _1s: s_UInt_u32 ::
+      { std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_UInt_u32(_1s), s_Float_f64_type(), s_UInt_u32_type()) }
+      std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_UInt_u32(_1s), s_Float_f64_type(), s_UInt_u32_type()) ==>
+      true)
+  }
+}
+
+field p_Float_f64_val: s_Float_f64
+
+field p_Int_i64_val: s_Int_i64
+
+field p_Int_i32_val: s_Int_i32
+
+field p_UInt_u32_val: s_UInt_u32
+
+function mir_binop_Mul_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_mul(arg1, arg2)
+}
+
+function mir_binop_Add_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_add(arg1, arg2)
+}
+
+function mir_binop_Div_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_div(arg1, arg2)
+}
+
+function mir_cast_i2i_Int_i64_to_Int_i32(arg: s_Int_i64): s_Int_i32
+{
+  s_Int_i32_cons((s_Int_i64_value(arg) + 2147483648) % 4294967296 -
+  2147483648)
+}
+
+function mir_cast_i2i_Int_i64_to_UInt_u32(arg: s_Int_i64): s_UInt_u32
+{
+  s_UInt_u32_cons(s_Int_i64_value(arg) % 4294967296)
+}
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_time_delta$col$$col$TimeDelta_unreachable(): s_time_delta$col$$col$TimeDelta
+  ensures false
+
+
+function s_time_delta$col$$col$TimeDelta_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time_delta$col$$col$TimeDelta_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function s_Int_i32_unreachable(): s_Int_i32
+  ensures false
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_time_delta$col$$col$TimeDelta_snap(self: Ref): s_time_delta$col$$col$TimeDelta
+  requires acc(p_time_delta$col$$col$TimeDelta(self), write)
+{
+  (unfolding acc(p_time_delta$col$$col$TimeDelta(self), write) in
+    s_time_delta$col$$col$TimeDelta_cons(p_Int_i64_snap(s_time_delta$col$$col$TimeDelta_field_0(self)), p_Int_i32_snap(s_time_delta$col$$col$TimeDelta_field_1(self))))
+}
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+function p_Int_i32_snap(self: Ref): s_Int_i32
+  requires acc(p_Int_i32(self), write)
+{
+  (unfolding acc(p_Int_i32(self), write) in self.p_Int_i32_val)
+}
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_time_delta$col$$col$TimeDelta(self: Ref) {
+  inhabited(s_Int_i64_type()) &&
+  acc(p_Int_i64(s_time_delta$col$$col$TimeDelta_field_0(self)), write) &&
+  (inhabited(s_Int_i32_type()) &&
+  acc(p_Int_i32(s_time_delta$col$$col$TimeDelta_field_1(self)), write))
+}
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+predicate p_Int_i32(self: Ref) {
+  acc(self.p_Int_i32_val, write)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+method m_time_delta$col$$col$TimeDelta$col$$col$as_seconds_f64(_0p: Ref, _1p: Ref)
+  requires inhabited(s_time_delta$col$$col$TimeDelta_type()) &&
+    acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _13p: Ref
+  var _14p: Ref
+  var _15p: Ref
+  var _16p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb4_to_bb5: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb5_to_bb6: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Int_i64
+  var _tmp1: Ref
+  var _tmp2: s_Int_i64
+  var _tmp3: s_Float_f64
+  var _tmp4: s_Int_i64
+  var _tmp5: Ref
+  var _tmp6: s_Int_i64
+  var _tmp7: s_Float_f64
+  var _tmp8: s_Float_f64
+  var _tmp9: s_Float_f64
+  var _tmp10: s_Int_i32
+  var _tmp11: Ref
+  var _tmp12: s_Float_f64
+  var _tmp13: s_Float_f64
+  var _tmp14: s_Float_f64
+  var _tmp15: s_Float_f64
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb4_to_bb5 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb5_to_bb6 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  label _before_0_5
+  label _before_0_6
+  unfold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  _tmp0 := p_Int_i64_snap(s_time_delta$col$$col$TimeDelta_field_0(_1p))
+  p_Int_i64_assign(_7p, _tmp0)
+  label _before_0_7
+  fold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  goto bb_term_0
+  label bb_term_0
+  p_Int_i64_assign(_tmp1, s_Int_i64_cons(4294967296))
+  label pre0
+  m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$div_euclid(_6p,
+    _7p, _tmp1)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  _tmp2 := p_Int_i64_snap(_6p)
+  exhale inhabited(s_Int_i64_type()) && acc(p_Int_i64(_6p), write)
+  p_Int_i32_assign(_5p, mir_cast_i2i_Int_i64_to_Int_i32(_tmp2))
+  label _before_1_2
+  label _before_1_3
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  make_generic_Int_i32(_5p)
+  std$col$$col$convert$col$$col$From_fn_stub_std$col$$col$convert$col$$col$From$col$$col$from(_4p,
+    _5p, s_Float_f64_type(), s_Int_i32_type())
+  make_concrete_Float_f64(_4p)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  _tmp3 := p_Float_f64_snap(_4p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_4p), write)
+  p_Float_f64_assign(_3p, mir_binop_Mul_Float_f64_Float_f64(_tmp3, s_Float_f64_cons(4751297606875873280)))
+  label _before_2_2
+  label _before_2_3
+  label _before_2_4
+  label _before_2_5
+  label _before_2_6
+  label _before_2_7
+  unfold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  _tmp4 := p_Int_i64_snap(s_time_delta$col$$col$TimeDelta_field_0(_1p))
+  p_Int_i64_assign(_11p, _tmp4)
+  label _before_2_8
+  fold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  goto bb_term_2
+  label bb_term_2
+  p_Int_i64_assign(_tmp5, s_Int_i64_cons(4294967296))
+  label pre4
+  m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$rem_euclid(_10p,
+    _11p, _tmp5)
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  _tmp6 := p_Int_i64_snap(_10p)
+  exhale inhabited(s_Int_i64_type()) && acc(p_Int_i64(_10p), write)
+  p_UInt_u32_assign(_9p, mir_cast_i2i_Int_i64_to_UInt_u32(_tmp6))
+  label _before_3_2
+  label _before_3_3
+  goto bb_term_3
+  label bb_term_3
+  label pre6
+  make_generic_UInt_u32(_9p)
+  std$col$$col$convert$col$$col$From_fn_stub_std$col$$col$convert$col$$col$From$col$$col$from(_8p,
+    _9p, s_Float_f64_type(), s_UInt_u32_type())
+  make_concrete_Float_f64(_8p)
+  label post7
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  _tmp7 := p_Float_f64_snap(_3p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_3p), write)
+  _tmp8 := p_Float_f64_snap(_8p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_8p), write)
+  p_Float_f64_assign(_2p, mir_binop_Add_Float_f64_Float_f64(_tmp7, _tmp8))
+  label _before_4_2
+  label _before_4_3
+  label _before_4_4
+  label _before_4_5
+  label _before_4_6
+  _tmp9 := p_Float_f64_snap(_2p)
+  p_Float_f64_assign(_12p, _tmp9)
+  label _before_4_7
+  label _before_4_8
+  label _before_4_9
+  label _before_4_10
+  unfold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  _tmp10 := p_Int_i32_snap(s_time_delta$col$$col$TimeDelta_field_1(_1p))
+  p_Int_i32_assign(_15p, _tmp10)
+  label _before_4_11
+  fold acc(p_time_delta$col$$col$TimeDelta(_1p), write)
+  goto bb_term_4
+  label bb_term_4
+  label pre8
+  make_generic_Int_i32(_15p)
+  std$col$$col$convert$col$$col$From_fn_stub_std$col$$col$convert$col$$col$From$col$$col$from(_14p,
+    _15p, s_Float_f64_type(), s_Int_i32_type())
+  make_concrete_Float_f64(_14p)
+  label post9
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _before_5_1
+  label _before_5_2
+  goto bb_term_5
+  label bb_term_5
+  p_Int_i32_assign(_tmp11, s_Int_i32_cons(1000000000))
+  label pre10
+  make_generic_Int_i32(_tmp11)
+  std$col$$col$convert$col$$col$From_fn_stub_std$col$$col$convert$col$$col$From$col$$col$from(_16p,
+    _tmp11, s_Float_f64_type(), s_Int_i32_type())
+  make_concrete_Float_f64(_16p)
+  label post11
+  label _after_5
+  _from_bb5_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  _tmp12 := p_Float_f64_snap(_14p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_14p), write)
+  _tmp13 := p_Float_f64_snap(_16p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_16p), write)
+  p_Float_f64_assign(_13p, mir_binop_Div_Float_f64_Float_f64(_tmp12, _tmp13))
+  label _before_6_1
+  label _before_6_2
+  label _before_6_3
+  _tmp14 := p_Float_f64_snap(_12p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_12p), write)
+  _tmp15 := p_Float_f64_snap(_13p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_13p), write)
+  p_Float_f64_assign(_0p, mir_binop_Add_Float_f64_Float_f64(_tmp14, _tmp15))
+  label _before_6_4
+  label _before_6_5
+  label _before_6_6
+  label _before_6_7
+  label package_post12
+  goto end
+  label bb_7
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$div_euclid(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_2p), write)
+  ensures inhabited(s_Int_i64_type()) && acc(p_Int_i64(_0p), write)
+
+
+method m_core$col$$col$num$col$$col$$lt$impl$sp$i64$gt$$col$$col$rem_euclid(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_1p), write)
+  requires inhabited(s_Int_i64_type()) && acc(p_Int_i64(_2p), write)
+  ensures inhabited(s_Int_i64_type()) && acc(p_Int_i64(_0p), write)
+
+
+method make_generic_Int_i32(self: Ref)
+  requires acc(p_Int_i32(self), write)
+  ensures acc(p_Param(self, s_Int_i32_type()), write)
+  ensures old(make_generic_s_Int_i32(p_Int_i32_snap(self))) ==
+    p_Param_snap(self, s_Int_i32_type())
+
+
+method make_concrete_Int_i32(self: Ref)
+  requires acc(p_Param(self, s_Int_i32_type()), write)
+  ensures acc(p_Int_i32(self), write)
+  ensures old(p_Param_snap(self, s_Int_i32_type())) ==
+    make_generic_s_Int_i32(p_Int_i32_snap(self))
+
+
+method make_generic_Float_f64(self: Ref)
+  requires acc(p_Float_f64(self), write)
+  ensures acc(p_Param(self, s_Float_f64_type()), write)
+  ensures old(make_generic_s_Float_f64(p_Float_f64_snap(self))) ==
+    p_Param_snap(self, s_Float_f64_type())
+
+
+method make_concrete_Float_f64(self: Ref)
+  requires acc(p_Param(self, s_Float_f64_type()), write)
+  ensures acc(p_Float_f64(self), write)
+  ensures old(p_Param_snap(self, s_Float_f64_type())) ==
+    make_generic_s_Float_f64(p_Float_f64_snap(self))
+
+
+method make_generic_UInt_u32(self: Ref)
+  requires acc(p_UInt_u32(self), write)
+  ensures acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures old(make_generic_s_UInt_u32(p_UInt_u32_snap(self))) ==
+    p_Param_snap(self, s_UInt_u32_type())
+
+
+method make_concrete_UInt_u32(self: Ref)
+  requires acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures acc(p_UInt_u32(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u32_type())) ==
+    make_generic_s_UInt_u32(p_UInt_u32_snap(self))
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_time_delta$col$$col$TimeDelta_assign(self: Ref, value: s_time_delta$col$$col$TimeDelta)
+  ensures acc(p_time_delta$col$$col$TimeDelta(self), write)
+  ensures p_time_delta$col$$col$TimeDelta_snap(self) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+method p_Int_i32_assign(self: Ref, value: s_Int_i32)
+  ensures acc(p_Int_i32(self), write)
+  ensures p_Int_i32_snap(self) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method std$col$$col$convert$col$$col$From_fn_stub_std$col$$col$convert$col$$col$From$col$$col$from(_0p: Ref,
+  _1p: Ref, Self$0: Type, T$1: Type)
+  requires inhabited(T$1) && acc(p_Param(_1p, T$1), write)
+  requires std$col$$col$convert$col$$col$From_fn_pre_std$col$$col$convert$col$$col$From$col$$col$from(p_Param_snap(_1p,
+    T$1), Self$0, T$1)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+  ensures std$col$$col$convert$col$$col$From_fn_post_std$col$$col$convert$col$$col$From$col$$col$from(p_Param_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, T$1)), Self$0, T$1)
+
+
+adt s_Param {
+  make_generic_s_Int_i32(make_concrete_s_Int_i32: s_Int_i32)
+  make_generic_s_Float_f64(make_concrete_s_Float_f64: s_Float_f64)
+  make_generic_s_UInt_u32(make_concrete_s_UInt_u32: s_UInt_u32)
+  make_generic_s_Int_i64(make_concrete_s_Int_i64: s_Int_i64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_time_delta$col$$col$TimeDelta {
+  s_time_delta$col$$col$TimeDelta_cons(s_time_delta$col$$col$TimeDelta_0: s_Int_i64,
+  s_time_delta$col$$col$TimeDelta_1: s_Int_i32)
+}
+
+adt Type {
+  s_Float_f64_type()
+  s_Int_i64_type()
+  s_Int_i32_type()
+  s_time_delta$col$$col$TimeDelta_type()
+  s_UInt_u32_type()
+  Unknown_type(id: Int)
+}

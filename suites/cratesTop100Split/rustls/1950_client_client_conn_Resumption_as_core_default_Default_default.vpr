@@ -1,0 +1,913 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_alloc$col$$col$alloc$col$$col$Global  {
+  
+  axiom s_Param_typ_def_make_generic_s_alloc$col$$col$alloc$col$$col$Global {
+    (forall x: s_alloc$col$$col$alloc$col$$col$Global ::
+      { make_generic_s_alloc$col$$col$alloc$col$$col$Global(x) }
+      s_Param_typ(make_generic_s_alloc$col$$col$alloc$col$$col$Global(x)) ==
+      s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_alloc$col$$col$alloc$col$$col$Global {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_alloc$col$$col$alloc$col$$col$Global_type()) }
+      s_Param_typ(p) == s_alloc$col$$col$alloc$col$$col$Global_type() ==>
+      make_generic_s_alloc$col$$col$alloc$col$$col$Global(s_alloc$col$$col$alloc$col$$col$Global_cons()) ==
+      p)
+  }
+  
+  axiom make_generic_s_alloc$col$$col$alloc$col$$col$Global_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_alloc$col$$col$alloc$col$$col$Global }
+      p.make_concrete_s_alloc$col$$col$alloc$col$$col$Global ==
+      s_alloc$col$$col$alloc$col$$col$Global_cons())
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_core$col$$col$ptr$col$$col$NonNull {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) ==
+      inhabited(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom inhabited_alloc$col$$col$sync$col$$col$ArcInner {
+    (forall T$0: Type ::
+      { inhabited(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)) }
+      inhabited(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)) ==
+      (inhabited(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type()) &&
+      (inhabited(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type()) &&
+      inhabited(T$0))))
+  }
+  
+  axiom inhabited_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize {
+    inhabited(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type()) ==
+    inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(s_UInt_usize_type()))
+  }
+  
+  axiom inhabited_core$col$$col$cell$col$$col$UnsafeCell {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_alloc$col$$col$sync$col$$col$Arc {
+    (forall T$0: Type, A$1: Type ::
+      { inhabited(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)) }
+      inhabited(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)) ==
+      (inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0))) &&
+      (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0))) &&
+      inhabited(A$1))))
+  }
+  
+  axiom inhabited_Dyn {
+    inhabited(s_Dyn_type()) == true
+  }
+  
+  axiom inhabited_alloc$col$$col$alloc$col$$col$Global {
+    inhabited(s_alloc$col$$col$alloc$col$$col$Global_type()) == true
+  }
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_client$col$$col$client_conn$col$$col$Tls12Resumption {
+    inhabited(s_client$col$$col$client_conn$col$$col$Tls12Resumption_type()) ==
+    (true || (true || true))
+  }
+  
+  axiom inhabited_client$col$$col$client_conn$col$$col$Resumption {
+    inhabited(s_client$col$$col$client_conn$col$$col$Resumption_type()) ==
+    (inhabited(s_alloc$col$$col$sync$col$$col$Arc_type(s_Dyn_type(), s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+    inhabited(s_client$col$$col$client_conn$col$$col$Tls12Resumption_type()))
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$default$col$$col$Default  {
+  
+  function core$col$$col$default$col$$col$Default_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Thin  {
+  
+  function core$col$$col$ptr$col$$col$Thin_impl(arg0: Type): Bool 
+}
+
+domain sizedness_alloc$col$$col$sync$col$$col$ArcInner  {
+  
+  axiom s_alloc$col$$col$sync$col$$col$ArcInner_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)))
+  }
+  
+  axiom s_alloc$col$$col$sync$col$$col$ArcInner_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)))
+  }
+}
+
+domain sizedness_Dyn  {
+  
+  axiom s_Dyn_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Dyn_type())
+  }
+}
+
+domain sizedness_alloc$col$$col$alloc$col$$col$Global  {
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+  
+  axiom s_alloc$col$$col$alloc$col$$col$Global_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$ptr$col$$col$NonNull  {
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize  {
+  
+  axiom s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type())
+  }
+  
+  axiom s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type())
+  }
+}
+
+domain sizedness_core$col$$col$cell$col$$col$UnsafeCell  {
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_alloc$col$$col$sync$col$$col$Arc  {
+  
+  axiom s_alloc$col$$col$sync$col$$col$Arc_Sized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)))
+  }
+  
+  axiom s_alloc$col$$col$sync$col$$col$Arc_MetaSized {
+    (forall T$0: Type, A$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(A$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, A$1)))
+  }
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_client$col$$col$client_conn$col$$col$Tls12Resumption  {
+  
+  axiom s_client$col$$col$client_conn$col$$col$Tls12Resumption_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_client$col$$col$client_conn$col$$col$Tls12Resumption_type())
+  }
+  
+  axiom s_client$col$$col$client_conn$col$$col$Tls12Resumption_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_client$col$$col$client_conn$col$$col$Tls12Resumption_type())
+  }
+}
+
+domain sizedness_client$col$$col$client_conn$col$$col$Resumption  {
+  
+  axiom s_client$col$$col$client_conn$col$$col$Resumption_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_client$col$$col$client_conn$col$$col$Resumption_type())
+  }
+  
+  axiom s_client$col$$col$client_conn$col$$col$Resumption_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_client$col$$col$client_conn$col$$col$Resumption_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_rustls_client$col$$col$client_conn$col$$col$Resumption_995_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_rustls_client$col$$col$client_conn$col$$col$Resumption_995_condition {
+    core$col$$col$default$col$$col$Default_impl(s_client$col$$col$client_conn$col$$col$Resumption_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_RawPtr_immutable_1959_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$ptr$col$$col$Thin_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_impl(T$0) &&
+      (core$col$$col$marker$col$$col$MetaSized_impl(T$0) &&
+      core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0) ==
+      s_0_Tuple_type()) ==>
+      core$col$$col$default$col$$col$Default_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_usize_1966_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Int_isize_1972_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Int_isize_1972_condition {
+    core$col$$col$default$col$$col$Default_impl(s_Int_isize_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$UnsafeCell_2032_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$cell$col$$col$UnsafeCell_2032_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_2061_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_2061_condition {
+    core$col$$col$default$col$$col$Default_impl(s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$alloc$col$$col$Global_114_condition {
+    core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$alloc$col$$col$Global_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$sync$col$$col$Arc_159_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_alloc_alloc$col$$col$sync$col$$col$Arc_159_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_alloc$col$$col$sync$col$$col$Arc_type(T$0, s_alloc$col$$col$alloc$col$$col$Global_type())))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_0_Tuple_1962_condition {
+    core$col$$col$default$col$$col$Default_impl(s_0_Tuple_type())
+  }
+}
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_client$col$$col$client_conn$col$$col$Resumption_unreachable(): s_client$col$$col$client_conn$col$$col$Resumption
+  ensures false
+
+
+function s_client$col$$col$client_conn$col$$col$Resumption_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_client$col$$col$client_conn$col$$col$Resumption_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$sync$col$$col$Arc_unreachable(T$0: Type, A$1: Type): s_alloc$col$$col$sync$col$$col$Arc
+  ensures false
+
+
+function s_alloc$col$$col$sync$col$$col$Arc_field_0(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$sync$col$$col$Arc_field_1(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_alloc$col$$col$sync$col$$col$Arc_field_2(self: Ref, T$0: Type, A$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_unreachable(T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function s_alloc$col$$col$alloc$col$$col$Global_unreachable(): s_alloc$col$$col$alloc$col$$col$Global
+  ensures false
+
+
+function s_client$col$$col$client_conn$col$$col$Tls12Resumption_unreachable(): s_client$col$$col$client_conn$col$$col$Tls12Resumption
+  ensures false
+
+
+function s_client$col$$col$client_conn$col$$col$Tls12Resumption_discr(self: s_client$col$$col$client_conn$col$$col$Tls12Resumption): s_Int_isize
+{
+  (self.iss_client$col$$col$client_conn$col$$col$Tls12Resumption_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_client$col$$col$client_conn$col$$col$Tls12Resumption_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_client$col$$col$client_conn$col$$col$Resumption_snap(self: Ref): s_client$col$$col$client_conn$col$$col$Resumption
+  requires acc(p_client$col$$col$client_conn$col$$col$Resumption(self), write)
+{
+  (unfolding acc(p_client$col$$col$client_conn$col$$col$Resumption(self), write) in
+    s_client$col$$col$client_conn$col$$col$Resumption_cons(p_alloc$col$$col$sync$col$$col$Arc_snap(s_client$col$$col$client_conn$col$$col$Resumption_field_0(self),
+    s_Dyn_type(), s_alloc$col$$col$alloc$col$$col$Global_type()), p_client$col$$col$client_conn$col$$col$Tls12Resumption_snap(s_client$col$$col$client_conn$col$$col$Resumption_field_1(self))))
+}
+
+function p_alloc$col$$col$sync$col$$col$Arc_snap(self: Ref, T$0: Type, A$1: Type): s_alloc$col$$col$sync$col$$col$Arc
+  requires acc(p_alloc$col$$col$sync$col$$col$Arc(self, T$0, A$1), write)
+{
+  (unfolding acc(p_alloc$col$$col$sync$col$$col$Arc(self, T$0, A$1), write) in
+    s_alloc$col$$col$sync$col$$col$Arc_cons(p_core$col$$col$ptr$col$$col$NonNull_snap(s_alloc$col$$col$sync$col$$col$Arc_field_0(self,
+    T$0, A$1), s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)), p_core$col$$col$marker$col$$col$PhantomData_snap(s_alloc$col$$col$sync$col$$col$Arc_field_1(self,
+    T$0, A$1), s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)), p_Param_snap(s_alloc$col$$col$sync$col$$col$Arc_field_2(self,
+    T$0, A$1), A$1)))
+}
+
+function p_core$col$$col$ptr$col$$col$NonNull_snap(self: Ref, T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  requires acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write) in
+    s_core$col$$col$ptr$col$$col$NonNull_cons(p_RawPtr_immutable_snap(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+    T$0), T$0)))
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+function p_alloc$col$$col$alloc$col$$col$Global_snap(self: Ref): s_alloc$col$$col$alloc$col$$col$Global
+  requires acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+{
+  (unfolding acc(p_alloc$col$$col$alloc$col$$col$Global(self), write) in
+    s_alloc$col$$col$alloc$col$$col$Global_cons())
+}
+
+function p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_client$col$$col$client_conn$col$$col$Tls12Resumption_snap(self: Ref): s_client$col$$col$client_conn$col$$col$Tls12Resumption
+  requires acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption(self), write)
+{
+  (unfolding acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption(self), write) in
+    (p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_2_owned(self), write) in
+        s_client$col$$col$client_conn$col$$col$Tls12Resumption_2_cons()) :
+      (p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_1_owned(self), write) in
+          s_client$col$$col$client_conn$col$$col$Tls12Resumption_1_cons()) :
+        (p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_0_owned(self), write) in
+            s_client$col$$col$client_conn$col$$col$Tls12Resumption_0_cons()) :
+          s_client$col$$col$client_conn$col$$col$Tls12Resumption_unreachable()))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_client$col$$col$client_conn$col$$col$Resumption(self: Ref) {
+  inhabited(s_alloc$col$$col$sync$col$$col$Arc_type(s_Dyn_type(), s_alloc$col$$col$alloc$col$$col$Global_type())) &&
+  acc(p_alloc$col$$col$sync$col$$col$Arc(s_client$col$$col$client_conn$col$$col$Resumption_field_0(self),
+  s_Dyn_type(), s_alloc$col$$col$alloc$col$$col$Global_type()), write) &&
+  (inhabited(s_client$col$$col$client_conn$col$$col$Tls12Resumption_type()) &&
+  acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption(s_client$col$$col$client_conn$col$$col$Resumption_field_1(self)), write))
+}
+
+predicate p_alloc$col$$col$sync$col$$col$Arc(self: Ref, T$0: Type, A$1: Type) {
+  inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0))) &&
+  acc(p_core$col$$col$ptr$col$$col$NonNull(s_alloc$col$$col$sync$col$$col$Arc_field_0(self,
+  T$0, A$1), s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0))) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_alloc$col$$col$sync$col$$col$Arc_field_1(self,
+  T$0, A$1), s_alloc$col$$col$sync$col$$col$ArcInner_type(T$0)), write) &&
+  (inhabited(A$1) &&
+  acc(p_Param(s_alloc$col$$col$sync$col$$col$Arc_field_2(self, T$0, A$1), A$1), write)))
+}
+
+predicate p_core$col$$col$ptr$col$$col$NonNull(self: Ref, T$0: Type) {
+  inhabited(s_RawPtr_immutable_type(T$0)) &&
+  acc(p_RawPtr_immutable(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_alloc$col$$col$alloc$col$$col$Global(self: Ref) {
+  true
+}
+
+predicate p_client$col$$col$client_conn$col$$col$Tls12Resumption_0_owned(self: Ref) {
+  true
+}
+
+predicate p_client$col$$col$client_conn$col$$col$Tls12Resumption_1_owned(self: Ref) {
+  true
+}
+
+predicate p_client$col$$col$client_conn$col$$col$Tls12Resumption_2_owned(self: Ref) {
+  true
+}
+
+predicate p_client$col$$col$client_conn$col$$col$Tls12Resumption(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_0_owned(self), write)) &&
+  ((p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  true &&
+  acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_1_owned(self), write)) &&
+  (p_Int_isize_snap(p_client$col$$col$client_conn$col$$col$Tls12Resumption_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  true &&
+  acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption_2_owned(self), write)))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_$lt$client$col$$col$client_conn$col$$col$Resumption$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  ensures inhabited(s_client$col$$col$client_conn$col$$col$Resumption_type()) &&
+    acc(p_client$col$$col$client_conn$col$$col$Resumption(_0p), write)
+{
+  var _1p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: Ref
+  var _tmp1: s_client$col$$col$client_conn$col$$col$Resumption
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  goto bb_term_0
+  label bb_term_0
+  p_UInt_usize_assign(_tmp0, s_UInt_usize_cons(256))
+  label pre0
+  m_client$col$$col$client_conn$col$$col$Resumption$col$$col$in_memory_sessions(_1p,
+    _tmp0)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  _tmp1 := p_client$col$$col$client_conn$col$$col$Resumption_snap(_1p)
+  exhale inhabited(s_client$col$$col$client_conn$col$$col$Resumption_type()) &&
+    acc(p_client$col$$col$client_conn$col$$col$Resumption(_1p), write)
+  p_client$col$$col$client_conn$col$$col$Resumption_assign(_0p, _tmp1)
+  label _before_1_2
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label package_post2
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label end
+}
+
+method m_client$col$$col$client_conn$col$$col$Resumption$col$$col$in_memory_sessions(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  ensures inhabited(s_client$col$$col$client_conn$col$$col$Resumption_type()) &&
+    acc(p_client$col$$col$client_conn$col$$col$Resumption(_0p), write)
+
+
+method make_generic_alloc$col$$col$alloc$col$$col$Global(self: Ref)
+  requires acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures acc(p_Param(self, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+  ensures old(make_generic_s_alloc$col$$col$alloc$col$$col$Global(p_alloc$col$$col$alloc$col$$col$Global_snap(self))) ==
+    p_Param_snap(self, s_alloc$col$$col$alloc$col$$col$Global_type())
+
+
+method make_concrete_alloc$col$$col$alloc$col$$col$Global(self: Ref)
+  requires acc(p_Param(self, s_alloc$col$$col$alloc$col$$col$Global_type()), write)
+  ensures acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures old(p_Param_snap(self, s_alloc$col$$col$alloc$col$$col$Global_type())) ==
+    make_generic_s_alloc$col$$col$alloc$col$$col$Global(p_alloc$col$$col$alloc$col$$col$Global_snap(self))
+
+
+method p_client$col$$col$client_conn$col$$col$Resumption_assign(self: Ref, value: s_client$col$$col$client_conn$col$$col$Resumption)
+  ensures acc(p_client$col$$col$client_conn$col$$col$Resumption(self), write)
+  ensures p_client$col$$col$client_conn$col$$col$Resumption_snap(self) ==
+    value
+
+
+method p_alloc$col$$col$sync$col$$col$Arc_assign(self: Ref, T$0: Type, A$1: Type,
+  value: s_alloc$col$$col$sync$col$$col$Arc)
+  ensures acc(p_alloc$col$$col$sync$col$$col$Arc(self, T$0, A$1), write)
+  ensures p_alloc$col$$col$sync$col$$col$Arc_snap(self, T$0, A$1) == value
+
+
+method p_core$col$$col$ptr$col$$col$NonNull_assign(self: Ref, T$0: Type, value: s_core$col$$col$ptr$col$$col$NonNull)
+  ensures acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+  ensures p_core$col$$col$ptr$col$$col$NonNull_snap(self, T$0) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method p_alloc$col$$col$alloc$col$$col$Global_assign(self: Ref, value: s_alloc$col$$col$alloc$col$$col$Global)
+  ensures acc(p_alloc$col$$col$alloc$col$$col$Global(self), write)
+  ensures p_alloc$col$$col$alloc$col$$col$Global_snap(self) == value
+
+
+method p_client$col$$col$client_conn$col$$col$Tls12Resumption_assign(self: Ref,
+  value: s_client$col$$col$client_conn$col$$col$Tls12Resumption)
+  ensures acc(p_client$col$$col$client_conn$col$$col$Tls12Resumption(self), write)
+  ensures p_client$col$$col$client_conn$col$$col$Tls12Resumption_snap(self) ==
+    value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method trait_core$col$$col$default$col$$col$Default_impl_client$col$$col$client_conn$col$$col$Resumption_995_fn_pre_weaken_$lt$client$col$$col$client_conn$col$$col$Resumption$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+{
+  label start
+}
+
+method trait_core$col$$col$default$col$$col$Default_impl_client$col$$col$client_conn$col$$col$Resumption_995_fn_post_strengthen_$lt$client$col$$col$client_conn$col$$col$Resumption$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  requires inhabited(s_client$col$$col$client_conn$col$$col$Resumption_type()) &&
+    acc(p_client$col$$col$client_conn$col$$col$Resumption(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_alloc$col$$col$alloc$col$$col$Global(make_concrete_s_alloc$col$$col$alloc$col$$col$Global: s_alloc$col$$col$alloc$col$$col$Global)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_client$col$$col$client_conn$col$$col$Resumption {
+  s_client$col$$col$client_conn$col$$col$Resumption_cons(s_client$col$$col$client_conn$col$$col$Resumption_0: s_alloc$col$$col$sync$col$$col$Arc,
+  s_client$col$$col$client_conn$col$$col$Resumption_1: s_client$col$$col$client_conn$col$$col$Tls12Resumption)
+}
+
+adt s_alloc$col$$col$sync$col$$col$Arc {
+  s_alloc$col$$col$sync$col$$col$Arc_cons(s_alloc$col$$col$sync$col$$col$Arc_0: s_core$col$$col$ptr$col$$col$NonNull,
+  s_alloc$col$$col$sync$col$$col$Arc_1: s_core$col$$col$marker$col$$col$PhantomData,
+  s_alloc$col$$col$sync$col$$col$Arc_2: s_Param)
+}
+
+adt s_core$col$$col$ptr$col$$col$NonNull {
+  s_core$col$$col$ptr$col$$col$NonNull_cons(s_core$col$$col$ptr$col$$col$NonNull_0: s_RawPtr_immutable)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt s_alloc$col$$col$alloc$col$$col$Global {
+  s_alloc$col$$col$alloc$col$$col$Global_cons()
+}
+
+adt s_client$col$$col$client_conn$col$$col$Tls12Resumption {
+  s_client$col$$col$client_conn$col$$col$Tls12Resumption_0_cons()
+  s_client$col$$col$client_conn$col$$col$Tls12Resumption_1_cons()
+  s_client$col$$col$client_conn$col$$col$Tls12Resumption_2_cons()
+}
+
+adt Type {
+  s_alloc$col$$col$sync$col$$col$ArcInner_type(s_alloc$col$$col$sync$col$$col$ArcInner_typaram_T$0: Type)
+  s_Dyn_type()
+  s_alloc$col$$col$alloc$col$$col$Global_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_core$col$$col$ptr$col$$col$NonNull_type(s_core$col$$col$ptr$col$$col$NonNull_typaram_T$0: Type)
+  s_core$col$$col$sync$col$$col$atomic$col$$col$AtomicUsize_type()
+  s_core$col$$col$cell$col$$col$UnsafeCell_type(s_core$col$$col$cell$col$$col$UnsafeCell_typaram_T$0: Type)
+  s_UInt_usize_type()
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_alloc$col$$col$sync$col$$col$Arc_type(s_alloc$col$$col$sync$col$$col$Arc_typaram_T$0: Type,
+  s_alloc$col$$col$sync$col$$col$Arc_typaram_A$1: Type)
+  s_Int_isize_type()
+  s_client$col$$col$client_conn$col$$col$Tls12Resumption_type()
+  s_client$col$$col$client_conn$col$$col$Resumption_type()
+  s_0_Tuple_type()
+  Unknown_type(id: Int)
+}

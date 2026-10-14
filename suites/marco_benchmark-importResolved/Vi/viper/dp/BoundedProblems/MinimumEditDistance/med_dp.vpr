@@ -1,0 +1,137 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// resolved: import "../../_preambles/defs.vpr"
+
+// string1: the first string, represented as a sequence of integers
+// string2: the second string, represented as a sequence of integers
+// pos1: the current position in string1
+// pos2: the current position in string2
+function med_rec(string1: Seq[Int], string2: Seq[Int], pos1: Int, pos2: Int): Int
+    requires 0 <= pos1 <= |string1|
+    requires 0 <= pos2 <= |string2|
+    decreases pos1 + pos2
+{
+    // Base Case: we check if the first string is empty
+    pos1 == 0 ? pos2 : 
+    // Base Case: we check if the second string is empty
+    (pos2 == 0 ? pos1 :
+    // We check if the characters at the current positions are the same.
+    (string1[pos1 - 1] == string2[pos2 - 1] ? med_rec(string1, string2, pos1 - 1, pos2 - 1) :
+    // We have the choice between inserting, deleting, or replacing a character and choose the one yielding the minimum edit distance.
+    1 + min3(med_rec(string1, string2, pos1 - 1, pos2), med_rec(string1, string2, pos1, pos2 - 1), med_rec(string1, string2, pos1 - 1, pos2 - 1))))
+}
+
+method dp_editDist(string1: Seq[Int], string2: Seq[Int]) returns (minEdits: Int)
+    requires |string1| > 0 && |string2| > 0
+    ensures minEdits == med_rec(string1, string2, |string1|, |string2|)
+    decreases
+{
+    var dp: Seq[Seq[Int]]
+    // For convenience, we use asserts to define the size of the DP table.
+    assume |dp| == |string1| + 1
+    assume forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |string2| + 1
+
+    // Base Case: The two empty strings have an edit distance of 0.
+    dp := dp[0 := dp[0][0 := 0]]
+    var i: Int := 1
+
+    // We initialize the first row. Since we are calculating the edit distance between the first string and the empty string here, 
+    // the first row is just the index of the column.
+    while (i < |dp[0]|)
+        invariant |dp| == |string1| + 1
+        invariant 0 < i <= |dp[0]|
+        invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |string2| + 1
+        invariant forall k: Int :: {dp[0][k]} 0 <= k < i ==> dp[0][k] == med_rec(string1, string2, 0, k)
+        decreases |dp[0]| - i
+    {
+        dp := dp[0 := dp[0][i := i]]
+        i := i + 1
+    }
+    i := 1
+
+    // We initilize the first column. Since we are calculating the edit distance between the empty string and the second string here, 
+    // the first column is just the index of the row.
+    while (i < |dp|) 
+        invariant 0 < i <= |dp|
+        invariant |dp| == |string1| + 1
+        invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> |dp[k]| == |string2| + 1
+        invariant forall k: Int :: {dp[k]} 0 <= k < i ==> dp[k][0] == med_rec(string1, string2, k, 0)
+        invariant forall k: Int :: {dp[0][k]} 0 <= k < |dp[0]| ==> dp[0][k] == med_rec(string1, string2, 0, k)
+        decreases |dp| - i
+    {
+        dp := dp[i := dp[i][0 := i]]
+        i := i + 1
+    }
+
+    i := 1
+    var j: Int := 1
+
+    while (i < |dp|)
+        invariant 0 < i <= |dp|
+        invariant 0 < j <= |dp[0]|
+        // bounds for dp table
+        invariant |dp| == |string1| + 1
+        invariant forall k: Int :: 0 <= k < |dp| ==> |dp[k]| == |string2| + 1
+        // This makes sure that the first column already containing the correct values. 
+        invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> dp[k][0] == med_rec(string1, string2, k, 0)
+        // This ensures that all rows until i - 1 contain correct values.
+        invariant forall k: Int :: {dp[k]} 0 <= k < i ==> (forall l: Int :: {dp[k][l]} 0 <= l < (|string2| + 1) ==> dp[k][l] == med_rec(string1, string2, k, l))
+        decreases |dp| - i
+    {
+        j := 1
+        while (j < |string2| + 1)
+            invariant 0 < i <= |dp|
+            invariant 0 < j <= |dp[0]|
+            // bound for DP table
+            invariant |dp| == |string1| + 1
+            invariant forall k: Int :: 0 <= k < |dp| ==> |dp[k]| == |string2| + 1
+            // We make sure the first column already containing the correct values.
+            invariant forall k: Int :: {dp[k]} 0 <= k < |dp| ==> dp[k][0] == med_rec(string1, string2, k, 0)
+            // This ensures that all rows until i - 1 contain correct values.
+            invariant forall k: Int :: {dp[k]} 0 <= k < i ==> (forall l: Int :: {dp[k][l]} 0 <= l < (|string2| + 1) ==> dp[k][l] == med_rec(string1, string2, k, l))
+            // This makes sure that all values in the row i until the column j - 1 contain correct values.
+            invariant forall k: Int :: {dp[i][k]} 0 <= k < j ==> dp[i][k] == med_rec(string1, string2, i, k)
+            decreases |string2| - j
+        {
+            // We check if the characters at the current positions are the same.
+            dp := dp[i := dp[i][j := string1[i - 1] == string2[j - 1] ? 
+            dp[i - 1][j - 1] : 
+            1 + min3(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])]]
+            j := j + 1
+        }
+        i := i + 1
+    }
+    minEdits := dp[|dp| - 1][|dp[0]| - 1]
+}

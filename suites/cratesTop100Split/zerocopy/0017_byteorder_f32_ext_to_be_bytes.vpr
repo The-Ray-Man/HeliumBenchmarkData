@@ -1,0 +1,821 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f32  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f32 {
+    (forall x: s_Float_f32 ::
+      { make_generic_s_Float_f32(x) }
+      s_Param_typ(make_generic_s_Float_f32(x)) == s_Float_f32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f32, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f32_type() ==>
+      make_generic_s_Float_f32(p.make_concrete_s_Float_f32) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u32  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u32 {
+    (forall x: s_UInt_u32 ::
+      { make_generic_s_UInt_u32(x) }
+      s_Param_typ(make_generic_s_UInt_u32(x)) == s_UInt_u32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u32, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u32_type() ==>
+      make_generic_s_UInt_u32(p.make_concrete_s_UInt_u32) == p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain s_Float_f32 interpretation (SMTLIB: "(_ FloatingPoint 8 24)", Boogie: "float24e8") {
+  
+  function s_Float_f32_cons(arg0: Int): s_Float_f32 
+  
+  function s_Float_f32_eq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.eq"
+  
+  function s_Float_f32_add(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.add RNE"
+  
+  function s_Float_f32_sub(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.sub RNE"
+  
+  function s_Float_f32_mul(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.mul RNE"
+  
+  function s_Float_f32_div(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.div RNE"
+  
+  function s_Float_f32_trunc(arg0: s_Float_f32): s_Float_f32 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f32_is_nan(arg0: s_Float_f32): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f32_is_infinite(arg0: s_Float_f32): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f32_lt(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.lt"
+  
+  function s_Float_f32_leq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.leq"
+  
+  function s_Float_f32_geq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.geq"
+  
+  function s_Float_f32_gt(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.gt"
+  
+  function s_Float_f32_neg(arg0: s_Float_f32): s_Float_f32 interpretation "fp.neg"
+  
+  function s_Float_f32_abs(arg0: s_Float_f32): s_Float_f32 interpretation "fp.abs"
+  
+  function s_Float_f32_from_bv(arg0: s_BitVec_32): s_Float_f32 interpretation "(_ to_fp 8 24)"
+  
+  function s_Float_f32_to_real(arg0: s_Float_f32): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f32_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f32_cons(i) }
+      s_Float_f32_cons(i) == s_Float_f32_from_bv(s_BitVec_32_from_int(i)) &&
+      s_Float_f32_to_real(s_Float_f32_cons(i)) ==
+      s_Float_f32_to_real(s_Float_f32_from_bv(s_BitVec_32_from_int(i))))
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_32 interpretation (SMTLIB: "(_ BitVec 32)", Boogie: "bv32") {
+  
+  function s_BitVec_32_from_int(arg0: Int): s_BitVec_32 interpretation "(_ int2bv 32)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_Float_f32 {
+    inhabited(s_Float_f32_type()) == true
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_0_Tuple {
+    inhabited(s_0_Tuple_type()) == true
+  }
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_Never {
+    inhabited(s_Never_type()) == false
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Float_f32  {
+  
+  axiom s_Float_f32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f32_type())
+  }
+  
+  axiom s_Float_f32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f32_type())
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_Never  {
+  
+  axiom s_Never_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Never_type())
+  }
+  
+  axiom s_Never_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Never_type())
+  }
+}
+
+field p_UInt_u8_val: s_UInt_u8
+
+field p_Float_f32_val: s_Float_f32
+
+field p_UInt_u32_val: s_UInt_u32
+
+field p_Bool_val: Bool
+
+field p_Int_isize_val: s_Int_isize
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_Float_f32_unreachable(): s_Float_f32
+  ensures false
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function s_Never_unreachable(): s_Never
+  ensures false
+
+
+function s_Never_discr(self: s_Never): s_Int_isize
+  ensures false
+
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_Float_f32_snap(self: Ref): s_Float_f32
+  requires acc(p_Float_f32(self), write)
+{
+  (unfolding acc(p_Float_f32(self), write) in self.p_Float_f32_val)
+}
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_0_Tuple_snap(self: Ref): s_0_Tuple
+  requires acc(p_0_Tuple(self), write)
+{
+  (unfolding acc(p_0_Tuple(self), write) in s_0_Tuple_cons())
+}
+
+function p_Never_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Never_snap(self: Ref): s_Never
+  requires acc(p_Never(self), write)
+{
+  (unfolding acc(p_Never(self), write) in s_Never_unreachable())
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_Float_f32(self: Ref) {
+  acc(self.p_Float_f32_val, write)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_0_Tuple(self: Ref) {
+  true
+}
+
+predicate p_Never(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_Never_field_discr(self)), write) &&
+  (false && true)
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+method m_byteorder$col$$col$f32_ext$col$$col$to_be_bytes(_0p: Ref, _1p: Ref)
+  requires inhabited(s_Float_f32_type()) && acc(p_Float_f32(_1p), write)
+  ensures inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))) &&
+    acc(p_Array(_0p, s_UInt_u8_type(), s_UInt_usize_cons(4)), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _from_bb4_to_bb5: Bool
+  var _from_bb6_to_bb7: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb0_to_bb4: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb5_to_bb6: Bool
+  var _from_bb1_to_bb2: Bool
+  var _from_bb3_to_bb2: Bool
+  var _tmp0: s_Float_f32
+  var _tmp1: Bool
+  var _tmp2: Bool
+  var _tmp3: s_Float_f32
+  var _tmp4: s_UInt_u32
+  var _tmp5: s_UInt_u32
+  label start
+  _from_bb4_to_bb5 := false
+  _from_bb6_to_bb7 := false
+  _from_bb2_to_bb3 := false
+  _from_bb0_to_bb4 := false
+  _from_bb0_to_bb1 := false
+  _from_bb5_to_bb6 := false
+  _from_bb1_to_bb2 := false
+  _from_bb3_to_bb2 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_Float_f32_snap(_1p)
+  p_Float_f32_assign(_3p, _tmp0)
+  label _before_0_3
+  label _before_0_4
+  label _before_0_5
+  p_Bool_assign(_4p, false)
+  label _before_0_6
+  _tmp1 := p_Bool_snap(_4p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_4p), write)
+  _tmp2 := _tmp1
+  label _after_0
+  if (_tmp2 == false) {
+    _from_bb0_to_bb4 := true
+    goto bb_4
+  } else {
+    _from_bb0_to_bb1 := true
+    goto bb_1
+  }
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  label _before_4_2
+  _tmp3 := p_Float_f32_snap(_3p)
+  p_Float_f32_assign(_10p, _tmp3)
+  label _before_4_3
+  goto bb_term_4
+  label bb_term_4
+  label pre0
+  make_generic_Float_f32(_10p)
+  m_core$col$$col$intrinsics$col$$col$transmute(_9p, _10p, s_Float_f32_type(),
+    s_UInt_u32_type())
+  make_concrete_UInt_u32(_9p)
+  label post1
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _before_5_1
+  label _before_5_2
+  label _before_5_3
+  _tmp4 := p_UInt_u32_snap(_9p)
+  p_UInt_u32_assign(_11p, _tmp4)
+  label _before_5_4
+  goto bb_term_5
+  label bb_term_5
+  label pre2
+  make_generic_UInt_u32(_11p)
+  m_util$col$$col$macro_util$col$$col$must_use(_2p, _11p, s_UInt_u32_type())
+  make_concrete_UInt_u32(_2p)
+  label post3
+  label _after_5
+  _from_bb5_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  label _before_6_1
+  label _before_6_2
+  label _before_6_3
+  label _before_6_4
+  label _before_6_5
+  label _before_6_6
+  label _before_6_7
+  _tmp5 := p_UInt_u32_snap(_2p)
+  p_UInt_u32_assign(_12p, _tmp5)
+  label _before_6_8
+  goto bb_term_6
+  label bb_term_6
+  label pre4
+  m_core$col$$col$num$col$$col$$lt$impl$sp$u32$gt$$col$$col$to_be_bytes(_0p,
+    _12p)
+  label post5
+  label _after_6
+  _from_bb6_to_bb7 := true
+  goto bb_7
+  label bb_7
+  label _before_7_0
+  label _before_7_1
+  label _before_7_2
+  label package_post6
+  goto end
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  p_0_Tuple_assign(_7p, s_0_Tuple_cons())
+  label _before_3_1
+  label _after_3
+  exhale inhabited(s_0_Tuple_type()) && acc(p_0_Tuple(_7p), write)
+  _from_bb3_to_bb2 := true
+  goto bb_2
+  label bb_8
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$intrinsics$col$$col$transmute(_0p: Ref, _1p: Ref, Src$0: Type,
+  Dst$1: Type)
+  requires inhabited(Src$0) && acc(p_Param(_1p, Src$0), write)
+  ensures inhabited(Dst$1) && acc(p_Param(_0p, Dst$1), write)
+
+
+method m_util$col$$col$macro_util$col$$col$must_use(_0p: Ref, _1p: Ref, T$0: Type)
+  requires inhabited(T$0) && acc(p_Param(_1p, T$0), write)
+  ensures inhabited(T$0) && acc(p_Param(_0p, T$0), write)
+
+
+method m_core$col$$col$num$col$$col$$lt$impl$sp$u32$gt$$col$$col$to_be_bytes(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_1p), write)
+  ensures inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(4))) &&
+    acc(p_Array(_0p, s_UInt_u8_type(), s_UInt_usize_cons(4)), write)
+
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method make_generic_Float_f32(self: Ref)
+  requires acc(p_Float_f32(self), write)
+  ensures acc(p_Param(self, s_Float_f32_type()), write)
+  ensures old(make_generic_s_Float_f32(p_Float_f32_snap(self))) ==
+    p_Param_snap(self, s_Float_f32_type())
+
+
+method make_concrete_Float_f32(self: Ref)
+  requires acc(p_Param(self, s_Float_f32_type()), write)
+  ensures acc(p_Float_f32(self), write)
+  ensures old(p_Param_snap(self, s_Float_f32_type())) ==
+    make_generic_s_Float_f32(p_Float_f32_snap(self))
+
+
+method make_generic_UInt_u32(self: Ref)
+  requires acc(p_UInt_u32(self), write)
+  ensures acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures old(make_generic_s_UInt_u32(p_UInt_u32_snap(self))) ==
+    p_Param_snap(self, s_UInt_u32_type())
+
+
+method make_concrete_UInt_u32(self: Ref)
+  requires acc(p_Param(self, s_UInt_u32_type()), write)
+  ensures acc(p_UInt_u32(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u32_type())) ==
+    make_generic_s_UInt_u32(p_UInt_u32_snap(self))
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_Float_f32_assign(self: Ref, value: s_Float_f32)
+  ensures acc(p_Float_f32(self), write)
+  ensures p_Float_f32_snap(self) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_0_Tuple_assign(self: Ref, value: s_0_Tuple)
+  ensures acc(p_0_Tuple(self), write)
+  ensures p_0_Tuple_snap(self) == value
+
+
+method p_Never_assign(self: Ref, value: s_Never)
+  ensures acc(p_Never(self), write)
+  ensures p_Never_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  make_generic_s_Float_f32(make_concrete_s_Float_f32: s_Float_f32)
+  make_generic_s_UInt_u32(make_concrete_s_UInt_u32: s_UInt_u32)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt s_Never {
+  s_Never_DummyConstructor()
+}
+
+adt Type {
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_UInt_u8_type()
+  s_Float_f32_type()
+  s_UInt_u32_type()
+  s_Bool_type()
+  s_0_Tuple_type()
+  s_Int_isize_type()
+  s_Never_type()
+  Unknown_type(id: Int)
+}

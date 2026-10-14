@@ -1,0 +1,227 @@
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain s_Int_i8  {
+  
+  function s_Int_i8_cons(arg0: Int): s_Int_i8 
+  
+  function s_Int_i8_value(arg0: s_Int_i8): Int 
+  
+  axiom s_Int_i8_ax_cons {
+    (forall s: s_Int_i8 ::
+      { s_Int_i8_value(s) }
+      s_Int_i8_cons(s_Int_i8_value(s)) == s)
+  }
+  
+  axiom s_Int_i8_ax_bounds {
+    (forall s: s_Int_i8 ::
+      { s_Int_i8_value(s) }
+      -128 <= s_Int_i8_value(s) && s_Int_i8_value(s) <= 127)
+  }
+  
+  axiom s_Int_i8_ax_value {
+    (forall value: Int ::
+      { s_Int_i8_cons(value) }
+      -128 <= value && value <= 127 ==>
+      s_Int_i8_value(s_Int_i8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_Int_i8 {
+    inhabited(s_Int_i8_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_cast$col$$col$AsPrimitive  {
+  
+  function cast$col$$col$AsPrimitive_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_Int_i8  {
+  
+  axiom s_Int_i8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i8_type())
+  }
+  
+  axiom s_Int_i8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i8_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_i8_100_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_i8_100_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_i8_type(), s_UInt_u32_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_i8_104_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_i8_104_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_i8_type(), s_Int_i8_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u32_142_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u32_142_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u32_type(), s_UInt_u32_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u32_146_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u32_146_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u32_type(), s_Int_i8_type())
+  }
+}
+
+field p_UInt_u32_val: s_UInt_u32
+
+field p_Int_i8_val: s_Int_i8
+
+function mir_cast_i2i_Int_i8_to_UInt_u32(arg: s_Int_i8): s_UInt_u32
+{
+  s_UInt_u32_cons(s_Int_i8_value(arg) % 4294967296)
+}
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_Int_i8_unreachable(): s_Int_i8
+  ensures false
+
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_Int_i8_snap(self: Ref): s_Int_i8
+  requires acc(p_Int_i8(self), write)
+{
+  (unfolding acc(p_Int_i8(self), write) in self.p_Int_i8_val)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_Int_i8(self: Ref) {
+  acc(self.p_Int_i8_val, write)
+}
+
+method m_$lt$i8$sp$as$sp$cast$col$$col$AsPrimitive$lt$u32$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Int_i8_type()) && acc(p_Int_i8(_1p), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: s_Int_i8
+  var _tmp1: s_Int_i8
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Int_i8_snap(_1p)
+  p_Int_i8_assign(_2p, _tmp0)
+  label _before_0_2
+  _tmp1 := p_Int_i8_snap(_2p)
+  exhale inhabited(s_Int_i8_type()) && acc(p_Int_i8(_2p), write)
+  p_UInt_u32_assign(_0p, mir_cast_i2i_Int_i8_to_UInt_u32(_tmp1))
+  label _before_0_3
+  label _before_0_4
+  label package_post0
+  goto end
+  label end
+}
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_Int_i8_assign(self: Ref, value: s_Int_i8)
+  ensures acc(p_Int_i8(self), write)
+  ensures p_Int_i8_snap(self) == value
+
+
+method trait_cast$col$$col$AsPrimitive_impl_Int_i8_100_fn_pre_weaken_$lt$i8$sp$as$sp$cast$col$$col$AsPrimitive$lt$u32$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Int_i8_type()) && acc(p_Int_i8(_1p), write)
+{
+  label start
+}
+
+method trait_cast$col$$col$AsPrimitive_impl_Int_i8_100_fn_post_strengthen_$lt$i8$sp$as$sp$cast$col$$col$AsPrimitive$lt$u32$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Int_i8_type()) && acc(p_Int_i8(_1p), write)
+  requires inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_UInt_u32_type()
+  s_Int_i8_type()
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,966 @@
+// Generated on 2024-01-05 at 15:39:10
+domain TYPE {
+  
+  unique function class_ParallelASSSP(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Object(): TYPE
+  
+  unique function class_EncodedGlobalVariables(): TYPE
+  
+  function directSuperclass(t: TYPE): TYPE
+  
+  function type_of(val: Ref): TYPE
+  
+  axiom ParallelASSSP_directSuperclass {
+    directSuperclass(class_ParallelASSSP()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom EncodedGlobalVariables_directSuperclass {
+    directSuperclass(class_EncodedGlobalVariables()) == class_java_DOT_lang_DOT_Object()
+  }
+}
+
+domain frac {
+  
+  function frac_val(a: frac): Perm
+  
+  axiom frac_eq {
+    (forall a: frac, b: frac :: { frac_val(a),frac_val(b) } (frac_val(a) == frac_val(b)) == (a == b))
+  }
+  
+  axiom frac_bound {
+    (forall a: frac :: { frac_val(a) } 0 / 1 < frac_val(a) && frac_val(a) <= 1 / 1)
+  }
+}
+
+domain zfrac {
+  
+  function zfrac_val(a: zfrac): Perm
+  
+  axiom zfrac_eq {
+    (forall a: zfrac, b: zfrac :: { zfrac_val(a),zfrac_val(b) } (zfrac_val(a) == zfrac_val(b)) == (a == b))
+  }
+  
+  axiom zfrac_bound {
+    (forall a: zfrac :: { zfrac_val(a) } 0 / 1 <= zfrac_val(a) && zfrac_val(a) <= 1 / 1)
+  }
+}
+
+domain VCTArray[CT] {
+  
+  function loc(a: VCTArray[CT], i: Int): CT
+  
+  function alen(a: VCTArray[CT]): Int
+  
+  function first(r: CT): VCTArray[CT]
+  
+  function second(r: CT): Int
+  
+  axiom all_diff {
+    (forall a: VCTArray[CT], i: Int :: { (loc(a, i): CT) } (first((loc(a, i): CT)): VCTArray[CT]) == a && (second((loc(a, i): CT)): Int) == i)
+  }
+  
+  axiom len_nonneg {
+    (forall a: VCTArray[CT] :: { (alen(a): Int) } (alen(a): Int) >= 0)
+  }
+}
+
+domain VCTOption[T] {
+  
+  function VCTNone(): VCTOption[T]
+  
+  function VCTSome(t: T): VCTOption[T]
+  
+  function getVCTOption(o: VCTOption[T]): T
+  
+  function getVCTOptionOrElse(o: VCTOption[T], default: T): T
+  
+  axiom not_equal_vct {
+    (forall x: T :: { (VCTSome(x): VCTOption[T]) } (VCTNone(): VCTOption[T]) != (VCTSome(x): VCTOption[T]))
+  }
+  
+  axiom equal_vct {
+    (forall x: T, y: T :: { (VCTSome(x): VCTOption[T]),(VCTSome(y): VCTOption[T]) } ((VCTSome(x): VCTOption[T]) == (VCTSome(y): VCTOption[T])) == (x == y))
+  }
+  
+  axiom get_axiom_vct {
+    (forall x: T :: { (getVCTOption((VCTSome(x): VCTOption[T])): T) } (getVCTOption((VCTSome(x): VCTOption[T])): T) == x)
+  }
+  
+  axiom get_axiom_vct_2 {
+    (forall x: VCTOption[T] :: { (VCTSome((getVCTOption(x): T)): VCTOption[T]) } (VCTSome((getVCTOption(x): T)): VCTOption[T]) == x)
+  }
+  
+  axiom get_or_else_axiom_1 {
+    (forall val: T, default: T :: { (getVCTOptionOrElse((VCTSome(val): VCTOption[T]), default): T) } (getVCTOptionOrElse((VCTSome(val): VCTOption[T]), default): T) == val)
+  }
+  
+  axiom get_or_else_axiom_2 {
+    (forall default: T :: { (getVCTOptionOrElse((VCTNone(): VCTOption[T]), default): T) } (getVCTOptionOrElse((VCTNone(): VCTOption[T]), default): T) == default)
+  }
+}
+
+//  a field 
+field ParallelASSSP_cost_seq: Seq[Int]
+
+//  a field 
+field ParallelASSSP_oldcost_seq: Seq[Int]
+
+//  a field 
+field ParallelASSSP_start_seq: Seq[Int]
+
+//  a field 
+field ParallelASSSP_weight_seq: Seq[Int]
+
+//  a field 
+field ParallelASSSP_end_seq: Seq[Int]
+
+//  a field 
+field Integer__item: Int
+
+function ParallelASSSP_inf(): Int
+{
+  -1
+}
+
+function ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int]): Bool
+{
+  0 < V && 0 < A && |start| == A && |end| == A && |weight| == A && ((forall i: Int :: { start[i] } 0 <= i && i < A ==> 0 <= start[i] && start[i] < V) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> 0 <= end[i]) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> end[i] < V) && (forall i: Int :: { start[i] } { end[i] } 0 <= i && i < A ==> start[i] != end[i]) && (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && start[i] == start[j]) ==> end[i] != end[j]) && (forall i: Int :: { weight[i] } 0 <= i && i < A ==> 0 < weight[i]))
+}
+
+function ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, start[i], end[i], Seq(i)))
+{
+  0 <= x && x < V && 0 <= y && y < V && (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A) && (0 == |P| ==> x == y) && (0 < |P| ==> start[P[0]] == x && end[P[|P| - 1]] == y) && (forall i: Int :: 0 <= i && i < |P| - 1 ==> end[P[i]] == start[P[i + 1]])
+}
+
+function ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, start[i], end[i], Seq(i)))
+{
+  ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P) && (forall i: Int, j: Int :: 0 <= i && i < |P| - 1 && (i < j && j < |P|) ==> start[P[i]] != end[P[j]])
+}
+
+function ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+{
+  (exists P: Seq[Int] :: ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P) && |P| <= len)
+}
+
+function ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, start[i], end[i], weight[i]))
+  ensures ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, x, x, 0)
+{
+  (exists P: Seq[Int] :: ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P) && ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) == len)
+}
+
+function ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], P: Seq[Int]): Int
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A)
+  ensures 0 <= result
+  ensures 0 == |P| ==> result == 0
+  ensures P != Seq[Int]() ==> 0 < result
+  ensures result == 0 ==> P == Seq[Int]()
+  ensures result != 0 ==> P != Seq[Int]()
+  ensures 1 == |P| ==> result == weight[P[0]]
+{
+  (0 < |P| ? weight[P[0]] + ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P[1..]) : 0)
+}
+
+function ParallelASSSP_lemma_path_append_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int], a: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  requires 0 <= a && a < A
+  requires end[a] == x
+  ensures result && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, start[a], y, Seq(a) ++ P)
+
+
+function ParallelASSSP_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, P: Seq[Int], Q: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, s, t, P)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, t, u, Q)
+  ensures result && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, s, u, P ++ Q)
+
+
+function ParallelASSSP_lemma_app_nonempty_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], ys: Seq[Int]): Bool
+  requires 0 < |xs|
+  ensures (xs ++ ys)[0] == xs[0]
+  ensures (xs ++ ys)[1..] == xs[1..] ++ ys
+  ensures result
+{
+  true
+}
+
+function ParallelASSSP_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], ys: Seq[Int], zs: Seq[Int]): Bool
+  ensures xs ++ ys ++ zs == xs ++ (ys ++ zs)
+  ensures result
+{
+  true
+}
+
+function ParallelASSSP_lemma_app_append_right_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], ys: Seq[Int]): Bool
+  requires 0 < |ys|
+  ensures xs ++ Seq(ys[0]) ++ ys[1..] == xs ++ (Seq(ys[0]) ++ ys[1..])
+  ensures ys == Seq(ys[0]) ++ ys[1..]
+  ensures result && xs ++ Seq(ys[0]) ++ ys[1..] == xs ++ ys
+
+
+function ParallelASSSP_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], P: Seq[Int], Q: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A)
+  requires (forall i: Int :: { Q[i] } 0 <= i && i < |Q| ==> 0 <= Q[i] && Q[i] < A)
+  ensures result && ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P ++ Q) == ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) + ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, Q)
+
+
+function ParallelASSSP_lemma_cost_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, P: Seq[Int], Q: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, s, t, P)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, t, u, Q)
+  ensures result && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, s, u, P ++ Q)
+  ensures result && ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P ++ Q) == ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) + ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, Q)
+
+
+function ParallelASSSP_assertSeq_Sequence$Integer$_Boolean(xs: Seq[Int], b: Bool): Seq[Int]
+  requires b
+  ensures result == xs
+{
+  xs
+}
+
+function ParallelASSSP_lemma_expath_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, len1: Int, len2: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, s, t, len1)
+  requires ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, t, u, len2)
+  ensures result && ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, s, u, len1 + len2)
+
+
+function ParallelASSSP_lemma_inv12_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == ParallelASSSP_inf()
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() ==> cost[end[a]] != ParallelASSSP_inf())
+  ensures false
+
+
+function ParallelASSSP_lemma_inv12_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == ParallelASSSP_inf()
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() ==> cost[end[a]] != ParallelASSSP_inf())
+  ensures (forall P: Seq[Int] :: ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 ==> false)
+
+
+function ParallelASSSP_lemma_inv12_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() ==> cost[end[a]] != ParallelASSSP_inf())
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P) && |P| <= i + 1) ==> vertex != ParallelASSSP_inf())
+
+
+function ParallelASSSP_lemma_inv11_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != ParallelASSSP_inf()
+  requires ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) < cost[vertex]
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() && (oldcost[end[a]] == ParallelASSSP_inf() || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures false
+
+
+function ParallelASSSP_lemma_inv11_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != ParallelASSSP_inf()
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() && (oldcost[end[a]] == ParallelASSSP_inf() || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall P: Seq[Int] :: ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 && ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) < cost[vertex] ==> false)
+
+
+function ParallelASSSP_lemma_inv11_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() && (oldcost[end[a]] == ParallelASSSP_inf() || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 && ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) < cost[vertex]) ==> vertex != ParallelASSSP_inf())
+
+
+function ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs: Seq[Int], elem: Int, idx: Int): Seq[Seq[Int]]
+  ensures |result| == 2
+  ensures |result[0]| + |result[1]| == |xs|
+  ensures (forall i: Int :: 0 <= i && i < |result[0]| ==> idx <= result[0][i] && result[0][i] < |xs| + idx)
+  ensures (forall i: Int :: 0 <= i && i < |result[1]| ==> idx <= result[1][i] && result[1][i] < |xs| + idx)
+  ensures (forall i: Int :: 0 <= i && i < |result[0]| ==> xs[result[0][i] - idx] != elem)
+  ensures (forall i: Int :: 0 <= i && i < |result[1]| ==> xs[result[1][i] - idx] == elem)
+  ensures (forall i: Int, j: Int :: 0 <= i && i < |result[0]| && (i < j && j < |result[0]|) ==> result[0][i] != result[0][j])
+  ensures (forall i: Int, j: Int :: 0 <= i && i < |result[1]| && (i < j && j < |result[1]|) ==> result[1][i] != result[1][j])
+  ensures |result[1]| == 0 ==> (forall i: Int :: { xs[i] } 0 <= i && i < |xs| ==> xs[i] != elem)
+{
+  (|xs| == 0 ? Seq(Seq[Int](), Seq[Int]()) : Seq((xs[0] == elem ? Seq[Int]() : Seq(idx)) ++ ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs[1..], elem, idx + 1)[0], (xs[0] == elem ? Seq(idx) : Seq[Int]()) ++ ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs[1..], elem, idx + 1)[1]))
+}
+
+function ParallelASSSP_mapIndices_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], idx: Seq[Int]): Seq[Int]
+  requires (forall i: Int :: { idx[i] } 0 <= i && i < |idx| ==> 0 <= idx[i] && idx[i] < |xs|)
+  ensures |result| == |idx|
+  ensures (forall i: Int :: { result[i] } 0 <= i && i < |result| ==> result[i] == xs[idx[i]])
+{
+  (|idx| == 0 ? Seq[Int]() : Seq(xs[idx[0]]) ++ ParallelASSSP_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, idx[1..]))
+}
+
+function ParallelASSSP_simple_path_lemma1_helper_Sequence$Integer$_Integer(xs: Seq[Int], upper: Int): Bool
+  requires 0 <= upper
+  requires (forall i: Int :: { xs[i] } 0 <= i && i < |xs| ==> 0 <= xs[i] && xs[i] < upper)
+  requires (forall i: Int, j: Int :: { xs[j],xs[i] } 0 <= i && i < |xs| && (i < j && j < |xs|) ==> xs[i] != xs[j])
+  decreases _
+  ensures 1 < |ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]| ==> ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][0] != ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][1] && xs[ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][0]] == xs[ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][1]]
+  ensures |ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]| < 2
+  ensures |xs| == |ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0]| + |ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]|
+  ensures 0 < upper ==> ParallelASSSP_simple_path_lemma1_helper_Sequence$Integer$_Integer(ParallelASSSP_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0]), upper - 1)
+  ensures 0 < upper ==> |ParallelASSSP_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, ParallelASSSP_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0])| <= upper - 1
+  ensures result
+{
+  |xs| <= upper
+}
+
+function ParallelASSSP_vertices_in_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], P: Seq[Int], x: Int, y: Int, i: Int): Seq[Int]
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  requires i <= |P| - 1 && -1 <= i
+  ensures |result| == i + 2
+  ensures i == |P| - 1 ==> |result| == |P| + 1
+  ensures (forall k: Int :: { result[k] } 0 <= k && k < |result| ==> 0 <= result[k] && result[k] < V)
+  ensures result[0] == x
+  ensures (forall k: Int :: { result[k] } 1 <= k && k < |result| ==> result[k] == end[P[k - 1]])
+  ensures (forall k: Int, t: Int :: { result[t],result[k] } 0 <= k && k < |result| && (k < t && t < |result|) ==> result[k] != result[t])
+{
+  (i == -1 ? Seq(x) : ParallelASSSP_vertices_in_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, P, x, y, i - 1) ++ Seq(end[P[i]]))
+}
+
+function ParallelASSSP_simple_path_lemma1_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  ensures result && |P| < V
+
+
+function ParallelASSSP_simple_path_lemma1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall P: Seq[Int] :: ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P) ==> |P| < V)
+
+
+function ParallelASSSP_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, z: Int, P: Seq[Int], Q: Seq[Int]): Seq[Int]
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, y, z, Q)
+  requires (forall i: Int, j: Int :: 0 < i && i < |P| && (0 <= j && j < |Q|) ==> start[P[i]] != end[Q[j]])
+  requires (forall i: Int :: 0 <= i && i < |P| ==> end[P[i]] != x)
+  ensures ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, z, result)
+  ensures |result| <= |P| + |Q|
+  ensures ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, result) <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P) + ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, Q)
+{
+  (0 < |Q| ? (end[Q[0]] == x ? ParallelASSSP_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, x, x, z, Seq[Int](), Q[1..]) : ParallelASSSP_assertSeq_Sequence$Integer$_Boolean(ParallelASSSP_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, x, end[Q[0]], z, P ++ Seq(Q[0]), Q[1..]), ParallelASSSP_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P ++ Seq(Q[0]), Q[1..]) && ParallelASSSP_lemma_app_append_right_Sequence$Integer$_Sequence$Integer$(P, Q) && ParallelASSSP_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P, Q))) : P)
+}
+
+function ParallelASSSP_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, z: Int, a: Int, P: Seq[Int]): Seq[Int]
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, y, z, P)
+  requires 0 <= a && a < A && start[a] == x && end[a] == y
+  ensures ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, z, result)
+  ensures |result| <= |P| + 1
+  ensures ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, result) <= weight[a] + ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P)
+{
+  ParallelASSSP_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, x, y, z, Seq(a), P)
+}
+
+function ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Seq[Int]
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  ensures ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, result)
+  ensures |result| <= |P|
+  ensures ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, result) <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P)
+{
+  (0 < |P| ? ParallelASSSP_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, end[P[0]], y, P[0], ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, end[P[0]], y, P[1..])) : P)
+}
+
+function ParallelASSSP_simple_path_Part_1_lemma2_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+  ensures result && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P)
+{
+  true
+}
+
+function ParallelASSSP_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int): Bool
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall P: Seq[Int] :: ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P) ==> ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, y, P))
+
+
+function ParallelASSSP_compare_Integer_Integer_Integer(start_cost: Int, weight: Int, end_cost: Int): Bool
+  requires start_cost == ParallelASSSP_inf() || 0 <= start_cost
+  requires end_cost == ParallelASSSP_inf() || 0 <= end_cost
+  requires 0 < weight
+  ensures start_cost != ParallelASSSP_inf() && (end_cost == ParallelASSSP_inf() || start_cost + weight <= end_cost) ==> result
+  ensures result ==> start_cost != ParallelASSSP_inf() && (end_cost == ParallelASSSP_inf() || start_cost + weight <= end_cost)
+  ensures start_cost == ParallelASSSP_inf() || end_cost != ParallelASSSP_inf() && end_cost < start_cost + weight ==> !result
+  ensures !result ==> start_cost == ParallelASSSP_inf() || end_cost != ParallelASSSP_inf() && end_cost < start_cost + weight
+  ensures result && end_cost != ParallelASSSP_inf() ==> start_cost + weight <= end_cost
+{
+  (start_cost != ParallelASSSP_inf() && (end_cost == ParallelASSSP_inf() || start_cost + weight <= end_cost) ? true : false)
+}
+
+function instanceof_TYPE_TYPE(t: TYPE, u: TYPE): Bool
+  ensures result == (t == u || directSuperclass(t) == u)
+
+
+function new_frac(x: Perm): frac
+  requires 0 / 1 < x && x <= 1 / 1
+  ensures frac_val(result) == x
+
+
+function new_zfrac(x: Perm): zfrac
+  requires 0 / 1 <= x && x <= 1 / 1
+  ensures zfrac_val(result) == x
+
+
+function getVCTOption1(x: VCTOption[VCTArray[Ref]]): VCTArray[Ref]
+  requires x != (VCTNone(): VCTOption[VCTArray[Ref]])
+{
+  (getVCTOption(x): VCTArray[Ref])
+}
+
+method ParallelASSSP_lemma_one_path_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int])
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, start[i], end[i], Seq(i)))
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, start[i], end[i], weight[i]))
+{
+  inhale false
+}
+
+method ParallelASSSP_lemma_inv12_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() ==> cost[end[a]] != ParallelASSSP_inf())
+  ensures (forall v: Int :: { cost[v] } 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i + 1) ==> cost[v] != ParallelASSSP_inf())
+{
+  inhale false
+}
+
+method ParallelASSSP_lemma_inv11_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelASSSP_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelASSSP_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelASSSP_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelASSSP_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, i) ==> oldcost[v] != ParallelASSSP_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelASSSP_inf() && (oldcost[end[a]] == ParallelASSSP_inf() || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, src, vertex, P) && |P| <= i + 1) ==> cost[vertex] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P))
+{
+  inhale false
+}
+
+method ParallelASSSP_simple_path_lemma1_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> |P| < V)
+{
+  inhale false
+}
+
+method ParallelASSSP_simple_path_Part_1_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P))
+{
+  inhale false
+}
+
+method ParallelASSSP_simple_path_Part_2_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P)))
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> ParallelASSSP_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P)))
+{
+  inhale false
+}
+
+method ParallelASSSP_simple_path_lemma3_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> |ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P)| <= |P|)
+{
+  inhale false
+}
+
+method ParallelASSSP_simple_path_cost_lemma4_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelASSSP_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P) ==> ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, ParallelASSSP_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, weight, x, v, P)) <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, start, end, weight, P))
+{
+  inhale false
+}
+
+method ParallelASSSP___contract_unsatisfiable__ASSSP_EncodedGlobalVariables_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, V: Int, A: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], source: Int, counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+{
+  inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (acc(diz.ParallelASSSP_start_seq, wildcard) && acc(diz.ParallelASSSP_weight_seq, wildcard) && acc(diz.ParallelASSSP_end_seq, wildcard) && |diz.ParallelASSSP_start_seq| == A && |diz.ParallelASSSP_weight_seq| == A && |diz.ParallelASSSP_end_seq| == A && (forall i__1: Int :: { (loc(getVCTOption1(contrib1), i__1): Ref) } 0 <= i__1 && i__1 < A ==> acc((loc(getVCTOption1(contrib1), i__1): Ref).Integer__item, write)) && (forall i__2: Int :: { (loc(getVCTOption1(contrib1), i__2): Ref) } 0 <= i__2 && i__2 < A ==> (loc(getVCTOption1(contrib1), i__2): Ref).Integer__item == 0) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (loc(getVCTOption1(counter), 0): Ref).Integer__item == 0 && acc(diz.ParallelASSSP_cost_seq, write) && |diz.ParallelASSSP_cost_seq| == V && acc(diz.ParallelASSSP_oldcost_seq, write) && |diz.ParallelASSSP_oldcost_seq| == V && (forall i__3: Int :: { diz.ParallelASSSP_oldcost_seq[i__3] } { diz.ParallelASSSP_cost_seq[i__3] } 0 <= i__3 && i__3 < V ==> diz.ParallelASSSP_oldcost_seq[i__3] == diz.ParallelASSSP_cost_seq[i__3]) && (forall i__4: Int :: { (loc(getVCTOption1(start), i__4): Ref) } 0 <= i__4 && i__4 < A ==> acc((loc(getVCTOption1(start), i__4): Ref).Integer__item, wildcard)) && (forall i__5: Int :: { (loc(getVCTOption1(start), i__5): Ref) } 0 <= i__5 && i__5 < A ==> 0 <= (loc(getVCTOption1(start), i__5): Ref).Integer__item && (loc(getVCTOption1(start), i__5): Ref).Integer__item < V) && (forall i__6: Int :: { (loc(getVCTOption1(end), i__6): Ref) } 0 <= i__6 && i__6 < A ==> acc((loc(getVCTOption1(end), i__6): Ref).Integer__item, wildcard)) && (forall i__7: Int :: { (loc(getVCTOption1(end), i__7): Ref) } 0 <= i__7 && i__7 < A ==> 0 <= (loc(getVCTOption1(end), i__7): Ref).Integer__item && (loc(getVCTOption1(end), i__7): Ref).Integer__item < V) && (forall i__8: Int :: { (loc(getVCTOption1(start), i__8): Ref) } { (loc(getVCTOption1(end), i__8): Ref) } 0 <= i__8 && i__8 < A ==> (loc(getVCTOption1(start), i__8): Ref).Integer__item != (loc(getVCTOption1(end), i__8): Ref).Integer__item) && (forall i__9: Int, j__10: Int :: 0 <= i__9 && i__9 < A && (0 <= j__10 && j__10 < A && i__9 != j__10 && (loc(getVCTOption1(start), i__9): Ref).Integer__item == (loc(getVCTOption1(start), j__10): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__9): Ref).Integer__item != (loc(getVCTOption1(end), j__10): Ref).Integer__item) && (forall i__11: Int :: { (loc(getVCTOption1(start), i__11): Ref) } { diz.ParallelASSSP_start_seq[i__11] } 0 <= i__11 && i__11 < A ==> (loc(getVCTOption1(start), i__11): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__11]) && (forall i__12: Int :: { (loc(getVCTOption1(end), i__12): Ref) } { diz.ParallelASSSP_end_seq[i__12] } 0 <= i__12 && i__12 < A ==> (loc(getVCTOption1(end), i__12): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__12]) && (forall i__13: Int :: { (loc(getVCTOption1(weight), i__13): Ref) } 0 <= i__13 && i__13 < A ==> acc((loc(getVCTOption1(weight), i__13): Ref).Integer__item, wildcard)) && (forall i__14: Int :: { (loc(getVCTOption1(weight), i__14): Ref) } { diz.ParallelASSSP_weight_seq[i__14] } 0 <= i__14 && i__14 < A ==> (loc(getVCTOption1(weight), i__14): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__14]) && (forall i__15: Int :: { (loc(getVCTOption1(weight), i__15): Ref) } 0 <= i__15 && i__15 < A ==> 0 < (loc(getVCTOption1(weight), i__15): Ref).Integer__item) && (forall i__16: Int :: { (loc(getVCTOption1(cost), i__16): Ref) } 0 <= i__16 && i__16 < V ==> acc((loc(getVCTOption1(cost), i__16): Ref).Integer__item, write)) && (forall i__17: Int :: { (loc(getVCTOption1(cost), i__17): Ref) } 0 <= i__17 && i__17 < V && i__17 != source ==> (loc(getVCTOption1(cost), i__17): Ref).Integer__item == ParallelASSSP_inf()) && (loc(getVCTOption1(cost), source): Ref).Integer__item == 0 && (forall i__18: Int :: { (loc(getVCTOption1(cost), i__18): Ref) } { diz.ParallelASSSP_cost_seq[i__18] } 0 <= i__18 && i__18 < V ==> (loc(getVCTOption1(cost), i__18): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__18]))
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelASSSP_loop_body_4_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_EncodedGlobalVariables(diz: Ref, V: Int, A: Int, source: Int, start: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], tid: Int, globals: Ref)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(weight)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires 0 <= tid && tid < A
+  requires acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2)
+  requires (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(weight)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures 0 <= tid && tid < A
+  ensures acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2)
+  ensures (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 1
+{
+  var __flatten_1__50: Ref
+  var __flatten_2__51: Ref
+  var __flatten_3__52: Ref
+  var __flatten_4__53: Ref
+  var __flatten_5__54: Ref
+  var __flatten_6__55: Bool
+  var __flatten_7__56: Ref
+  var __flatten_8__57: Ref
+  var __flatten_9__58: Int
+  var __flatten_10__59: Ref
+  var __flatten_11__60: Ref
+  var __flatten_12__61: Ref
+  var __flatten_13__62: Seq[Int]
+  var __flatten_14__63: Ref
+  var __flatten_15__64: Ref
+  var __flatten_16__65: Ref
+  var __flatten_17__66: Ref
+  var __flatten_19__67: Ref
+  inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelASSSP_start_seq, wildcard) && acc(diz.ParallelASSSP_weight_seq, wildcard) && acc(diz.ParallelASSSP_end_seq, wildcard) && (|diz.ParallelASSSP_start_seq| == A && |diz.ParallelASSSP_weight_seq| == A && |diz.ParallelASSSP_end_seq| == A) && (forall i__19: Int :: { (loc(getVCTOption1(start), i__19): Ref) } 0 <= i__19 && i__19 < A ==> acc((loc(getVCTOption1(start), i__19): Ref).Integer__item, wildcard)) && (forall i__20: Int :: { (loc(getVCTOption1(start), i__20): Ref) } 0 <= i__20 && i__20 < A ==> 0 <= (loc(getVCTOption1(start), i__20): Ref).Integer__item && (loc(getVCTOption1(start), i__20): Ref).Integer__item < V) && (forall i__21: Int :: { (loc(getVCTOption1(end), i__21): Ref) } 0 <= i__21 && i__21 < A ==> acc((loc(getVCTOption1(end), i__21): Ref).Integer__item, wildcard)) && (forall i__22: Int :: { (loc(getVCTOption1(end), i__22): Ref) } 0 <= i__22 && i__22 < A ==> 0 <= (loc(getVCTOption1(end), i__22): Ref).Integer__item && (loc(getVCTOption1(end), i__22): Ref).Integer__item < V) && (forall i__23: Int :: { (loc(getVCTOption1(start), i__23): Ref) } { (loc(getVCTOption1(end), i__23): Ref) } 0 <= i__23 && i__23 < A ==> (loc(getVCTOption1(start), i__23): Ref).Integer__item != (loc(getVCTOption1(end), i__23): Ref).Integer__item) && (forall i__24: Int, j__25: Int :: 0 <= i__24 && i__24 < A && (0 <= j__25 && j__25 < A && i__24 != j__25 && (loc(getVCTOption1(start), i__24): Ref).Integer__item == (loc(getVCTOption1(start), j__25): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__24): Ref).Integer__item != (loc(getVCTOption1(end), j__25): Ref).Integer__item) && (forall i__26: Int :: { (loc(getVCTOption1(start), i__26): Ref) } { diz.ParallelASSSP_start_seq[i__26] } 0 <= i__26 && i__26 < A ==> (loc(getVCTOption1(start), i__26): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__26]) && (forall i__27: Int :: { (loc(getVCTOption1(end), i__27): Ref) } { diz.ParallelASSSP_end_seq[i__27] } 0 <= i__27 && i__27 < A ==> (loc(getVCTOption1(end), i__27): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__27]) && (forall i__28: Int :: { (loc(getVCTOption1(weight), i__28): Ref) } 0 <= i__28 && i__28 < A ==> acc((loc(getVCTOption1(weight), i__28): Ref).Integer__item, wildcard)) && ((forall i__29: Int :: { (loc(getVCTOption1(weight), i__29): Ref) } 0 <= i__29 && i__29 < A ==> 0 < (loc(getVCTOption1(weight), i__29): Ref).Integer__item) && (forall i__30: Int :: { (loc(getVCTOption1(weight), i__30): Ref) } { diz.ParallelASSSP_weight_seq[i__30] } 0 <= i__30 && i__30 < A ==> (loc(getVCTOption1(weight), i__30): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__30])) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelASSSP_cost_seq, write) && |diz.ParallelASSSP_cost_seq| == V && acc(diz.ParallelASSSP_oldcost_seq, write) && |diz.ParallelASSSP_oldcost_seq| == V && (forall i__31: Int :: { (loc(getVCTOption1(contrib1), i__31): Ref) } 0 <= i__31 && i__31 < A ==> acc((loc(getVCTOption1(contrib1), i__31): Ref).Integer__item, 1 / 2)) && ((forall i__32: Int :: { (loc(getVCTOption1(contrib1), i__32): Ref) } 0 <= i__32 && i__32 < A ==> (loc(getVCTOption1(contrib1), i__32): Ref).Integer__item == 0) ==> (forall i__33: Int :: { diz.ParallelASSSP_oldcost_seq[i__33] } { diz.ParallelASSSP_cost_seq[i__33] } 0 <= i__33 && i__33 < V ==> diz.ParallelASSSP_oldcost_seq[i__33] == diz.ParallelASSSP_cost_seq[i__33])) && (forall i__34: Int :: { (loc(getVCTOption1(cost), i__34): Ref) } 0 <= i__34 && i__34 < V ==> acc((loc(getVCTOption1(cost), i__34): Ref).Integer__item, write)) && (forall i__35: Int :: { diz.ParallelASSSP_oldcost_seq[i__35] } { diz.ParallelASSSP_cost_seq[i__35] } 0 <= i__35 && i__35 < V && diz.ParallelASSSP_cost_seq[i__35] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__35] == diz.ParallelASSSP_cost_seq[i__35]) && (forall i__36: Int :: { diz.ParallelASSSP_oldcost_seq[i__36] } { diz.ParallelASSSP_cost_seq[i__36] } 0 <= i__36 && i__36 < V && diz.ParallelASSSP_oldcost_seq[i__36] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__36] <= diz.ParallelASSSP_cost_seq[i__36]) && (forall i__37: Int :: { diz.ParallelASSSP_cost_seq[i__37] } { diz.ParallelASSSP_oldcost_seq[i__37] } 0 <= i__37 && i__37 < V && diz.ParallelASSSP_oldcost_seq[i__37] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[i__37] <= diz.ParallelASSSP_oldcost_seq[i__37]) && ((forall i__38: Int :: { diz.ParallelASSSP_oldcost_seq[i__38] } 0 <= i__38 && i__38 < V && i__38 != source ==> diz.ParallelASSSP_oldcost_seq[i__38] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_oldcost_seq[i__38]) && diz.ParallelASSSP_oldcost_seq[source] == 0) && ((forall i__39: Int :: { diz.ParallelASSSP_cost_seq[i__39] } 0 <= i__39 && i__39 < V && i__39 != source ==> diz.ParallelASSSP_cost_seq[i__39] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i__39]) && diz.ParallelASSSP_cost_seq[source] == 0) && (forall i__40: Int :: { (loc(getVCTOption1(cost), i__40): Ref) } { diz.ParallelASSSP_cost_seq[i__40] } 0 <= i__40 && i__40 < V ==> (loc(getVCTOption1(cost), i__40): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__40]) && (forall i__41: Int :: 0 <= i__41 && i__41 < A && (loc(getVCTOption1(contrib1), i__41): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[diz.ParallelASSSP_start_seq[i__41]] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[diz.ParallelASSSP_end_seq[i__41]] != ParallelASSSP_inf()) && (forall a__42: Int :: 0 <= a__42 && a__42 < A && (loc(getVCTOption1(contrib1), a__42): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__42): Ref).Integer__item] != ParallelASSSP_inf() && (diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__42): Ref).Integer__item] == ParallelASSSP_inf() || diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__42): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__42] <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__42): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__42): Ref).Integer__item): Ref).Integer__item <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__42): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__42]) && (forall i__43: Int :: 0 <= i__43 && i__43 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__43): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(start), i__43): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__43): Ref).Integer__item])) && (forall i__44: Int :: 0 <= i__44 && i__44 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__44): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(end), i__44): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__44): Ref).Integer__item])) && (forall i__45: Int :: 0 <= i__45 && i__45 < V && diz.ParallelASSSP_cost_seq[i__45] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i__45, diz.ParallelASSSP_cost_seq[i__45])) && (forall v__46: Int :: 0 <= v__46 && v__46 < V && diz.ParallelASSSP_oldcost_seq[v__46] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__46, diz.ParallelASSSP_oldcost_seq[v__46])) && (forall vertex__47: Int, P__48: Seq[Int] :: 0 <= vertex__47 && vertex__47 < V && diz.ParallelASSSP_oldcost_seq[vertex__47] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex__47, P__48) && |P__48| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[vertex__47] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P__48)) && (forall v__49: Int :: { diz.ParallelASSSP_oldcost_seq[v__49] } 0 <= v__49 && v__49 < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__49, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[v__49] != ParallelASSSP_inf()))
+  __flatten_2__51 := (loc(getVCTOption1(start), tid): Ref)
+  __flatten_1__50 := (loc(getVCTOption1(cost), __flatten_2__51.Integer__item): Ref)
+  __flatten_3__52 := (loc(getVCTOption1(weight), tid): Ref)
+  __flatten_5__54 := (loc(getVCTOption1(end), tid): Ref)
+  __flatten_4__53 := (loc(getVCTOption1(cost), __flatten_5__54.Integer__item): Ref)
+  __flatten_6__55 := ParallelASSSP_compare_Integer_Integer_Integer(__flatten_1__50.Integer__item, __flatten_3__52.Integer__item, __flatten_4__53.Integer__item)
+  if (__flatten_6__55) {
+    __flatten_8__57 := (loc(getVCTOption1(end), tid): Ref)
+    __flatten_7__56 := (loc(getVCTOption1(cost), __flatten_8__57.Integer__item): Ref)
+    __flatten_11__60 := (loc(getVCTOption1(start), tid): Ref)
+    __flatten_10__59 := (loc(getVCTOption1(cost), __flatten_11__60.Integer__item): Ref)
+    __flatten_12__61 := (loc(getVCTOption1(weight), tid): Ref)
+    __flatten_9__58 := __flatten_10__59.Integer__item + __flatten_12__61.Integer__item
+    __flatten_7__56.Integer__item := __flatten_9__58
+    __flatten_14__63 := (loc(getVCTOption1(end), tid): Ref)
+    __flatten_16__65 := (loc(getVCTOption1(start), tid): Ref)
+    __flatten_15__64 := (loc(getVCTOption1(cost), __flatten_16__65.Integer__item): Ref)
+    __flatten_17__66 := (loc(getVCTOption1(weight), tid): Ref)
+    __flatten_13__62 := diz.ParallelASSSP_cost_seq[__flatten_14__63.Integer__item := __flatten_15__64.Integer__item + __flatten_17__66.Integer__item]
+    diz.ParallelASSSP_cost_seq := __flatten_13__62
+    // assert
+    assert diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), tid): Ref).Integer__item] == (loc(getVCTOption1(cost), (loc(getVCTOption1(start), tid): Ref).Integer__item): Ref).Integer__item + (loc(getVCTOption1(weight), tid): Ref).Integer__item
+    ParallelASSSP_lemma_one_path_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq)
+    // assert
+    assert ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, (loc(getVCTOption1(start), tid): Ref).Integer__item, (loc(getVCTOption1(end), tid): Ref).Integer__item, (loc(getVCTOption1(weight), tid): Ref).Integer__item)
+    // assert
+    assert ParallelASSSP_lemma_expath_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(start), tid): Ref).Integer__item, (loc(getVCTOption1(end), tid): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), tid): Ref).Integer__item], (loc(getVCTOption1(weight), tid): Ref).Integer__item)
+    // assert
+    assert (loc(getVCTOption1(cost), (loc(getVCTOption1(end), tid): Ref).Integer__item): Ref).Integer__item == (loc(getVCTOption1(cost), (loc(getVCTOption1(start), tid): Ref).Integer__item): Ref).Integer__item + (loc(getVCTOption1(weight), tid): Ref).Integer__item
+    // assert
+    assert ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(end), tid): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), tid): Ref).Integer__item] + (loc(getVCTOption1(weight), tid): Ref).Integer__item)
+  }
+  __flatten_19__67 := (loc(getVCTOption1(contrib1), tid): Ref)
+  __flatten_19__67.Integer__item := 1
+  exhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelASSSP_start_seq, wildcard) && acc(diz.ParallelASSSP_weight_seq, wildcard) && acc(diz.ParallelASSSP_end_seq, wildcard) && (|diz.ParallelASSSP_start_seq| == A && |diz.ParallelASSSP_weight_seq| == A && |diz.ParallelASSSP_end_seq| == A) && (forall i__68: Int :: { (loc(getVCTOption1(start), i__68): Ref) } 0 <= i__68 && i__68 < A ==> acc((loc(getVCTOption1(start), i__68): Ref).Integer__item, wildcard)) && (forall i__69: Int :: { (loc(getVCTOption1(start), i__69): Ref) } 0 <= i__69 && i__69 < A ==> 0 <= (loc(getVCTOption1(start), i__69): Ref).Integer__item && (loc(getVCTOption1(start), i__69): Ref).Integer__item < V) && (forall i__70: Int :: { (loc(getVCTOption1(end), i__70): Ref) } 0 <= i__70 && i__70 < A ==> acc((loc(getVCTOption1(end), i__70): Ref).Integer__item, wildcard)) && (forall i__71: Int :: { (loc(getVCTOption1(end), i__71): Ref) } 0 <= i__71 && i__71 < A ==> 0 <= (loc(getVCTOption1(end), i__71): Ref).Integer__item && (loc(getVCTOption1(end), i__71): Ref).Integer__item < V) && (forall i__72: Int :: { (loc(getVCTOption1(start), i__72): Ref) } { (loc(getVCTOption1(end), i__72): Ref) } 0 <= i__72 && i__72 < A ==> (loc(getVCTOption1(start), i__72): Ref).Integer__item != (loc(getVCTOption1(end), i__72): Ref).Integer__item) && (forall i__73: Int, j__74: Int :: 0 <= i__73 && i__73 < A && (0 <= j__74 && j__74 < A && i__73 != j__74 && (loc(getVCTOption1(start), i__73): Ref).Integer__item == (loc(getVCTOption1(start), j__74): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__73): Ref).Integer__item != (loc(getVCTOption1(end), j__74): Ref).Integer__item) && (forall i__75: Int :: { (loc(getVCTOption1(start), i__75): Ref) } { diz.ParallelASSSP_start_seq[i__75] } 0 <= i__75 && i__75 < A ==> (loc(getVCTOption1(start), i__75): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__75]) && (forall i__76: Int :: { (loc(getVCTOption1(end), i__76): Ref) } { diz.ParallelASSSP_end_seq[i__76] } 0 <= i__76 && i__76 < A ==> (loc(getVCTOption1(end), i__76): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__76]) && (forall i__77: Int :: { (loc(getVCTOption1(weight), i__77): Ref) } 0 <= i__77 && i__77 < A ==> acc((loc(getVCTOption1(weight), i__77): Ref).Integer__item, wildcard)) && ((forall i__78: Int :: { (loc(getVCTOption1(weight), i__78): Ref) } 0 <= i__78 && i__78 < A ==> 0 < (loc(getVCTOption1(weight), i__78): Ref).Integer__item) && (forall i__79: Int :: { (loc(getVCTOption1(weight), i__79): Ref) } { diz.ParallelASSSP_weight_seq[i__79] } 0 <= i__79 && i__79 < A ==> (loc(getVCTOption1(weight), i__79): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__79])) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelASSSP_cost_seq, write) && |diz.ParallelASSSP_cost_seq| == V && acc(diz.ParallelASSSP_oldcost_seq, write) && |diz.ParallelASSSP_oldcost_seq| == V && (forall i__80: Int :: { (loc(getVCTOption1(contrib1), i__80): Ref) } 0 <= i__80 && i__80 < A ==> acc((loc(getVCTOption1(contrib1), i__80): Ref).Integer__item, 1 / 2)) && ((forall i__81: Int :: { (loc(getVCTOption1(contrib1), i__81): Ref) } 0 <= i__81 && i__81 < A ==> (loc(getVCTOption1(contrib1), i__81): Ref).Integer__item == 0) ==> (forall i__82: Int :: { diz.ParallelASSSP_oldcost_seq[i__82] } { diz.ParallelASSSP_cost_seq[i__82] } 0 <= i__82 && i__82 < V ==> diz.ParallelASSSP_oldcost_seq[i__82] == diz.ParallelASSSP_cost_seq[i__82])) && (forall i__83: Int :: { (loc(getVCTOption1(cost), i__83): Ref) } 0 <= i__83 && i__83 < V ==> acc((loc(getVCTOption1(cost), i__83): Ref).Integer__item, write)) && (forall i__84: Int :: { diz.ParallelASSSP_oldcost_seq[i__84] } { diz.ParallelASSSP_cost_seq[i__84] } 0 <= i__84 && i__84 < V && diz.ParallelASSSP_cost_seq[i__84] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__84] == diz.ParallelASSSP_cost_seq[i__84]) && (forall i__85: Int :: { diz.ParallelASSSP_oldcost_seq[i__85] } { diz.ParallelASSSP_cost_seq[i__85] } 0 <= i__85 && i__85 < V && diz.ParallelASSSP_oldcost_seq[i__85] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__85] <= diz.ParallelASSSP_cost_seq[i__85]) && (forall i__86: Int :: { diz.ParallelASSSP_cost_seq[i__86] } { diz.ParallelASSSP_oldcost_seq[i__86] } 0 <= i__86 && i__86 < V && diz.ParallelASSSP_oldcost_seq[i__86] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[i__86] <= diz.ParallelASSSP_oldcost_seq[i__86]) && ((forall i__87: Int :: { diz.ParallelASSSP_oldcost_seq[i__87] } 0 <= i__87 && i__87 < V && i__87 != source ==> diz.ParallelASSSP_oldcost_seq[i__87] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_oldcost_seq[i__87]) && diz.ParallelASSSP_oldcost_seq[source] == 0) && ((forall i__88: Int :: { diz.ParallelASSSP_cost_seq[i__88] } 0 <= i__88 && i__88 < V && i__88 != source ==> diz.ParallelASSSP_cost_seq[i__88] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i__88]) && diz.ParallelASSSP_cost_seq[source] == 0) && (forall i__89: Int :: { (loc(getVCTOption1(cost), i__89): Ref) } { diz.ParallelASSSP_cost_seq[i__89] } 0 <= i__89 && i__89 < V ==> (loc(getVCTOption1(cost), i__89): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__89]) && (forall i__90: Int :: 0 <= i__90 && i__90 < A && (loc(getVCTOption1(contrib1), i__90): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[diz.ParallelASSSP_start_seq[i__90]] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[diz.ParallelASSSP_end_seq[i__90]] != ParallelASSSP_inf()) && (forall a__91: Int :: 0 <= a__91 && a__91 < A && (loc(getVCTOption1(contrib1), a__91): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__91): Ref).Integer__item] != ParallelASSSP_inf() && (diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__91): Ref).Integer__item] == ParallelASSSP_inf() || diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__91): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__91] <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__91): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__91): Ref).Integer__item): Ref).Integer__item <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__91): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__91]) && (forall i__92: Int :: 0 <= i__92 && i__92 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__92): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(start), i__92): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__92): Ref).Integer__item])) && (forall i__93: Int :: 0 <= i__93 && i__93 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__93): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(end), i__93): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__93): Ref).Integer__item])) && (forall i__94: Int :: 0 <= i__94 && i__94 < V && diz.ParallelASSSP_cost_seq[i__94] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i__94, diz.ParallelASSSP_cost_seq[i__94])) && (forall v__95: Int :: 0 <= v__95 && v__95 < V && diz.ParallelASSSP_oldcost_seq[v__95] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__95, diz.ParallelASSSP_oldcost_seq[v__95])) && (forall vertex__96: Int, P__97: Seq[Int] :: 0 <= vertex__96 && vertex__96 < V && diz.ParallelASSSP_oldcost_seq[vertex__96] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex__96, P__97) && |P__97| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[vertex__96] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P__97)) && (forall v__98: Int :: { diz.ParallelASSSP_oldcost_seq[v__98] } 0 <= v__98 && v__98 < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__98, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[v__98] != ParallelASSSP_inf()))
+}
+
+method ParallelASSSP_parrallel_region_main_1_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_EncodedGlobalVariables(diz: Ref, A: Int, V: Int, source: Int, start: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], globals: Ref)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(weight)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2))
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0)
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(weight)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2))
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 1)
+{
+  inhale false
+}
+
+method ParallelASSSP_loop_body_12_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer(diz: Ref, V: Int, A: Int, source: Int, start: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], tid: Int)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(weight)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires 0 <= tid && tid < A
+  requires acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write)
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(weight)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures 0 <= tid && tid < A
+  ensures acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write)
+  ensures (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0
+{
+  var __flatten_20__99: Ref
+  __flatten_20__99 := (loc(getVCTOption1(contrib1), tid): Ref)
+  __flatten_20__99.Integer__item := 0
+}
+
+method ParallelASSSP_parrallel_region_main_2_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, A: Int, V: Int, source: Int, start: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(weight)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write))
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(weight)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write))
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0)
+{
+  inhale false
+}
+
+method ParallelASSSP_ASSSP_EncodedGlobalVariables_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, V: Int, A: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], weight: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], source: Int, counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(weight)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires acc(diz.ParallelASSSP_start_seq, wildcard)
+  requires acc(diz.ParallelASSSP_weight_seq, wildcard)
+  requires acc(diz.ParallelASSSP_end_seq, wildcard)
+  requires |diz.ParallelASSSP_start_seq| == A
+  requires |diz.ParallelASSSP_weight_seq| == A
+  requires |diz.ParallelASSSP_end_seq| == A
+  requires (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(contrib1), i): Ref).Integer__item, write))
+  requires (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(contrib1), i): Ref).Integer__item == 0)
+  requires acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+  requires (loc(getVCTOption1(counter), 0): Ref).Integer__item == 0
+  requires acc(diz.ParallelASSSP_cost_seq, write)
+  requires |diz.ParallelASSSP_cost_seq| == V
+  requires acc(diz.ParallelASSSP_oldcost_seq, write)
+  requires |diz.ParallelASSSP_oldcost_seq| == V
+  requires (forall i: Int :: { diz.ParallelASSSP_oldcost_seq[i] } { diz.ParallelASSSP_cost_seq[i] } 0 <= i && i < V ==> diz.ParallelASSSP_oldcost_seq[i] == diz.ParallelASSSP_cost_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(start), i): Ref).Integer__item, wildcard))
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(start), i): Ref).Integer__item && (loc(getVCTOption1(start), i): Ref).Integer__item < V)
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(end), i): Ref).Integer__item, wildcard))
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(end), i): Ref).Integer__item && (loc(getVCTOption1(end), i): Ref).Integer__item < V)
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item != (loc(getVCTOption1(end), i): Ref).Integer__item)
+  requires (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(start), i): Ref).Integer__item == (loc(getVCTOption1(start), j): Ref).Integer__item) ==> (loc(getVCTOption1(end), i): Ref).Integer__item != (loc(getVCTOption1(end), j): Ref).Integer__item)
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { diz.ParallelASSSP_start_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item == diz.ParallelASSSP_start_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } { diz.ParallelASSSP_end_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(end), i): Ref).Integer__item == diz.ParallelASSSP_end_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(weight), i): Ref).Integer__item, wildcard))
+  requires (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } { diz.ParallelASSSP_weight_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(weight), i): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } 0 <= i && i < A ==> 0 < (loc(getVCTOption1(weight), i): Ref).Integer__item)
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V ==> acc((loc(getVCTOption1(cost), i): Ref).Integer__item, write))
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V && i != source ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == ParallelASSSP_inf())
+  requires (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } { diz.ParallelASSSP_cost_seq[i] } 0 <= i && i < V ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i])
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(weight)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures acc(diz.ParallelASSSP_start_seq, wildcard)
+  ensures acc(diz.ParallelASSSP_weight_seq, wildcard)
+  ensures acc(diz.ParallelASSSP_end_seq, wildcard)
+  ensures |diz.ParallelASSSP_start_seq| == A
+  ensures |diz.ParallelASSSP_weight_seq| == A
+  ensures |diz.ParallelASSSP_end_seq| == A
+  ensures (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(contrib1), i): Ref).Integer__item, write))
+  ensures (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(contrib1), i): Ref).Integer__item == 0)
+  ensures acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+  ensures (loc(getVCTOption1(counter), 0): Ref).Integer__item == V - 1
+  ensures acc(diz.ParallelASSSP_cost_seq, write)
+  ensures |diz.ParallelASSSP_cost_seq| == V
+  ensures acc(diz.ParallelASSSP_oldcost_seq, write)
+  ensures |diz.ParallelASSSP_oldcost_seq| == V
+  ensures (forall i: Int :: { diz.ParallelASSSP_oldcost_seq[i] } { diz.ParallelASSSP_cost_seq[i] } 0 <= i && i < V ==> diz.ParallelASSSP_oldcost_seq[i] == diz.ParallelASSSP_cost_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(start), i): Ref).Integer__item, wildcard))
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(start), i): Ref).Integer__item && (loc(getVCTOption1(start), i): Ref).Integer__item < V)
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(end), i): Ref).Integer__item, wildcard))
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(end), i): Ref).Integer__item && (loc(getVCTOption1(end), i): Ref).Integer__item < V)
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item != (loc(getVCTOption1(end), i): Ref).Integer__item)
+  ensures (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(start), i): Ref).Integer__item == (loc(getVCTOption1(start), j): Ref).Integer__item) ==> (loc(getVCTOption1(end), i): Ref).Integer__item != (loc(getVCTOption1(end), j): Ref).Integer__item)
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { diz.ParallelASSSP_start_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item == diz.ParallelASSSP_start_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } { diz.ParallelASSSP_end_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(end), i): Ref).Integer__item == diz.ParallelASSSP_end_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(weight), i): Ref).Integer__item, wildcard))
+  ensures (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } { diz.ParallelASSSP_weight_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(weight), i): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(weight), i): Ref) } 0 <= i && i < A ==> 0 < (loc(getVCTOption1(weight), i): Ref).Integer__item)
+  ensures (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V ==> acc((loc(getVCTOption1(cost), i): Ref).Integer__item, write))
+  ensures (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+  ensures (forall i: Int :: { diz.ParallelASSSP_cost_seq[i] } 0 <= i && i < V && i != source ==> diz.ParallelASSSP_cost_seq[i] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } { diz.ParallelASSSP_cost_seq[i] } 0 <= i && i < V ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i])
+  ensures (forall i: Int :: 0 <= i && i < V && diz.ParallelASSSP_cost_seq[i] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i, diz.ParallelASSSP_cost_seq[i]))
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && diz.ParallelASSSP_cost_seq[vertex] != ParallelASSSP_inf() && ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex, P) ==> diz.ParallelASSSP_cost_seq[vertex] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P))
+  ensures (forall v: Int :: 0 <= v && v < V && (exists P: Seq[Int] :: ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v, P) && true) ==> diz.ParallelASSSP_cost_seq[v] != ParallelASSSP_inf())
+{
+  var __flatten_23__100: Ref
+  var __flatten_25__101: Ref
+  var __flatten_27__102: Seq[Int]
+  var __flatten_28__103: Ref
+  var __flatten_29__104: Int
+  var __flatten_30__105: Ref
+  while ((loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1)
+    invariant 0 < V && 0 < A
+    invariant 0 <= source && source < V
+    invariant start != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant end != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant (alen(getVCTOption1(start)): Int) == A
+    invariant (alen(getVCTOption1(weight)): Int) == A
+    invariant (alen(getVCTOption1(end)): Int) == A
+    invariant (alen(getVCTOption1(cost)): Int) == V
+    invariant (alen(getVCTOption1(counter)): Int) == 1
+    invariant (alen(getVCTOption1(contrib1)): Int) == A
+    invariant acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+    invariant 0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item <= V - 1
+    invariant acc(diz.ParallelASSSP_start_seq, wildcard)
+    invariant |diz.ParallelASSSP_start_seq| == A
+    invariant acc(diz.ParallelASSSP_weight_seq, wildcard)
+    invariant |diz.ParallelASSSP_weight_seq| == A
+    invariant acc(diz.ParallelASSSP_end_seq, wildcard)
+    invariant |diz.ParallelASSSP_end_seq| == A
+    invariant acc(diz.ParallelASSSP_cost_seq, write)
+    invariant acc(diz.ParallelASSSP_oldcost_seq, write)
+    invariant |diz.ParallelASSSP_cost_seq| == V
+    invariant |diz.ParallelASSSP_oldcost_seq| == V
+    invariant (forall i__106: Int :: { diz.ParallelASSSP_oldcost_seq[i__106] } { diz.ParallelASSSP_cost_seq[i__106] } 0 <= i__106 && i__106 < V ==> diz.ParallelASSSP_oldcost_seq[i__106] == diz.ParallelASSSP_cost_seq[i__106])
+    invariant contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant (alen(getVCTOption1(contrib1)): Int) == A
+    invariant (forall i__107: Int :: { (loc(getVCTOption1(contrib1), i__107): Ref) } 0 <= i__107 && i__107 < A ==> acc((loc(getVCTOption1(contrib1), i__107): Ref).Integer__item, write))
+    invariant (forall i__108: Int :: { (loc(getVCTOption1(contrib1), i__108): Ref) } 0 <= i__108 && i__108 < A ==> (loc(getVCTOption1(contrib1), i__108): Ref).Integer__item == 0)
+    invariant (forall i__109: Int :: { (loc(getVCTOption1(start), i__109): Ref) } 0 <= i__109 && i__109 < A ==> acc((loc(getVCTOption1(start), i__109): Ref).Integer__item, wildcard))
+    invariant (forall i__110: Int :: { (loc(getVCTOption1(start), i__110): Ref) } 0 <= i__110 && i__110 < A ==> 0 <= (loc(getVCTOption1(start), i__110): Ref).Integer__item && (loc(getVCTOption1(start), i__110): Ref).Integer__item < V)
+    invariant (forall i__111: Int :: { (loc(getVCTOption1(end), i__111): Ref) } 0 <= i__111 && i__111 < A ==> acc((loc(getVCTOption1(end), i__111): Ref).Integer__item, wildcard))
+    invariant (forall i__112: Int :: { (loc(getVCTOption1(end), i__112): Ref) } 0 <= i__112 && i__112 < A ==> 0 <= (loc(getVCTOption1(end), i__112): Ref).Integer__item && (loc(getVCTOption1(end), i__112): Ref).Integer__item < V)
+    invariant (forall i__113: Int :: { (loc(getVCTOption1(start), i__113): Ref) } { (loc(getVCTOption1(end), i__113): Ref) } 0 <= i__113 && i__113 < A ==> (loc(getVCTOption1(start), i__113): Ref).Integer__item != (loc(getVCTOption1(end), i__113): Ref).Integer__item)
+    invariant (forall i__114: Int, j__115: Int :: 0 <= i__114 && i__114 < A && (0 <= j__115 && j__115 < A && i__114 != j__115 && (loc(getVCTOption1(start), i__114): Ref).Integer__item == (loc(getVCTOption1(start), j__115): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__114): Ref).Integer__item != (loc(getVCTOption1(end), j__115): Ref).Integer__item)
+    invariant (forall i__116: Int :: { (loc(getVCTOption1(start), i__116): Ref) } { diz.ParallelASSSP_start_seq[i__116] } 0 <= i__116 && i__116 < A ==> (loc(getVCTOption1(start), i__116): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__116])
+    invariant (forall i__117: Int :: { (loc(getVCTOption1(end), i__117): Ref) } { diz.ParallelASSSP_end_seq[i__117] } 0 <= i__117 && i__117 < A ==> (loc(getVCTOption1(end), i__117): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__117])
+    invariant (forall i__118: Int :: { (loc(getVCTOption1(weight), i__118): Ref) } 0 <= i__118 && i__118 < A ==> acc((loc(getVCTOption1(weight), i__118): Ref).Integer__item, wildcard))
+    invariant (forall i__119: Int :: { (loc(getVCTOption1(weight), i__119): Ref) } { diz.ParallelASSSP_weight_seq[i__119] } 0 <= i__119 && i__119 < A ==> (loc(getVCTOption1(weight), i__119): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__119])
+    invariant (forall i__120: Int :: { (loc(getVCTOption1(weight), i__120): Ref) } 0 <= i__120 && i__120 < A ==> 0 < (loc(getVCTOption1(weight), i__120): Ref).Integer__item)
+    invariant (forall i__121: Int :: { (loc(getVCTOption1(cost), i__121): Ref) } 0 <= i__121 && i__121 < V ==> acc((loc(getVCTOption1(cost), i__121): Ref).Integer__item, write))
+    invariant (forall i__122: Int :: { diz.ParallelASSSP_cost_seq[i__122] } 0 <= i__122 && i__122 < V && i__122 != source ==> diz.ParallelASSSP_cost_seq[i__122] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i__122])
+    invariant (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+    invariant (forall i__123: Int :: { (loc(getVCTOption1(cost), i__123): Ref) } { diz.ParallelASSSP_cost_seq[i__123] } 0 <= i__123 && i__123 < V ==> (loc(getVCTOption1(cost), i__123): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__123])
+    invariant (forall i__124: Int :: 0 <= i__124 && i__124 < V && diz.ParallelASSSP_cost_seq[i__124] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i__124, diz.ParallelASSSP_cost_seq[i__124]))
+    invariant (forall vertex__125: Int, P__126: Seq[Int] :: 0 <= vertex__125 && vertex__125 < V && diz.ParallelASSSP_cost_seq[vertex__125] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex__125, P__126) && |P__126| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_cost_seq[vertex__125] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P__126))
+    invariant (forall v__127: Int :: { diz.ParallelASSSP_cost_seq[v__127] } 0 <= v__127 && v__127 < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__127, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_cost_seq[v__127] != ParallelASSSP_inf()) 
+  {
+    exhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelASSSP_start_seq, wildcard) && acc(diz.ParallelASSSP_weight_seq, wildcard) && acc(diz.ParallelASSSP_end_seq, wildcard) && (|diz.ParallelASSSP_start_seq| == A && |diz.ParallelASSSP_weight_seq| == A && |diz.ParallelASSSP_end_seq| == A) && (forall i__128: Int :: { (loc(getVCTOption1(start), i__128): Ref) } 0 <= i__128 && i__128 < A ==> acc((loc(getVCTOption1(start), i__128): Ref).Integer__item, wildcard)) && (forall i__129: Int :: { (loc(getVCTOption1(start), i__129): Ref) } 0 <= i__129 && i__129 < A ==> 0 <= (loc(getVCTOption1(start), i__129): Ref).Integer__item && (loc(getVCTOption1(start), i__129): Ref).Integer__item < V) && (forall i__130: Int :: { (loc(getVCTOption1(end), i__130): Ref) } 0 <= i__130 && i__130 < A ==> acc((loc(getVCTOption1(end), i__130): Ref).Integer__item, wildcard)) && (forall i__131: Int :: { (loc(getVCTOption1(end), i__131): Ref) } 0 <= i__131 && i__131 < A ==> 0 <= (loc(getVCTOption1(end), i__131): Ref).Integer__item && (loc(getVCTOption1(end), i__131): Ref).Integer__item < V) && (forall i__132: Int :: { (loc(getVCTOption1(start), i__132): Ref) } { (loc(getVCTOption1(end), i__132): Ref) } 0 <= i__132 && i__132 < A ==> (loc(getVCTOption1(start), i__132): Ref).Integer__item != (loc(getVCTOption1(end), i__132): Ref).Integer__item) && (forall i__133: Int, j__134: Int :: 0 <= i__133 && i__133 < A && (0 <= j__134 && j__134 < A && i__133 != j__134 && (loc(getVCTOption1(start), i__133): Ref).Integer__item == (loc(getVCTOption1(start), j__134): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__133): Ref).Integer__item != (loc(getVCTOption1(end), j__134): Ref).Integer__item) && (forall i__135: Int :: { (loc(getVCTOption1(start), i__135): Ref) } { diz.ParallelASSSP_start_seq[i__135] } 0 <= i__135 && i__135 < A ==> (loc(getVCTOption1(start), i__135): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__135]) && (forall i__136: Int :: { (loc(getVCTOption1(end), i__136): Ref) } { diz.ParallelASSSP_end_seq[i__136] } 0 <= i__136 && i__136 < A ==> (loc(getVCTOption1(end), i__136): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__136]) && (forall i__137: Int :: { (loc(getVCTOption1(weight), i__137): Ref) } 0 <= i__137 && i__137 < A ==> acc((loc(getVCTOption1(weight), i__137): Ref).Integer__item, wildcard)) && ((forall i__138: Int :: { (loc(getVCTOption1(weight), i__138): Ref) } 0 <= i__138 && i__138 < A ==> 0 < (loc(getVCTOption1(weight), i__138): Ref).Integer__item) && (forall i__139: Int :: { (loc(getVCTOption1(weight), i__139): Ref) } { diz.ParallelASSSP_weight_seq[i__139] } 0 <= i__139 && i__139 < A ==> (loc(getVCTOption1(weight), i__139): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__139])) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelASSSP_cost_seq, write) && |diz.ParallelASSSP_cost_seq| == V && acc(diz.ParallelASSSP_oldcost_seq, write) && |diz.ParallelASSSP_oldcost_seq| == V && (forall i__140: Int :: { (loc(getVCTOption1(contrib1), i__140): Ref) } 0 <= i__140 && i__140 < A ==> acc((loc(getVCTOption1(contrib1), i__140): Ref).Integer__item, 1 / 2)) && ((forall i__141: Int :: { (loc(getVCTOption1(contrib1), i__141): Ref) } 0 <= i__141 && i__141 < A ==> (loc(getVCTOption1(contrib1), i__141): Ref).Integer__item == 0) ==> (forall i__142: Int :: { diz.ParallelASSSP_oldcost_seq[i__142] } { diz.ParallelASSSP_cost_seq[i__142] } 0 <= i__142 && i__142 < V ==> diz.ParallelASSSP_oldcost_seq[i__142] == diz.ParallelASSSP_cost_seq[i__142])) && (forall i__143: Int :: { (loc(getVCTOption1(cost), i__143): Ref) } 0 <= i__143 && i__143 < V ==> acc((loc(getVCTOption1(cost), i__143): Ref).Integer__item, write)) && (forall i__144: Int :: { diz.ParallelASSSP_oldcost_seq[i__144] } { diz.ParallelASSSP_cost_seq[i__144] } 0 <= i__144 && i__144 < V && diz.ParallelASSSP_cost_seq[i__144] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__144] == diz.ParallelASSSP_cost_seq[i__144]) && (forall i__145: Int :: { diz.ParallelASSSP_oldcost_seq[i__145] } { diz.ParallelASSSP_cost_seq[i__145] } 0 <= i__145 && i__145 < V && diz.ParallelASSSP_oldcost_seq[i__145] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__145] <= diz.ParallelASSSP_cost_seq[i__145]) && (forall i__146: Int :: { diz.ParallelASSSP_cost_seq[i__146] } { diz.ParallelASSSP_oldcost_seq[i__146] } 0 <= i__146 && i__146 < V && diz.ParallelASSSP_oldcost_seq[i__146] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[i__146] <= diz.ParallelASSSP_oldcost_seq[i__146]) && ((forall i__147: Int :: { diz.ParallelASSSP_oldcost_seq[i__147] } 0 <= i__147 && i__147 < V && i__147 != source ==> diz.ParallelASSSP_oldcost_seq[i__147] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_oldcost_seq[i__147]) && diz.ParallelASSSP_oldcost_seq[source] == 0) && ((forall i__148: Int :: { diz.ParallelASSSP_cost_seq[i__148] } 0 <= i__148 && i__148 < V && i__148 != source ==> diz.ParallelASSSP_cost_seq[i__148] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i__148]) && diz.ParallelASSSP_cost_seq[source] == 0) && (forall i__149: Int :: { (loc(getVCTOption1(cost), i__149): Ref) } { diz.ParallelASSSP_cost_seq[i__149] } 0 <= i__149 && i__149 < V ==> (loc(getVCTOption1(cost), i__149): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__149]) && (forall i__150: Int :: 0 <= i__150 && i__150 < A && (loc(getVCTOption1(contrib1), i__150): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[diz.ParallelASSSP_start_seq[i__150]] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[diz.ParallelASSSP_end_seq[i__150]] != ParallelASSSP_inf()) && (forall a__151: Int :: 0 <= a__151 && a__151 < A && (loc(getVCTOption1(contrib1), a__151): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__151): Ref).Integer__item] != ParallelASSSP_inf() && (diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__151): Ref).Integer__item] == ParallelASSSP_inf() || diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__151): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__151] <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__151): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__151): Ref).Integer__item): Ref).Integer__item <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__151): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__151]) && (forall i__152: Int :: 0 <= i__152 && i__152 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__152): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(start), i__152): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__152): Ref).Integer__item])) && (forall i__153: Int :: 0 <= i__153 && i__153 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__153): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(end), i__153): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__153): Ref).Integer__item])) && (forall i__154: Int :: 0 <= i__154 && i__154 < V && diz.ParallelASSSP_cost_seq[i__154] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i__154, diz.ParallelASSSP_cost_seq[i__154])) && (forall v__155: Int :: 0 <= v__155 && v__155 < V && diz.ParallelASSSP_oldcost_seq[v__155] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__155, diz.ParallelASSSP_oldcost_seq[v__155])) && (forall vertex__156: Int, P__157: Seq[Int] :: 0 <= vertex__156 && vertex__156 < V && diz.ParallelASSSP_oldcost_seq[vertex__156] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex__156, P__157) && |P__157| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[vertex__156] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P__157)) && (forall v__158: Int :: { diz.ParallelASSSP_oldcost_seq[v__158] } 0 <= v__158 && v__158 < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__158, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[v__158] != ParallelASSSP_inf()))
+    ParallelASSSP_parrallel_region_main_1_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_EncodedGlobalVariables(diz, A, V, source, start, weight, end, cost, contrib1, counter, globals)
+    inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(weight)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelASSSP_start_seq, wildcard) && acc(diz.ParallelASSSP_weight_seq, wildcard) && acc(diz.ParallelASSSP_end_seq, wildcard) && (|diz.ParallelASSSP_start_seq| == A && |diz.ParallelASSSP_weight_seq| == A && |diz.ParallelASSSP_end_seq| == A) && (forall i__159: Int :: { (loc(getVCTOption1(start), i__159): Ref) } 0 <= i__159 && i__159 < A ==> acc((loc(getVCTOption1(start), i__159): Ref).Integer__item, wildcard)) && (forall i__160: Int :: { (loc(getVCTOption1(start), i__160): Ref) } 0 <= i__160 && i__160 < A ==> 0 <= (loc(getVCTOption1(start), i__160): Ref).Integer__item && (loc(getVCTOption1(start), i__160): Ref).Integer__item < V) && (forall i__161: Int :: { (loc(getVCTOption1(end), i__161): Ref) } 0 <= i__161 && i__161 < A ==> acc((loc(getVCTOption1(end), i__161): Ref).Integer__item, wildcard)) && (forall i__162: Int :: { (loc(getVCTOption1(end), i__162): Ref) } 0 <= i__162 && i__162 < A ==> 0 <= (loc(getVCTOption1(end), i__162): Ref).Integer__item && (loc(getVCTOption1(end), i__162): Ref).Integer__item < V) && (forall i__163: Int :: { (loc(getVCTOption1(start), i__163): Ref) } { (loc(getVCTOption1(end), i__163): Ref) } 0 <= i__163 && i__163 < A ==> (loc(getVCTOption1(start), i__163): Ref).Integer__item != (loc(getVCTOption1(end), i__163): Ref).Integer__item) && (forall i__164: Int, j__165: Int :: 0 <= i__164 && i__164 < A && (0 <= j__165 && j__165 < A && i__164 != j__165 && (loc(getVCTOption1(start), i__164): Ref).Integer__item == (loc(getVCTOption1(start), j__165): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__164): Ref).Integer__item != (loc(getVCTOption1(end), j__165): Ref).Integer__item) && (forall i__166: Int :: { (loc(getVCTOption1(start), i__166): Ref) } { diz.ParallelASSSP_start_seq[i__166] } 0 <= i__166 && i__166 < A ==> (loc(getVCTOption1(start), i__166): Ref).Integer__item == diz.ParallelASSSP_start_seq[i__166]) && (forall i__167: Int :: { (loc(getVCTOption1(end), i__167): Ref) } { diz.ParallelASSSP_end_seq[i__167] } 0 <= i__167 && i__167 < A ==> (loc(getVCTOption1(end), i__167): Ref).Integer__item == diz.ParallelASSSP_end_seq[i__167]) && (forall i__168: Int :: { (loc(getVCTOption1(weight), i__168): Ref) } 0 <= i__168 && i__168 < A ==> acc((loc(getVCTOption1(weight), i__168): Ref).Integer__item, wildcard)) && ((forall i__169: Int :: { (loc(getVCTOption1(weight), i__169): Ref) } 0 <= i__169 && i__169 < A ==> 0 < (loc(getVCTOption1(weight), i__169): Ref).Integer__item) && (forall i__170: Int :: { (loc(getVCTOption1(weight), i__170): Ref) } { diz.ParallelASSSP_weight_seq[i__170] } 0 <= i__170 && i__170 < A ==> (loc(getVCTOption1(weight), i__170): Ref).Integer__item == diz.ParallelASSSP_weight_seq[i__170])) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelASSSP_cost_seq, write) && |diz.ParallelASSSP_cost_seq| == V && acc(diz.ParallelASSSP_oldcost_seq, write) && |diz.ParallelASSSP_oldcost_seq| == V && (forall i__171: Int :: { (loc(getVCTOption1(contrib1), i__171): Ref) } 0 <= i__171 && i__171 < A ==> acc((loc(getVCTOption1(contrib1), i__171): Ref).Integer__item, 1 / 2)) && ((forall i__172: Int :: { (loc(getVCTOption1(contrib1), i__172): Ref) } 0 <= i__172 && i__172 < A ==> (loc(getVCTOption1(contrib1), i__172): Ref).Integer__item == 0) ==> (forall i__173: Int :: { diz.ParallelASSSP_oldcost_seq[i__173] } { diz.ParallelASSSP_cost_seq[i__173] } 0 <= i__173 && i__173 < V ==> diz.ParallelASSSP_oldcost_seq[i__173] == diz.ParallelASSSP_cost_seq[i__173])) && (forall i__174: Int :: { (loc(getVCTOption1(cost), i__174): Ref) } 0 <= i__174 && i__174 < V ==> acc((loc(getVCTOption1(cost), i__174): Ref).Integer__item, write)) && (forall i__175: Int :: { diz.ParallelASSSP_oldcost_seq[i__175] } { diz.ParallelASSSP_cost_seq[i__175] } 0 <= i__175 && i__175 < V && diz.ParallelASSSP_cost_seq[i__175] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__175] == diz.ParallelASSSP_cost_seq[i__175]) && (forall i__176: Int :: { diz.ParallelASSSP_oldcost_seq[i__176] } { diz.ParallelASSSP_cost_seq[i__176] } 0 <= i__176 && i__176 < V && diz.ParallelASSSP_oldcost_seq[i__176] == ParallelASSSP_inf() ==> diz.ParallelASSSP_oldcost_seq[i__176] <= diz.ParallelASSSP_cost_seq[i__176]) && (forall i__177: Int :: { diz.ParallelASSSP_cost_seq[i__177] } { diz.ParallelASSSP_oldcost_seq[i__177] } 0 <= i__177 && i__177 < V && diz.ParallelASSSP_oldcost_seq[i__177] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[i__177] <= diz.ParallelASSSP_oldcost_seq[i__177]) && ((forall i__178: Int :: { diz.ParallelASSSP_oldcost_seq[i__178] } 0 <= i__178 && i__178 < V && i__178 != source ==> diz.ParallelASSSP_oldcost_seq[i__178] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_oldcost_seq[i__178]) && diz.ParallelASSSP_oldcost_seq[source] == 0) && ((forall i__179: Int :: { diz.ParallelASSSP_cost_seq[i__179] } 0 <= i__179 && i__179 < V && i__179 != source ==> diz.ParallelASSSP_cost_seq[i__179] == ParallelASSSP_inf() || 0 < diz.ParallelASSSP_cost_seq[i__179]) && diz.ParallelASSSP_cost_seq[source] == 0) && (forall i__180: Int :: { (loc(getVCTOption1(cost), i__180): Ref) } { diz.ParallelASSSP_cost_seq[i__180] } 0 <= i__180 && i__180 < V ==> (loc(getVCTOption1(cost), i__180): Ref).Integer__item == diz.ParallelASSSP_cost_seq[i__180]) && (forall i__181: Int :: 0 <= i__181 && i__181 < A && (loc(getVCTOption1(contrib1), i__181): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[diz.ParallelASSSP_start_seq[i__181]] != ParallelASSSP_inf() ==> diz.ParallelASSSP_cost_seq[diz.ParallelASSSP_end_seq[i__181]] != ParallelASSSP_inf()) && (forall a__182: Int :: 0 <= a__182 && a__182 < A && (loc(getVCTOption1(contrib1), a__182): Ref).Integer__item == 1 && diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__182): Ref).Integer__item] != ParallelASSSP_inf() && (diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__182): Ref).Integer__item] == ParallelASSSP_inf() || diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__182): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__182] <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(end), a__182): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__182): Ref).Integer__item): Ref).Integer__item <= diz.ParallelASSSP_oldcost_seq[(loc(getVCTOption1(start), a__182): Ref).Integer__item] + diz.ParallelASSSP_weight_seq[a__182]) && (forall i__183: Int :: 0 <= i__183 && i__183 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__183): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(start), i__183): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(start), i__183): Ref).Integer__item])) && (forall i__184: Int :: 0 <= i__184 && i__184 < A && diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__184): Ref).Integer__item] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, (loc(getVCTOption1(end), i__184): Ref).Integer__item, diz.ParallelASSSP_cost_seq[(loc(getVCTOption1(end), i__184): Ref).Integer__item])) && (forall i__185: Int :: 0 <= i__185 && i__185 < V && diz.ParallelASSSP_cost_seq[i__185] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, i__185, diz.ParallelASSSP_cost_seq[i__185])) && (forall v__186: Int :: 0 <= v__186 && v__186 < V && diz.ParallelASSSP_oldcost_seq[v__186] != ParallelASSSP_inf() ==> ParallelASSSP_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__186, diz.ParallelASSSP_oldcost_seq[v__186])) && (forall vertex__187: Int, P__188: Seq[Int] :: 0 <= vertex__187 && vertex__187 < V && diz.ParallelASSSP_oldcost_seq[vertex__187] != ParallelASSSP_inf() && (ParallelASSSP_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, vertex__187, P__188) && |P__188| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[vertex__187] <= ParallelASSSP_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, P__188)) && (forall v__189: Int :: { diz.ParallelASSSP_oldcost_seq[v__189] } 0 <= v__189 && v__189 < V && ParallelASSSP_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source, v__189, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelASSSP_oldcost_seq[v__189] != ParallelASSSP_inf()))
+    ParallelASSSP_parrallel_region_main_2_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz, A, V, source, start, weight, end, cost, contrib1, counter)
+    __flatten_23__100 := (loc(getVCTOption1(counter), 0): Ref)
+    ParallelASSSP_lemma_inv12_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, diz.ParallelASSSP_oldcost_seq, diz.ParallelASSSP_cost_seq, source, __flatten_23__100.Integer__item)
+    __flatten_25__101 := (loc(getVCTOption1(counter), 0): Ref)
+    ParallelASSSP_lemma_inv11_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, diz.ParallelASSSP_oldcost_seq, diz.ParallelASSSP_cost_seq, source, __flatten_25__101.Integer__item)
+    __flatten_27__102 := diz.ParallelASSSP_cost_seq
+    diz.ParallelASSSP_oldcost_seq := __flatten_27__102
+    __flatten_28__103 := (loc(getVCTOption1(counter), 0): Ref)
+    __flatten_30__105 := (loc(getVCTOption1(counter), 0): Ref)
+    __flatten_29__104 := __flatten_30__105.Integer__item + 1
+    __flatten_28__103.Integer__item := __flatten_29__104
+  }
+  ParallelASSSP_simple_path_lemma1_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source)
+  ParallelASSSP_simple_path_Part_1_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source)
+  ParallelASSSP_simple_path_Part_2_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source)
+  ParallelASSSP_simple_path_lemma3_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source)
+  ParallelASSSP_simple_path_cost_lemma4_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelASSSP_start_seq, diz.ParallelASSSP_end_seq, diz.ParallelASSSP_weight_seq, source)
+}

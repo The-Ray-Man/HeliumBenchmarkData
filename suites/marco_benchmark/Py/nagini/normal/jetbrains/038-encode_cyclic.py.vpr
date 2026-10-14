@@ -1,0 +1,1434 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  unique function union_basic(): PyType 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function __prim__perm(): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      { issubtype(sub, super), issubtype(middle, super) }
+      { issubtype(sub, middle), issubtype(sub, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom nothing_has_union_type {
+    (forall r: Ref :: { typeof(r) } get_basic(typeof(r)) != union_basic())
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom union_basic_1 {
+    (forall arg_1: PyType ::
+      { union_type_1(arg_1) }
+      get_basic(union_type_1(arg_1)) == union_basic())
+  }
+  
+  axiom union_basic_2 {
+    (forall arg_1: PyType, arg_2: PyType ::
+      { union_type_2(arg_1, arg_2) }
+      get_basic(union_type_2(arg_1, arg_2)) == union_basic())
+  }
+  
+  axiom union_basic_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType ::
+      { union_type_3(arg_1, arg_2, arg_3) }
+      get_basic(union_type_3(arg_1, arg_2, arg_3)) == union_basic())
+  }
+  
+  axiom union_basic_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType ::
+      { union_type_4(arg_1, arg_2, arg_3, arg_4) }
+      get_basic(union_type_4(arg_1, arg_2, arg_3, arg_4)) == union_basic())
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      get_basic(X) != union_basic() ==>
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      get_basic(X) != union_basic() ==>
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      get_basic(X) != union_basic() ==>
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      get_basic(X) != union_basic() ==>
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype___prim__perm {
+    extends_(__prim__perm(), object()) &&
+    get_basic(__prim__perm()) == __prim__perm()
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+  
+  axiom low_true {
+    (forall x: T :: { (Low(x): Bool) } (Low(x): Bool))
+  }
+  
+  axiom lowevent_true {
+    (LowEvent(): Bool)
+  }
+}
+
+domain ___intbv interpretation (SMTLIB: "(_ BitVec 8)", Boogie: "bv8") {
+  
+  function toBVInt(i: Int): ___intbv interpretation "(_ int2bv 8)"
+  
+  function fromBVInt(___intbv): Int interpretation "bv2int"
+  
+  function andBVInt(___intbv, ___intbv): ___intbv interpretation "bvand"
+  
+  function orBVInt(___intbv, ___intbv): ___intbv interpretation "bvor"
+  
+  function xorBVInt(___intbv, ___intbv): ___intbv interpretation "bvxor"
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+domain ____pow_helper  {
+  
+  function ___pow(Int, Int): Int 
+  
+  axiom {
+    (forall i1: Int :: { ___pow(i1, 0) } ___pow(i1, 0) == 1)
+  }
+  
+  axiom {
+    (forall i1: Int, i2: Int ::
+      { ___pow(i1, i2) }
+      i2 > 0 ==> ___pow(i1, i2) == i1 * ___pow(i1, i2 - 1))
+  }
+}
+
+domain __ObjectEquality  {
+  
+  function object___eq__(Ref, Ref): Bool 
+  
+  axiom {
+    (forall o1: Ref, o2: Ref, o3: Ref ::
+      { object___eq__(o1, o2), object___eq__(o2, o3) }
+      { object___eq__(o1, o2), object___eq__(o1, o3) }
+      { object___eq__(o2, o3), object___eq__(o1, o3) }
+      object___eq__(o1, o2) && object___eq__(o2, o3) ==>
+      object___eq__(o1, o3))
+  }
+  
+  axiom {
+    (forall o1: Ref, o2: Ref ::
+      { object___eq__(o1, o2) }
+      object___eq__(o1, o2) == object___eq__(o2, o1) &&
+      ((o1 == o2 ==> object___eq__(o1, o2)) &&
+      ((o1 == null) != (o2 == null) ==> !object___eq__(o1, o2))))
+  }
+}
+
+domain __SumHelper[T$]  {
+  
+  function __sum(s: Seq[Int]): Int 
+  
+  axiom __sum_def_1 {
+    (__sum(Seq[Int]()): Int) == 0
+  }
+  
+  axiom __sum_def_2 {
+    (forall __t: Int ::
+      { (__sum(Seq(__t)): Int) }
+      (__sum(Seq(__t)): Int) == __t)
+  }
+  
+  axiom __sum_def_3 {
+    (forall __ss1: Seq[Int], __ss2: Seq[Int] ::
+      { (__sum(__ss1 ++ __ss2): Int) }
+      (__sum(__ss1 ++ __ss2): Int) ==
+      (__sum(__ss1): Int) + (__sum(__ss2): Int))
+  }
+  
+  axiom __sum_def_4 {
+    (forall __ss1: Seq[Int], __ss2: Seq[Int] ::
+      { (__sum(__ss1): Int), (__sum(__ss2): Int) }
+      (__toMS(__ss1): Multiset[Int]) == (__toMS(__ss2): Multiset[Int]) ==>
+      (__sum(__ss1): Int) == (__sum(__ss2): Int))
+  }
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain tuple_types  {
+  
+  function tuple_var(arg0: PyType): PyType 
+  
+  function tuple_var_arg(arg0: PyType): PyType 
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { issubtype(Z, tuple(seq)), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_arg_def_2 {
+    (forall arg0: PyType, i: Int, Z: PyType ::
+      { issubtype(Z, tuple_var(arg0)), tuple_arg(Z, i) }
+      issubtype(Z, tuple_var(arg0)) ==> issubtype(tuple_arg(Z, i), arg0))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      (|seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i]))) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      (forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object()))
+  }
+  
+  axiom subtype_tuple_var {
+    (forall var0: PyType ::
+      { tuple_var(var0) }
+      issubtype(tuple_var(var0), object()))
+  }
+  
+  axiom subtype_tuple_var_self {
+    (forall var0: PyType, var1: PyType ::
+      { issubtype(tuple_var(var0), tuple_var(var1)) }
+      issubtype(tuple_var(var0), tuple_var(var1)) == issubtype(var0, var1))
+  }
+  
+  axiom subtype_tuple_var_tuple {
+    (forall var0: PyType, var1: Seq[PyType] ::
+      { issubtype(tuple(var1), tuple_var(var0)) }
+      issubtype(tuple(var1), tuple_var(var0)) ==
+      (forall i: Int ::
+        { issubtype(var1[i], var0) }
+        i >= 0 && i < |var1| ==> issubtype(var1[i], var0)))
+  }
+  
+  axiom tuple_args_subtype_1 {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)), issubtype(Z, tuple(tuple_args(Z))) }
+      issubtype(Z, tuple(seq)) ==> issubtype(Z, tuple(tuple_args(Z))))
+  }
+  
+  axiom tuple_args_subtype_2 {
+    (forall Z: PyType, arg0: PyType ::
+      { issubtype(Z, tuple(tuple_args(Z))), issubtype(Z, tuple_var(arg0)) }
+      issubtype(Z, tuple_var(arg0)) ==> issubtype(Z, tuple(tuple_args(Z))))
+  }
+  
+  axiom tuple_type_basic_1 {
+    (forall seq: Seq[PyType], Z: PyType, arg1: PyType ::
+      { issubtype(Z, tuple(seq)), issubtype(Z, arg1) }
+      issubtype(Z, tuple(seq)) && issubtype(Z, arg1) ==>
+      get_basic(arg1) == tuple_basic() ||
+      (get_basic(arg1) == object() || get_basic(arg1) == union_basic()))
+  }
+  
+  axiom tuple_type_basic_2 {
+    (forall arg0: PyType, arg1: PyType, Z: PyType ::
+      { issubtype(Z, tuple_var(arg0)), issubtype(Z, arg1) }
+      issubtype(Z, tuple_var(arg0)) && issubtype(Z, arg1) ==>
+      get_basic(arg1) == tuple_basic() ||
+      (get_basic(arg1) == object() || get_basic(arg1) == union_basic()))
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+  decreases _
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+  ensures (forall i: Ref ::
+      { object___eq__(box, i), int___unbox__(i) }
+      object___eq__(box, i) && issubtype(typeof(i), int()) ==>
+      int___unbox__(i) == result)
+  decreases _
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+  decreases _
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+  decreases _
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int()) ||
+    issubtype(typeof(other), float())
+  ensures issubtype(typeof(other), int()) ==>
+    result == (int___unbox__(self) == int___unbox__(other))
+  ensures issubtype(typeof(other), int()) ==>
+    result == object___eq__(self, other)
+  ensures issubtype(typeof(other), float()) ==>
+    result == float___eq__(self, other)
+  decreases _
+
+
+function int___le__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), float())
+  decreases _
+{
+  (issubtype(typeof(other), int()) ?
+    int___unbox__(self) <= int___unbox__(other) :
+    float___le__(self, other))
+}
+
+function int___lt__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), float())
+  decreases _
+{
+  (issubtype(typeof(other), int()) ?
+    int___unbox__(self) < int___unbox__(other) :
+    float___lt__(self, other))
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+  decreases _
+{
+  self - other
+}
+
+function int___mod__(self: Int, other: Int): Int
+  requires other != 0
+  decreases _
+{
+  self % other
+}
+
+function float___le__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), float())
+  requires issubtype(typeof(other), float())
+  ensures issubtype(typeof(self), int()) && issubtype(typeof(other), int()) ==>
+    result == int___le__(self, other)
+  decreases _
+
+
+function float___lt__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), float())
+  requires issubtype(typeof(other), float())
+  ensures issubtype(typeof(self), int()) && issubtype(typeof(other), int()) ==>
+    result == int___lt__(self, other)
+  decreases _
+
+
+function float___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), float())
+  requires issubtype(typeof(other), float())
+  ensures issubtype(typeof(self), int()) && issubtype(typeof(other), int()) ==>
+    result == int___eq__(self, other)
+  decreases _
+
+
+function list___len__(self: Ref): Int
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+  decreases _
+{
+  |self.list_acc|
+}
+
+function list___getitem__(self: Ref, key: Ref): Ref
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_acc, wildcard)
+  requires @error("List index may be out of bounds.")
+    ((let ln ==
+      (list___len__(self)) in
+      int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln))
+  requires @error("List index may be out of bounds.")
+    ((let ln ==
+      (list___len__(self)) in
+      int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_acc[int___unbox__(key)] :
+      self.list_acc[list___len__(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+  decreases _
+
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool
+  decreases _
+{
+  (forall m: Measure$ ::
+    { (m in map) }
+    (m in map) ==>
+    Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function str___len__(self: Ref): Int
+  ensures result >= 0
+  decreases _
+
+
+function str___val__(self: Ref): Seq[Int]
+  decreases _
+
+
+function str___create__(len: Int, value: Seq[Int]): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+  decreases _
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+  ensures result == object___eq__(self, other)
+  decreases _
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+method encode_cyclic(_cthread_184: Ref, _caller_measures_184: Seq[Measure$],
+  _residue_184: Perm, s: Ref)
+  returns (_current_wait_level_184: Perm, _res: Ref)
+  requires _cthread_184 != null
+  requires issubtype(typeof(_cthread_184), Thread_0())
+  requires issubtype(typeof(s), list(int()))
+  requires acc(s.list_acc, 1 / 2)
+  requires [true,
+    perm(MustTerminate(_cthread_184)) == none &&
+    ((forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) &&
+    (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_1: Ref [_r_1.MustReleaseBounded] :: Level(_r_1) <=
+      _current_wait_level_184) &&
+    ((forperm
+      _r_1: Ref [_r_1.MustReleaseUnbounded] :: Level(_r_1) <=
+      _current_wait_level_184) &&
+    _residue_184 <= _current_wait_level_184),
+    true]
+  ensures issubtype(typeof(_res), list(int()))
+  ensures acc(_res.list_acc, write)
+  ensures acc(s.list_acc, 1 / 2)
+  ensures int___eq__(__prim__int___box__(list___len__(s)), __prim__int___box__(list___len__(_res)))
+  ensures (forall lambda12_24$x: Ref ::
+      { issubtype(typeof(lambda12_24$x), int()) }
+      issubtype(typeof(lambda12_24$x), int()) ==>
+      issubtype(typeof(lambda12_24$x), int()) ==>
+      int___le__(__prim__int___box__(0), lambda12_24$x) &&
+      int___lt__(lambda12_24$x, __prim__int___box__(int___sub__(list___len__(s),
+      int___mod__(list___len__(s), 3)))) ==>
+      int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda12_24$x),
+      3)), __prim__int___box__(0)) ==>
+      int___eq__(list___getitem__(_res, lambda12_24$x), list___getitem__(s,
+      __prim__int___box__(int___add__(int___unbox__(lambda12_24$x), 1)))))
+  ensures (forall lambda14_24$x: Ref ::
+      { issubtype(typeof(lambda14_24$x), int()) }
+      issubtype(typeof(lambda14_24$x), int()) ==>
+      issubtype(typeof(lambda14_24$x), int()) ==>
+      int___le__(__prim__int___box__(0), lambda14_24$x) &&
+      int___lt__(lambda14_24$x, __prim__int___box__(int___sub__(list___len__(s),
+      int___mod__(list___len__(s), 3)))) ==>
+      int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda14_24$x),
+      3)), __prim__int___box__(1)) ==>
+      int___eq__(list___getitem__(_res, lambda14_24$x), list___getitem__(s,
+      __prim__int___box__(int___add__(int___unbox__(lambda14_24$x), 1)))))
+  ensures (forall lambda16_24$x: Ref ::
+      { issubtype(typeof(lambda16_24$x), int()) }
+      issubtype(typeof(lambda16_24$x), int()) ==>
+      issubtype(typeof(lambda16_24$x), int()) ==>
+      int___le__(__prim__int___box__(0), lambda16_24$x) &&
+      int___lt__(lambda16_24$x, __prim__int___box__(int___sub__(list___len__(s),
+      int___mod__(list___len__(s), 3)))) ==>
+      int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda16_24$x),
+      3)), __prim__int___box__(2)) ==>
+      int___eq__(list___getitem__(_res, lambda16_24$x), list___getitem__(s,
+      __prim__int___box__(int___sub__(int___unbox__(lambda16_24$x), 2)))))
+  ensures (forall lambda18_24$x: Ref ::
+      { issubtype(typeof(lambda18_24$x), int()) }
+      issubtype(typeof(lambda18_24$x), int()) ==>
+      issubtype(typeof(lambda18_24$x), int()) ==>
+      int___le__(__prim__int___box__(int___sub__(list___len__(s), int___mod__(list___len__(s),
+      3))), lambda18_24$x) &&
+      int___lt__(lambda18_24$x, __prim__int___box__(list___len__(s))) ==>
+      int___eq__(list___getitem__(_res, lambda18_24$x), list___getitem__(s,
+      lambda18_24$x)))
+  ensures [true,
+    (forperm _r_2: Ref [MustInvokeBounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [MustInvokeUnbounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [_r_2.MustReleaseBounded] :: false) &&
+    (forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var res: Ref
+  var i: Ref
+  var s_1: Ref
+  var list_0: Ref
+  var havoc_seq: Seq[Ref]
+  var _loop_measures: Seq[Measure$]
+  var _loop_check_before: Bool
+  var _loop_termination_flag: Bool
+  var _loop_original_must_terminate: Perm
+  var _residue_186: Perm
+  var _cwl_184: Perm
+  var _method_measures_184: Seq[Measure$]
+  _method_measures_184 := Seq[Measure$]()
+  _res := null
+  _err := null
+  s_1 := s
+  _cwl_184, list_0 := list___init__(_cthread_184, _method_measures_184, _residue_184)
+  inhale issubtype(typeof(list_0), list(int()))
+  list_0.list_acc := havoc_seq
+  inhale s_1.list_acc == list_0.list_acc
+  res := list_0
+  inhale _isDefined(7562610)
+  i := __prim__int___box__(0)
+  inhale _isDefined(105)
+  // Save current MustTerminate amount.
+  _loop_original_must_terminate := perm(MustTerminate(_cthread_184))
+  // Save loop termination promise.
+  _loop_termination_flag := false
+  // We are before loop.
+  _loop_check_before := true
+  while (int___lt__(__prim__int___box__(int___add__(int___unbox__(_checkDefined(i,
+  105)), 2)), __prim__int___box__(list___len__(s_1))))
+    invariant [(forperm
+        _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _residue_186) &&
+      ((forperm
+        _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _residue_186) &&
+      _residue_184 <= _residue_186),
+      true]
+    invariant true
+    invariant issubtype(typeof(i), int())
+    invariant acc(_checkDefined(res, 7562610).list_acc, write)
+    invariant acc(s_1.list_acc, 1 / 2)
+    invariant int___le__(__prim__int___box__(0), _checkDefined(i, 105)) &&
+      int___le__(_checkDefined(i, 105), __prim__int___box__(list___len__(s_1)))
+    invariant int___eq__(__prim__int___box__(list___len__(s_1)), __prim__int___box__(list___len__(_checkDefined(res,
+      7562610))))
+    invariant int___eq__(__prim__int___box__(int___mod__(int___unbox__(_checkDefined(i,
+      105)), 3)), __prim__int___box__(0))
+    invariant (forall lambda32_30$x: Ref ::
+        { issubtype(typeof(lambda32_30$x), int()) }
+        issubtype(typeof(lambda32_30$x), int()) ==>
+        issubtype(typeof(lambda32_30$x), int()) ==>
+        int___le__(_checkDefined(i, 105), lambda32_30$x) &&
+        int___lt__(lambda32_30$x, __prim__int___box__(list___len__(s_1))) ==>
+        int___eq__(list___getitem__(_checkDefined(res, 7562610), lambda32_30$x),
+        list___getitem__(s_1, lambda32_30$x)))
+    invariant (forall lambda33_30$x: Ref ::
+        { list___getitem__(_checkDefined(res, 7562610), lambda33_30$x) }
+        issubtype(typeof(lambda33_30$x), int()) ==>
+        issubtype(typeof(lambda33_30$x), int()) ==>
+        int___le__(__prim__int___box__(0), lambda33_30$x) &&
+        int___lt__(lambda33_30$x, _checkDefined(i, 105)) ==>
+        int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda33_30$x),
+        3)), __prim__int___box__(0)) ==>
+        int___eq__(list___getitem__(_checkDefined(res, 7562610), lambda33_30$x),
+        list___getitem__(s_1, __prim__int___box__(int___add__(int___unbox__(lambda33_30$x),
+        1)))))
+    invariant (forall lambda35_30$x: Ref ::
+        { list___getitem__(_checkDefined(res, 7562610), lambda35_30$x) }
+        issubtype(typeof(lambda35_30$x), int()) ==>
+        issubtype(typeof(lambda35_30$x), int()) ==>
+        int___le__(__prim__int___box__(0), lambda35_30$x) &&
+        int___lt__(lambda35_30$x, _checkDefined(i, 105)) ==>
+        int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda35_30$x),
+        3)), __prim__int___box__(1)) ==>
+        int___eq__(list___getitem__(_checkDefined(res, 7562610), lambda35_30$x),
+        list___getitem__(s_1, __prim__int___box__(int___add__(int___unbox__(lambda35_30$x),
+        1)))))
+    invariant (forall lambda37_30$x: Ref ::
+        { list___getitem__(_checkDefined(res, 7562610), lambda37_30$x) }
+        issubtype(typeof(lambda37_30$x), int()) ==>
+        issubtype(typeof(lambda37_30$x), int()) ==>
+        int___le__(__prim__int___box__(0), lambda37_30$x) &&
+        int___lt__(lambda37_30$x, _checkDefined(i, 105)) ==>
+        int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda37_30$x),
+        3)), __prim__int___box__(2)) ==>
+        int___eq__(list___getitem__(_checkDefined(res, 7562610), lambda37_30$x),
+        list___getitem__(s_1, __prim__int___box__(int___sub__(int___unbox__(lambda37_30$x),
+        2)))))
+    invariant [true,
+      _loop_check_before ==>
+      _loop_termination_flag ||
+      (!int___lt__(__prim__int___box__(int___add__(int___unbox__(_checkDefined(i,
+      105)), 2)), __prim__int___box__(list___len__(s_1))) ||
+      perm(MustTerminate(_cthread_184)) == none &&
+      ((forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+      ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+      ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+      (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))))]
+    invariant [true,
+      !_loop_check_before ==>
+      (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+      ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+      ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+      (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))] 
+  {
+    _loop_measures := Seq[Measure$]()
+    _cwl_184 := list___setitem__(_cthread_184, _method_measures_184, _residue_186,
+      _checkDefined(res, 7562610), int___unbox__(_checkDefined(i, 105)), list___getitem__(s_1,
+      __prim__int___box__(int___add__(int___unbox__(_checkDefined(i, 105)),
+      1))))
+    _cwl_184 := list___setitem__(_cthread_184, _method_measures_184, _residue_186,
+      _checkDefined(res, 7562610), int___add__(int___unbox__(_checkDefined(i,
+      105)), 1), list___getitem__(s_1, __prim__int___box__(int___add__(int___unbox__(_checkDefined(i,
+      105)), 2))))
+    _cwl_184 := list___setitem__(_cthread_184, _method_measures_184, _residue_186,
+      _checkDefined(res, 7562610), int___add__(int___unbox__(_checkDefined(i,
+      105)), 2), list___getitem__(s_1, _checkDefined(i, 105)))
+    i := __prim__int___box__(int___add__(int___unbox__(_checkDefined(i, 105)),
+      3))
+    inhale _isDefined(105)
+    label loop_end
+    // We are after loop body.
+    _loop_check_before := false
+    // Check if loop continues to terminate.
+    assert _loop_termination_flag ==>
+      !int___lt__(__prim__int___box__(int___add__(int___unbox__(_checkDefined(i,
+      105)), 2)), __prim__int___box__(list___len__(s_1)))
+  }
+  // Reset MustTerminate amount to original level.
+  exhale perm(MustTerminate(_cthread_184)) > none ==>
+    acc(MustTerminate(_cthread_184), perm(MustTerminate(_cthread_184)) -
+    _loop_original_must_terminate)
+  label post_loop
+  _res := null
+  assert int___eq__(_checkDefined(i, 105), __prim__int___box__(int___sub__(list___len__(s_1),
+    int___mod__(list___len__(s_1), 3))))
+  _res := _checkDefined(res, 7562610)
+  goto __end
+  goto __end
+  label __end
+}
+
+method decode_cyclic(_cthread_185: Ref, _caller_measures_185: Seq[Measure$],
+  _residue_185: Perm, s_0: Ref)
+  returns (_current_wait_level_185: Perm, _res: Ref)
+  requires _cthread_185 != null
+  requires issubtype(typeof(_cthread_185), Thread_0())
+  requires issubtype(typeof(s_0), list(int()))
+  requires acc(s_0.list_acc, write)
+  requires [true,
+    perm(MustTerminate(_cthread_185)) == none &&
+    ((forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) &&
+    (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_4: Ref [_r_4.MustReleaseBounded] :: Level(_r_4) <=
+      _current_wait_level_185) &&
+    ((forperm
+      _r_4: Ref [_r_4.MustReleaseUnbounded] :: Level(_r_4) <=
+      _current_wait_level_185) &&
+    _residue_185 <= _current_wait_level_185),
+    true]
+  ensures issubtype(typeof(_res), list(int()))
+  ensures acc(_res.list_acc, write)
+  ensures acc(s_0.list_acc, write)
+  ensures int___eq__(__prim__int___box__(list___len__(s_0)), __prim__int___box__(list___len__(_res)))
+  ensures (forall lambda58_24$x: Ref ::
+      { issubtype(typeof(lambda58_24$x), int()) }
+      issubtype(typeof(lambda58_24$x), int()) ==>
+      issubtype(typeof(lambda58_24$x), int()) ==>
+      int___le__(__prim__int___box__(int___sub__(list___len__(s_0), int___mod__(list___len__(s_0),
+      3))), lambda58_24$x) &&
+      int___lt__(lambda58_24$x, __prim__int___box__(list___len__(s_0))) ==>
+      int___eq__(list___getitem__(_res, lambda58_24$x), list___getitem__(s_0,
+      lambda58_24$x)))
+  ensures (forall lambda60_24$x: Ref ::
+      { issubtype(typeof(lambda60_24$x), int()) }
+      issubtype(typeof(lambda60_24$x), int()) ==>
+      issubtype(typeof(lambda60_24$x), int()) ==>
+      int___le__(__prim__int___box__(0), lambda60_24$x) &&
+      int___lt__(lambda60_24$x, __prim__int___box__(int___sub__(list___len__(s_0),
+      int___mod__(list___len__(s_0), 3)))) ==>
+      int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda60_24$x),
+      3)), __prim__int___box__(0)) ==>
+      int___eq__(list___getitem__(_res, lambda60_24$x), list___getitem__(s_0,
+      __prim__int___box__(int___add__(int___unbox__(lambda60_24$x), 2)))))
+  ensures (forall lambda62_24$x: Ref ::
+      { issubtype(typeof(lambda62_24$x), int()) }
+      issubtype(typeof(lambda62_24$x), int()) ==>
+      issubtype(typeof(lambda62_24$x), int()) ==>
+      int___le__(__prim__int___box__(0), lambda62_24$x) &&
+      int___lt__(lambda62_24$x, __prim__int___box__(int___sub__(list___len__(s_0),
+      int___mod__(list___len__(s_0), 3)))) ==>
+      int___eq__(__prim__int___box__(int___mod__(int___unbox__(lambda62_24$x),
+      3)), __prim__int___box__(1)) ==>
+      int___eq__(list___getitem__(_res, lambda62_24$x), list___getitem__(s_0,
+      __prim__int___box__(int___sub__(int___unbox__(lambda62_24$x), 1)))))
+  ensures [true,
+    (forperm _r_5: Ref [MustInvokeBounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [MustInvokeUnbounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [_r_5.MustReleaseBounded] :: false) &&
+    (forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var s_2: Ref
+  var encode_cyclic_res: Ref
+  var encode_cyclic_res_0: Ref
+  var _cwl_185: Perm
+  var _method_measures_185: Seq[Measure$]
+  _method_measures_185 := Seq[Measure$]()
+  _res := null
+  _err := null
+  s_2 := s_0
+  _cwl_185, encode_cyclic_res := encode_cyclic(_cthread_185, _method_measures_185,
+    _residue_185, s_2)
+  _cwl_185, encode_cyclic_res_0 := encode_cyclic(_cthread_185, _method_measures_185,
+    _residue_185, encode_cyclic_res)
+  _res := encode_cyclic_res_0
+  goto __end
+  goto __end
+  label __end
+}
+
+method main(_cthread_186: Ref, _caller_measures_186: Seq[Measure$], _residue_187: Perm)
+  returns (_current_wait_level_186: Perm)
+  requires _cthread_186 != null
+  requires issubtype(typeof(_cthread_186), Thread_0())
+  requires [true,
+    perm(MustTerminate(_cthread_186)) == none &&
+    ((forperm _r_9: Ref [MustInvokeBounded(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [MustInvokeUnbounded(_r_9)] :: false) &&
+    ((forperm _r_9: Ref [_r_9.MustReleaseBounded] :: false) &&
+    (forperm _r_9: Ref [_r_9.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_7: Ref [_r_7.MustReleaseBounded] :: Level(_r_7) <=
+      _current_wait_level_186) &&
+    ((forperm
+      _r_7: Ref [_r_7.MustReleaseUnbounded] :: Level(_r_7) <=
+      _current_wait_level_186) &&
+    _residue_187 <= _current_wait_level_186),
+    true]
+  ensures [true,
+    (forperm _r_8: Ref [MustInvokeBounded(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [MustInvokeUnbounded(_r_8)] :: false) &&
+    ((forperm _r_8: Ref [_r_8.MustReleaseBounded] :: false) &&
+    (forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: false)))]
+{
+  var module_defined_0: Bool
+  var module_names_0: Set[_Name]
+  var _cwl_186: Perm
+  var _method_measures_186: Seq[Measure$]
+  _method_measures_186 := Seq[Measure$]()
+  module_defined_0 := true
+  module_names_0 := Set[_Name]()
+  module_names_0 := (module_names_0 union
+    Set(_single(6872323072689856351)))
+  inhale acc(__file__()._val, 99 / 100) &&
+    issubtype(typeof(__file__()._val), str()) &&
+    issubtype(typeof(__file__()._val), str())
+  module_names_0 := (module_names_0 union
+    Set(_single(6872323076851130207)))
+  inhale acc(__name__()._val, 99 / 100) &&
+    issubtype(typeof(__name__()._val), str()) &&
+    issubtype(typeof(__name__()._val), str()) &&
+    str___eq__(str___create__(8, Seq(95, 95, 109, 97, 105, 110, 95, 95)), __name__()._val)
+  module_names_0 := (module_names_0 union Set(_single(1953718627)))
+  module_names_0 := (module_names_0 union Set(_single(1953720652)))
+  module_names_0 := (module_names_0 union Set(_single(1952672068)))
+  module_names_0 := (module_names_0 union Set(_single(7628115)))
+  module_names_0 := (module_names_0 union
+    Set(_single(7809644653626814543)))
+  module_names_0 := (module_names_0 union Set(_single(474315583061)))
+  module_names_0 := (module_names_0 union
+    Set(_single(7876215048685427424356135562853)))
+  module_names_0 := (module_names_0 union
+    Set(_single(7876215048685427424356135560548)))
+  goto __end
+  label __end
+}
+
+method list___init__(_cthread_8: Ref, _caller_measures_8: Seq[Measure$], _residue_8: Perm)
+  returns (_current_wait_level_8: Perm, res: Ref)
+  requires _cthread_8 != null
+  requires Measure$check(_caller_measures_8, _cthread_8, 1)
+  requires issubtype(typeof(_cthread_8), Thread_0())
+  requires [true, Measure$check(_caller_measures_8, _cthread_8, 1)]
+  ensures [(forperm
+      _r_10: Ref [_r_10.MustReleaseBounded] :: Level(_r_10) <=
+      _current_wait_level_8) &&
+    ((forperm
+      _r_10: Ref [_r_10.MustReleaseUnbounded] :: Level(_r_10) <=
+      _current_wait_level_8) &&
+    _residue_8 <= _current_wait_level_8),
+    true]
+  ensures acc(res.list_acc, write)
+  ensures res.list_acc == Seq[Ref]()
+  ensures typeof(res) == list(list_arg(typeof(res), 0))
+  ensures (Low(res): Bool)
+{
+  var _cwl_8: Perm
+  inhale false
+}
+
+method list___setitem__(_cthread_12: Ref, _caller_measures_12: Seq[Measure$],
+  _residue_12: Perm, self: Ref, key: Int, item: Ref)
+  returns (_current_wait_level_12: Perm)
+  requires _cthread_12 != null
+  requires Measure$check(_caller_measures_12, _cthread_12, 1)
+  requires issubtype(typeof(_cthread_12), Thread_0())
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, write)
+  requires @error("List index may be negative.")
+    (key >= 0)
+  requires @error("List index may be out of bounds.")
+    (key < list___len__(self))
+  requires issubtype(typeof(item), list_arg(typeof(self), 0))
+  requires [true, Measure$check(_caller_measures_12, _cthread_12, 1)]
+  ensures [(forperm
+      _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) <=
+      _current_wait_level_12) &&
+    ((forperm
+      _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) <=
+      _current_wait_level_12) &&
+    _residue_12 <= _current_wait_level_12),
+    true]
+  ensures acc(self.list_acc, write)
+  ensures self.list_acc == old(self.list_acc)[key := item]
+  ensures (Low(key): Bool) && (Low(item): Bool) ==>
+    (forall i: Ref ::
+      { list___getitem__(self, i) }
+      issubtype(typeof(i), int()) &&
+      (int___unbox__(i) >= 0 &&
+      (int___unbox__(i) < list___len__(self) &&
+      (Low(old(list___getitem__(self, i))): Bool))) ==>
+      (Low(list___getitem__(self, i)): Bool))
+{
+  var _cwl_12: Perm
+  inhale false
+}

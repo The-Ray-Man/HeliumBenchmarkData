@@ -1,0 +1,161 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_ser$col$$col$Serializer {
+    (forall W$0: Type, F$1: Type ::
+      { inhabited(s_ser$col$$col$Serializer_type(W$0, F$1)) }
+      inhabited(s_ser$col$$col$Serializer_type(W$0, F$1)) ==
+      (inhabited(W$0) && inhabited(F$1)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_ser$col$$col$Formatter  {
+  
+  function ser$col$$col$Formatter_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$io$col$$col$Write  {
+  
+  function std$col$$col$io$col$$col$Write_impl(arg0: Type): Bool 
+}
+
+domain sizedness_ser$col$$col$Serializer  {
+  
+  axiom s_ser$col$$col$Serializer_Sized {
+    (forall W$0: Type, F$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_ser$col$$col$Serializer_type(W$0, F$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_ser$col$$col$Serializer_type(W$0, F$1)))
+  }
+  
+  axiom s_ser$col$$col$Serializer_MetaSized {
+    (forall W$0: Type, F$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_ser$col$$col$Serializer_type(W$0, F$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(F$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_ser$col$$col$Serializer_type(W$0, F$1)))
+  }
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_ser$col$$col$Serializer_unreachable(W$0: Type, F$1: Type): s_ser$col$$col$Serializer
+  ensures false
+
+
+function s_ser$col$$col$Serializer_field_0(self: Ref, W$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_ser$col$$col$Serializer_field_1(self: Ref, W$0: Type, F$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_ser$col$$col$Serializer_snap(self: Ref, W$0: Type, F$1: Type): s_ser$col$$col$Serializer
+  requires acc(p_ser$col$$col$Serializer(self, W$0, F$1), write)
+{
+  (unfolding acc(p_ser$col$$col$Serializer(self, W$0, F$1), write) in
+    s_ser$col$$col$Serializer_cons(p_Param_snap(s_ser$col$$col$Serializer_field_0(self,
+    W$0, F$1), W$0), p_Param_snap(s_ser$col$$col$Serializer_field_1(self, W$0,
+    F$1), F$1)))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_ser$col$$col$Serializer(self: Ref, W$0: Type, F$1: Type) {
+  inhabited(W$0) &&
+  acc(p_Param(s_ser$col$$col$Serializer_field_0(self, W$0, F$1), W$0), write) &&
+  (inhabited(F$1) &&
+  acc(p_Param(s_ser$col$$col$Serializer_field_1(self, W$0, F$1), F$1), write))
+}
+
+method m_ser$col$$col$Serializer$col$$col$$lt$W$com$$sp$F$gt$$col$$col$into_inner(_0p: Ref,
+  _1p: Ref, W$0: Type, F$1: Type)
+  requires inhabited(s_ser$col$$col$Serializer_type(W$0, F$1)) &&
+    acc(p_ser$col$$col$Serializer(_1p, W$0, F$1), write)
+  ensures inhabited(W$0) && acc(p_Param(_0p, W$0), write)
+{
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  label start
+  inhale ser$col$$col$Formatter_impl(F$1)
+  inhale std$col$$col$io$col$$col$Write_impl(W$0)
+  inhale core$col$$col$marker$col$$col$Sized_impl(F$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(W$0)
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_ser$col$$col$Serializer(_1p, W$0, F$1), write)
+  _tmp0 := p_Param_snap(s_ser$col$$col$Serializer_field_0(_1p, W$0, F$1), W$0)
+  exhale inhabited(W$0) &&
+    acc(p_Param(s_ser$col$$col$Serializer_field_0(_1p, W$0, F$1), W$0), write)
+  p_Param_assign(_0p, W$0, _tmp0)
+  label _before_0_1
+  exhale inhabited(F$1) &&
+    acc(p_Param(s_ser$col$$col$Serializer_field_1(_1p, W$0, F$1), F$1), write)
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label package_post0
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_ser$col$$col$Serializer_assign(self: Ref, W$0: Type, F$1: Type, value: s_ser$col$$col$Serializer)
+  ensures acc(p_ser$col$$col$Serializer(self, W$0, F$1), write)
+  ensures p_ser$col$$col$Serializer_snap(self, W$0, F$1) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_ser$col$$col$Serializer {
+  s_ser$col$$col$Serializer_cons(s_ser$col$$col$Serializer_0: s_Param, s_ser$col$$col$Serializer_1: s_Param)
+}
+
+adt Type {
+  s_ser$col$$col$Serializer_type(s_ser$col$$col$Serializer_typaram_W$0: Type,
+  s_ser$col$$col$Serializer_typaram_F$1: Type)
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,192 @@
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_token$col$$col$Token {
+    inhabited(s_token$col$$col$Token_type()) ==
+    inhabited(s_UInt_usize_type())
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$convert$col$$col$From  {
+  
+  function std$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_token$col$$col$Token  {
+  
+  axiom s_token$col$$col$Token_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_token$col$$col$Token_type())
+  }
+  
+  axiom s_token$col$$col$Token_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_token$col$$col$Token_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_mio_UInt_usize_23_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_mio_UInt_usize_23_condition {
+    std$col$$col$convert$col$$col$From_impl(s_UInt_usize_type(), s_token$col$$col$Token_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { std$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_token$col$$col$Token_unreachable(): s_token$col$$col$Token
+  ensures false
+
+
+function s_token$col$$col$Token_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_token$col$$col$Token_snap(self: Ref): s_token$col$$col$Token
+  requires acc(p_token$col$$col$Token(self), write)
+{
+  (unfolding acc(p_token$col$$col$Token(self), write) in
+    s_token$col$$col$Token_cons(p_UInt_usize_snap(s_token$col$$col$Token_field_0(self))))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_token$col$$col$Token(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_token$col$$col$Token_field_0(self)), write)
+}
+
+method m_token$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$token$col$$col$Token$gt$$sp$for$sp$usize$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_token$col$$col$Token_type()) &&
+    acc(p_token$col$$col$Token(_1p), write)
+  ensures inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+{
+  var _tmp0: s_UInt_usize
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_token$col$$col$Token(_1p), write)
+  _tmp0 := p_UInt_usize_snap(s_token$col$$col$Token_field_0(_1p))
+  p_UInt_usize_assign(_0p, _tmp0)
+  label _before_0_1
+  fold acc(p_token$col$$col$Token(_1p), write)
+  label package_post0
+  goto end
+  label end
+}
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_token$col$$col$Token_assign(self: Ref, value: s_token$col$$col$Token)
+  ensures acc(p_token$col$$col$Token(self), write)
+  ensures p_token$col$$col$Token_snap(self) == value
+
+
+method trait_std$col$$col$convert$col$$col$From_impl_UInt_usize_23_fn_pre_weaken_token$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$token$col$$col$Token$gt$$sp$for$sp$usize$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_token$col$$col$Token_type()) &&
+    acc(p_token$col$$col$Token(_1p), write)
+{
+  label start
+}
+
+method trait_std$col$$col$convert$col$$col$From_impl_UInt_usize_23_fn_post_strengthen_token$col$$col$$lt$impl$sp$std$col$$col$convert$col$$col$From$lt$token$col$$col$Token$gt$$sp$for$sp$usize$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_token$col$$col$Token_type()) &&
+    acc(p_token$col$$col$Token(_1p), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_token$col$$col$Token {
+  s_token$col$$col$Token_cons(s_token$col$$col$Token_0: s_UInt_usize)
+}
+
+adt Type {
+  s_UInt_usize_type()
+  s_token$col$$col$Token_type()
+  Unknown_type(id: Int)
+}

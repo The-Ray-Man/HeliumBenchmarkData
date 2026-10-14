@@ -1,0 +1,548 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_1_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_1_Tuple {
+    (forall x: s_1_Tuple, T$0: Type ::
+      { make_generic_s_1_Tuple(x, T$0) }
+      s_Param_typ(make_generic_s_1_Tuple(x, T$0)) == s_1_Tuple_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_1_Tuple {
+    (forall p: s_Param ::
+      { p.make_concrete_s_1_Tuple, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_1_Tuple_type(s_Param_typ(p).s_1_Tuple_typaram_T$0) ==>
+      make_generic_s_1_Tuple(p.make_concrete_s_1_Tuple, s_Param_typ(p).s_1_Tuple_typaram_T$0) ==
+      p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_Either {
+    (forall L$0: Type, R$1: Type ::
+      { inhabited(s_Either_type(L$0, R$1)) }
+      inhabited(s_Either_type(L$0, R$1)) ==
+      (inhabited(L$0) || inhabited(R$1)))
+  }
+  
+  axiom inhabited_1_Tuple {
+    (forall T$0: Type ::
+      { inhabited(s_1_Tuple_type(T$0)) }
+      inhabited(s_1_Tuple_type(T$0)) == inhabited(T$0))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$FnOnce  {
+  
+  function core$col$$col$ops$col$$col$FnOnce_assoc_type_core$col$$col$ops$col$$col$FnOnce$col$$col$Output(arg0: Type,
+  arg1: Type): Type 
+  
+  function core$col$$col$ops$col$$col$FnOnce_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_Either  {
+  
+  axiom s_Either_Sized {
+    (forall L$0: Type, R$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Either_type(L$0, R$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Either_type(L$0, R$1)))
+  }
+  
+  axiom s_Either_MetaSized {
+    (forall L$0: Type, R$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Either_type(L$0, R$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Either_type(L$0, R$1)))
+  }
+}
+
+domain sizedness_1_Tuple  {
+  
+  axiom s_1_Tuple_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_1_Tuple_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_1_Tuple_type(T$0)))
+  }
+  
+  axiom s_1_Tuple_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_1_Tuple_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_1_Tuple_type(T$0)))
+  }
+}
+
+domain trait_fns_core$col$$col$ops$col$$col$FnOnce_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once  {
+  
+  function core$col$$col$ops$col$$col$FnOnce_fn_pre_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(arg0: s_Param,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  function core$col$$col$ops$col$$col$FnOnce_fn_post_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(arg0: s_Param,
+  arg1: s_Param, arg2: s_Param, arg3: Type, arg4: Type): Bool 
+  
+  axiom core$col$$col$ops$col$$col$FnOnce_fn_pre_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once_base {
+    (forall _1s: s_Param, _2s: s_Param, Self$0: Type, Args$1: Type ::
+      { core$col$$col$ops$col$$col$FnOnce_fn_pre_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_1s,
+      _2s, Self$0, Args$1) }
+      true ==>
+      core$col$$col$ops$col$$col$FnOnce_fn_pre_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_1s,
+      _2s, Self$0, Args$1))
+  }
+  
+  axiom core$col$$col$ops$col$$col$FnOnce_fn_post_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once_base {
+    (forall _0s: s_Param, _1s: s_Param, _2s: s_Param, Self$0: Type, Args$1: Type ::
+      { core$col$$col$ops$col$$col$FnOnce_fn_post_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_0s,
+      _1s, _2s, Self$0, Args$1) }
+      core$col$$col$ops$col$$col$FnOnce_fn_post_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_0s,
+      _1s, _2s, Self$0, Args$1) ==>
+      true ==> true)
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Either_unreachable(L$0: Type, R$1: Type): s_Either
+  ensures false
+
+
+function s_Either_0_field_0(self: Ref, L$0: Type, R$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Either_1_field_0(self: Ref, L$0: Type, R$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Either_discr(self: s_Either): s_Int_isize
+{
+  (self.iss_Either_1_cons ? s_Int_isize_cons(1) : s_Int_isize_cons(0))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_1_Tuple_unreachable(T$0: Type): s_1_Tuple
+  ensures false
+
+
+function s_1_Tuple_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Either_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Either_snap(self: Ref, L$0: Type, R$1: Type): s_Either
+  requires acc(p_Either(self, L$0, R$1), write)
+{
+  (unfolding acc(p_Either(self, L$0, R$1), write) in
+    (p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(1) ?
+      (unfolding acc(p_Either_1_owned(self, L$0, R$1), write) in
+        s_Either_1_cons(p_Param_snap(s_Either_1_field_0(self, L$0, R$1), R$1))) :
+      (p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(0) ?
+        (unfolding acc(p_Either_0_owned(self, L$0, R$1), write) in
+          s_Either_0_cons(p_Param_snap(s_Either_0_field_0(self, L$0, R$1), L$0))) :
+        s_Either_unreachable(L$0, R$1))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_1_Tuple_snap(self: Ref, T$0: Type): s_1_Tuple
+  requires acc(p_1_Tuple(self, T$0), write)
+{
+  (unfolding acc(p_1_Tuple(self, T$0), write) in
+    s_1_Tuple_cons(p_Param_snap(s_1_Tuple_field_0(self, T$0), T$0)))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Either_0_owned(self: Ref, L$0: Type, R$1: Type) {
+  inhabited(L$0) &&
+  acc(p_Param(s_Either_0_field_0(self, L$0, R$1), L$0), write)
+}
+
+predicate p_Either_1_owned(self: Ref, L$0: Type, R$1: Type) {
+  inhabited(R$1) &&
+  acc(p_Param(s_Either_1_field_0(self, L$0, R$1), R$1), write)
+}
+
+predicate p_Either(self: Ref, L$0: Type, R$1: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_Either_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(1)) &&
+  ((p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(0) ==>
+  inhabited(L$0) && acc(p_Either_0_owned(self, L$0, R$1), write)) &&
+  (p_Int_isize_snap(p_Either_field_discr(self)) == s_Int_isize_cons(1) ==>
+  inhabited(R$1) && acc(p_Either_1_owned(self, L$0, R$1), write))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_1_Tuple(self: Ref, T$0: Type) {
+  inhabited(T$0) && acc(p_Param(s_1_Tuple_field_0(self, T$0), T$0), write)
+}
+
+method m_Either$col$$col$$lt$L$com$$sp$R$gt$$col$$col$left_or_else(_0p: Ref,
+  _1p: Ref, _2p: Ref, L$0: Type, R$1: Type, F$2: Type)
+  requires inhabited(s_Either_type(L$0, R$1)) &&
+    acc(p_Either(_1p, L$0, R$1), write)
+  requires inhabited(F$2) && acc(p_Param(_2p, F$2), write)
+  ensures inhabited(L$0) && acc(p_Param(_0p, L$0), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _from_bb2_to_bb4: Bool
+  var _from_bb4_to_bb5: Bool
+  var _from_bb6_to_bb7: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb9_to_bb10: Bool
+  var _from_bb5_to_bb9: Bool
+  var _from_bb3_to_bb6: Bool
+  var _from_bb8_to_bb9: Bool
+  var _from_bb0_to_bb2: Bool
+  var _from_bb7_to_bb8: Bool
+  var _from_bb10_to_bb11: Bool
+  var _from_bb0_to_bb3: Bool
+  var _tmp0: s_Int_isize
+  var _tmp1: Int
+  var _tmp2: s_Param
+  var _tmp3: s_Param
+  var _tmp4: s_Param
+  var _tmp5: s_Param
+  var _tmp6: s_Param
+  var _tmp7: s_Param
+  label start
+  inhale core$col$$col$ops$col$$col$FnOnce_impl(F$2, s_1_Tuple_type(R$1))
+  inhale core$col$$col$marker$col$$col$Sized_impl(F$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(R$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(L$0)
+  inhale core$col$$col$ops$col$$col$FnOnce_assoc_type_core$col$$col$ops$col$$col$FnOnce$col$$col$Output(F$2,
+    s_1_Tuple_type(R$1)) ==
+    L$0
+  _from_bb2_to_bb4 := false
+  _from_bb4_to_bb5 := false
+  _from_bb6_to_bb7 := false
+  _from_bb0_to_bb1 := false
+  _from_bb9_to_bb10 := false
+  _from_bb5_to_bb9 := false
+  _from_bb3_to_bb6 := false
+  _from_bb8_to_bb9 := false
+  _from_bb0_to_bb2 := false
+  _from_bb7_to_bb8 := false
+  _from_bb10_to_bb11 := false
+  _from_bb0_to_bb3 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  p_Int_isize_assign(_3p, (unfolding acc(p_Either(_1p, L$0, R$1), wildcard) in
+      p_Int_isize_snap(p_Either_field_discr(_1p))))
+  label _before_0_2
+  _tmp0 := p_Int_isize_snap(_3p)
+  exhale inhabited(s_Int_isize_type()) && acc(p_Int_isize(_3p), write)
+  _tmp1 := s_Int_isize_value(_tmp0)
+  label _after_0
+  if (_tmp1 == 0) {
+    _from_bb0_to_bb2 := true
+    goto bb_2
+  } elseif (_tmp1 == 1) {
+    _from_bb0_to_bb3 := true
+    goto bb_3
+  } else {
+    _from_bb0_to_bb1 := true
+    goto bb_1
+  }
+  label bb_2
+  label _before_2_0
+  label _after_2
+  _from_bb2_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  label _before_4_1
+  unfold acc(p_Either(_1p, L$0, R$1), write)
+  inhale p_Int_isize_snap(p_Either_field_discr(_1p)) == s_Int_isize_cons(0) ==>
+    inhabited(L$0)
+  inhale p_Int_isize_snap(p_Either_field_discr(_1p)) == s_Int_isize_cons(1) ==>
+    inhabited(R$1)
+  unfold acc(p_Either_0_owned(_1p, L$0, R$1), write)
+  _tmp2 := p_Param_snap(s_Either_0_field_0(_1p, L$0, R$1), L$0)
+  exhale inhabited(L$0) &&
+    acc(p_Param(s_Either_0_field_0(_1p, L$0, R$1), L$0), write)
+  p_Param_assign(_4p, L$0, _tmp2)
+  label _before_4_2
+  _tmp3 := p_Param_snap(_4p, L$0)
+  exhale inhabited(L$0) && acc(p_Param(_4p, L$0), write)
+  p_Param_assign(_0p, L$0, _tmp3)
+  label _before_4_3
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _before_5_1
+  label _after_5
+  exhale inhabited(F$2) && acc(p_Param(_2p, F$2), write)
+  _from_bb5_to_bb9 := true
+  goto bb_9
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  unfold acc(p_Either(_1p, L$0, R$1), write)
+  inhale p_Int_isize_snap(p_Either_field_discr(_1p)) == s_Int_isize_cons(0) ==>
+    inhabited(L$0)
+  inhale p_Int_isize_snap(p_Either_field_discr(_1p)) == s_Int_isize_cons(1) ==>
+    inhabited(R$1)
+  unfold acc(p_Either_1_owned(_1p, L$0, R$1), write)
+  _tmp4 := p_Param_snap(s_Either_1_field_0(_1p, L$0, R$1), R$1)
+  exhale inhabited(R$1) &&
+    acc(p_Param(s_Either_1_field_0(_1p, L$0, R$1), R$1), write)
+  p_Param_assign(_5p, R$1, _tmp4)
+  label _before_3_2
+  label _before_3_3
+  _tmp5 := p_Param_snap(_2p, F$2)
+  exhale inhabited(F$2) && acc(p_Param(_2p, F$2), write)
+  p_Param_assign(_6p, F$2, _tmp5)
+  label _before_3_4
+  label _before_3_5
+  label _before_3_6
+  _tmp6 := p_Param_snap(_5p, R$1)
+  exhale inhabited(R$1) && acc(p_Param(_5p, R$1), write)
+  p_Param_assign(_8p, R$1, _tmp6)
+  label _before_3_7
+  _tmp7 := p_Param_snap(_8p, R$1)
+  exhale inhabited(R$1) && acc(p_Param(_8p, R$1), write)
+  p_1_Tuple_assign(_7p, R$1, s_1_Tuple_cons(_tmp7))
+  label _before_3_8
+  goto bb_term_3
+  label bb_term_3
+  label pre0
+  make_generic_1_Tuple(_7p, R$1)
+  core$col$$col$ops$col$$col$FnOnce_fn_stub_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_0p,
+    _6p, _7p, F$2, s_1_Tuple_type(R$1))
+  label post1
+  label _after_3
+  _from_bb3_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  label _after_6
+  _from_bb6_to_bb7 := true
+  goto bb_7
+  label bb_7
+  label _before_7_0
+  label _before_7_1
+  label _before_7_2
+  label _before_7_3
+  label _after_7
+  _from_bb7_to_bb8 := true
+  goto bb_8
+  label bb_8
+  label _before_8_0
+  label _before_8_1
+  label _after_8
+  _from_bb8_to_bb9 := true
+  goto bb_9
+  label bb_9
+  label _before_9_0
+  label _after_9
+  _from_bb9_to_bb10 := true
+  goto bb_10
+  label bb_10
+  label _before_10_0
+  label _after_10
+  _from_bb10_to_bb11 := true
+  goto bb_11
+  label bb_11
+  label _before_11_0
+  label package_post2
+  goto end
+  label bb_12
+  assert false
+  goto end
+  label bb_13
+  assert false
+  goto end
+  label bb_14
+  assert false
+  goto end
+  label bb_15
+  assert false
+  goto end
+  label bb_16
+  assert false
+  goto end
+  label bb_17
+  assert false
+  goto end
+  label bb_18
+  assert false
+  goto end
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  exhale false
+  inhale false
+  goto end
+  label end
+}
+
+method make_generic_1_Tuple(self: Ref, T$0: Type)
+  requires acc(p_1_Tuple(self, T$0), write)
+  ensures acc(p_Param(self, s_1_Tuple_type(T$0)), write)
+  ensures old(make_generic_s_1_Tuple(p_1_Tuple_snap(self, T$0), T$0)) ==
+    p_Param_snap(self, s_1_Tuple_type(T$0))
+
+
+method make_concrete_1_Tuple(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_1_Tuple_type(T$0)), write)
+  ensures acc(p_1_Tuple(self, T$0), write)
+  ensures old(p_Param_snap(self, s_1_Tuple_type(T$0))) ==
+    make_generic_s_1_Tuple(p_1_Tuple_snap(self, T$0), T$0)
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Either_assign(self: Ref, L$0: Type, R$1: Type, value: s_Either)
+  ensures acc(p_Either(self, L$0, R$1), write)
+  ensures p_Either_snap(self, L$0, R$1) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_1_Tuple_assign(self: Ref, T$0: Type, value: s_1_Tuple)
+  ensures acc(p_1_Tuple(self, T$0), write)
+  ensures p_1_Tuple_snap(self, T$0) == value
+
+
+method core$col$$col$ops$col$$col$FnOnce_fn_stub_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(_0p: Ref,
+  _1p: Ref, _2p: Ref, Self$0: Type, Args$1: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(Args$1) && acc(p_Param(_2p, Args$1), write)
+  requires core$col$$col$ops$col$$col$FnOnce_fn_pre_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(p_Param_snap(_1p,
+    Self$0), p_Param_snap(_2p, Args$1), Self$0, Args$1)
+  ensures inhabited(core$col$$col$ops$col$$col$FnOnce_assoc_type_core$col$$col$ops$col$$col$FnOnce$col$$col$Output(Self$0,
+    Args$1)) &&
+    acc(p_Param(_0p, core$col$$col$ops$col$$col$FnOnce_assoc_type_core$col$$col$ops$col$$col$FnOnce$col$$col$Output(Self$0,
+    Args$1)), write)
+  ensures core$col$$col$ops$col$$col$FnOnce_fn_post_core$col$$col$ops$col$$col$FnOnce$col$$col$call_once(p_Param_snap(_0p,
+    core$col$$col$ops$col$$col$FnOnce_assoc_type_core$col$$col$ops$col$$col$FnOnce$col$$col$Output(Self$0,
+    Args$1)), old(p_Param_snap(_1p, Self$0)), old(p_Param_snap(_2p, Args$1)),
+    Self$0, Args$1)
+
+
+adt s_Param {
+  make_generic_s_1_Tuple(make_concrete_s_1_Tuple: s_1_Tuple, make_generic_s_1_Tuple_typaram_T$0: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Either {
+  s_Either_0_cons(s_Either_0_0: s_Param)
+  s_Either_1_cons(s_Either_1_0: s_Param)
+}
+
+adt s_1_Tuple {
+  s_1_Tuple_cons(s_1_Tuple_0: s_Param)
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_Either_type(s_Either_typaram_L$0: Type, s_Either_typaram_R$1: Type)
+  s_1_Tuple_type(s_1_Tuple_typaram_T$0: Type)
+  Unknown_type(id: Int)
+}

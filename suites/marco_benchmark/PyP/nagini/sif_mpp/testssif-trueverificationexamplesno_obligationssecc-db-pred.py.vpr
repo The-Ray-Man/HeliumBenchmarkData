@@ -1,0 +1,3951 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function Elem(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_Elem {
+    extends_(Elem(), object()) && get_basic(Elem()) == Elem()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field dict_accp: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field Elem_key: Ref
+
+field Elem_keyp: Ref
+
+field Elem_value: Ref
+
+field Elem_valuep: Ref
+
+field Elem_next: Ref
+
+field Elem_nextp: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function global_label(): Ref
+  ensures issubtype(typeof(result), int())
+
+
+function ar_sec_last(a: Ref, n_0: Ref): Ref
+  requires a == null || issubtype(typeof(a), Elem())
+  requires issubtype(typeof(n_0), int())
+  requires int___ge__(int___unbox__(n_0), 0)
+  requires acc(ar_sec(a, n_0), write)
+  ensures result == null || issubtype(typeof(result), Elem())
+{
+  (unfolding acc(ar_sec(a, n_0), write) in
+    (int___eq__(n_0, __prim__int___box__(0)) ?
+      a :
+      ar_sec_last(a.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_0),
+      1)))))
+}
+
+function ar_sec_last_0(a: Ref, n_0: Ref): Ref
+  requires a == null || issubtype(typeof(a), Elem())
+  requires issubtype(typeof(n_0), int())
+  requires int___ge__(int___unbox__(n_0), 0)
+  requires acc(ar_sec_0(a, n_0), write)
+  ensures result == null || issubtype(typeof(result), Elem())
+{
+  (unfolding acc(ar_sec_0(a, n_0), write) in
+    (int___eq__(n_0, __prim__int___box__(0)) ?
+      a :
+      ar_sec_last_0(a.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_0),
+      1)))))
+}
+
+function ar_sec_ith(a_0: Ref, n_1: Ref, i: Ref): Ref
+  requires a_0 == null || issubtype(typeof(a_0), Elem())
+  requires issubtype(typeof(n_1), int())
+  requires issubtype(typeof(i), int())
+  requires int___ge__(int___unbox__(n_1), 0)
+  requires int___ge__(int___unbox__(i), 0) &&
+    int___le__(int___unbox__(i), int___unbox__(n_1))
+  requires acc(ar_sec(a_0, n_1), write)
+  ensures result == null || issubtype(typeof(result), Elem())
+{
+  (unfolding acc(ar_sec(a_0, n_1), write) in
+    (int___eq__(i, __prim__int___box__(0)) ?
+      a_0 :
+      ar_sec_ith(a_0.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_1),
+      1)), __prim__int___box__(int___sub__(int___unbox__(i), 1)))))
+}
+
+function ar_sec_ith_0(a_0: Ref, n_1: Ref, i: Ref): Ref
+  requires a_0 == null || issubtype(typeof(a_0), Elem())
+  requires issubtype(typeof(n_1), int())
+  requires issubtype(typeof(i), int())
+  requires int___ge__(int___unbox__(n_1), 0)
+  requires int___ge__(int___unbox__(i), 0) &&
+    int___le__(int___unbox__(i), int___unbox__(n_1))
+  requires acc(ar_sec_0(a_0, n_1), write)
+  ensures result == null || issubtype(typeof(result), Elem())
+{
+  (unfolding acc(ar_sec_0(a_0, n_1), write) in
+    (int___eq__(i, __prim__int___box__(0)) ?
+      a_0 :
+      ar_sec_ith_0(a_0.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_1),
+      1)), __prim__int___box__(int___sub__(int___unbox__(i), 1)))))
+}
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function SUCCESS(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(0)
+{
+  __prim__int___box__(0)
+}
+
+function FAILURE(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(1)
+{
+  __prim__int___box__(1)
+}
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+  decreases _
+{
+  self >= other
+}
+
+function int___gt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self > other
+}
+
+function int___le__(self: Int, other: Int): Bool
+  decreases _
+{
+  self <= other
+}
+
+function int___lt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self < other
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+  decreases _
+{
+  self - other
+}
+
+function int___floordiv__(self: Int, other: Int): Int
+  decreases _
+  requires other != 0
+{
+  self / other
+}
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+function tuple___val__(self: Ref): Seq[Ref]
+  decreases _
+
+
+function tuple___create2__(arg0: Ref, arg1: Ref, t0: PyType, t1: PyType, ctr: Int): Ref
+  decreases _
+  requires issubtype(typeof(arg0), t0)
+  requires issubtype(typeof(arg1), t1)
+  ensures result != null
+  ensures typeof(result) == tuple(Seq(t0, t1))
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple___val__(result) == Seq(arg0, arg1)
+  ensures tuple___len__(result) == 2 &&
+    (tuple___getitem__(result, 0) == arg0 &&
+    tuple___getitem__(result, 1) == arg1)
+
+
+function tuple___len__(self: Ref): Int
+  decreases _
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)|
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  decreases _
+  requires (let ln ==
+      (tuple___len__(self)) in
+      (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) +
+    key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==>
+    result == tuple___val__(self)[tuple___len__(self) + key]
+
+
+function ar_sec_low(a_7: Ref, n_8: Ref, a_7_0: Ref, n_8_0: Ref): Bool
+  requires acc(ar_sec(a_7, n_8), wildcard) &&
+    acc(ar_sec_0(a_7_0, n_8_0), wildcard)
+{
+  (unfolding acc(ar_sec(a_7, n_8), wildcard) in
+    (unfolding acc(ar_sec_0(a_7_0, n_8_0), wildcard) in
+      int___gt__(int___unbox__(n_8), 0) &&
+      int___gt__(int___unbox__(n_8_0), 0) ==>
+      a_7.Elem_key == a_7_0.Elem_keyp &&
+      ((int___gt__(int___unbox__(a_7.Elem_key), int___unbox__(global_label())) &&
+      int___gt__(int___unbox__(a_7_0.Elem_keyp), int___unbox__(global_label())) ==>
+      a_7.Elem_value == a_7_0.Elem_valuep) &&
+      ar_sec_low(a_7.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_8),
+      1)), a_7_0.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_8_0),
+      1))))))
+}
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+predicate ar(a_6: Ref, n_7: Ref) {
+  (a_6 == null || issubtype(typeof(a_6), Elem())) &&
+  issubtype(typeof(n_7), int()) &&
+  (int___gt__(int___unbox__(n_7), 0) ==>
+  acc(a_6.Elem_key, write) && issubtype(typeof(a_6.Elem_key), int()) &&
+  (acc(a_6.Elem_value, write) && issubtype(typeof(a_6.Elem_value), int()) &&
+  (acc(a_6.Elem_next, write) &&
+  (a_6.Elem_next == null || issubtype(typeof(a_6.Elem_next), Elem())) &&
+  acc(ar(a_6.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_7),
+  1))), write))))
+}
+
+predicate ar_0(a_6: Ref, n_7: Ref) {
+  (a_6 == null || issubtype(typeof(a_6), Elem())) &&
+  issubtype(typeof(n_7), int()) &&
+  (int___gt__(int___unbox__(n_7), 0) ==>
+  acc(a_6.Elem_keyp, write) && issubtype(typeof(a_6.Elem_keyp), int()) &&
+  (acc(a_6.Elem_valuep, write) && issubtype(typeof(a_6.Elem_valuep), int()) &&
+  (acc(a_6.Elem_nextp, write) &&
+  (a_6.Elem_nextp == null || issubtype(typeof(a_6.Elem_nextp), Elem())) &&
+  acc(ar_0(a_6.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_7),
+  1))), write))))
+}
+
+predicate ar_sec(a_7: Ref, n_8: Ref) {
+  (a_7 == null || issubtype(typeof(a_7), Elem())) &&
+  issubtype(typeof(n_8), int()) &&
+  (int___gt__(int___unbox__(n_8), 0) ==>
+  acc(a_7.Elem_key, write) && issubtype(typeof(a_7.Elem_key), int()) &&
+  (acc(a_7.Elem_value, write) && issubtype(typeof(a_7.Elem_value), int()) &&
+  (acc(a_7.Elem_next, write) &&
+  (a_7.Elem_next == null || issubtype(typeof(a_7.Elem_next), Elem())) &&
+  acc(ar_sec(a_7.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_8),
+  1))), write))))
+}
+
+predicate ar_sec_0(a_7: Ref, n_8: Ref) {
+  (a_7 == null || issubtype(typeof(a_7), Elem())) &&
+  issubtype(typeof(n_8), int()) &&
+  (int___gt__(int___unbox__(n_8), 0) ==>
+  acc(a_7.Elem_keyp, write) && issubtype(typeof(a_7.Elem_keyp), int()) &&
+  (acc(a_7.Elem_valuep, write) && issubtype(typeof(a_7.Elem_valuep), int()) &&
+  (acc(a_7.Elem_nextp, write) &&
+  (a_7.Elem_nextp == null || issubtype(typeof(a_7.Elem_nextp), Elem())) &&
+  acc(ar_sec_0(a_7.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_8),
+  1))), write))))
+}
+
+method ar_sec_snoc(p1: Bool, p2: Bool, a_1: Ref, a_1_0: Ref, n_2: Ref, n_2_0: Ref)
+  requires (p1 ==> a_1 == null || issubtype(typeof(a_1), Elem())) &&
+    (p2 ==> a_1_0 == null || issubtype(typeof(a_1_0), Elem()))
+  requires (p1 ==> issubtype(typeof(n_2), int())) &&
+    (p2 ==> issubtype(typeof(n_2_0), int()))
+  requires (p1 ==> int___ge__(int___unbox__(n_2), 0)) &&
+    (p2 ==> int___ge__(int___unbox__(n_2_0), 0))
+  requires (p1 ==> int() == typeof(n_2)) && (p2 ==> int() == typeof(n_2_0))
+  requires p1 && p2 ==> n_2 == n_2_0
+  requires (p1 ==> acc(ar_sec(a_1, n_2), write)) &&
+    (p2 ==> acc(ar_sec_0(a_1_0, n_2_0), write)) &&
+    (p1 && p2 ==> ar_sec_low(a_1, n_2, a_1_0, n_2_0))
+  requires (p1 ==> acc(ar_sec_last(a_1, n_2).Elem_key, write)) &&
+    (p2 ==> acc(ar_sec_last_0(a_1_0, n_2_0).Elem_keyp, write)) &&
+    ((p1 ==> issubtype(typeof(ar_sec_last(a_1, n_2).Elem_key), int())) &&
+    (p2 ==> issubtype(typeof(ar_sec_last_0(a_1_0, n_2_0).Elem_keyp), int()))) &&
+    ((p1 ==> acc(ar_sec_last(a_1, n_2).Elem_value, write)) &&
+    (p2 ==> acc(ar_sec_last_0(a_1_0, n_2_0).Elem_valuep, write)) &&
+    ((p1 ==> issubtype(typeof(ar_sec_last(a_1, n_2).Elem_value), int())) &&
+    (p2 ==>
+    issubtype(typeof(ar_sec_last_0(a_1_0, n_2_0).Elem_valuep), int()))) &&
+    ((p1 ==> acc(ar_sec_last(a_1, n_2).Elem_next, write)) &&
+    (p2 ==> acc(ar_sec_last_0(a_1_0, n_2_0).Elem_nextp, write)) &&
+    ((p1 ==>
+    ar_sec_last(a_1, n_2).Elem_next == null ||
+    issubtype(typeof(ar_sec_last(a_1, n_2).Elem_next), Elem())) &&
+    (p2 ==>
+    ar_sec_last_0(a_1_0, n_2_0).Elem_nextp == null ||
+    issubtype(typeof(ar_sec_last_0(a_1_0, n_2_0).Elem_nextp), Elem())))))
+  requires (p1 && p2 ==>
+    ar_sec_last(a_1, n_2).Elem_key == ar_sec_last_0(a_1_0, n_2_0).Elem_keyp) &&
+    ((p1 ==>
+    int___gt__(int___unbox__(ar_sec_last(a_1, n_2).Elem_key), int___unbox__(global_label()))) &&
+    (p2 ==>
+    int___gt__(int___unbox__(ar_sec_last_0(a_1_0, n_2_0).Elem_keyp), int___unbox__(global_label()))) ==>
+    p1 && p2 ==>
+    ar_sec_last(a_1, n_2).Elem_value ==
+    ar_sec_last_0(a_1_0, n_2_0).Elem_valuep)
+  ensures (p1 ==>
+    acc(ar_sec(a_1, __prim__int___box__(int___add__(int___unbox__(n_2), 1))), write)) &&
+    (p2 ==>
+    acc(ar_sec_0(a_1_0, __prim__int___box__(int___add__(int___unbox__(n_2_0),
+    1))), write)) &&
+    (p1 && p2 ==>
+    ar_sec_low(a_1, __prim__int___box__(int___add__(int___unbox__(n_2), 1)),
+    a_1_0, __prim__int___box__(int___add__(int___unbox__(n_2_0), 1))))
+  ensures (p1 ==>
+    ar_sec_last(a_1, __prim__int___box__(int___add__(int___unbox__(n_2), 1))) ==
+    old(ar_sec_last(a_1, n_2).Elem_next)) &&
+    (p2 ==>
+    ar_sec_last_0(a_1_0, __prim__int___box__(int___add__(int___unbox__(n_2_0),
+    1))) ==
+    old(ar_sec_last_0(a_1_0, n_2_0).Elem_nextp))
+{
+  inhale p1
+  {
+    var _err: Ref
+    var _err_0: Ref
+    var a_8: Ref
+    var a_8_0: Ref
+    var n_9: Ref
+    var n_9_0: Ref
+    if (p1) {
+      _err := null
+      a_8 := a_1
+      n_9 := n_2
+    }
+    if (p2) {
+      _err_0 := null
+      a_8_0 := a_1_0
+      n_9_0 := n_2_0
+    }
+    {
+      var p1_0: Bool
+      var p2_0: Bool
+      var p3: Bool
+      var p4: Bool
+      p1_0 := p1 && int___eq__(n_9, __prim__int___box__(0))
+      p2_0 := p2 && int___eq__(n_9_0, __prim__int___box__(0))
+      p3 := p1 && !int___eq__(n_9, __prim__int___box__(0))
+      p4 := p2 && !int___eq__(n_9_0, __prim__int___box__(0))
+      assert p1_0 && p2_0 ==>
+        perm(ar_sec(a_8, n_9)) >= write &&
+        perm(ar_sec_0(a_8_0, n_9_0)) >= write ==>
+        ar_sec_low(a_8, n_9, a_8_0, n_9_0)
+      if (p1_0) {
+        unfold acc(ar_sec(a_8, n_9), write)
+      }
+      if (p2_0) {
+        unfold acc(ar_sec_0(a_8_0, n_9_0), write)
+      }
+      if (p1_0) {
+        fold acc(ar_sec(a_8.Elem_next, __prim__int___box__(0)), write)
+      }
+      if (p2_0) {
+        fold acc(ar_sec_0(a_8_0.Elem_nextp, __prim__int___box__(0)), write)
+      }
+      assert p1_0 && p2_0 ==>
+        ar_sec_low(a_8.Elem_next, __prim__int___box__(0), a_8_0.Elem_nextp,
+        __prim__int___box__(0))
+      if (p1_0) {
+        fold acc(ar_sec(a_8, __prim__int___box__(1)), write)
+      }
+      if (p2_0) {
+        fold acc(ar_sec_0(a_8_0, __prim__int___box__(1)), write)
+      }
+      assert p1_0 && p2_0 ==>
+        ar_sec_low(a_8, __prim__int___box__(1), a_8_0, __prim__int___box__(1))
+      assert p3 && p4 ==>
+        perm(ar_sec(a_8, n_9)) >= write &&
+        perm(ar_sec_0(a_8_0, n_9_0)) >= write ==>
+        ar_sec_low(a_8, n_9, a_8_0, n_9_0)
+      if (p3) {
+        unfold acc(ar_sec(a_8, n_9), write)
+      }
+      if (p4) {
+        unfold acc(ar_sec_0(a_8_0, n_9_0), write)
+      }
+      // Method call: ar_sec_snoc
+  
+      if (p3 || p4) {
+        var tmp1: Ref
+        var tmp2: Ref
+        var tmp1_0: Ref
+        var tmp2_0: Ref
+        if (p3) {
+          tmp1 := a_8.Elem_next
+          tmp1_0 := __prim__int___box__(int___sub__(int___unbox__(n_9), 1))
+        }
+        if (p4) {
+          tmp2 := a_8_0.Elem_nextp
+          tmp2_0 := __prim__int___box__(int___sub__(int___unbox__(n_9_0), 1))
+        }
+        ar_sec_snoc(p3, p4, tmp1, tmp2, tmp1_0, tmp2_0)
+      }
+      if (p3) {
+        fold acc(ar_sec(a_8, __prim__int___box__(int___add__(int___unbox__(n_9),
+          1))), write)
+      }
+      if (p4) {
+        fold acc(ar_sec_0(a_8_0, __prim__int___box__(int___add__(int___unbox__(n_9_0),
+          1))), write)
+      }
+      assert p3 && p4 ==>
+        ar_sec_low(a_8, __prim__int___box__(int___add__(int___unbox__(n_9),
+        1)), a_8_0, __prim__int___box__(int___add__(int___unbox__(n_9_0), 1)))
+    }
+    exhale true
+  }
+}
+
+method ar_sec_join(p1_1: Bool, p2_1: Bool, a_2: Ref, a_2_0: Ref, n_3: Ref, n_3_0: Ref,
+  m_0: Ref, m_0_0: Ref)
+  requires (p1_1 ==> a_2 == null || issubtype(typeof(a_2), Elem())) &&
+    (p2_1 ==> a_2_0 == null || issubtype(typeof(a_2_0), Elem()))
+  requires (p1_1 ==> issubtype(typeof(n_3), int())) &&
+    (p2_1 ==> issubtype(typeof(n_3_0), int()))
+  requires (p1_1 ==> issubtype(typeof(m_0), int())) &&
+    (p2_1 ==> issubtype(typeof(m_0_0), int()))
+  requires (p1_1 ==> int___ge__(int___unbox__(n_3), 0)) &&
+    (p2_1 ==> int___ge__(int___unbox__(n_3_0), 0)) &&
+    ((p1_1 ==> int___ge__(int___unbox__(m_0), 0)) &&
+    (p2_1 ==> int___ge__(int___unbox__(m_0_0), 0)))
+  requires (p1_1 ==> int() == typeof(n_3)) &&
+    (p2_1 ==> int() == typeof(n_3_0))
+  requires (p1_1 ==> int() == typeof(m_0)) &&
+    (p2_1 ==> int() == typeof(m_0_0))
+  requires (p1_1 && p2_1 ==> n_3 == n_3_0) &&
+    (p1_1 && p2_1 ==> m_0 == m_0_0)
+  requires (p1_1 ==> acc(ar_sec(a_2, n_3), write)) &&
+    (p2_1 ==> acc(ar_sec_0(a_2_0, n_3_0), write)) &&
+    (p1_1 && p2_1 ==> ar_sec_low(a_2, n_3, a_2_0, n_3_0)) &&
+    ((p1_1 ==> acc(ar_sec(ar_sec_last(a_2, n_3), m_0), write)) &&
+    (p2_1 ==> acc(ar_sec_0(ar_sec_last_0(a_2_0, n_3_0), m_0_0), write)) &&
+    (p1_1 && p2_1 ==>
+    ar_sec_low(ar_sec_last(a_2, n_3), m_0, ar_sec_last_0(a_2_0, n_3_0), m_0_0)))
+  ensures (p1_1 ==>
+    acc(ar_sec(a_2, __prim__int___box__(int___add__(int___unbox__(n_3), int___unbox__(m_0)))), write)) &&
+    (p2_1 ==>
+    acc(ar_sec_0(a_2_0, __prim__int___box__(int___add__(int___unbox__(n_3_0),
+    int___unbox__(m_0_0)))), write)) &&
+    (p1_1 && p2_1 ==>
+    ar_sec_low(a_2, __prim__int___box__(int___add__(int___unbox__(n_3), int___unbox__(m_0))),
+    a_2_0, __prim__int___box__(int___add__(int___unbox__(n_3_0), int___unbox__(m_0_0)))))
+  ensures (p1_1 ==>
+    ar_sec_last(a_2, __prim__int___box__(int___add__(int___unbox__(n_3), int___unbox__(m_0)))) ==
+    old(ar_sec_last(ar_sec_last(a_2, n_3), m_0))) &&
+    (p2_1 ==>
+    ar_sec_last_0(a_2_0, __prim__int___box__(int___add__(int___unbox__(n_3_0),
+    int___unbox__(m_0_0)))) ==
+    old(ar_sec_last_0(ar_sec_last_0(a_2_0, n_3_0), m_0_0)))
+{
+  inhale p1_1
+  {
+    var _err: Ref
+    var _err_1: Ref
+    var a_9: Ref
+    var a_9_0: Ref
+    var n_10: Ref
+    var n_10_0: Ref
+    var m_1: Ref
+    var m_1_0: Ref
+    if (p1_1) {
+      _err := null
+      a_9 := a_2
+      n_10 := n_3
+      m_1 := m_0
+    }
+    if (p2_1) {
+      _err_1 := null
+      a_9_0 := a_2_0
+      n_10_0 := n_3_0
+      m_1_0 := m_0_0
+    }
+    {
+      var p1_2: Bool
+      var p2_2: Bool
+      var p3_0: Bool
+      var p4_0: Bool
+      p1_2 := p1_1 && int___eq__(n_10, __prim__int___box__(0))
+      p2_2 := p2_1 && int___eq__(n_10_0, __prim__int___box__(0))
+      p3_0 := p1_1 && !int___eq__(n_10, __prim__int___box__(0))
+      p4_0 := p2_1 && !int___eq__(n_10_0, __prim__int___box__(0))
+      assert (p1_2 ==> ar_sec_last(a_9, n_10) == a_9) &&
+        (p2_2 ==> ar_sec_last_0(a_9_0, n_10_0) == a_9_0)
+      assert (p1_2 ==>
+        __prim__int___box__(int___add__(int___unbox__(n_10), int___unbox__(m_1))) ==
+        m_1) &&
+        (p2_2 ==>
+        __prim__int___box__(int___add__(int___unbox__(n_10_0), int___unbox__(m_1_0))) ==
+        m_1_0)
+      assert p1_2 && p2_2 ==>
+        perm(ar_sec(a_9, n_10)) >= write &&
+        perm(ar_sec_0(a_9_0, n_10_0)) >= write ==>
+        ar_sec_low(a_9, n_10, a_9_0, n_10_0)
+      if (p1_2) {
+        unfold acc(ar_sec(a_9, n_10), write)
+      }
+      if (p2_2) {
+        unfold acc(ar_sec_0(a_9_0, n_10_0), write)
+      }
+      assert p3_0 && p4_0 ==>
+        perm(ar_sec(a_9, n_10)) >= write &&
+        perm(ar_sec_0(a_9_0, n_10_0)) >= write ==>
+        ar_sec_low(a_9, n_10, a_9_0, n_10_0)
+      if (p3_0) {
+        unfold acc(ar_sec(a_9, n_10), write)
+      }
+      if (p4_0) {
+        unfold acc(ar_sec_0(a_9_0, n_10_0), write)
+      }
+      // Method call: ar_sec_join
+  
+      if (p3_0 || p4_0) {
+        var tmp1_1: Ref
+        var tmp2_1: Ref
+        var tmp1_2: Ref
+        var tmp2_2: Ref
+        var tmp1_3: Ref
+        var tmp2_3: Ref
+        if (p3_0) {
+          tmp1_1 := a_9.Elem_next
+          tmp1_2 := __prim__int___box__(int___sub__(int___unbox__(n_10), 1))
+          tmp1_3 := m_1
+        }
+        if (p4_0) {
+          tmp2_1 := a_9_0.Elem_nextp
+          tmp2_2 := __prim__int___box__(int___sub__(int___unbox__(n_10_0), 1))
+          tmp2_3 := m_1_0
+        }
+        ar_sec_join(p3_0, p4_0, tmp1_1, tmp2_1, tmp1_2, tmp2_2, tmp1_3, tmp2_3)
+      }
+      if (p3_0) {
+        fold acc(ar_sec(a_9, __prim__int___box__(int___add__(int___unbox__(n_10),
+          int___unbox__(m_1)))), write)
+      }
+      if (p4_0) {
+        fold acc(ar_sec_0(a_9_0, __prim__int___box__(int___add__(int___unbox__(n_10_0),
+          int___unbox__(m_1_0)))), write)
+      }
+      assert p3_0 && p4_0 ==>
+        ar_sec_low(a_9, __prim__int___box__(int___add__(int___unbox__(n_10),
+        int___unbox__(m_1))), a_9_0, __prim__int___box__(int___add__(int___unbox__(n_10_0),
+        int___unbox__(m_1_0))))
+    }
+    exhale true
+  }
+}
+
+method lookup(p1_3: Bool, p2_3: Bool, elems: Ref, elems_7: Ref, len: Ref, len_9: Ref,
+  key_1: Ref, key_1_0: Ref)
+  returns (_res: Ref, _res_0: Ref)
+  requires (p1_3 ==> elems == null || issubtype(typeof(elems), Elem())) &&
+    (p2_3 ==> elems_7 == null || issubtype(typeof(elems_7), Elem()))
+  requires (p1_3 ==> issubtype(typeof(len), int())) &&
+    (p2_3 ==> issubtype(typeof(len_9), int()))
+  requires (p1_3 ==> issubtype(typeof(key_1), int())) &&
+    (p2_3 ==> issubtype(typeof(key_1_0), int()))
+  requires (p1_3 ==> int() == typeof(len)) &&
+    (p2_3 ==> int() == typeof(len_9))
+  requires (p1_3 ==> acc(ar_sec(elems, len), write)) &&
+    (p2_3 ==> acc(ar_sec_0(elems_7, len_9), write)) &&
+    (p1_3 && p2_3 ==> ar_sec_low(elems, len, elems_7, len_9))
+  requires (p1_3 && p2_3 ==> len == len_9) &&
+    (p1_3 && p2_3 ==> key_1 == key_1_0)
+  requires (p1_3 ==> int___ge__(int___unbox__(len), 0)) &&
+    (p2_3 ==> int___ge__(int___unbox__(len_9), 0))
+  requires (p1_3 ==> int() == typeof(len)) &&
+    (p2_3 ==> int() == typeof(len_9))
+  ensures (p1_3 ==> issubtype(typeof(_res), tuple(Seq(int(), int())))) &&
+    (p2_3 ==> issubtype(typeof(_res_0), tuple(Seq(int(), int()))))
+  ensures (p1_3 ==> acc(ar_sec(elems, len), write)) &&
+    (p2_3 ==> acc(ar_sec_0(elems_7, len_9), write)) &&
+    (p1_3 && p2_3 ==> ar_sec_low(elems, len, elems_7, len_9))
+  ensures (p1_3 ==> int___eq__(tuple___getitem__(_res, 0), SUCCESS())) &&
+    (p2_3 ==> int___eq__(tuple___getitem__(_res_0, 0), SUCCESS())) ==>
+    (p1_3 ==>
+    int___gt__(int___unbox__(key_1), int___unbox__(global_label()))) &&
+    (p2_3 ==>
+    int___gt__(int___unbox__(key_1_0), int___unbox__(global_label()))) ==>
+    p1_3 && p2_3 ==>
+    tuple___getitem__(_res, 1) == tuple___getitem__(_res_0, 1)
+  ensures (p1_3 ==>
+    int___eq__(tuple___getitem__(_res, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res, 1), __prim__int___box__(-1))) &&
+    (p2_3 ==>
+    int___eq__(tuple___getitem__(_res_0, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res_0, 1), __prim__int___box__(-1)))
+  ensures (p1_3 ==>
+    int___eq__(tuple___getitem__(_res, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res, 0), FAILURE())) &&
+    (p2_3 ==>
+    int___eq__(tuple___getitem__(_res_0, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res_0, 0), FAILURE()))
+{
+  var ret1: Bool
+  var ret2: Bool
+  var except1: Bool
+  var except2: Bool
+  inhale p1_3
+  ret1 := false
+  ret2 := false
+  except1 := false
+  except2 := false
+  {
+    var _err: Ref
+    var _err_2: Ref
+    var i_0: Ref
+    var i_0_0: Ref
+    var p: Ref
+    var p_4: Ref
+    var res: Ref
+    var res_1: Ref
+    var error: Ref
+    var error_0: Ref
+    var try_finally_0: Int
+    var try_finally_0_0: Int
+    var elems_3: Ref
+    var elems_3_0: Ref
+    var len_4: Ref
+    var len_4_0: Ref
+    var key_6: Ref
+    var key_6_0: Ref
+    var _loop_check_before: Bool
+    var _loop_check_before_2: Bool
+    var _loop_termination_flag: Bool
+    var _loop_termination_flag_2: Bool
+    var _loop_original_must_terminate: Perm
+    var _loop_original_must_terminate_2: Perm
+    var _residue_171: Perm
+    var _residue_171_0: Perm
+    if (p1_3 && (!ret1 && !except1)) {
+      _res := null
+      _err := null
+      elems_3 := elems
+      len_4 := len
+      key_6 := key_1
+      i_0 := __prim__int___box__(0)
+      inhale _isDefined(3170153)
+      p := elems_3
+      inhale _isDefined(112)
+    }
+    if (p2_3 && (!ret2 && !except2)) {
+      _res_0 := null
+      _err_2 := null
+      elems_3_0 := elems_7
+      len_4_0 := len_9
+      key_6_0 := key_1_0
+      i_0_0 := __prim__int___box__(0)
+      inhale true
+      p_4 := elems_3_0
+      inhale true
+    }
+    if (p1_3 && (!ret1 && !except1)) {
+      fold acc(ar_sec(elems_3, __prim__int___box__(0)), write)
+    }
+    if (p2_3 && (!ret2 && !except2)) {
+      fold acc(ar_sec_0(elems_3_0, __prim__int___box__(0)), write)
+    }
+    assert p1_3 && (!ret1 && !except1) && (p2_3 && (!ret2 && !except2)) ==>
+      ar_sec_low(elems_3, __prim__int___box__(0), elems_3_0, __prim__int___box__(0))
+    // Try/catch block
+  
+    {
+      var bypass1: Bool
+      var bypass2: Bool
+      var oldret1: Bool
+      var oldret2: Bool
+      var oldexcept1: Bool
+      var oldexcept2: Bool
+      var thisexcept1: Bool
+      var thisexcept2: Bool
+      var tmp_ret1: Bool
+      var tmp_ret2: Bool
+      var tmp_break1: Bool
+      var tmp_break2: Bool
+      var tmp_cont1: Bool
+      var tmp_cont2: Bool
+      var tmp_except1: Bool
+      var tmp_except2: Bool
+      bypass1 := !(p1_3 && (!ret1 && !except1))
+      bypass2 := !(p2_3 && (!ret2 && !except2))
+      oldret1 := ret1
+      oldret2 := ret2
+      oldexcept1 := except1
+      oldexcept2 := except2
+      {
+        var bypass1_0: Bool
+        var bypass2_0: Bool
+        var tmp1_4: Ref
+        var tmp2_4: Ref
+        var tmp1_5: Bool
+        var tmp2_5: Bool
+        var tmp1_6: Ref
+        var tmp2_6: Ref
+        var tmp1_7: Ref
+        var tmp2_7: Ref
+        var oldret1_0: Bool
+        var oldret2_0: Bool
+        var oldexcept1_0: Bool
+        var oldexcept2_0: Bool
+        var p1_4: Bool
+        var p2_4: Bool
+        bypass1_0 := !(p1_3 && (!ret1 && !except1))
+        bypass2_0 := !(p2_3 && (!ret2 && !except2))
+        if (bypass1_0) {
+          tmp1_4 := res
+          tmp1_5 := ret1
+          tmp1_6 := p
+          tmp1_7 := i_0
+        }
+        if (bypass2_0) {
+          tmp2_4 := res_1
+          tmp2_5 := ret2
+          tmp2_6 := p_4
+          tmp2_7 := i_0_0
+        }
+        oldret1_0 := ret1
+        oldret2_0 := ret2
+        oldexcept1_0 := except1
+        oldexcept2_0 := except2
+        while (p1_3 && (!ret1 && !except1) && !bypass1_0 &&
+        int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), int___unbox__(len_4)) ||
+        p2_3 && (!ret2 && !except2) && !bypass2_0 &&
+        int___lt__(int___unbox__(i_0_0), int___unbox__(len_4_0)))
+          invariant (p1_3 && !bypass1_0 ==>
+            p == null || issubtype(typeof(p), Elem())) &&
+            (p2_3 && !bypass2_0 ==>
+            p_4 == null || issubtype(typeof(p_4), Elem()))
+          invariant (p1_3 && !bypass1_0 ==> issubtype(typeof(i_0), int())) &&
+            (p2_3 && !bypass2_0 ==> issubtype(typeof(i_0_0), int()))
+          invariant (p1_3 && !bypass1_0 ==>
+            int() == typeof(_checkDefined(i_0, 3170153))) &&
+            (p2_3 && !bypass2_0 ==> int() == typeof(i_0_0))
+          invariant (p1_3 && !bypass1_0 ==>
+            int___ge__(int___unbox__(_checkDefined(i_0, 3170153)), 0)) &&
+            (p2_3 && !bypass2_0 ==> int___ge__(int___unbox__(i_0_0), 0)) &&
+            ((p1_3 && !bypass1_0 ==>
+            int___le__(int___unbox__(_checkDefined(i_0, 3170153)), int___unbox__(len_4))) &&
+            (p2_3 && !bypass2_0 ==>
+            int___le__(int___unbox__(i_0_0), int___unbox__(len_4_0))))
+          invariant (p1_3 && !bypass1_0 && (p2_3 && !bypass2_0) ==>
+            _checkDefined(i_0, 3170153) == i_0_0) &&
+            (p1_3 && !bypass1_0 && (p2_3 && !bypass2_0) ==>
+            (!ret1 && !except1) == (!ret2 && !except2))
+          invariant (p1_3 && !bypass1_0 ==>
+            acc(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153))))), write)) &&
+            (p2_3 && !bypass2_0 ==>
+            acc(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0)))), write)) &&
+            (p1_3 && !bypass1_0 && (p2_3 && !bypass2_0) ==>
+            ar_sec_low(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153)))), p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0)))))
+          invariant (p1_3 && !bypass1_0 ==>
+            acc(ar_sec(elems_3, _checkDefined(i_0, 3170153)), write)) &&
+            (p2_3 && !bypass2_0 ==> acc(ar_sec_0(elems_3_0, i_0_0), write)) &&
+            (p1_3 && !bypass1_0 && (p2_3 && !bypass2_0) ==>
+            ar_sec_low(elems_3, _checkDefined(i_0, 3170153), elems_3_0, i_0_0))
+          invariant (p1_3 && !bypass1_0 ==>
+            ar_sec_last(elems_3, _checkDefined(i_0, 3170153)) ==
+            _checkDefined(p, 112)) &&
+            (p2_3 && !bypass2_0 ==> ar_sec_last_0(elems_3_0, i_0_0) == p_4)
+          invariant bypass1_0 ==> tmp1_4 == res
+          invariant bypass1_0 ==> tmp1_5 == ret1
+          invariant bypass1_0 ==> tmp1_6 == p
+          invariant bypass1_0 ==> tmp1_7 == i_0
+          invariant bypass2_0 ==> tmp2_4 == res_1
+          invariant bypass2_0 ==> tmp2_5 == ret2
+          invariant bypass2_0 ==> tmp2_6 == p_4
+          invariant bypass2_0 ==> tmp2_7 == i_0_0 
+        {
+          p1_4 := p1_3 && (!ret1 && !except1) &&
+            int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), int___unbox__(len_4))
+          p2_4 := p2_3 && (!ret2 && !except2) &&
+            int___lt__(int___unbox__(i_0_0), int___unbox__(len_4_0))
+          assert p1_4 && (!ret1 && !except1) &&
+            (p2_4 && (!ret2 && !except2)) ==>
+            perm(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153)))))) >=
+            write &&
+            perm(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0))))) >=
+            write ==>
+            ar_sec_low(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153)))), p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0))))
+          if (p1_4 && (!ret1 && !except1)) {
+            unfold acc(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+              int___unbox__(_checkDefined(i_0, 3170153))))), write)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            unfold acc(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+              int___unbox__(i_0_0)))), write)
+          }
+          {
+            var p1_5: Bool
+            var p2_5: Bool
+            var p3_1: Bool
+            var p4_1: Bool
+            p1_5 := p1_4 && (!ret1 && !except1) &&
+              _checkDefined(p, 112).Elem_key == key_6
+            p2_5 := p2_4 && (!ret2 && !except2) && p_4.Elem_keyp == key_6_0
+            p3_1 := p1_4 && (!ret1 && !except1) &&
+              !(_checkDefined(p, 112).Elem_key == key_6)
+            p4_1 := p2_4 && (!ret2 && !except2) &&
+              !(p_4.Elem_keyp == key_6_0)
+            if (p1_5 && (!ret1 && !except1)) {
+              res := _checkDefined(p, 112).Elem_value
+              inhale _isDefined(7562610)
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              res_1 := p_4.Elem_valuep
+              inhale true
+            }
+            if (p1_5 && (!ret1 && !except1)) {
+              fold acc(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+                int___unbox__(_checkDefined(i_0, 3170153))))), write)
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              fold acc(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+                int___unbox__(i_0_0)))), write)
+            }
+            assert p1_5 && (!ret1 && !except1) &&
+              (p2_5 && (!ret2 && !except2)) ==>
+              ar_sec_low(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+              int___unbox__(_checkDefined(i_0, 3170153)))), p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+              int___unbox__(i_0_0))))
+            if (p1_5 && (!ret1 && !except1)) {
+              _res := tuple___create2__(SUCCESS(), _checkDefined(res, 7562610),
+                int(), int(), 0)
+              ret1 := true
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              _res_0 := tuple___create2__(SUCCESS(), res_1, int(), int(), 0)
+              ret2 := true
+            }
+          }
+          if (p1_4 && (!ret1 && !except1)) {
+            p := _checkDefined(p, 112).Elem_next
+            inhale _isDefined(112)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            p_4 := p_4.Elem_nextp
+            inhale true
+          }
+          // Method call: ar_sec_snoc
+  
+          if (p1_4 && (!ret1 && !except1) || p2_4 && (!ret2 && !except2)) {
+            var tmp1_8: Ref
+            var tmp2_8: Ref
+            var tmp1_9: Ref
+            var tmp2_9: Ref
+            if (p1_4 && (!ret1 && !except1)) {
+              tmp1_8 := elems_3
+              tmp1_9 := _checkDefined(i_0, 3170153)
+            }
+            if (p2_4 && (!ret2 && !except2)) {
+              tmp2_8 := elems_3_0
+              tmp2_9 := i_0_0
+            }
+            ar_sec_snoc(p1_4 && (!ret1 && !except1), p2_4 &&
+              (!ret2 && !except2), tmp1_8, tmp2_8, tmp1_9, tmp2_9)
+          }
+          if (p1_4 && (!ret1 && !except1)) {
+            i_0 := __prim__int___box__(int___add__(int___unbox__(i_0), 1))
+            inhale _isDefined(3170153)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            i_0_0 := __prim__int___box__(int___add__(int___unbox__(i_0_0), 1))
+            inhale true
+          }
+        }
+        // Loop Reconstruction.
+  
+        if (!bypass1_0 && (ret1 || except1) ||
+        !bypass2_0 && (ret2 || except2)) {
+          ret1 := oldret1_0
+          ret2 := oldret2_0
+          except1 := oldexcept1_0
+          except2 := oldexcept2_0
+          inhale p1_3 && (!ret1 && !except1) ==>
+            int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), int___unbox__(len_4))
+          inhale p2_3 && (!ret1 && !except1) ==>
+            int___lt__(int___unbox__(i_0_0), int___unbox__(len_4_0))
+          p1_4 := p1_3 && (!ret1 && !except1) &&
+            int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), int___unbox__(len_4))
+          p2_4 := p2_3 && (!ret2 && !except2) &&
+            int___lt__(int___unbox__(i_0_0), int___unbox__(len_4_0))
+          assert p1_4 && (!ret1 && !except1) &&
+            (p2_4 && (!ret2 && !except2)) ==>
+            perm(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153)))))) >=
+            write &&
+            perm(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0))))) >=
+            write ==>
+            ar_sec_low(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+            int___unbox__(_checkDefined(i_0, 3170153)))), p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0))))
+          if (p1_4 && (!ret1 && !except1)) {
+            unfold acc(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+              int___unbox__(_checkDefined(i_0, 3170153))))), write)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            unfold acc(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+              int___unbox__(i_0_0)))), write)
+          }
+          {
+            var p1_5: Bool
+            var p2_5: Bool
+            var p3_1: Bool
+            var p4_1: Bool
+            p1_5 := p1_4 && (!ret1 && !except1) &&
+              _checkDefined(p, 112).Elem_key == key_6
+            p2_5 := p2_4 && (!ret2 && !except2) && p_4.Elem_keyp == key_6_0
+            p3_1 := p1_4 && (!ret1 && !except1) &&
+              !(_checkDefined(p, 112).Elem_key == key_6)
+            p4_1 := p2_4 && (!ret2 && !except2) &&
+              !(p_4.Elem_keyp == key_6_0)
+            if (p1_5 && (!ret1 && !except1)) {
+              res := _checkDefined(p, 112).Elem_value
+              inhale _isDefined(7562610)
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              res_1 := p_4.Elem_valuep
+              inhale true
+            }
+            if (p1_5 && (!ret1 && !except1)) {
+              fold acc(ar_sec(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+                int___unbox__(_checkDefined(i_0, 3170153))))), write)
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              fold acc(ar_sec_0(p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+                int___unbox__(i_0_0)))), write)
+            }
+            assert p1_5 && (!ret1 && !except1) &&
+              (p2_5 && (!ret2 && !except2)) ==>
+              ar_sec_low(_checkDefined(p, 112), __prim__int___box__(int___sub__(int___unbox__(len_4),
+              int___unbox__(_checkDefined(i_0, 3170153)))), p_4, __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+              int___unbox__(i_0_0))))
+            if (p1_5 && (!ret1 && !except1)) {
+              _res := tuple___create2__(SUCCESS(), _checkDefined(res, 7562610),
+                int(), int(), 0)
+              ret1 := true
+            }
+            if (p2_5 && (!ret2 && !except2)) {
+              _res_0 := tuple___create2__(SUCCESS(), res_1, int(), int(), 0)
+              ret2 := true
+            }
+          }
+          if (p1_4 && (!ret1 && !except1)) {
+            p := _checkDefined(p, 112).Elem_next
+            inhale _isDefined(112)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            p_4 := p_4.Elem_nextp
+            inhale true
+          }
+          // Method call: ar_sec_snoc
+  
+          if (p1_4 && (!ret1 && !except1) || p2_4 && (!ret2 && !except2)) {
+            var tmp1_8: Ref
+            var tmp2_8: Ref
+            var tmp1_9: Ref
+            var tmp2_9: Ref
+            if (p1_4 && (!ret1 && !except1)) {
+              tmp1_8 := elems_3
+              tmp1_9 := _checkDefined(i_0, 3170153)
+            }
+            if (p2_4 && (!ret2 && !except2)) {
+              tmp2_8 := elems_3_0
+              tmp2_9 := i_0_0
+            }
+            ar_sec_snoc(p1_4 && (!ret1 && !except1), p2_4 &&
+              (!ret2 && !except2), tmp1_8, tmp2_8, tmp1_9, tmp2_9)
+          }
+          if (p1_4 && (!ret1 && !except1)) {
+            i_0 := __prim__int___box__(int___add__(int___unbox__(i_0), 1))
+            inhale _isDefined(3170153)
+          }
+          if (p2_4 && (!ret2 && !except2)) {
+            i_0_0 := __prim__int___box__(int___add__(int___unbox__(i_0_0), 1))
+            inhale true
+          }
+          inhale !p1_4 || !(!ret1 && !except1)
+          inhale !p2_4 || !(!ret2 && !except2)
+        }
+      }
+      if (p1_3 && (!ret1 && !except1)) {
+        _res := null
+      }
+      if (p2_3 && (!ret2 && !except2)) {
+        _res_0 := null
+      }
+      thisexcept1 := except1 && !bypass1
+      thisexcept2 := except2 && !bypass2
+      if (p1_3) {
+        tmp_ret1 := ret1
+        ret1 := oldret1
+        tmp_except1 := except1
+        except1 := oldexcept1
+      }
+      if (p2_3) {
+        tmp_ret2 := ret2
+        ret2 := oldret2
+        tmp_except2 := except2
+        except2 := oldexcept2
+      }
+      // Method call: ar_sec_join
+  
+      if (p1_3 && (!ret1 && !except1) || p2_3 && (!ret2 && !except2)) {
+        var tmp1_10: Ref
+        var tmp2_10: Ref
+        var tmp1_11: Ref
+        var tmp2_11: Ref
+        var tmp1_12: Ref
+        var tmp2_12: Ref
+        if (p1_3 && (!ret1 && !except1)) {
+          tmp1_10 := elems_3
+          tmp1_11 := _checkDefined(i_0, 3170153)
+          tmp1_12 := __prim__int___box__(int___sub__(int___unbox__(len_4), int___unbox__(_checkDefined(i_0,
+            3170153))))
+        }
+        if (p2_3 && (!ret2 && !except2)) {
+          tmp2_10 := elems_3_0
+          tmp2_11 := i_0_0
+          tmp2_12 := __prim__int___box__(int___sub__(int___unbox__(len_4_0),
+            int___unbox__(i_0_0)))
+        }
+        ar_sec_join(p1_3 && (!ret1 && !except1), p2_3 &&
+          (!ret2 && !except2), tmp1_10, tmp2_10, tmp1_11, tmp2_11, tmp1_12,
+          tmp2_12)
+      }
+      if (p1_3) {
+        except1 := except1 || tmp_except1 && !ret1
+        ret1 := ret1 || tmp_ret1
+      }
+      if (p2_3) {
+        except2 := except2 || tmp_except2 && !ret2
+        ret2 := ret2 || tmp_ret2
+      }
+    }
+    if (p1_3 && (!ret1 && !except1)) {
+      _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(), int(),
+        1)
+      ret1 := true
+    }
+    if (p2_3 && (!ret2 && !except2)) {
+      _res_0 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+        int(), 1)
+      ret2 := true
+    }
+    exhale (p1_3 ==> !except1) && (p2_3 ==> !except2)
+  }
+}
+
+method split(p1_6: Bool, p2_6: Bool, a_3: Ref, a_3_0: Ref, i_1: Ref, i_1_0: Ref,
+  n_4: Ref, n_4_0: Ref)
+  requires (p1_6 ==> a_3 == null || issubtype(typeof(a_3), Elem())) &&
+    (p2_6 ==> a_3_0 == null || issubtype(typeof(a_3_0), Elem()))
+  requires (p1_6 ==> issubtype(typeof(i_1), int())) &&
+    (p2_6 ==> issubtype(typeof(i_1_0), int()))
+  requires (p1_6 ==> issubtype(typeof(n_4), int())) &&
+    (p2_6 ==> issubtype(typeof(n_4_0), int()))
+  requires (p1_6 ==> int() == typeof(i_1)) &&
+    (p2_6 ==> int() == typeof(i_1_0)) &&
+    ((p1_6 ==> int() == typeof(n_4)) && (p2_6 ==> int() == typeof(n_4_0)))
+  requires p1_6 && p2_6 ==> i_1 == i_1_0
+  requires (p1_6 ==> int___le__(0, int___unbox__(i_1))) &&
+    (p2_6 ==> int___le__(0, int___unbox__(i_1_0))) &&
+    ((p1_6 ==> int___le__(int___unbox__(i_1), int___unbox__(n_4))) &&
+    (p2_6 ==> int___le__(int___unbox__(i_1_0), int___unbox__(n_4_0))))
+  requires (p1_6 ==> acc(ar_sec(a_3, n_4), write)) &&
+    (p2_6 ==> acc(ar_sec_0(a_3_0, n_4_0), write)) &&
+    (p1_6 && p2_6 ==> ar_sec_low(a_3, n_4, a_3_0, n_4_0))
+  ensures (p1_6 ==> acc(ar_sec(a_3, i_1), write)) &&
+    (p2_6 ==> acc(ar_sec_0(a_3_0, i_1_0), write)) &&
+    (p1_6 && p2_6 ==> ar_sec_low(a_3, i_1, a_3_0, i_1_0)) &&
+    ((p1_6 ==>
+    acc(ar_sec(ar_sec_last(a_3, i_1), __prim__int___box__(int___sub__(int___unbox__(n_4),
+    int___unbox__(i_1)))), write)) &&
+    (p2_6 ==>
+    acc(ar_sec_0(ar_sec_last_0(a_3_0, i_1_0), __prim__int___box__(int___sub__(int___unbox__(n_4_0),
+    int___unbox__(i_1_0)))), write)) &&
+    (p1_6 && p2_6 ==>
+    ar_sec_low(ar_sec_last(a_3, i_1), __prim__int___box__(int___sub__(int___unbox__(n_4),
+    int___unbox__(i_1))), ar_sec_last_0(a_3_0, i_1_0), __prim__int___box__(int___sub__(int___unbox__(n_4_0),
+    int___unbox__(i_1_0))))))
+  ensures (p1_6 ==> old(ar_sec_ith(a_3, n_4, i_1)) == ar_sec_last(a_3, i_1)) &&
+    (p2_6 ==>
+    old(ar_sec_ith_0(a_3_0, n_4_0, i_1_0)) == ar_sec_last_0(a_3_0, i_1_0))
+  ensures (p1_6 ==>
+    old(ar_sec_last(a_3, n_4)) ==
+    ar_sec_last(ar_sec_last(a_3, i_1), __prim__int___box__(int___sub__(int___unbox__(n_4),
+    int___unbox__(i_1))))) &&
+    (p2_6 ==>
+    old(ar_sec_last_0(a_3_0, n_4_0)) ==
+    ar_sec_last_0(ar_sec_last_0(a_3_0, i_1_0), __prim__int___box__(int___sub__(int___unbox__(n_4_0),
+    int___unbox__(i_1_0)))))
+{
+  inhale p1_6
+  {
+    var _err: Ref
+    var _err_3: Ref
+    var a_10: Ref
+    var a_10_0: Ref
+    var i_6: Ref
+    var i_6_0: Ref
+    var n_11: Ref
+    var n_11_0: Ref
+    if (p1_6) {
+      _err := null
+      a_10 := a_3
+      i_6 := i_1
+      n_11 := n_4
+    }
+    if (p2_6) {
+      _err_3 := null
+      a_10_0 := a_3_0
+      i_6_0 := i_1_0
+      n_11_0 := n_4_0
+    }
+    {
+      var p1_7: Bool
+      var p2_7: Bool
+      var p3_2: Bool
+      var p4_2: Bool
+      p1_7 := p1_6 && int___eq__(i_6, __prim__int___box__(0))
+      p2_7 := p2_6 && int___eq__(i_6_0, __prim__int___box__(0))
+      p3_2 := p1_6 && !int___eq__(i_6, __prim__int___box__(0))
+      p4_2 := p2_6 && !int___eq__(i_6_0, __prim__int___box__(0))
+      if (p1_7) {
+        fold acc(ar_sec(a_10, __prim__int___box__(0)), write)
+      }
+      if (p2_7) {
+        fold acc(ar_sec_0(a_10_0, __prim__int___box__(0)), write)
+      }
+      assert p1_7 && p2_7 ==>
+        ar_sec_low(a_10, __prim__int___box__(0), a_10_0, __prim__int___box__(0))
+      assert p3_2 && p4_2 ==>
+        perm(ar_sec(a_10, n_11)) >= write &&
+        perm(ar_sec_0(a_10_0, n_11_0)) >= write ==>
+        ar_sec_low(a_10, n_11, a_10_0, n_11_0)
+      if (p3_2) {
+        unfold acc(ar_sec(a_10, n_11), write)
+      }
+      if (p4_2) {
+        unfold acc(ar_sec_0(a_10_0, n_11_0), write)
+      }
+      // Method call: split
+  
+      if (p3_2 || p4_2) {
+        var tmp1_13: Ref
+        var tmp2_13: Ref
+        var tmp1_14: Ref
+        var tmp2_14: Ref
+        var tmp1_15: Ref
+        var tmp2_15: Ref
+        if (p3_2) {
+          tmp1_13 := a_10.Elem_next
+          tmp1_14 := __prim__int___box__(int___sub__(int___unbox__(i_6), 1))
+          tmp1_15 := __prim__int___box__(int___sub__(int___unbox__(n_11), 1))
+        }
+        if (p4_2) {
+          tmp2_13 := a_10_0.Elem_nextp
+          tmp2_14 := __prim__int___box__(int___sub__(int___unbox__(i_6_0), 1))
+          tmp2_15 := __prim__int___box__(int___sub__(int___unbox__(n_11_0),
+            1))
+        }
+        split(p3_2, p4_2, tmp1_13, tmp2_13, tmp1_14, tmp2_14, tmp1_15, tmp2_15)
+      }
+      if (p3_2) {
+        fold acc(ar_sec(a_10, i_6), write)
+      }
+      if (p4_2) {
+        fold acc(ar_sec_0(a_10_0, i_6_0), write)
+      }
+      assert p3_2 && p4_2 ==> ar_sec_low(a_10, i_6, a_10_0, i_6_0)
+    }
+    exhale true
+  }
+}
+
+method expose(p1_8: Bool, p2_8: Bool, a_4: Ref, a_4_0: Ref, i_2: Ref, i_2_0: Ref,
+  n_5: Ref, n_5_0: Ref)
+  requires (p1_8 ==> a_4 == null || issubtype(typeof(a_4), Elem())) &&
+    (p2_8 ==> a_4_0 == null || issubtype(typeof(a_4_0), Elem()))
+  requires (p1_8 ==> issubtype(typeof(i_2), int())) &&
+    (p2_8 ==> issubtype(typeof(i_2_0), int()))
+  requires (p1_8 ==> issubtype(typeof(n_5), int())) &&
+    (p2_8 ==> issubtype(typeof(n_5_0), int()))
+  requires (p1_8 ==> int() == typeof(i_2)) &&
+    (p2_8 ==> int() == typeof(i_2_0)) &&
+    ((p1_8 ==> int() == typeof(n_5)) && (p2_8 ==> int() == typeof(n_5_0)))
+  requires p1_8 && p2_8 ==> i_2 == i_2_0
+  requires (p1_8 ==> int___le__(0, int___unbox__(i_2))) &&
+    (p2_8 ==> int___le__(0, int___unbox__(i_2_0))) &&
+    ((p1_8 ==> int___lt__(int___unbox__(i_2), int___unbox__(n_5))) &&
+    (p2_8 ==> int___lt__(int___unbox__(i_2_0), int___unbox__(n_5_0))))
+  requires (p1_8 ==> acc(ar_sec(a_4, n_5), write)) &&
+    (p2_8 ==> acc(ar_sec_0(a_4_0, n_5_0), write)) &&
+    (p1_8 && p2_8 ==> ar_sec_low(a_4, n_5, a_4_0, n_5_0))
+  ensures (p1_8 ==> acc(ar_sec(a_4, i_2), write)) &&
+    (p2_8 ==> acc(ar_sec_0(a_4_0, i_2_0), write)) &&
+    (p1_8 && p2_8 ==> ar_sec_low(a_4, i_2, a_4_0, i_2_0))
+  ensures (p1_8 ==> acc(ar_sec_last(a_4, i_2).Elem_key, write)) &&
+    (p2_8 ==> acc(ar_sec_last_0(a_4_0, i_2_0).Elem_keyp, write)) &&
+    ((p1_8 ==> issubtype(typeof(ar_sec_last(a_4, i_2).Elem_key), int())) &&
+    (p2_8 ==>
+    issubtype(typeof(ar_sec_last_0(a_4_0, i_2_0).Elem_keyp), int()))) &&
+    ((p1_8 ==> acc(ar_sec_last(a_4, i_2).Elem_value, write)) &&
+    (p2_8 ==> acc(ar_sec_last_0(a_4_0, i_2_0).Elem_valuep, write)) &&
+    ((p1_8 ==> issubtype(typeof(ar_sec_last(a_4, i_2).Elem_value), int())) &&
+    (p2_8 ==>
+    issubtype(typeof(ar_sec_last_0(a_4_0, i_2_0).Elem_valuep), int()))) &&
+    ((p1_8 ==> acc(ar_sec_last(a_4, i_2).Elem_next, write)) &&
+    (p2_8 ==> acc(ar_sec_last_0(a_4_0, i_2_0).Elem_nextp, write)) &&
+    ((p1_8 ==>
+    ar_sec_last(a_4, i_2).Elem_next == null ||
+    issubtype(typeof(ar_sec_last(a_4, i_2).Elem_next), Elem())) &&
+    (p2_8 ==>
+    ar_sec_last_0(a_4_0, i_2_0).Elem_nextp == null ||
+    issubtype(typeof(ar_sec_last_0(a_4_0, i_2_0).Elem_nextp), Elem()))) &&
+    ((p1_8 && p2_8 ==>
+    ar_sec_last(a_4, i_2).Elem_key == ar_sec_last_0(a_4_0, i_2_0).Elem_keyp) &&
+    ((p1_8 ==>
+    int___gt__(int___unbox__(ar_sec_last(a_4, i_2).Elem_key), int___unbox__(global_label()))) &&
+    (p2_8 ==>
+    int___gt__(int___unbox__(ar_sec_last_0(a_4_0, i_2_0).Elem_keyp), int___unbox__(global_label()))) ==>
+    p1_8 && p2_8 ==>
+    ar_sec_last(a_4, i_2).Elem_value ==
+    ar_sec_last_0(a_4_0, i_2_0).Elem_valuep))))
+  ensures (p1_8 ==>
+    acc(ar_sec(ar_sec_last(a_4, i_2).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5),
+    int___unbox__(i_2)), 1))), write)) &&
+    (p2_8 ==>
+    acc(ar_sec_0(ar_sec_last_0(a_4_0, i_2_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5_0),
+    int___unbox__(i_2_0)), 1))), write)) &&
+    (p1_8 && p2_8 ==>
+    ar_sec_low(ar_sec_last(a_4, i_2).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5),
+    int___unbox__(i_2)), 1)), ar_sec_last_0(a_4_0, i_2_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5_0),
+    int___unbox__(i_2_0)), 1))))
+  ensures (p1_8 ==>
+    old(ar_sec_last(a_4, n_5)) ==
+    ar_sec_last(ar_sec_last(a_4, i_2).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5),
+    int___unbox__(i_2)), 1)))) &&
+    (p2_8 ==>
+    old(ar_sec_last_0(a_4_0, n_5_0)) ==
+    ar_sec_last_0(ar_sec_last_0(a_4_0, i_2_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_5_0),
+    int___unbox__(i_2_0)), 1))))
+{
+  inhale p1_8
+  {
+    var _err: Ref
+    var _err_4: Ref
+    var a_11: Ref
+    var a_11_0: Ref
+    var i_7: Ref
+    var i_7_0: Ref
+    var n_12: Ref
+    var n_12_0: Ref
+    if (p1_8) {
+      _err := null
+      a_11 := a_4
+      i_7 := i_2
+      n_12 := n_5
+    }
+    if (p2_8) {
+      _err_4 := null
+      a_11_0 := a_4_0
+      i_7_0 := i_2_0
+      n_12_0 := n_5_0
+    }
+    {
+      var p1_9: Bool
+      var p2_9: Bool
+      var p3_3: Bool
+      var p4_3: Bool
+      p1_9 := p1_8 && int___eq__(i_7, __prim__int___box__(0))
+      p2_9 := p2_8 && int___eq__(i_7_0, __prim__int___box__(0))
+      p3_3 := p1_8 && !int___eq__(i_7, __prim__int___box__(0))
+      p4_3 := p2_8 && !int___eq__(i_7_0, __prim__int___box__(0))
+      assert p1_9 && p2_9 ==>
+        perm(ar_sec(a_11, n_12)) >= write &&
+        perm(ar_sec_0(a_11_0, n_12_0)) >= write ==>
+        ar_sec_low(a_11, n_12, a_11_0, n_12_0)
+      if (p1_9) {
+        unfold acc(ar_sec(a_11, n_12), write)
+      }
+      if (p2_9) {
+        unfold acc(ar_sec_0(a_11_0, n_12_0), write)
+      }
+      if (p1_9) {
+        fold acc(ar_sec(a_11, __prim__int___box__(0)), write)
+      }
+      if (p2_9) {
+        fold acc(ar_sec_0(a_11_0, __prim__int___box__(0)), write)
+      }
+      assert p1_9 && p2_9 ==>
+        ar_sec_low(a_11, __prim__int___box__(0), a_11_0, __prim__int___box__(0))
+      assert p3_3 && p4_3 ==>
+        perm(ar_sec(a_11, n_12)) >= write &&
+        perm(ar_sec_0(a_11_0, n_12_0)) >= write ==>
+        ar_sec_low(a_11, n_12, a_11_0, n_12_0)
+      if (p3_3) {
+        unfold acc(ar_sec(a_11, n_12), write)
+      }
+      if (p4_3) {
+        unfold acc(ar_sec_0(a_11_0, n_12_0), write)
+      }
+      // Method call: expose
+  
+      if (p3_3 || p4_3) {
+        var tmp1_16: Ref
+        var tmp2_16: Ref
+        var tmp1_17: Ref
+        var tmp2_17: Ref
+        var tmp1_18: Ref
+        var tmp2_18: Ref
+        if (p3_3) {
+          tmp1_16 := a_11.Elem_next
+          tmp1_17 := __prim__int___box__(int___sub__(int___unbox__(i_7), 1))
+          tmp1_18 := __prim__int___box__(int___sub__(int___unbox__(n_12), 1))
+        }
+        if (p4_3) {
+          tmp2_16 := a_11_0.Elem_nextp
+          tmp2_17 := __prim__int___box__(int___sub__(int___unbox__(i_7_0), 1))
+          tmp2_18 := __prim__int___box__(int___sub__(int___unbox__(n_12_0),
+            1))
+        }
+        expose(p3_3, p4_3, tmp1_16, tmp2_16, tmp1_17, tmp2_17, tmp1_18, tmp2_18)
+      }
+      if (p3_3) {
+        fold acc(ar_sec(a_11, i_7), write)
+      }
+      if (p4_3) {
+        fold acc(ar_sec_0(a_11_0, i_7_0), write)
+      }
+      assert p3_3 && p4_3 ==> ar_sec_low(a_11, i_7, a_11_0, i_7_0)
+    }
+    exhale true
+  }
+}
+
+method cover(p1_10: Bool, p2_10: Bool, a_5: Ref, a_5_0: Ref, i_3: Ref, i_3_0: Ref,
+  n_6: Ref, n_6_0: Ref)
+  requires (p1_10 ==> a_5 == null || issubtype(typeof(a_5), Elem())) &&
+    (p2_10 ==> a_5_0 == null || issubtype(typeof(a_5_0), Elem()))
+  requires (p1_10 ==> issubtype(typeof(i_3), int())) &&
+    (p2_10 ==> issubtype(typeof(i_3_0), int()))
+  requires (p1_10 ==> issubtype(typeof(n_6), int())) &&
+    (p2_10 ==> issubtype(typeof(n_6_0), int()))
+  requires (p1_10 ==> int() == typeof(i_3)) &&
+    (p2_10 ==> int() == typeof(i_3_0)) &&
+    ((p1_10 ==> int() == typeof(n_6)) && (p2_10 ==> int() == typeof(n_6_0)))
+  requires p1_10 && p2_10 ==> i_3 == i_3_0
+  requires (p1_10 ==> int___le__(0, int___unbox__(i_3))) &&
+    (p2_10 ==> int___le__(0, int___unbox__(i_3_0))) &&
+    ((p1_10 ==> int___lt__(int___unbox__(i_3), int___unbox__(n_6))) &&
+    (p2_10 ==> int___lt__(int___unbox__(i_3_0), int___unbox__(n_6_0))))
+  requires (p1_10 ==> acc(ar_sec(a_5, i_3), write)) &&
+    (p2_10 ==> acc(ar_sec_0(a_5_0, i_3_0), write)) &&
+    (p1_10 && p2_10 ==> ar_sec_low(a_5, i_3, a_5_0, i_3_0))
+  requires (p1_10 ==> acc(ar_sec_last(a_5, i_3).Elem_key, write)) &&
+    (p2_10 ==> acc(ar_sec_last_0(a_5_0, i_3_0).Elem_keyp, write)) &&
+    ((p1_10 ==> issubtype(typeof(ar_sec_last(a_5, i_3).Elem_key), int())) &&
+    (p2_10 ==>
+    issubtype(typeof(ar_sec_last_0(a_5_0, i_3_0).Elem_keyp), int()))) &&
+    ((p1_10 ==> acc(ar_sec_last(a_5, i_3).Elem_value, write)) &&
+    (p2_10 ==> acc(ar_sec_last_0(a_5_0, i_3_0).Elem_valuep, write)) &&
+    ((p1_10 ==> issubtype(typeof(ar_sec_last(a_5, i_3).Elem_value), int())) &&
+    (p2_10 ==>
+    issubtype(typeof(ar_sec_last_0(a_5_0, i_3_0).Elem_valuep), int()))) &&
+    ((p1_10 ==> acc(ar_sec_last(a_5, i_3).Elem_next, write)) &&
+    (p2_10 ==> acc(ar_sec_last_0(a_5_0, i_3_0).Elem_nextp, write)) &&
+    ((p1_10 ==>
+    ar_sec_last(a_5, i_3).Elem_next == null ||
+    issubtype(typeof(ar_sec_last(a_5, i_3).Elem_next), Elem())) &&
+    (p2_10 ==>
+    ar_sec_last_0(a_5_0, i_3_0).Elem_nextp == null ||
+    issubtype(typeof(ar_sec_last_0(a_5_0, i_3_0).Elem_nextp), Elem()))) &&
+    ((p1_10 && p2_10 ==>
+    ar_sec_last(a_5, i_3).Elem_key == ar_sec_last_0(a_5_0, i_3_0).Elem_keyp) &&
+    ((p1_10 ==>
+    int___gt__(int___unbox__(ar_sec_last(a_5, i_3).Elem_key), int___unbox__(global_label()))) &&
+    (p2_10 ==>
+    int___gt__(int___unbox__(ar_sec_last_0(a_5_0, i_3_0).Elem_keyp), int___unbox__(global_label()))) ==>
+    p1_10 && p2_10 ==>
+    ar_sec_last(a_5, i_3).Elem_value ==
+    ar_sec_last_0(a_5_0, i_3_0).Elem_valuep))))
+  requires (p1_10 ==>
+    acc(ar_sec(ar_sec_last(a_5, i_3).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6),
+    int___unbox__(i_3)), 1))), write)) &&
+    (p2_10 ==>
+    acc(ar_sec_0(ar_sec_last_0(a_5_0, i_3_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6_0),
+    int___unbox__(i_3_0)), 1))), write)) &&
+    (p1_10 && p2_10 ==>
+    ar_sec_low(ar_sec_last(a_5, i_3).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6),
+    int___unbox__(i_3)), 1)), ar_sec_last_0(a_5_0, i_3_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6_0),
+    int___unbox__(i_3_0)), 1))))
+  ensures (p1_10 ==> acc(ar_sec(a_5, n_6), write)) &&
+    (p2_10 ==> acc(ar_sec_0(a_5_0, n_6_0), write)) &&
+    (p1_10 && p2_10 ==> ar_sec_low(a_5, n_6, a_5_0, n_6_0))
+  ensures (p1_10 ==>
+    old(ar_sec_last(a_5, i_3)) == ar_sec_ith(a_5, n_6, i_3)) &&
+    (p2_10 ==>
+    old(ar_sec_last_0(a_5_0, i_3_0)) == ar_sec_ith_0(a_5_0, n_6_0, i_3_0))
+  ensures (p1_10 ==>
+    old(ar_sec_last(a_5, i_3).Elem_next) ==
+    ar_sec_ith(a_5, n_6, __prim__int___box__(int___add__(int___unbox__(i_3),
+    1)))) &&
+    (p2_10 ==>
+    old(ar_sec_last_0(a_5_0, i_3_0).Elem_nextp) ==
+    ar_sec_ith_0(a_5_0, n_6_0, __prim__int___box__(int___add__(int___unbox__(i_3_0),
+    1))))
+  ensures (p1_10 ==>
+    old(ar_sec_last(ar_sec_last(a_5, i_3).Elem_next, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6),
+    int___unbox__(i_3)), 1)))) ==
+    ar_sec_last(a_5, n_6)) &&
+    (p2_10 ==>
+    old(ar_sec_last_0(ar_sec_last_0(a_5_0, i_3_0).Elem_nextp, __prim__int___box__(int___sub__(int___sub__(int___unbox__(n_6_0),
+    int___unbox__(i_3_0)), 1)))) ==
+    ar_sec_last_0(a_5_0, n_6_0))
+{
+  inhale p1_10
+  {
+    var _err: Ref
+    var _err_5: Ref
+    var old_next: Ref
+    var old_next_0: Ref
+    var a_12: Ref
+    var a_12_0: Ref
+    var i_8: Ref
+    var i_8_0: Ref
+    var n_13: Ref
+    var n_13_0: Ref
+    if (p1_10) {
+      _err := null
+      a_12 := a_5
+      i_8 := i_3
+      n_13 := n_6
+    }
+    if (p2_10) {
+      _err_5 := null
+      a_12_0 := a_5_0
+      i_8_0 := i_3_0
+      n_13_0 := n_6_0
+    }
+    {
+      var p1_11: Bool
+      var p2_11: Bool
+      var p3_4: Bool
+      var p4_4: Bool
+      p1_11 := p1_10 && int___eq__(i_8, __prim__int___box__(0))
+      p2_11 := p2_10 && int___eq__(i_8_0, __prim__int___box__(0))
+      p3_4 := p1_10 && !int___eq__(i_8, __prim__int___box__(0))
+      p4_4 := p2_10 && !int___eq__(i_8_0, __prim__int___box__(0))
+      if (p1_11) {
+        old_next := ar_sec_last(a_12, i_8).Elem_next
+        inhale _isDefined(8392569430326144111)
+      }
+      if (p2_11) {
+        old_next_0 := ar_sec_last_0(a_12_0, i_8_0).Elem_nextp
+        inhale true
+      }
+      assert p1_11 && p2_11 ==>
+        perm(ar_sec(a_12, __prim__int___box__(0))) >= write &&
+        perm(ar_sec_0(a_12_0, __prim__int___box__(0))) >= write ==>
+        ar_sec_low(a_12, __prim__int___box__(0), a_12_0, __prim__int___box__(0))
+      if (p1_11) {
+        unfold acc(ar_sec(a_12, __prim__int___box__(0)), write)
+      }
+      if (p2_11) {
+        unfold acc(ar_sec_0(a_12_0, __prim__int___box__(0)), write)
+      }
+      if (p1_11) {
+        fold acc(ar_sec(a_12, n_13), write)
+      }
+      if (p2_11) {
+        fold acc(ar_sec_0(a_12_0, n_13_0), write)
+      }
+      assert p1_11 && p2_11 ==> ar_sec_low(a_12, n_13, a_12_0, n_13_0)
+      assert (p1_11 ==>
+        _checkDefined(old_next, 8392569430326144111) ==
+        (unfolding acc(ar_sec(a_12, n_13), write) in
+          ar_sec_ith(a_12.Elem_next, __prim__int___box__(int___sub__(int___unbox__(n_13),
+          1)), __prim__int___box__(0)))) &&
+        (p2_11 ==>
+        old_next_0 ==
+        (unfolding acc(ar_sec_0(a_12_0, n_13_0), write) in
+          ar_sec_ith_0(a_12_0.Elem_nextp, __prim__int___box__(int___sub__(int___unbox__(n_13_0),
+          1)), __prim__int___box__(0))))
+      assert p3_4 && p4_4 ==>
+        perm(ar_sec(a_12, i_8)) >= write &&
+        perm(ar_sec_0(a_12_0, i_8_0)) >= write ==>
+        ar_sec_low(a_12, i_8, a_12_0, i_8_0)
+      if (p3_4) {
+        unfold acc(ar_sec(a_12, i_8), write)
+      }
+      if (p4_4) {
+        unfold acc(ar_sec_0(a_12_0, i_8_0), write)
+      }
+      // Method call: cover
+  
+      if (p3_4 || p4_4) {
+        var tmp1_19: Ref
+        var tmp2_19: Ref
+        var tmp1_20: Ref
+        var tmp2_20: Ref
+        var tmp1_21: Ref
+        var tmp2_21: Ref
+        if (p3_4) {
+          tmp1_19 := a_12.Elem_next
+          tmp1_20 := __prim__int___box__(int___sub__(int___unbox__(i_8), 1))
+          tmp1_21 := __prim__int___box__(int___sub__(int___unbox__(n_13), 1))
+        }
+        if (p4_4) {
+          tmp2_19 := a_12_0.Elem_nextp
+          tmp2_20 := __prim__int___box__(int___sub__(int___unbox__(i_8_0), 1))
+          tmp2_21 := __prim__int___box__(int___sub__(int___unbox__(n_13_0),
+            1))
+        }
+        cover(p3_4, p4_4, tmp1_19, tmp2_19, tmp1_20, tmp2_20, tmp1_21, tmp2_21)
+      }
+      if (p3_4) {
+        fold acc(ar_sec(a_12, n_13), write)
+      }
+      if (p4_4) {
+        fold acc(ar_sec_0(a_12_0, n_13_0), write)
+      }
+      assert p3_4 && p4_4 ==> ar_sec_low(a_12, n_13, a_12_0, n_13_0)
+    }
+    exhale true
+  }
+}
+
+method binsearch(p1_12: Bool, p2_12: Bool, elems_0: Ref, elems_0_0: Ref, len_0: Ref,
+  len_0_0: Ref, key_2: Ref, key_2_0: Ref)
+  returns (_res: Ref, _res_1: Ref)
+  requires (p1_12 ==> elems_0 == null || issubtype(typeof(elems_0), Elem())) &&
+    (p2_12 ==> elems_0_0 == null || issubtype(typeof(elems_0_0), Elem()))
+  requires (p1_12 ==> issubtype(typeof(len_0), int())) &&
+    (p2_12 ==> issubtype(typeof(len_0_0), int()))
+  requires (p1_12 ==> issubtype(typeof(key_2), int())) &&
+    (p2_12 ==> issubtype(typeof(key_2_0), int()))
+  requires (p1_12 ==> int() == typeof(len_0)) &&
+    (p2_12 ==> int() == typeof(len_0_0))
+  requires (p1_12 ==> int___ge__(int___unbox__(len_0), 0)) &&
+    (p2_12 ==> int___ge__(int___unbox__(len_0_0), 0))
+  requires (p1_12 ==> acc(ar_sec(elems_0, len_0), write)) &&
+    (p2_12 ==> acc(ar_sec_0(elems_0_0, len_0_0), write)) &&
+    (p1_12 && p2_12 ==> ar_sec_low(elems_0, len_0, elems_0_0, len_0_0))
+  requires (p1_12 && p2_12 ==> len_0 == len_0_0) &&
+    (p1_12 && p2_12 ==> key_2 == key_2_0)
+  ensures (p1_12 ==> issubtype(typeof(_res), tuple(Seq(int(), int())))) &&
+    (p2_12 ==> issubtype(typeof(_res_1), tuple(Seq(int(), int()))))
+  ensures p1_12 && p2_12 ==>
+    tuple___getitem__(_res, 0) == tuple___getitem__(_res_1, 0)
+  ensures (p1_12 ==> int___eq__(tuple___getitem__(_res, 0), SUCCESS())) &&
+    (p2_12 ==> int___eq__(tuple___getitem__(_res_1, 0), SUCCESS())) ==>
+    (p1_12 ==>
+    int___gt__(int___unbox__(key_2), int___unbox__(global_label()))) &&
+    (p2_12 ==>
+    int___gt__(int___unbox__(key_2_0), int___unbox__(global_label()))) ==>
+    p1_12 && p2_12 ==>
+    tuple___getitem__(_res, 1) == tuple___getitem__(_res_1, 1)
+  ensures (p1_12 ==>
+    int___eq__(tuple___getitem__(_res, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res, 1), __prim__int___box__(-1))) &&
+    (p2_12 ==>
+    int___eq__(tuple___getitem__(_res_1, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res_1, 1), __prim__int___box__(-1)))
+  ensures (p1_12 ==>
+    int___eq__(tuple___getitem__(_res, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res, 0), FAILURE())) &&
+    (p2_12 ==>
+    int___eq__(tuple___getitem__(_res_1, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res_1, 0), FAILURE()))
+  ensures (p1_12 ==>
+    int___eq__(tuple___getitem__(_res, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res, 0), FAILURE())) &&
+    (p2_12 ==>
+    int___eq__(tuple___getitem__(_res_1, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res_1, 0), FAILURE()))
+  ensures (p1_12 ==> acc(ar_sec(elems_0, len_0), write)) &&
+    (p2_12 ==> acc(ar_sec_0(elems_0_0, len_0_0), write)) &&
+    (p1_12 && p2_12 ==> ar_sec_low(elems_0, len_0, elems_0_0, len_0_0))
+  ensures (p1_12 ==>
+    ar_sec_last(elems_0, len_0) == old(ar_sec_last(elems_0, len_0))) &&
+    (p2_12 ==>
+    ar_sec_last_0(elems_0_0, len_0_0) ==
+    old(ar_sec_last_0(elems_0_0, len_0_0)))
+{
+  var ret1_0: Bool
+  var ret2_0: Bool
+  inhale p1_12
+  ret1_0 := false
+  ret2_0 := false
+  {
+    var _err: Ref
+    var _err_6: Ref
+    var mid: Ref
+    var mid_0: Ref
+    var mid_el: Ref
+    var mid_el_0: Ref
+    var k: Ref
+    var k_0: Ref
+    var res_0: Ref
+    var res_0_0: Ref
+    var ret: Ref
+    var ret_0: Ref
+    var outVal: Ref
+    var outVal_0: Ref
+    var mid_el_next: Ref
+    var mid_el_next_0: Ref
+    var elems_4: Ref
+    var elems_4_0: Ref
+    var len_5: Ref
+    var len_5_0: Ref
+    var key_7: Ref
+    var key_7_0: Ref
+    var binsearch_res: Ref
+    var binsearch_res_1: Ref
+    var binsearch_res_0: Ref
+    var binsearch_res_0_0: Ref
+    if (p1_12 && !ret1_0) {
+      _res := null
+      _err := null
+      elems_4 := elems_0
+      len_5 := len_0
+      key_7 := key_2
+    }
+    if (p2_12 && !ret2_0) {
+      _res_1 := null
+      _err_6 := null
+      elems_4_0 := elems_0_0
+      len_5_0 := len_0_0
+      key_7_0 := key_2_0
+    }
+    {
+      var p1_13: Bool
+      var p2_13: Bool
+      var p3_5: Bool
+      var p4_5: Bool
+      p1_13 := p1_12 && !ret1_0 && int___le__(int___unbox__(len_5), 0)
+      p2_13 := p2_12 && !ret2_0 && int___le__(int___unbox__(len_5_0), 0)
+      p3_5 := p1_12 && !ret1_0 && !int___le__(int___unbox__(len_5), 0)
+      p4_5 := p2_12 && !ret2_0 && !int___le__(int___unbox__(len_5_0), 0)
+      if (p1_13 && !ret1_0) {
+        _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+          int(), 2)
+        ret1_0 := true
+      }
+      if (p2_13 && !ret2_0) {
+        _res_1 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+          int(), 2)
+        ret2_0 := true
+      }
+    }
+    if (p1_12 && !ret1_0) {
+      mid := __prim__int___box__(int___floordiv__(int___unbox__(len_5), 2))
+      inhale _isDefined(6580589)
+    }
+    if (p2_12 && !ret2_0) {
+      mid_0 := __prim__int___box__(int___floordiv__(int___unbox__(len_5_0),
+        2))
+      inhale true
+    }
+    // Method call: expose
+  
+    if (p1_12 && !ret1_0 || p2_12 && !ret2_0) {
+      var tmp1_22: Ref
+      var tmp2_22: Ref
+      var tmp1_23: Ref
+      var tmp2_23: Ref
+      var tmp1_24: Ref
+      var tmp2_24: Ref
+      if (p1_12 && !ret1_0) {
+        tmp1_22 := elems_4
+        tmp1_23 := _checkDefined(mid, 6580589)
+        tmp1_24 := len_5
+      }
+      if (p2_12 && !ret2_0) {
+        tmp2_22 := elems_4_0
+        tmp2_23 := mid_0
+        tmp2_24 := len_5_0
+      }
+      expose(p1_12 && !ret1_0, p2_12 && !ret2_0, tmp1_22, tmp2_22, tmp1_23,
+        tmp2_23, tmp1_24, tmp2_24)
+    }
+    if (p1_12 && !ret1_0) {
+      mid_el := ar_sec_last(elems_4, _checkDefined(mid, 6580589))
+      inhale _isDefined(119182647912813)
+      k := _checkDefined(mid_el, 119182647912813).Elem_key
+      inhale _isDefined(107)
+    }
+    if (p2_12 && !ret2_0) {
+      mid_el_0 := ar_sec_last_0(elems_4_0, mid_0)
+      inhale true
+      k_0 := mid_el_0.Elem_keyp
+      inhale true
+    }
+    {
+      var p1_14: Bool
+      var p2_14: Bool
+      var p3_6: Bool
+      var p4_6: Bool
+      p1_14 := p1_12 && !ret1_0 && int___eq__(_checkDefined(k, 107), key_7)
+      p2_14 := p2_12 && !ret2_0 && int___eq__(k_0, key_7_0)
+      p3_6 := p1_12 && !ret1_0 && !int___eq__(_checkDefined(k, 107), key_7)
+      p4_6 := p2_12 && !ret2_0 && !int___eq__(k_0, key_7_0)
+      if (p1_14 && !ret1_0) {
+        res_0 := _checkDefined(mid_el, 119182647912813).Elem_value
+        inhale _isDefined(207759828338)
+      }
+      if (p2_14 && !ret2_0) {
+        res_0_0 := mid_el_0.Elem_valuep
+        inhale true
+      }
+      // Method call: cover
+  
+      if (p1_14 && !ret1_0 || p2_14 && !ret2_0) {
+        var tmp1_25: Ref
+        var tmp2_25: Ref
+        var tmp1_26: Ref
+        var tmp2_26: Ref
+        var tmp1_27: Ref
+        var tmp2_27: Ref
+        if (p1_14 && !ret1_0) {
+          tmp1_25 := elems_4
+          tmp1_26 := _checkDefined(mid, 6580589)
+          tmp1_27 := len_5
+        }
+        if (p2_14 && !ret2_0) {
+          tmp2_25 := elems_4_0
+          tmp2_26 := mid_0
+          tmp2_27 := len_5_0
+        }
+        cover(p1_14 && !ret1_0, p2_14 && !ret2_0, tmp1_25, tmp2_25, tmp1_26,
+          tmp2_26, tmp1_27, tmp2_27)
+      }
+      if (p1_14 && !ret1_0) {
+        _res := tuple___create2__(SUCCESS(), _checkDefined(res_0, 207759828338),
+          int(), int(), 3)
+        ret1_0 := true
+      }
+      if (p2_14 && !ret2_0) {
+        _res_1 := tuple___create2__(SUCCESS(), res_0_0, int(), int(), 3)
+        ret2_0 := true
+      }
+      {
+        var p1_15: Bool
+        var p2_15: Bool
+        var p3_7: Bool
+        var p4_7: Bool
+        p1_15 := p3_6 && !ret1_0 &&
+          int___eq__(len_5, __prim__int___box__(1))
+        p2_15 := p4_6 && !ret2_0 &&
+          int___eq__(len_5_0, __prim__int___box__(1))
+        p3_7 := p3_6 && !ret1_0 &&
+          !int___eq__(len_5, __prim__int___box__(1))
+        p4_7 := p4_6 && !ret2_0 &&
+          !int___eq__(len_5_0, __prim__int___box__(1))
+        // Method call: cover
+  
+        if (p1_15 && !ret1_0 || p2_15 && !ret2_0) {
+          var tmp1_28: Ref
+          var tmp2_28: Ref
+          var tmp1_29: Ref
+          var tmp2_29: Ref
+          var tmp1_30: Ref
+          var tmp2_30: Ref
+          if (p1_15 && !ret1_0) {
+            tmp1_28 := elems_4
+            tmp1_29 := _checkDefined(mid, 6580589)
+            tmp1_30 := len_5
+          }
+          if (p2_15 && !ret2_0) {
+            tmp2_28 := elems_4_0
+            tmp2_29 := mid_0
+            tmp2_30 := len_5_0
+          }
+          cover(p1_15 && !ret1_0, p2_15 && !ret2_0, tmp1_28, tmp2_28, tmp1_29,
+            tmp2_29, tmp1_30, tmp2_30)
+        }
+        if (p1_15 && !ret1_0) {
+          _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+            int(), 4)
+          ret1_0 := true
+        }
+        if (p2_15 && !ret2_0) {
+          _res_1 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+            int(), 4)
+          ret2_0 := true
+        }
+      }
+      {
+        var p1_16: Bool
+        var p2_16: Bool
+        var p3_8: Bool
+        var p4_8: Bool
+        p1_16 := p3_6 && !ret1_0 &&
+          int___gt__(int___unbox__(_checkDefined(k, 107)), int___unbox__(key_7))
+        p2_16 := p4_6 && !ret2_0 &&
+          int___gt__(int___unbox__(k_0), int___unbox__(key_7_0))
+        p3_8 := p3_6 && !ret1_0 &&
+          !int___gt__(int___unbox__(_checkDefined(k, 107)), int___unbox__(key_7))
+        p4_8 := p4_6 && !ret2_0 &&
+          !int___gt__(int___unbox__(k_0), int___unbox__(key_7_0))
+        // Method call: cover
+  
+        if (p1_16 && !ret1_0 || p2_16 && !ret2_0) {
+          var tmp1_31: Ref
+          var tmp2_31: Ref
+          var tmp1_32: Ref
+          var tmp2_32: Ref
+          var tmp1_33: Ref
+          var tmp2_33: Ref
+          if (p1_16 && !ret1_0) {
+            tmp1_31 := elems_4
+            tmp1_32 := _checkDefined(mid, 6580589)
+            tmp1_33 := len_5
+          }
+          if (p2_16 && !ret2_0) {
+            tmp2_31 := elems_4_0
+            tmp2_32 := mid_0
+            tmp2_33 := len_5_0
+          }
+          cover(p1_16 && !ret1_0, p2_16 && !ret2_0, tmp1_31, tmp2_31, tmp1_32,
+            tmp2_32, tmp1_33, tmp2_33)
+        }
+        // Method call: split
+  
+        if (p1_16 && !ret1_0 || p2_16 && !ret2_0) {
+          var tmp1_34: Ref
+          var tmp2_34: Ref
+          var tmp1_35: Ref
+          var tmp2_35: Ref
+          var tmp1_36: Ref
+          var tmp2_36: Ref
+          if (p1_16 && !ret1_0) {
+            tmp1_34 := elems_4
+            tmp1_35 := __prim__int___box__(int___sub__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_36 := len_5
+          }
+          if (p2_16 && !ret2_0) {
+            tmp2_34 := elems_4_0
+            tmp2_35 := __prim__int___box__(int___sub__(int___unbox__(mid_0),
+              1))
+            tmp2_36 := len_5_0
+          }
+          split(p1_16 && !ret1_0, p2_16 && !ret2_0, tmp1_34, tmp2_34, tmp1_35,
+            tmp2_35, tmp1_36, tmp2_36)
+        }
+        // Method call: binsearch
+  
+        if (p1_16 && !ret1_0 || p2_16 && !ret2_0) {
+          var tmp1_37: Ref
+          var tmp2_37: Ref
+          var tmp1_38: Ref
+          var tmp2_38: Ref
+          var tmp1_39: Ref
+          var tmp2_39: Ref
+          var tmp1_40: Ref
+          var tmp2_40: Ref
+          if (p1_16 && !ret1_0) {
+            tmp1_37 := elems_4
+            tmp1_38 := __prim__int___box__(int___sub__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_39 := key_7
+          }
+          if (p2_16 && !ret2_0) {
+            tmp2_37 := elems_4_0
+            tmp2_38 := __prim__int___box__(int___sub__(int___unbox__(mid_0),
+              1))
+            tmp2_39 := key_7_0
+          }
+          tmp1_40, tmp2_40 := binsearch(p1_16 && !ret1_0, p2_16 && !ret2_0,
+            tmp1_37, tmp2_37, tmp1_38, tmp2_38, tmp1_39, tmp2_39)
+          if (p1_16 && !ret1_0) {
+            binsearch_res := tmp1_40
+          }
+          if (p2_16 && !ret2_0) {
+            binsearch_res_1 := tmp2_40
+          }
+        }
+        assert (p1_16 && !ret1_0 ==> 2 == tuple___len__(binsearch_res)) &&
+          (p2_16 && !ret2_0 ==> 2 == tuple___len__(binsearch_res_1))
+        if (p1_16 && !ret1_0) {
+          ret := tuple___getitem__(binsearch_res, 0)
+          inhale _isDefined(7628146)
+          outVal := tuple___getitem__(binsearch_res, 1)
+          inhale _isDefined(119165318100335)
+        }
+        if (p2_16 && !ret2_0) {
+          ret_0 := tuple___getitem__(binsearch_res_1, 0)
+          inhale true
+          outVal_0 := tuple___getitem__(binsearch_res_1, 1)
+          inhale true
+        }
+        // Method call: ar_sec_join
+  
+        if (p1_16 && !ret1_0 || p2_16 && !ret2_0) {
+          var tmp1_41: Ref
+          var tmp2_41: Ref
+          var tmp1_42: Ref
+          var tmp2_42: Ref
+          var tmp1_43: Ref
+          var tmp2_43: Ref
+          if (p1_16 && !ret1_0) {
+            tmp1_41 := elems_4
+            tmp1_42 := __prim__int___box__(int___sub__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_43 := __prim__int___box__(int___sub__(int___unbox__(len_5),
+              int___sub__(int___unbox__(_checkDefined(mid, 6580589)), 1)))
+          }
+          if (p2_16 && !ret2_0) {
+            tmp2_41 := elems_4_0
+            tmp2_42 := __prim__int___box__(int___sub__(int___unbox__(mid_0),
+              1))
+            tmp2_43 := __prim__int___box__(int___sub__(int___unbox__(len_5_0),
+              int___sub__(int___unbox__(mid_0), 1)))
+          }
+          ar_sec_join(p1_16 && !ret1_0, p2_16 && !ret2_0, tmp1_41, tmp2_41,
+            tmp1_42, tmp2_42, tmp1_43, tmp2_43)
+        }
+        if (p1_16 && !ret1_0) {
+          _res := tuple___create2__(_checkDefined(ret, 7628146), _checkDefined(outVal,
+            119165318100335), int(), int(), 5)
+          ret1_0 := true
+        }
+        if (p2_16 && !ret2_0) {
+          _res_1 := tuple___create2__(ret_0, outVal_0, int(), int(), 5)
+          ret2_0 := true
+        }
+        if (p3_8 && !ret1_0) {
+          mid_el_next := _checkDefined(mid_el, 119182647912813).Elem_next
+          inhale _isDefined(140803950127587435963771245)
+        }
+        if (p4_8 && !ret2_0) {
+          mid_el_next_0 := mid_el_0.Elem_nextp
+          inhale true
+        }
+        // Method call: cover
+  
+        if (p3_8 && !ret1_0 || p4_8 && !ret2_0) {
+          var tmp1_44: Ref
+          var tmp2_44: Ref
+          var tmp1_45: Ref
+          var tmp2_45: Ref
+          var tmp1_46: Ref
+          var tmp2_46: Ref
+          if (p3_8 && !ret1_0) {
+            tmp1_44 := elems_4
+            tmp1_45 := _checkDefined(mid, 6580589)
+            tmp1_46 := len_5
+          }
+          if (p4_8 && !ret2_0) {
+            tmp2_44 := elems_4_0
+            tmp2_45 := mid_0
+            tmp2_46 := len_5_0
+          }
+          cover(p3_8 && !ret1_0, p4_8 && !ret2_0, tmp1_44, tmp2_44, tmp1_45,
+            tmp2_45, tmp1_46, tmp2_46)
+        }
+        assert (p3_8 && !ret1_0 ==>
+          _checkDefined(mid_el_next, 140803950127587435963771245) ==
+          ar_sec_ith(elems_4, len_5, __prim__int___box__(int___add__(int___unbox__(_checkDefined(mid,
+          6580589)), 1)))) &&
+          (p4_8 && !ret2_0 ==>
+          mid_el_next_0 ==
+          ar_sec_ith_0(elems_4_0, len_5_0, __prim__int___box__(int___add__(int___unbox__(mid_0),
+          1))))
+        // Method call: split
+  
+        if (p3_8 && !ret1_0 || p4_8 && !ret2_0) {
+          var tmp1_47: Ref
+          var tmp2_47: Ref
+          var tmp1_48: Ref
+          var tmp2_48: Ref
+          var tmp1_49: Ref
+          var tmp2_49: Ref
+          if (p3_8 && !ret1_0) {
+            tmp1_47 := elems_4
+            tmp1_48 := __prim__int___box__(int___add__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_49 := len_5
+          }
+          if (p4_8 && !ret2_0) {
+            tmp2_47 := elems_4_0
+            tmp2_48 := __prim__int___box__(int___add__(int___unbox__(mid_0),
+              1))
+            tmp2_49 := len_5_0
+          }
+          split(p3_8 && !ret1_0, p4_8 && !ret2_0, tmp1_47, tmp2_47, tmp1_48,
+            tmp2_48, tmp1_49, tmp2_49)
+        }
+        // Method call: binsearch
+  
+        if (p3_8 && !ret1_0 || p4_8 && !ret2_0) {
+          var tmp1_50: Ref
+          var tmp2_50: Ref
+          var tmp1_51: Ref
+          var tmp2_51: Ref
+          var tmp1_52: Ref
+          var tmp2_52: Ref
+          var tmp1_53: Ref
+          var tmp2_53: Ref
+          if (p3_8 && !ret1_0) {
+            tmp1_50 := _checkDefined(mid_el_next, 140803950127587435963771245)
+            tmp1_51 := __prim__int___box__(int___sub__(int___sub__(int___unbox__(len_5),
+              int___unbox__(_checkDefined(mid, 6580589))), 1))
+            tmp1_52 := key_7
+          }
+          if (p4_8 && !ret2_0) {
+            tmp2_50 := mid_el_next_0
+            tmp2_51 := __prim__int___box__(int___sub__(int___sub__(int___unbox__(len_5_0),
+              int___unbox__(mid_0)), 1))
+            tmp2_52 := key_7_0
+          }
+          tmp1_53, tmp2_53 := binsearch(p3_8 && !ret1_0, p4_8 && !ret2_0, tmp1_50,
+            tmp2_50, tmp1_51, tmp2_51, tmp1_52, tmp2_52)
+          if (p3_8 && !ret1_0) {
+            binsearch_res_0 := tmp1_53
+          }
+          if (p4_8 && !ret2_0) {
+            binsearch_res_0_0 := tmp2_53
+          }
+        }
+        assert (p3_8 && !ret1_0 ==> 2 == tuple___len__(binsearch_res_0)) &&
+          (p4_8 && !ret2_0 ==> 2 == tuple___len__(binsearch_res_0_0))
+        if (p3_8 && !ret1_0) {
+          ret := tuple___getitem__(binsearch_res_0, 0)
+          inhale _isDefined(7628146)
+          outVal := tuple___getitem__(binsearch_res_0, 1)
+          inhale _isDefined(119165318100335)
+        }
+        if (p4_8 && !ret2_0) {
+          ret_0 := tuple___getitem__(binsearch_res_0_0, 0)
+          inhale true
+          outVal_0 := tuple___getitem__(binsearch_res_0_0, 1)
+          inhale true
+        }
+        // Method call: ar_sec_join
+  
+        if (p3_8 && !ret1_0 || p4_8 && !ret2_0) {
+          var tmp1_54: Ref
+          var tmp2_54: Ref
+          var tmp1_55: Ref
+          var tmp2_55: Ref
+          var tmp1_56: Ref
+          var tmp2_56: Ref
+          if (p3_8 && !ret1_0) {
+            tmp1_54 := elems_4
+            tmp1_55 := __prim__int___box__(int___add__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_56 := __prim__int___box__(int___sub__(int___unbox__(len_5),
+              int___add__(int___unbox__(_checkDefined(mid, 6580589)), 1)))
+          }
+          if (p4_8 && !ret2_0) {
+            tmp2_54 := elems_4_0
+            tmp2_55 := __prim__int___box__(int___add__(int___unbox__(mid_0),
+              1))
+            tmp2_56 := __prim__int___box__(int___sub__(int___unbox__(len_5_0),
+              int___add__(int___unbox__(mid_0), 1)))
+          }
+          ar_sec_join(p3_8 && !ret1_0, p4_8 && !ret2_0, tmp1_54, tmp2_54, tmp1_55,
+            tmp2_55, tmp1_56, tmp2_56)
+        }
+        if (p3_8 && !ret1_0) {
+          _res := tuple___create2__(_checkDefined(ret, 7628146), _checkDefined(outVal,
+            119165318100335), int(), int(), 6)
+          ret1_0 := true
+        }
+        if (p4_8 && !ret2_0) {
+          _res_1 := tuple___create2__(ret_0, outVal_0, int(), int(), 6)
+          ret2_0 := true
+        }
+      }
+    }
+    exhale true
+  }
+}
+
+method sum_all(p1_17: Bool, p2_17: Bool, elems_1: Ref, elems_1_0: Ref, len_1: Ref,
+  len_1_0: Ref, key_3: Ref, key_3_0: Ref)
+  returns (_res: Ref, _res_2: Ref)
+  requires (p1_17 ==> elems_1 == null || issubtype(typeof(elems_1), Elem())) &&
+    (p2_17 ==> elems_1_0 == null || issubtype(typeof(elems_1_0), Elem()))
+  requires (p1_17 ==> issubtype(typeof(len_1), int())) &&
+    (p2_17 ==> issubtype(typeof(len_1_0), int()))
+  requires (p1_17 ==> issubtype(typeof(key_3), int())) &&
+    (p2_17 ==> issubtype(typeof(key_3_0), int()))
+  requires (p1_17 ==> int() == typeof(len_1)) &&
+    (p2_17 ==> int() == typeof(len_1_0))
+  requires (p1_17 && p2_17 ==> len_1 == len_1_0) &&
+    (p1_17 && p2_17 ==> key_3 == key_3_0)
+  requires (p1_17 ==> int___ge__(int___unbox__(len_1), 0)) &&
+    (p2_17 ==> int___ge__(int___unbox__(len_1_0), 0))
+  requires (p1_17 ==> acc(ar_sec(elems_1, len_1), write)) &&
+    (p2_17 ==> acc(ar_sec_0(elems_1_0, len_1_0), write)) &&
+    (p1_17 && p2_17 ==> ar_sec_low(elems_1, len_1, elems_1_0, len_1_0))
+  ensures (p1_17 ==> issubtype(typeof(_res), int())) &&
+    (p2_17 ==> issubtype(typeof(_res_2), int()))
+  ensures (p1_17 ==> acc(ar_sec(elems_1, len_1), write)) &&
+    (p2_17 ==> acc(ar_sec_0(elems_1_0, len_1_0), write)) &&
+    (p1_17 && p2_17 ==> ar_sec_low(elems_1, len_1, elems_1_0, len_1_0))
+  ensures (p1_17 ==>
+    int___gt__(int___unbox__(key_3), int___unbox__(global_label()))) &&
+    (p2_17 ==>
+    int___gt__(int___unbox__(key_3_0), int___unbox__(global_label()))) ==>
+    p1_17 && p2_17 ==> _res == _res_2
+{
+  var ret1_1: Bool
+  var ret2_1: Bool
+  inhale p1_17
+  ret1_1 := false
+  ret2_1 := false
+  {
+    var _err: Ref
+    var _err_7: Ref
+    var sum: Ref
+    var sum_0: Ref
+    var p_0: Ref
+    var p_0_0: Ref
+    var i_4: Ref
+    var i_4_0: Ref
+    var elems_5: Ref
+    var elems_5_0: Ref
+    var len_6: Ref
+    var len_6_0: Ref
+    var key_8: Ref
+    var key_8_0: Ref
+    var _loop_check_before_0: Bool
+    var _loop_check_before_0_0: Bool
+    var _loop_termination_flag_0: Bool
+    var _loop_termination_flag_0_0: Bool
+    var _loop_original_must_terminate_0: Perm
+    var _loop_original_must_terminate_0_0: Perm
+    var _residue_172: Perm
+    var _residue_172_0: Perm
+    if (p1_17 && !ret1_1) {
+      _res := null
+      _err := null
+      elems_5 := elems_1
+      len_6 := len_1
+      key_8 := key_3
+      sum := __prim__int___box__(0)
+      inhale _isDefined(7173491)
+      p_0 := elems_5
+      inhale _isDefined(3170160)
+      i_4 := __prim__int___box__(0)
+      inhale _isDefined(3432297)
+    }
+    if (p2_17 && !ret2_1) {
+      _res_2 := null
+      _err_7 := null
+      elems_5_0 := elems_1_0
+      len_6_0 := len_1_0
+      key_8_0 := key_3_0
+      sum_0 := __prim__int___box__(0)
+      inhale true
+      p_0_0 := elems_5_0
+      inhale true
+      i_4_0 := __prim__int___box__(0)
+      inhale true
+    }
+    if (p1_17 && !ret1_1) {
+      fold acc(ar_sec(elems_5, __prim__int___box__(0)), write)
+    }
+    if (p2_17 && !ret2_1) {
+      fold acc(ar_sec_0(elems_5_0, __prim__int___box__(0)), write)
+    }
+    assert p1_17 && !ret1_1 && (p2_17 && !ret2_1) ==>
+      ar_sec_low(elems_5, __prim__int___box__(0), elems_5_0, __prim__int___box__(0))
+    {
+      var bypass1_1: Bool
+      var bypass2_1: Bool
+      var tmp1_57: Ref
+      var tmp2_57: Ref
+      var tmp1_58: Ref
+      var tmp2_58: Ref
+      var tmp1_59: Ref
+      var tmp2_59: Ref
+      var p1_18: Bool
+      var p2_18: Bool
+      bypass1_1 := !(p1_17 && !ret1_1)
+      bypass2_1 := !(p2_17 && !ret2_1)
+      if (bypass1_1) {
+        tmp1_57 := sum
+        tmp1_58 := p_0
+        tmp1_59 := i_4
+      }
+      if (bypass2_1) {
+        tmp2_57 := sum_0
+        tmp2_58 := p_0_0
+        tmp2_59 := i_4_0
+      }
+      while (p1_17 && !ret1_1 && !bypass1_1 &&
+      int___lt__(int___unbox__(_checkDefined(i_4, 3432297)), int___unbox__(len_6)) ||
+      p2_17 && !ret2_1 && !bypass2_1 &&
+      int___lt__(int___unbox__(i_4_0), int___unbox__(len_6_0)))
+        invariant (p1_17 && !bypass1_1 ==> issubtype(typeof(sum), int())) &&
+          (p2_17 && !bypass2_1 ==> issubtype(typeof(sum_0), int()))
+        invariant (p1_17 && !bypass1_1 ==>
+          p_0 == null || issubtype(typeof(p_0), Elem())) &&
+          (p2_17 && !bypass2_1 ==>
+          p_0_0 == null || issubtype(typeof(p_0_0), Elem()))
+        invariant (p1_17 && !bypass1_1 ==> issubtype(typeof(i_4), int())) &&
+          (p2_17 && !bypass2_1 ==> issubtype(typeof(i_4_0), int()))
+        invariant (p1_17 && !bypass1_1 ==>
+          int() == typeof(_checkDefined(i_4, 3432297))) &&
+          (p2_17 && !bypass2_1 ==> int() == typeof(i_4_0))
+        invariant (p1_17 && !bypass1_1 ==>
+          int___ge__(int___unbox__(_checkDefined(i_4, 3432297)), 0)) &&
+          (p2_17 && !bypass2_1 ==> int___ge__(int___unbox__(i_4_0), 0)) &&
+          ((p1_17 && !bypass1_1 ==>
+          int___le__(int___unbox__(_checkDefined(i_4, 3432297)), int___unbox__(len_6))) &&
+          (p2_17 && !bypass2_1 ==>
+          int___le__(int___unbox__(i_4_0), int___unbox__(len_6_0))))
+        invariant ((p1_17 && !bypass1_1 ==>
+          int___gt__(int___unbox__(key_8), int___unbox__(global_label()))) &&
+          (p2_17 && !bypass2_1 ==>
+          int___gt__(int___unbox__(key_8_0), int___unbox__(global_label()))) ==>
+          p1_17 && !bypass1_1 && (p2_17 && !bypass2_1) ==>
+          _checkDefined(sum, 7173491) == sum_0) &&
+          (p1_17 && !bypass1_1 && (p2_17 && !bypass2_1) ==>
+          _checkDefined(i_4, 3432297) == i_4_0)
+        invariant (p1_17 && !bypass1_1 ==>
+          acc(ar_sec(_checkDefined(p_0, 3170160), __prim__int___box__(int___sub__(int___unbox__(len_6),
+          int___unbox__(_checkDefined(i_4, 3432297))))), write)) &&
+          (p2_17 && !bypass2_1 ==>
+          acc(ar_sec_0(p_0_0, __prim__int___box__(int___sub__(int___unbox__(len_6_0),
+          int___unbox__(i_4_0)))), write)) &&
+          (p1_17 && !bypass1_1 && (p2_17 && !bypass2_1) ==>
+          ar_sec_low(_checkDefined(p_0, 3170160), __prim__int___box__(int___sub__(int___unbox__(len_6),
+          int___unbox__(_checkDefined(i_4, 3432297)))), p_0_0, __prim__int___box__(int___sub__(int___unbox__(len_6_0),
+          int___unbox__(i_4_0)))))
+        invariant (p1_17 && !bypass1_1 ==>
+          acc(ar_sec(elems_5, _checkDefined(i_4, 3432297)), write)) &&
+          (p2_17 && !bypass2_1 ==> acc(ar_sec_0(elems_5_0, i_4_0), write)) &&
+          (p1_17 && !bypass1_1 && (p2_17 && !bypass2_1) ==>
+          ar_sec_low(elems_5, _checkDefined(i_4, 3432297), elems_5_0, i_4_0))
+        invariant (p1_17 && !bypass1_1 ==>
+          _checkDefined(p_0, 3170160) ==
+          ar_sec_last(elems_5, _checkDefined(i_4, 3432297))) &&
+          (p2_17 && !bypass2_1 ==> p_0_0 == ar_sec_last_0(elems_5_0, i_4_0))
+        invariant bypass1_1 ==> tmp1_57 == sum
+        invariant bypass1_1 ==> tmp1_58 == p_0
+        invariant bypass1_1 ==> tmp1_59 == i_4
+        invariant bypass2_1 ==> tmp2_57 == sum_0
+        invariant bypass2_1 ==> tmp2_58 == p_0_0
+        invariant bypass2_1 ==> tmp2_59 == i_4_0 
+      {
+        p1_18 := p1_17 && !ret1_1 &&
+          int___lt__(int___unbox__(_checkDefined(i_4, 3432297)), int___unbox__(len_6))
+        p2_18 := p2_17 && !ret2_1 &&
+          int___lt__(int___unbox__(i_4_0), int___unbox__(len_6_0))
+        assert p1_18 && !ret1_1 && (p2_18 && !ret2_1) ==>
+          perm(ar_sec(_checkDefined(p_0, 3170160), __prim__int___box__(int___sub__(int___unbox__(len_6),
+          int___unbox__(_checkDefined(i_4, 3432297)))))) >=
+          write &&
+          perm(ar_sec_0(p_0_0, __prim__int___box__(int___sub__(int___unbox__(len_6_0),
+          int___unbox__(i_4_0))))) >=
+          write ==>
+          ar_sec_low(_checkDefined(p_0, 3170160), __prim__int___box__(int___sub__(int___unbox__(len_6),
+          int___unbox__(_checkDefined(i_4, 3432297)))), p_0_0, __prim__int___box__(int___sub__(int___unbox__(len_6_0),
+          int___unbox__(i_4_0))))
+        if (p1_18 && !ret1_1) {
+          unfold acc(ar_sec(_checkDefined(p_0, 3170160), __prim__int___box__(int___sub__(int___unbox__(len_6),
+            int___unbox__(_checkDefined(i_4, 3432297))))), write)
+        }
+        if (p2_18 && !ret2_1) {
+          unfold acc(ar_sec_0(p_0_0, __prim__int___box__(int___sub__(int___unbox__(len_6_0),
+            int___unbox__(i_4_0)))), write)
+        }
+        {
+          var p1_19: Bool
+          var p2_19: Bool
+          var p3_9: Bool
+          var p4_9: Bool
+          p1_19 := p1_18 && !ret1_1 &&
+            _checkDefined(p_0, 3170160).Elem_key == key_8
+          p2_19 := p2_18 && !ret2_1 && p_0_0.Elem_keyp == key_8_0
+          p3_9 := p1_18 && !ret1_1 &&
+            !(_checkDefined(p_0, 3170160).Elem_key == key_8)
+          p4_9 := p2_18 && !ret2_1 && !(p_0_0.Elem_keyp == key_8_0)
+          if (p1_19 && !ret1_1) {
+            sum := __prim__int___box__(int___add__(int___unbox__(sum), int___unbox__(_checkDefined(p_0,
+              3170160).Elem_value)))
+            inhale _isDefined(7173491)
+          }
+          if (p2_19 && !ret2_1) {
+            sum_0 := __prim__int___box__(int___add__(int___unbox__(sum_0), int___unbox__(p_0_0.Elem_valuep)))
+            inhale true
+          }
+        }
+        if (p1_18 && !ret1_1) {
+          p_0 := _checkDefined(p_0, 3170160).Elem_next
+          inhale _isDefined(3170160)
+        }
+        if (p2_18 && !ret2_1) {
+          p_0_0 := p_0_0.Elem_nextp
+          inhale true
+        }
+        // Method call: ar_sec_snoc
+  
+        if (p1_18 && !ret1_1 || p2_18 && !ret2_1) {
+          var tmp1_60: Ref
+          var tmp2_60: Ref
+          var tmp1_61: Ref
+          var tmp2_61: Ref
+          if (p1_18 && !ret1_1) {
+            tmp1_60 := elems_5
+            tmp1_61 := _checkDefined(i_4, 3432297)
+          }
+          if (p2_18 && !ret2_1) {
+            tmp2_60 := elems_5_0
+            tmp2_61 := i_4_0
+          }
+          ar_sec_snoc(p1_18 && !ret1_1, p2_18 && !ret2_1, tmp1_60, tmp2_60,
+            tmp1_61, tmp2_61)
+        }
+        if (p1_18 && !ret1_1) {
+          i_4 := __prim__int___box__(int___add__(int___unbox__(i_4), 1))
+          inhale _isDefined(3432297)
+        }
+        if (p2_18 && !ret2_1) {
+          i_4_0 := __prim__int___box__(int___add__(int___unbox__(i_4_0), 1))
+          inhale true
+        }
+      }
+    }
+    if (p1_17 && !ret1_1) {
+      _res := null
+    }
+    if (p2_17 && !ret2_1) {
+      _res_2 := null
+    }
+    // Method call: ar_sec_join
+  
+    if (p1_17 && !ret1_1 || p2_17 && !ret2_1) {
+      var tmp1_62: Ref
+      var tmp2_62: Ref
+      var tmp1_63: Ref
+      var tmp2_63: Ref
+      var tmp1_64: Ref
+      var tmp2_64: Ref
+      if (p1_17 && !ret1_1) {
+        tmp1_62 := elems_5
+        tmp1_63 := _checkDefined(i_4, 3432297)
+        tmp1_64 := __prim__int___box__(int___sub__(int___unbox__(len_6), int___unbox__(_checkDefined(i_4,
+          3432297))))
+      }
+      if (p2_17 && !ret2_1) {
+        tmp2_62 := elems_5_0
+        tmp2_63 := i_4_0
+        tmp2_64 := __prim__int___box__(int___sub__(int___unbox__(len_6_0), int___unbox__(i_4_0)))
+      }
+      ar_sec_join(p1_17 && !ret1_1, p2_17 && !ret2_1, tmp1_62, tmp2_62, tmp1_63,
+        tmp2_63, tmp1_64, tmp2_64)
+    }
+    if (p1_17 && !ret1_1) {
+      _res := _checkDefined(sum, 7173491)
+      ret1_1 := true
+    }
+    if (p2_17 && !ret2_1) {
+      _res_2 := sum_0
+      ret2_1 := true
+    }
+    exhale true
+  }
+}
+
+method sum_all_rec(p1_20: Bool, p2_20: Bool, p_1: Ref, p_1_0: Ref, len_2: Ref,
+  len_2_0: Ref, key_4: Ref, key_4_0: Ref, init: Ref, init_1: Ref)
+  returns (_res: Ref, _res_3: Ref)
+  requires (p1_20 ==> p_1 == null || issubtype(typeof(p_1), Elem())) &&
+    (p2_20 ==> p_1_0 == null || issubtype(typeof(p_1_0), Elem()))
+  requires (p1_20 ==> issubtype(typeof(len_2), int())) &&
+    (p2_20 ==> issubtype(typeof(len_2_0), int()))
+  requires (p1_20 ==> issubtype(typeof(key_4), int())) &&
+    (p2_20 ==> issubtype(typeof(key_4_0), int()))
+  requires (p1_20 ==> issubtype(typeof(init), int())) &&
+    (p2_20 ==> issubtype(typeof(init_1), int()))
+  requires (p1_20 ==> int() == typeof(len_2)) &&
+    (p2_20 ==> int() == typeof(len_2_0))
+  requires (p1_20 ==> acc(ar_sec(p_1, len_2), write)) &&
+    (p2_20 ==> acc(ar_sec_0(p_1_0, len_2_0), write)) &&
+    (p1_20 && p2_20 ==> ar_sec_low(p_1, len_2, p_1_0, len_2_0))
+  requires (p1_20 && p2_20 ==> len_2 == len_2_0) &&
+    (p1_20 && p2_20 ==> key_4 == key_4_0)
+  requires (p1_20 ==> int___ge__(int___unbox__(len_2), 0)) &&
+    (p2_20 ==> int___ge__(int___unbox__(len_2_0), 0))
+  requires (p1_20 ==>
+    int___gt__(int___unbox__(key_4), int___unbox__(global_label()))) &&
+    (p2_20 ==>
+    int___gt__(int___unbox__(key_4_0), int___unbox__(global_label()))) ==>
+    p1_20 && p2_20 ==> init == init_1
+  ensures (p1_20 ==> issubtype(typeof(_res), int())) &&
+    (p2_20 ==> issubtype(typeof(_res_3), int()))
+  ensures (p1_20 ==> acc(ar_sec(p_1, len_2), write)) &&
+    (p2_20 ==> acc(ar_sec_0(p_1_0, len_2_0), write)) &&
+    (p1_20 && p2_20 ==> ar_sec_low(p_1, len_2, p_1_0, len_2_0))
+  ensures (p1_20 ==>
+    int___gt__(int___unbox__(key_4), int___unbox__(global_label()))) &&
+    (p2_20 ==>
+    int___gt__(int___unbox__(key_4_0), int___unbox__(global_label()))) ==>
+    p1_20 && p2_20 ==> _res == _res_3
+{
+  var ret1_2: Bool
+  var ret2_2: Bool
+  inhale p1_20
+  ret1_2 := false
+  ret2_2 := false
+  {
+    var _err: Ref
+    var _err_8: Ref
+    var s: Ref
+    var s_0: Ref
+    var p_3: Ref
+    var p_3_0: Ref
+    var len_7: Ref
+    var len_7_0: Ref
+    var key_9: Ref
+    var key_9_0: Ref
+    var init_0: Ref
+    var init_0_0: Ref
+    var sum_all_rec_res: Ref
+    var sum_all_rec_res_1: Ref
+    var sum_all_rec_res_0: Ref
+    var sum_all_rec_res_0_0: Ref
+    if (p1_20 && !ret1_2) {
+      _res := null
+      _err := null
+      p_3 := p_1
+      len_7 := len_2
+      key_9 := key_4
+      init_0 := init
+    }
+    if (p2_20 && !ret2_2) {
+      _res_3 := null
+      _err_8 := null
+      p_3_0 := p_1_0
+      len_7_0 := len_2_0
+      key_9_0 := key_4_0
+      init_0_0 := init_1
+    }
+    {
+      var p1_21: Bool
+      var p2_21: Bool
+      var p3_10: Bool
+      var p4_10: Bool
+      p1_21 := p1_20 && !ret1_2 && int___gt__(int___unbox__(len_7), 0)
+      p2_21 := p2_20 && !ret2_2 && int___gt__(int___unbox__(len_7_0), 0)
+      p3_10 := p1_20 && !ret1_2 && !int___gt__(int___unbox__(len_7), 0)
+      p4_10 := p2_20 && !ret2_2 && !int___gt__(int___unbox__(len_7_0), 0)
+      assert p1_21 && !ret1_2 && (p2_21 && !ret2_2) ==>
+        perm(ar_sec(p_3, len_7)) >= write &&
+        perm(ar_sec_0(p_3_0, len_7_0)) >= write ==>
+        ar_sec_low(p_3, len_7, p_3_0, len_7_0)
+      if (p1_21 && !ret1_2) {
+        unfold acc(ar_sec(p_3, len_7), write)
+      }
+      if (p2_21 && !ret2_2) {
+        unfold acc(ar_sec_0(p_3_0, len_7_0), write)
+      }
+      {
+        var p1_22: Bool
+        var p2_22: Bool
+        var p3_11: Bool
+        var p4_11: Bool
+        p1_22 := p1_21 && !ret1_2 && int___eq__(p_3.Elem_key, key_9)
+        p2_22 := p2_21 && !ret2_2 && int___eq__(p_3_0.Elem_keyp, key_9_0)
+        p3_11 := p1_21 && !ret1_2 && !int___eq__(p_3.Elem_key, key_9)
+        p4_11 := p2_21 && !ret2_2 && !int___eq__(p_3_0.Elem_keyp, key_9_0)
+        // Method call: sum_all_rec
+  
+        if (p1_22 && !ret1_2 || p2_22 && !ret2_2) {
+          var tmp1_65: Ref
+          var tmp2_65: Ref
+          var tmp1_66: Ref
+          var tmp2_66: Ref
+          var tmp1_67: Ref
+          var tmp2_67: Ref
+          var tmp1_68: Ref
+          var tmp2_68: Ref
+          var tmp1_69: Ref
+          var tmp2_69: Ref
+          if (p1_22 && !ret1_2) {
+            tmp1_65 := p_3.Elem_next
+            tmp1_66 := __prim__int___box__(int___sub__(int___unbox__(len_7),
+              1))
+            tmp1_67 := key_9
+            tmp1_68 := __prim__int___box__(int___add__(int___unbox__(init_0),
+              int___unbox__(p_3.Elem_value)))
+          }
+          if (p2_22 && !ret2_2) {
+            tmp2_65 := p_3_0.Elem_nextp
+            tmp2_66 := __prim__int___box__(int___sub__(int___unbox__(len_7_0),
+              1))
+            tmp2_67 := key_9_0
+            tmp2_68 := __prim__int___box__(int___add__(int___unbox__(init_0_0),
+              int___unbox__(p_3_0.Elem_valuep)))
+          }
+          tmp1_69, tmp2_69 := sum_all_rec(p1_22 && !ret1_2, p2_22 &&
+            !ret2_2, tmp1_65, tmp2_65, tmp1_66, tmp2_66, tmp1_67, tmp2_67, tmp1_68,
+            tmp2_68)
+          if (p1_22 && !ret1_2) {
+            sum_all_rec_res := tmp1_69
+          }
+          if (p2_22 && !ret2_2) {
+            sum_all_rec_res_1 := tmp2_69
+          }
+        }
+        if (p1_22 && !ret1_2) {
+          s := sum_all_rec_res
+          inhale _isDefined(115)
+        }
+        if (p2_22 && !ret2_2) {
+          s_0 := sum_all_rec_res_1
+          inhale true
+        }
+        if (p1_22 && !ret1_2) {
+          fold acc(ar_sec(p_3, len_7), write)
+        }
+        if (p2_22 && !ret2_2) {
+          fold acc(ar_sec_0(p_3_0, len_7_0), write)
+        }
+        assert p1_22 && !ret1_2 && (p2_22 && !ret2_2) ==>
+          ar_sec_low(p_3, len_7, p_3_0, len_7_0)
+        if (p1_22 && !ret1_2) {
+          _res := _checkDefined(s, 115)
+          ret1_2 := true
+        }
+        if (p2_22 && !ret2_2) {
+          _res_3 := s_0
+          ret2_2 := true
+        }
+        // Method call: sum_all_rec
+  
+        if (p3_11 && !ret1_2 || p4_11 && !ret2_2) {
+          var tmp1_70: Ref
+          var tmp2_70: Ref
+          var tmp1_71: Ref
+          var tmp2_71: Ref
+          var tmp1_72: Ref
+          var tmp2_72: Ref
+          var tmp1_73: Ref
+          var tmp2_73: Ref
+          var tmp1_74: Ref
+          var tmp2_74: Ref
+          if (p3_11 && !ret1_2) {
+            tmp1_70 := p_3.Elem_next
+            tmp1_71 := __prim__int___box__(int___sub__(int___unbox__(len_7),
+              1))
+            tmp1_72 := key_9
+            tmp1_73 := init_0
+          }
+          if (p4_11 && !ret2_2) {
+            tmp2_70 := p_3_0.Elem_nextp
+            tmp2_71 := __prim__int___box__(int___sub__(int___unbox__(len_7_0),
+              1))
+            tmp2_72 := key_9_0
+            tmp2_73 := init_0_0
+          }
+          tmp1_74, tmp2_74 := sum_all_rec(p3_11 && !ret1_2, p4_11 &&
+            !ret2_2, tmp1_70, tmp2_70, tmp1_71, tmp2_71, tmp1_72, tmp2_72, tmp1_73,
+            tmp2_73)
+          if (p3_11 && !ret1_2) {
+            sum_all_rec_res_0 := tmp1_74
+          }
+          if (p4_11 && !ret2_2) {
+            sum_all_rec_res_0_0 := tmp2_74
+          }
+        }
+        if (p3_11 && !ret1_2) {
+          s := sum_all_rec_res_0
+          inhale _isDefined(115)
+        }
+        if (p4_11 && !ret2_2) {
+          s_0 := sum_all_rec_res_0_0
+          inhale true
+        }
+        if (p3_11 && !ret1_2) {
+          fold acc(ar_sec(p_3, len_7), write)
+        }
+        if (p4_11 && !ret2_2) {
+          fold acc(ar_sec_0(p_3_0, len_7_0), write)
+        }
+        assert p3_11 && !ret1_2 && (p4_11 && !ret2_2) ==>
+          ar_sec_low(p_3, len_7, p_3_0, len_7_0)
+        if (p3_11 && !ret1_2) {
+          _res := _checkDefined(s, 115)
+          ret1_2 := true
+        }
+        if (p4_11 && !ret2_2) {
+          _res_3 := s_0
+          ret2_2 := true
+        }
+      }
+      if (p3_10 && !ret1_2) {
+        _res := init_0
+        ret1_2 := true
+      }
+      if (p4_10 && !ret2_2) {
+        _res_3 := init_0_0
+        ret2_2 := true
+      }
+    }
+    exhale true
+  }
+}
+
+method remove_all(p1_23: Bool, p2_23: Bool, elems_2: Ref, elems_2_0: Ref, len_3: Ref,
+  len_3_0: Ref, key_5: Ref, key_5_0: Ref)
+  requires (p1_23 ==> elems_2 == null || issubtype(typeof(elems_2), Elem())) &&
+    (p2_23 ==> elems_2_0 == null || issubtype(typeof(elems_2_0), Elem()))
+  requires (p1_23 ==> issubtype(typeof(len_3), int())) &&
+    (p2_23 ==> issubtype(typeof(len_3_0), int()))
+  requires (p1_23 ==> issubtype(typeof(key_5), int())) &&
+    (p2_23 ==> issubtype(typeof(key_5_0), int()))
+  requires (p1_23 ==> int() == typeof(len_3)) &&
+    (p2_23 ==> int() == typeof(len_3_0))
+  requires (p1_23 ==> acc(ar_sec(elems_2, len_3), write)) &&
+    (p2_23 ==> acc(ar_sec_0(elems_2_0, len_3_0), write)) &&
+    (p1_23 && p2_23 ==> ar_sec_low(elems_2, len_3, elems_2_0, len_3_0))
+  requires (p1_23 && p2_23 ==> len_3 == len_3_0) &&
+    ((p1_23 && p2_23 ==> key_5 == key_5_0) &&
+    ((p1_23 ==> int___ge__(int___unbox__(len_3), 0)) &&
+    (p2_23 ==> int___ge__(int___unbox__(len_3_0), 0))))
+  ensures (p1_23 ==> acc(ar_sec(elems_2, len_3), write)) &&
+    (p2_23 ==> acc(ar_sec_0(elems_2_0, len_3_0), write)) &&
+    (p1_23 && p2_23 ==> ar_sec_low(elems_2, len_3, elems_2_0, len_3_0))
+{
+  inhale p1_23
+  {
+    var _err: Ref
+    var _err_9: Ref
+    var i_5: Ref
+    var i_5_0: Ref
+    var p_2: Ref
+    var p_2_0: Ref
+    var elems_6: Ref
+    var elems_6_0: Ref
+    var len_8: Ref
+    var len_8_0: Ref
+    var key_10: Ref
+    var key_10_0: Ref
+    var _loop_check_before_1: Bool
+    var _loop_check_before_1_0: Bool
+    var _loop_termination_flag_1: Bool
+    var _loop_termination_flag_1_0: Bool
+    var _loop_original_must_terminate_1: Perm
+    var _loop_original_must_terminate_1_0: Perm
+    var _residue_173: Perm
+    var _residue_173_0: Perm
+    if (p1_23) {
+      _err := null
+      elems_6 := elems_2
+      len_8 := len_3
+      key_10 := key_5
+      i_5 := __prim__int___box__(0)
+      inhale _isDefined(3497833)
+      p_2 := elems_6
+      inhale _isDefined(3301232)
+    }
+    if (p2_23) {
+      _err_9 := null
+      elems_6_0 := elems_2_0
+      len_8_0 := len_3_0
+      key_10_0 := key_5_0
+      i_5_0 := __prim__int___box__(0)
+      inhale true
+      p_2_0 := elems_6_0
+      inhale true
+    }
+    if (p1_23) {
+      fold acc(ar_sec(elems_6, __prim__int___box__(0)), write)
+    }
+    if (p2_23) {
+      fold acc(ar_sec_0(elems_6_0, __prim__int___box__(0)), write)
+    }
+    assert p1_23 && p2_23 ==>
+      ar_sec_low(elems_6, __prim__int___box__(0), elems_6_0, __prim__int___box__(0))
+    {
+      var bypass1_2: Bool
+      var bypass2_2: Bool
+      var tmp1_75: Ref
+      var tmp2_75: Ref
+      var tmp1_76: Ref
+      var tmp2_76: Ref
+      var p1_24: Bool
+      var p2_24: Bool
+      bypass1_2 := !p1_23
+      bypass2_2 := !p2_23
+      if (bypass1_2) {
+        tmp1_75 := p_2
+        tmp1_76 := i_5
+      }
+      if (bypass2_2) {
+        tmp2_75 := p_2_0
+        tmp2_76 := i_5_0
+      }
+      while (p1_23 && !bypass1_2 &&
+      int___lt__(int___unbox__(_checkDefined(i_5, 3497833)), int___unbox__(len_8)) ||
+      p2_23 && !bypass2_2 &&
+      int___lt__(int___unbox__(i_5_0), int___unbox__(len_8_0)))
+        invariant (p1_23 && !bypass1_2 ==>
+          p_2 == null || issubtype(typeof(p_2), Elem())) &&
+          (p2_23 && !bypass2_2 ==>
+          p_2_0 == null || issubtype(typeof(p_2_0), Elem()))
+        invariant (p1_23 && !bypass1_2 ==> issubtype(typeof(i_5), int())) &&
+          (p2_23 && !bypass2_2 ==> issubtype(typeof(i_5_0), int()))
+        invariant (p1_23 && !bypass1_2 ==>
+          int() == typeof(_checkDefined(i_5, 3497833))) &&
+          (p2_23 && !bypass2_2 ==> int() == typeof(i_5_0))
+        invariant (p1_23 && !bypass1_2 && (p2_23 && !bypass2_2) ==>
+          _checkDefined(i_5, 3497833) == i_5_0) &&
+          ((p1_23 && !bypass1_2 ==>
+          int___ge__(int___unbox__(_checkDefined(i_5, 3497833)), 0)) &&
+          (p2_23 && !bypass2_2 ==> int___ge__(int___unbox__(i_5_0), 0)) &&
+          ((p1_23 && !bypass1_2 ==>
+          int___le__(int___unbox__(_checkDefined(i_5, 3497833)), int___unbox__(len_8))) &&
+          (p2_23 && !bypass2_2 ==>
+          int___le__(int___unbox__(i_5_0), int___unbox__(len_8_0)))))
+        invariant (p1_23 && !bypass1_2 ==>
+          acc(ar_sec(elems_6, _checkDefined(i_5, 3497833)), write)) &&
+          (p2_23 && !bypass2_2 ==> acc(ar_sec_0(elems_6_0, i_5_0), write)) &&
+          (p1_23 && !bypass1_2 && (p2_23 && !bypass2_2) ==>
+          ar_sec_low(elems_6, _checkDefined(i_5, 3497833), elems_6_0, i_5_0))
+        invariant (p1_23 && !bypass1_2 ==>
+          acc(ar_sec(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+          int___unbox__(_checkDefined(i_5, 3497833))))), write)) &&
+          (p2_23 && !bypass2_2 ==>
+          acc(ar_sec_0(p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+          int___unbox__(i_5_0)))), write)) &&
+          (p1_23 && !bypass1_2 && (p2_23 && !bypass2_2) ==>
+          ar_sec_low(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+          int___unbox__(_checkDefined(i_5, 3497833)))), p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+          int___unbox__(i_5_0)))))
+        invariant (p1_23 && !bypass1_2 ==>
+          _checkDefined(p_2, 3301232) ==
+          ar_sec_last(elems_6, _checkDefined(i_5, 3497833))) &&
+          (p2_23 && !bypass2_2 ==> p_2_0 == ar_sec_last_0(elems_6_0, i_5_0))
+        invariant bypass1_2 ==> tmp1_75 == p_2
+        invariant bypass1_2 ==> tmp1_76 == i_5
+        invariant bypass2_2 ==> tmp2_75 == p_2_0
+        invariant bypass2_2 ==> tmp2_76 == i_5_0 
+      {
+        p1_24 := p1_23 &&
+          int___lt__(int___unbox__(_checkDefined(i_5, 3497833)), int___unbox__(len_8))
+        p2_24 := p2_23 &&
+          int___lt__(int___unbox__(i_5_0), int___unbox__(len_8_0))
+        assert p1_24 && p2_24 ==>
+          perm(ar_sec(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+          int___unbox__(_checkDefined(i_5, 3497833)))))) >=
+          write &&
+          perm(ar_sec_0(p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+          int___unbox__(i_5_0))))) >=
+          write ==>
+          ar_sec_low(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+          int___unbox__(_checkDefined(i_5, 3497833)))), p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+          int___unbox__(i_5_0))))
+        if (p1_24) {
+          unfold acc(ar_sec(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+            int___unbox__(_checkDefined(i_5, 3497833))))), write)
+        }
+        if (p2_24) {
+          unfold acc(ar_sec_0(p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+            int___unbox__(i_5_0)))), write)
+        }
+        {
+          var p1_25: Bool
+          var p2_25: Bool
+          var p3_12: Bool
+          var p4_12: Bool
+          p1_25 := p1_24 &&
+            int___eq__(_checkDefined(p_2, 3301232).Elem_key, key_10)
+          p2_25 := p2_24 && int___eq__(p_2_0.Elem_keyp, key_10_0)
+          p3_12 := p1_24 &&
+            !int___eq__(_checkDefined(p_2, 3301232).Elem_key, key_10)
+          p4_12 := p2_24 && !int___eq__(p_2_0.Elem_keyp, key_10_0)
+          {
+            var p1_26: Bool
+            var p2_26: Bool
+            var p3_13: Bool
+            var p4_13: Bool
+            p1_26 := p1_25 &&
+              perm(_MaySet(_checkDefined(p_2, 3301232), 479125093479839250607173)) >
+              none
+            p2_26 := p2_25 &&
+              perm(_MaySet_0(p_2_0, 479125093479839250607173)) > none
+            p3_13 := p1_25 &&
+              !(perm(_MaySet(_checkDefined(p_2, 3301232), 479125093479839250607173)) >
+              none)
+            p4_13 := p2_25 &&
+              !(perm(_MaySet_0(p_2_0, 479125093479839250607173)) > none)
+            if (p1_26) {
+              exhale acc(_MaySet(_checkDefined(p_2, 3301232), 479125093479839250607173), write)
+              inhale acc(_checkDefined(p_2, 3301232).Elem_value, write)
+            }
+            if (p2_26) {
+              exhale acc(_MaySet_0(p_2_0, 479125093479839250607173), write)
+              inhale acc(p_2_0.Elem_valuep, write)
+            }
+          }
+          if (p1_25) {
+            _checkDefined(p_2, 3301232).Elem_value := __prim__int___box__(0)
+          }
+          if (p2_25) {
+            p_2_0.Elem_valuep := __prim__int___box__(0)
+          }
+        }
+        if (p1_24) {
+          p_2 := _checkDefined(p_2, 3301232).Elem_next
+          inhale _isDefined(3301232)
+        }
+        if (p2_24) {
+          p_2_0 := p_2_0.Elem_nextp
+          inhale true
+        }
+        // Method call: ar_sec_snoc
+  
+        if (p1_24 || p2_24) {
+          var tmp1_77: Ref
+          var tmp2_77: Ref
+          var tmp1_78: Ref
+          var tmp2_78: Ref
+          if (p1_24) {
+            tmp1_77 := elems_6
+            tmp1_78 := _checkDefined(i_5, 3497833)
+          }
+          if (p2_24) {
+            tmp2_77 := elems_6_0
+            tmp2_78 := i_5_0
+          }
+          ar_sec_snoc(p1_24, p2_24, tmp1_77, tmp2_77, tmp1_78, tmp2_78)
+        }
+        if (p1_24) {
+          i_5 := __prim__int___box__(int___add__(int___unbox__(i_5), 1))
+          inhale _isDefined(3497833)
+        }
+        if (p2_24) {
+          i_5_0 := __prim__int___box__(int___add__(int___unbox__(i_5_0), 1))
+          inhale true
+        }
+      }
+    }
+    assert p1_23 && p2_23 ==>
+      perm(ar_sec(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+      int___unbox__(_checkDefined(i_5, 3497833)))))) >=
+      write &&
+      perm(ar_sec_0(p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+      int___unbox__(i_5_0))))) >=
+      write ==>
+      ar_sec_low(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+      int___unbox__(_checkDefined(i_5, 3497833)))), p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+      int___unbox__(i_5_0))))
+    if (p1_23) {
+      unfold acc(ar_sec(_checkDefined(p_2, 3301232), __prim__int___box__(int___sub__(int___unbox__(len_8),
+        int___unbox__(_checkDefined(i_5, 3497833))))), write)
+    }
+    if (p2_23) {
+      unfold acc(ar_sec_0(p_2_0, __prim__int___box__(int___sub__(int___unbox__(len_8_0),
+        int___unbox__(i_5_0)))), write)
+    }
+    exhale true
+  }
+}
+
+method Elem___init__(p1_27: Bool, p2_27: Bool, self: Ref, self_1: Ref, key_0: Ref,
+  key_0_0: Ref, value_0: Ref, value_0_0: Ref)
+  requires (p1_27 ==> self != null) && (p2_27 ==> self_1 != null)
+  requires (p1_27 ==> acc(_MaySet(self, 8747515908838485061), write)) &&
+    (p2_27 ==> acc(_MaySet_0(self_1, 8747515908838485061), write))
+  requires (p1_27 ==> acc(_MaySet(self, 479125093479839250607173), write)) &&
+    (p2_27 ==> acc(_MaySet_0(self_1, 479125093479839250607173), write))
+  requires (p1_27 ==> acc(_MaySet(self, 2148497774163643427909), write)) &&
+    (p2_27 ==> acc(_MaySet_0(self_1, 2148497774163643427909), write))
+  requires (p1_27 ==> issubtype(typeof(self), Elem())) &&
+    (p2_27 ==> issubtype(typeof(self_1), Elem()))
+  requires (p1_27 ==> issubtype(typeof(key_0), int())) &&
+    (p2_27 ==> issubtype(typeof(key_0_0), int()))
+  requires (p1_27 ==> issubtype(typeof(value_0), int())) &&
+    (p2_27 ==> issubtype(typeof(value_0_0), int()))
+  requires (p1_27 ==> self != null) && (p2_27 ==> self_1 != null)
+{
+  inhale p1_27
+  {
+    var _err: Ref
+    var _err_10: Ref
+    var self_0: Ref
+    var self_0_0: Ref
+    var key_11: Ref
+    var key_11_0: Ref
+    var value_1: Ref
+    var value_1_0: Ref
+    if (p1_27) {
+      inhale typeof(self) == Elem()
+      _err := null
+      self_0 := self
+      key_11 := key_0
+      value_1 := value_0
+    }
+    if (p2_27) {
+      inhale typeof(self_1) == Elem()
+      _err_10 := null
+      self_0_0 := self_1
+      key_11_0 := key_0_0
+      value_1_0 := value_0_0
+    }
+    {
+      var p1_28: Bool
+      var p2_28: Bool
+      var p3_14: Bool
+      var p4_14: Bool
+      p1_28 := p1_27 && perm(_MaySet(self_0, 8747515908838485061)) > none
+      p2_28 := p2_27 &&
+        perm(_MaySet_0(self_0_0, 8747515908838485061)) > none
+      p3_14 := p1_27 &&
+        !(perm(_MaySet(self_0, 8747515908838485061)) > none)
+      p4_14 := p2_27 &&
+        !(perm(_MaySet_0(self_0_0, 8747515908838485061)) > none)
+      if (p1_28) {
+        exhale acc(_MaySet(self_0, 8747515908838485061), write)
+        inhale acc(self_0.Elem_key, write)
+      }
+      if (p2_28) {
+        exhale acc(_MaySet_0(self_0_0, 8747515908838485061), write)
+        inhale acc(self_0_0.Elem_keyp, write)
+      }
+    }
+    if (p1_27) {
+      self_0.Elem_key := key_11
+    }
+    if (p2_27) {
+      self_0_0.Elem_keyp := key_11_0
+    }
+    {
+      var p1_29: Bool
+      var p2_29: Bool
+      var p3_15: Bool
+      var p4_15: Bool
+      p1_29 := p1_27 &&
+        perm(_MaySet(self_0, 479125093479839250607173)) > none
+      p2_29 := p2_27 &&
+        perm(_MaySet_0(self_0_0, 479125093479839250607173)) > none
+      p3_15 := p1_27 &&
+        !(perm(_MaySet(self_0, 479125093479839250607173)) > none)
+      p4_15 := p2_27 &&
+        !(perm(_MaySet_0(self_0_0, 479125093479839250607173)) > none)
+      if (p1_29) {
+        exhale acc(_MaySet(self_0, 479125093479839250607173), write)
+        inhale acc(self_0.Elem_value, write)
+      }
+      if (p2_29) {
+        exhale acc(_MaySet_0(self_0_0, 479125093479839250607173), write)
+        inhale acc(self_0_0.Elem_valuep, write)
+      }
+    }
+    if (p1_27) {
+      self_0.Elem_value := value_1
+    }
+    if (p2_27) {
+      self_0_0.Elem_valuep := value_1_0
+    }
+    {
+      var p1_30: Bool
+      var p2_30: Bool
+      var p3_16: Bool
+      var p4_16: Bool
+      p1_30 := p1_27 &&
+        perm(_MaySet(self_0, 2148497774163643427909)) > none
+      p2_30 := p2_27 &&
+        perm(_MaySet_0(self_0_0, 2148497774163643427909)) > none
+      p3_16 := p1_27 &&
+        !(perm(_MaySet(self_0, 2148497774163643427909)) > none)
+      p4_16 := p2_27 &&
+        !(perm(_MaySet_0(self_0_0, 2148497774163643427909)) > none)
+      if (p1_30) {
+        exhale acc(_MaySet(self_0, 2148497774163643427909), write)
+        inhale acc(self_0.Elem_next, write)
+      }
+      if (p2_30) {
+        exhale acc(_MaySet_0(self_0_0, 2148497774163643427909), write)
+        inhale acc(self_0_0.Elem_nextp, write)
+      }
+    }
+    if (p1_27) {
+      self_0.Elem_next := null
+    }
+    if (p2_27) {
+      self_0_0.Elem_nextp := null
+    }
+    exhale true
+  }
+}
+
+method main(p1_31: Bool, p2_31: Bool)
+{
+  inhale p1_31
+  {
+    var module_defined_0: Bool
+    var module_defined_0_0: Bool
+    var module_names_0: Set[_Name]
+    var module_names_0_0: Set[_Name]
+    var _err: Ref
+    var _err_11: Ref
+    if (p1_31) {
+      module_defined_0 := true
+      module_names_0 := Set[_Name]()
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._val, 99 / 100) &&
+        issubtype(typeof(__file__()._val), str()) &&
+        issubtype(typeof(__file__()._val), str())
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._val, 99 / 100) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+      _err := null
+      module_names_0 := (module_names_0 union Set(_single(1953720652)))
+      module_names_0 := (module_names_0 union Set(_single(435611006292)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7809644653626814543)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union Set(_single(1835363397)))
+      module_names_0 := (module_names_0 union
+        Set(_single(33546947157544920788381953127)))
+    }
+    if (p2_31) {
+      module_defined_0_0 := true
+      module_names_0_0 := Set[_Name]()
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._valp, 99 / 100) &&
+        issubtype(typeof(__file__()._valp), str()) &&
+        issubtype(typeof(__file__()._valp), str())
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._valp, 99 / 100) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._valp)
+      _err_11 := null
+      module_names_0_0 := (module_names_0_0 union Set(_single(1953720652)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(435611006292)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7809644653626814543)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union Set(_single(1835363397)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(33546947157544920788381953127)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union Set(_single(29281)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union Set(_single(29281)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(109287378481761)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(109287378481761)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0))) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(140780264364071709554209377)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(140780264364071709554209377)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0))) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(493273529427777558639201)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(493273529427777558639201)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(120209876276767651493016161)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(120209876276767651493016161)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(133479743891857081911702113)))
+      inhale SUCCESS() == __prim__int___box__(0)
+      module_names_0 := (module_names_0 union
+        Set(_single(23453980013319507)))
+      inhale FAILURE() == __prim__int___box__(1)
+      module_names_0 := (module_names_0 union
+        Set(_single(19512299698602310)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(133479743891857081911702113)))
+      inhale SUCCESS() == __prim__int___box__(0)
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(23453980013319507)))
+      inhale FAILURE() == __prim__int___box__(1)
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(19512299698602310)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(123649615949676)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(123649615949676)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union Set(_single(499984920691)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(499984920691)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(111546465286245)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(111546465286245)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union Set(_single(491328532323)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(491328532323)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(1925627280711249455458)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1925627280711249455458)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(30518462953387379)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(30518462953387379)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(120162724961432421907920243)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(120162724961432421907920243)))
+    }
+    assert (p1_31 ==> true) && (p2_31 ==> true) &&
+      ((p1_31 ==> (_single(1835363397) in module_names_0)) &&
+      (p2_31 ==> (_single(1835363397) in module_names_0_0)))
+    if (p1_31) {
+      module_names_0 := (module_names_0 union
+        Set(_single(512014844948186131162482)))
+    }
+    if (p2_31) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(512014844948186131162482)))
+    }
+    exhale true
+  }
+}

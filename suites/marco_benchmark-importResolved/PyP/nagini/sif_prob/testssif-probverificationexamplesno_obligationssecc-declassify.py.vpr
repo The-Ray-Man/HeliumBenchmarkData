@@ -1,0 +1,3547 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function AvgState(): PyType 
+  
+  unique function StateLock(): PyType 
+  
+  unique function Lock_basic(): PyType 
+  
+  function Lock(arg0: PyType): PyType 
+  
+  function Lock_arg(typ: PyType, index: Int): PyType 
+  
+  unique function BaseLock(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_AvgState {
+    extends_(AvgState(), object()) && get_basic(AvgState()) == AvgState()
+  }
+  
+  axiom subtype_StateLock {
+    extends_(StateLock(), Lock(AvgState())) &&
+    get_basic(StateLock()) == StateLock()
+  }
+  
+  axiom subtype_Lock {
+    (forall T: PyType ::
+      { Lock(T) }
+      extends_(Lock(T), BaseLock()) && get_basic(Lock(T)) == Lock_basic())
+  }
+  
+  axiom Lock_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Lock(arg0), Lock_arg(Z, 0) }
+      issubtype(Z, Lock(arg0)) ==> Lock_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_BaseLock {
+    extends_(BaseLock(), object()) && get_basic(BaseLock()) == BaseLock()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field dict_accp: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field AvgState_count: Ref
+
+field AvgState_countp: Ref
+
+field AvgState_sum: Ref
+
+field AvgState_sump: Ref
+
+field AvgState_min: Ref
+
+field AvgState_minp: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function safe_to_declassify(x_0: Ref): Ref
+  requires issubtype(typeof(x_0), int())
+  ensures issubtype(typeof(result), bool())
+
+
+function io_trace_seq(): Ref
+  requires acc(io_trace(), write)
+  ensures issubtype(typeof(result), PSeq(tuple(Seq(int(), bool()))))
+
+
+function io_trace_seq_0(): Ref
+  requires acc(io_trace_0(), write)
+  ensures issubtype(typeof(result), PSeq(tuple(Seq(int(), bool()))))
+
+
+function safe_to_declassify_2_x(): Ref
+  requires acc(safe_to_declassify_2(), write)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(safe_to_declassify_2(), write) in
+    tuple___getitem__(PSeq___getitem__(io_trace_seq(), __prim__int___box__(0)),
+    0))
+}
+
+function safe_to_declassify_2_x_0(): Ref
+  requires acc(safe_to_declassify_2_0(), write)
+  ensures issubtype(typeof(result), int())
+{
+  (unfolding acc(safe_to_declassify_2_0(), write) in
+    tuple___getitem__(PSeq___getitem__(io_trace_seq_0(), __prim__int___box__(0)),
+    0))
+}
+
+function consumed_inputs_inps(): Ref
+  requires acc(consumed_inputs(), wildcard)
+  ensures issubtype(typeof(result), PSeq(int()))
+
+
+function consumed_inputs_inps_0(): Ref
+  requires acc(consumed_inputs_0(), wildcard)
+  ensures issubtype(typeof(result), PSeq(int()))
+
+
+function ssum(xs: Ref): Ref
+  requires issubtype(typeof(xs), PSeq(int()))
+  ensures issubtype(typeof(result), int())
+{
+  (let cond_0 ==
+    (__prim__bool___box__(int___eq__(__prim__int___box__(PSeq___len__(xs)),
+    __prim__int___box__(0)))) in
+    (true && bool___unbox__(cond_0) ?
+      __prim__int___box__(0) :
+      __prim__int___box__(int___add__(int___unbox__(PSeq___getitem__(xs, __prim__int___box__(0))),
+      int___unbox__(ssum(PSeq_drop(xs, 1)))))))
+}
+
+function Lock_get_locked(self_1: Ref): Ref
+  requires issubtype(typeof(self_1), Lock(Lock_arg(typeof(self_1), 0)))
+  requires issubtype(Lock_arg(typeof(self_1), 0), object())
+  requires self_1 != null
+  ensures issubtype(typeof(result), Lock_arg(typeof(self_1), 0))
+
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function DUMMY(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(1)
+{
+  __prim__int___box__(1)
+}
+
+function __file___0(): Ref
+
+
+function __name___0(): Ref
+
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+  decreases _
+{
+  self >= other
+}
+
+function int___gt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self > other
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+  decreases _
+{
+  self - other
+}
+
+function int___floordiv__(self: Int, other: Int): Int
+  decreases _
+  requires other != 0
+{
+  self / other
+}
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function PSeq___create__(prim: Seq[Ref], cont_type: PyType): Ref
+  decreases _
+  ensures typeof(result) == PSeq(cont_type)
+  ensures PSeq___sil_seq__(result) == prim
+
+
+function PSeq___sil_seq__(box: Ref): Seq[Ref]
+  decreases _
+  requires issubtype(typeof(box), PSeq(PSeq_arg(typeof(box), 0)))
+
+
+function PSeq___getitem__(self: Ref, index: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(index), int())
+  requires (let ln ==
+      (PSeq___len__(self)) in
+      (int___unbox__(index) < 0 ==> int___unbox__(index) >= -ln) &&
+      (int___unbox__(index) >= 0 ==> int___unbox__(index) < ln))
+  ensures result ==
+    (int___unbox__(index) >= 0 ?
+      PSeq___sil_seq__(self)[int___unbox__(index)] :
+      PSeq___sil_seq__(self)[PSeq___len__(self) + int___unbox__(index)])
+  ensures issubtype(typeof(result), PSeq_arg(typeof(self), 0))
+
+
+function PSeq___len__(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == |PSeq___sil_seq__(self)|
+
+
+function PSeq_drop(self: Ref, no: Int): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result ==
+    PSeq___create__(PSeq___sil_seq__(self)[no..], PSeq_arg(typeof(self), 0))
+
+
+function PSeq___add__(self: Ref, other: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PSeq(PSeq_arg(typeof(other), 0)))
+  requires PSeq_arg(typeof(self), 0) == PSeq_arg(typeof(other), 0)
+  ensures result ==
+    PSeq___create__(PSeq___sil_seq__(self) ++ PSeq___sil_seq__(other), PSeq_arg(typeof(self),
+    0))
+
+
+function PSeq___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PSeq(PSeq_arg(typeof(other), 0)))
+  requires PSeq_arg(typeof(self), 0) == PSeq_arg(typeof(other), 0)
+  ensures result == (PSeq___sil_seq__(self) == PSeq___sil_seq__(other))
+  ensures result ==> self == other
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+function tuple___val__(self: Ref): Seq[Ref]
+  decreases _
+
+
+function tuple___create2__(arg0: Ref, arg1: Ref, t0: PyType, t1: PyType, ctr: Int): Ref
+  decreases _
+  requires issubtype(typeof(arg0), t0)
+  requires issubtype(typeof(arg1), t1)
+  ensures result != null
+  ensures typeof(result) == tuple(Seq(t0, t1))
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple___val__(result) == Seq(arg0, arg1)
+  ensures tuple___len__(result) == 2 &&
+    (tuple___getitem__(result, 0) == arg0 &&
+    tuple___getitem__(result, 1) == arg1)
+
+
+function tuple___len__(self: Ref): Int
+  decreases _
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)|
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  decreases _
+  requires (let ln ==
+      (tuple___len__(self)) in
+      (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) +
+    key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==>
+    result == tuple___val__(self)[tuple___len__(self) + key]
+
+
+function avg_state_correct_low(s_2: Ref, c_2: Ref, xs_2: Ref, s_2_0: Ref, c_2_0: Ref,
+  xs_2_0: Ref): Bool
+  requires acc(avg_state_correct(s_2, c_2, xs_2), wildcard) &&
+    acc(avg_state_correct_0(s_2_0, c_2_0, xs_2_0), wildcard)
+{
+  (unfolding acc(avg_state_correct(s_2, c_2, xs_2), wildcard) in
+    (unfolding acc(avg_state_correct_0(s_2_0, c_2_0, xs_2_0), wildcard) in
+      __prim__bool___box__(int___eq__(__prim__int___box__(PSeq___len__(xs_2)),
+      __prim__int___box__(0))) ==
+      __prim__bool___box__(int___eq__(__prim__int___box__(PSeq___len__(xs_2_0)),
+      __prim__int___box__(0))) &&
+      (int___gt__(PSeq___len__(xs_2), 0) &&
+      int___gt__(PSeq___len__(xs_2_0), 0) ==>
+      avg_state_correct_low(__prim__int___box__(int___sub__(int___unbox__(s_2),
+      int___unbox__(PSeq___getitem__(xs_2, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_2),
+      1)), PSeq_drop(xs_2, 1), __prim__int___box__(int___sub__(int___unbox__(s_2_0),
+      int___unbox__(PSeq___getitem__(xs_2_0, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_2_0),
+      1)), PSeq_drop(xs_2_0, 1)))))
+}
+
+function consumed_inputs_low(): Bool
+  requires acc(consumed_inputs(), wildcard) &&
+    acc(consumed_inputs_0(), wildcard)
+{
+  (unfolding acc(consumed_inputs(), wildcard) in
+    (unfolding acc(consumed_inputs_0(), wildcard) in
+      __prim__int___box__(1) == __prim__int___box__(1)))
+}
+
+function avg_state_correct2_low(s_3: Ref, c_3: Ref, xs_3: Ref, s_3_0: Ref, c_3_0: Ref,
+  xs_3_0: Ref): Bool
+  requires acc(avg_state_correct2(s_3, c_3, xs_3), wildcard) &&
+    acc(avg_state_correct2_0(s_3_0, c_3_0, xs_3_0), wildcard)
+{
+  (unfolding acc(avg_state_correct2(s_3, c_3, xs_3), wildcard) in
+    (unfolding acc(avg_state_correct2_0(s_3_0, c_3_0, xs_3_0), wildcard) in
+      c_3 == c_3_0))
+}
+
+function avg_safe_to_declassify_low(x_12: Ref, st_2: Ref, x_12_0: Ref, st_2_0: Ref): Bool
+  requires acc(avg_safe_to_declassify(x_12, st_2), wildcard) &&
+    acc(avg_safe_to_declassify_0(x_12_0, st_2_0), wildcard)
+{
+  (unfolding acc(avg_safe_to_declassify(x_12, st_2), wildcard) in
+    (unfolding acc(avg_safe_to_declassify_0(x_12_0, st_2_0), wildcard) in
+      consumed_inputs_low() &&
+      (__prim__int___box__(PSeq___len__(consumed_inputs_inps())) ==
+      __prim__int___box__(PSeq___len__(consumed_inputs_inps_0())) &&
+      st_2.AvgState_min == st_2_0.AvgState_minp)))
+}
+
+function Lock_invariant_low(self_5: Ref, self_5_0: Ref): Bool
+  requires acc(Lock_invariant(self_5), wildcard) &&
+    acc(Lock_invariant_0(self_5_0), wildcard)
+{
+  (unfolding acc(Lock_invariant(self_5), wildcard) in
+    (unfolding acc(Lock_invariant_0(self_5_0), wildcard) in
+      issubtype(typeof(self_5), StateLock()) &&
+      issubtype(typeof(self_5_0), StateLock()) ==>
+      consumed_inputs_low() &&
+      (Lock_get_locked(self_5).AvgState_count ==
+      Lock_get_locked(self_5_0).AvgState_countp &&
+      (Lock_get_locked(self_5).AvgState_min ==
+      Lock_get_locked(self_5_0).AvgState_minp &&
+      avg_state_correct_low(Lock_get_locked(self_5).AvgState_sum, Lock_get_locked(self_5).AvgState_count,
+      consumed_inputs_inps(), Lock_get_locked(self_5_0).AvgState_sump, Lock_get_locked(self_5_0).AvgState_countp,
+      consumed_inputs_inps_0())))))
+}
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+predicate io_trace() {
+  true
+}
+
+predicate io_trace_0() {
+  true
+}
+
+predicate safe_to_declassify_2() {
+  acc(io_trace(), write) && int___gt__(PSeq___len__(io_trace_seq()), 0)
+}
+
+predicate safe_to_declassify_2_0() {
+  acc(io_trace_0(), write) && int___gt__(PSeq___len__(io_trace_seq_0()), 0)
+}
+
+predicate avg_state_correct(s_2: Ref, c_2: Ref, xs_2: Ref) {
+  issubtype(typeof(s_2), int()) && issubtype(typeof(c_2), int()) &&
+  issubtype(typeof(xs_2), PSeq(int())) &&
+  ((__prim__int___box__(PSeq___len__(xs_2)) == __prim__int___box__(0) ==>
+  s_2 == __prim__int___box__(0) && c_2 == __prim__int___box__(0)) &&
+  (int___gt__(PSeq___len__(xs_2), 0) ==>
+  acc(avg_state_correct(__prim__int___box__(int___sub__(int___unbox__(s_2),
+  int___unbox__(PSeq___getitem__(xs_2, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_2),
+  1)), PSeq_drop(xs_2, 1)), write)))
+}
+
+predicate avg_state_correct_0(s_2: Ref, c_2: Ref, xs_2: Ref) {
+  issubtype(typeof(s_2), int()) && issubtype(typeof(c_2), int()) &&
+  issubtype(typeof(xs_2), PSeq(int())) &&
+  ((__prim__int___box__(PSeq___len__(xs_2)) == __prim__int___box__(0) ==>
+  s_2 == __prim__int___box__(0) && c_2 == __prim__int___box__(0)) &&
+  (int___gt__(PSeq___len__(xs_2), 0) ==>
+  acc(avg_state_correct_0(__prim__int___box__(int___sub__(int___unbox__(s_2),
+  int___unbox__(PSeq___getitem__(xs_2, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_2),
+  1)), PSeq_drop(xs_2, 1)), write)))
+}
+
+predicate consumed_inputs() {
+  true
+}
+
+predicate consumed_inputs_0() {
+  true
+}
+
+predicate avg_state_correct2(s_3: Ref, c_3: Ref, xs_3: Ref) {
+  issubtype(typeof(s_3), int()) && issubtype(typeof(c_3), int()) &&
+  issubtype(typeof(xs_3), PSeq(int())) &&
+  (c_3 == __prim__int___box__(PSeq___len__(xs_3)) && s_3 == ssum(xs_3))
+}
+
+predicate avg_state_correct2_0(s_3: Ref, c_3: Ref, xs_3: Ref) {
+  issubtype(typeof(s_3), int()) && issubtype(typeof(c_3), int()) &&
+  issubtype(typeof(xs_3), PSeq(int())) &&
+  (c_3 == __prim__int___box__(PSeq___len__(xs_3)) && s_3 == ssum(xs_3))
+}
+
+predicate avg_safe_to_declassify(x_12: Ref, st_2: Ref) {
+  issubtype(typeof(x_12), int()) && issubtype(typeof(st_2), AvgState()) &&
+  (acc(consumed_inputs(), write) &&
+  (acc(st_2.AvgState_min, write) &&
+  issubtype(typeof(st_2.AvgState_min), int()) &&
+  (int___gt__(PSeq___len__(consumed_inputs_inps()), int___unbox__(st_2.AvgState_min)) &&
+  (int___gt__(int___unbox__(st_2.AvgState_min), 0) &&
+  int___eq__(x_12, __prim__int___box__(int___floordiv__(int___unbox__(ssum(consumed_inputs_inps())),
+  PSeq___len__(consumed_inputs_inps()))))))))
+}
+
+predicate avg_safe_to_declassify_0(x_12: Ref, st_2: Ref) {
+  issubtype(typeof(x_12), int()) && issubtype(typeof(st_2), AvgState()) &&
+  (acc(consumed_inputs_0(), write) &&
+  (acc(st_2.AvgState_minp, write) &&
+  issubtype(typeof(st_2.AvgState_minp), int()) &&
+  (int___gt__(PSeq___len__(consumed_inputs_inps_0()), int___unbox__(st_2.AvgState_minp)) &&
+  (int___gt__(int___unbox__(st_2.AvgState_minp), 0) &&
+  int___eq__(x_12, __prim__int___box__(int___floordiv__(int___unbox__(ssum(consumed_inputs_inps_0())),
+  PSeq___len__(consumed_inputs_inps_0()))))))))
+}
+
+predicate Lock_invariant(self_5: Ref) {
+  issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0))) &&
+  (issubtype(typeof(self_5), StateLock()) ==>
+  acc(consumed_inputs(), write) &&
+  (acc(Lock_get_locked(self_5).AvgState_count, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_count), int()) &&
+  (int___ge__(int___unbox__(Lock_get_locked(self_5).AvgState_count), 0) &&
+  (int() == typeof(Lock_get_locked(self_5).AvgState_count) &&
+  (acc(Lock_get_locked(self_5).AvgState_min, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_min), int()) &&
+  (int___gt__(int___unbox__(Lock_get_locked(self_5).AvgState_min), 0) &&
+  (acc(Lock_get_locked(self_5).AvgState_sum, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_sum), int()) &&
+  (int() == typeof(Lock_get_locked(self_5).AvgState_sum) &&
+  acc(avg_state_correct(Lock_get_locked(self_5).AvgState_sum, Lock_get_locked(self_5).AvgState_count,
+  consumed_inputs_inps()), write)))))))))
+}
+
+predicate Lock_invariant_0(self_5: Ref) {
+  issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0))) &&
+  (issubtype(typeof(self_5), StateLock()) ==>
+  acc(consumed_inputs_0(), write) &&
+  (acc(Lock_get_locked(self_5).AvgState_countp, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_countp), int()) &&
+  (int___ge__(int___unbox__(Lock_get_locked(self_5).AvgState_countp), 0) &&
+  (int() == typeof(Lock_get_locked(self_5).AvgState_countp) &&
+  (acc(Lock_get_locked(self_5).AvgState_minp, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_minp), int()) &&
+  (int___gt__(int___unbox__(Lock_get_locked(self_5).AvgState_minp), 0) &&
+  (acc(Lock_get_locked(self_5).AvgState_sump, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).AvgState_sump), int()) &&
+  (int() == typeof(Lock_get_locked(self_5).AvgState_sump) &&
+  acc(avg_state_correct_0(Lock_get_locked(self_5).AvgState_sump, Lock_get_locked(self_5).AvgState_countp,
+  consumed_inputs_inps_0()), write)))))))))
+}
+
+method declassify(p1: Bool, p2: Bool, x_1: Ref, x_1_0: Ref, y: Ref, y_3: Ref)
+  returns (_res: Ref, _res_0: Ref)
+  requires (p1 ==> issubtype(typeof(x_1), int())) &&
+    (p2 ==> issubtype(typeof(x_1_0), int()))
+  requires (p1 ==> issubtype(typeof(y), int())) &&
+    (p2 ==> issubtype(typeof(y_3), int()))
+  requires p1 && p2 ==> x_1 == x_1_0
+  requires p1 && p2 ==>
+    __prim__bool___box__(int___eq__(y, __prim__int___box__(0))) ==
+    __prim__bool___box__(int___eq__(y_3, __prim__int___box__(0)))
+  ensures (p1 ==> issubtype(typeof(_res), int())) &&
+    (p2 ==> issubtype(typeof(_res_0), int()))
+  ensures p1 && p2 ==> _res == _res_0
+{
+  var ret1: Bool
+  var ret2: Bool
+  inhale p1
+  ret1 := false
+  ret2 := false
+  {
+    var _err: Ref
+    var _err_0: Ref
+    var z: Ref
+    var z_0: Ref
+    var x_13: Ref
+    var x_13_0: Ref
+    var y_2: Ref
+    var y_2_0: Ref
+    if (p1 && !ret1) {
+      _res := null
+      _err := null
+      x_13 := x_1
+      y_2 := y
+      z := __prim__int___box__(int___add__(int___unbox__(x_13), int___unbox__(y_2)))
+      inhale _isDefined(122)
+    }
+    if (p2 && !ret2) {
+      _res_0 := null
+      _err_0 := null
+      x_13_0 := x_1_0
+      y_2_0 := y_3
+      z_0 := __prim__int___box__(int___add__(int___unbox__(x_13_0), int___unbox__(y_2_0)))
+      inhale true
+    }
+    assert p1 && !ret1 && (p2 && !ret2) ==>
+      !int___eq__(_checkDefined(z, 122), x_13) == !int___eq__(z_0, x_13_0)
+    {
+      var p1_0: Bool
+      var p2_0: Bool
+      var p3: Bool
+      var p4: Bool
+      p1_0 := p1 && !ret1 && !int___eq__(_checkDefined(z, 122), x_13)
+      p2_0 := p2 && !ret2 && !int___eq__(z_0, x_13_0)
+      p3 := p1 && !ret1 && !!int___eq__(_checkDefined(z, 122), x_13)
+      p4 := p2 && !ret2 && !!int___eq__(z_0, x_13_0)
+      inhale p1_0 && !ret1 && (p2_0 && !ret2) ==> y_2 == y_2_0
+    }
+    if (p1 && !ret1) {
+      _res := _checkDefined(z, 122)
+      ret1 := true
+    }
+    if (p2 && !ret2) {
+      _res_0 := z_0
+      ret2 := true
+    }
+    exhale true
+  }
+}
+
+method ask_user1(p1_1: Bool, p2_1: Bool, x_2: Ref, x_2_0: Ref)
+  returns (_res: Ref, _res_1: Ref)
+  requires (p1_1 ==> issubtype(typeof(x_2), int())) &&
+    (p2_1 ==> issubtype(typeof(x_2_0), int()))
+  ensures (p1_1 ==> issubtype(typeof(_res), bool())) &&
+    (p2_1 ==> issubtype(typeof(_res_1), bool()))
+  ensures p1_1 && p2_1 ==> _res == _res_1
+  ensures (p1_1 ==> bool___unbox__(_res)) &&
+    (p2_1 ==> bool___unbox__(_res_1)) ==>
+    p1_1 && p2_1 ==> x_2 == x_2_0
+{
+  inhale p1_1
+  if (p1_1) {
+    _res := null
+    inhale false
+  }
+  if (p2_1) {
+    _res_1 := null
+    inhale false
+  }
+}
+
+method do_declassify1(p1_2: Bool, p2_2: Bool, x_3: Ref, x_3_0: Ref)
+  returns (_res: Ref, _res_2: Ref)
+  requires (p1_2 ==> issubtype(typeof(x_3), int())) &&
+    (p2_2 ==> issubtype(typeof(x_3_0), int()))
+  ensures (p1_2 ==> issubtype(typeof(_res), int())) &&
+    (p2_2 ==> issubtype(typeof(_res_2), int()))
+  ensures p1_2 && p2_2 ==> _res == _res_2
+  ensures (p1_2 ==>
+    int___eq__(_res, x_3) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_2 ==>
+    int___eq__(_res_2, x_3_0) || int___eq__(_res_2, __prim__int___box__(0)))
+{
+  var ret1_0: Bool
+  var ret2_0: Bool
+  inhale p1_2
+  ret1_0 := false
+  ret2_0 := false
+  {
+    var _err: Ref
+    var _err_1: Ref
+    var r: Ref
+    var r_4: Ref
+    var x_14: Ref
+    var x_14_0: Ref
+    var ask_user1_res: Ref
+    var ask_user1_res_0: Ref
+    if (p1_2 && !ret1_0) {
+      _res := null
+      _err := null
+      x_14 := x_3
+      r := __prim__int___box__(0)
+      inhale _isDefined(114)
+    }
+    if (p2_2 && !ret2_0) {
+      _res_2 := null
+      _err_1 := null
+      x_14_0 := x_3_0
+      r_4 := __prim__int___box__(0)
+      inhale true
+    }
+    // Method call: ask_user1
+  
+    if (p1_2 && !ret1_0 || p2_2 && !ret2_0) {
+      var tmp1: Ref
+      var tmp2: Ref
+      var tmp1_0: Ref
+      var tmp2_0: Ref
+      if (p1_2 && !ret1_0) {
+        tmp1 := x_14
+      }
+      if (p2_2 && !ret2_0) {
+        tmp2 := x_14_0
+      }
+      tmp1_0, tmp2_0 := ask_user1(p1_2 && !ret1_0, p2_2 && !ret2_0, tmp1, tmp2)
+      if (p1_2 && !ret1_0) {
+        ask_user1_res := tmp1_0
+      }
+      if (p2_2 && !ret2_0) {
+        ask_user1_res_0 := tmp2_0
+      }
+    }
+    assert p1_2 && !ret1_0 && (p2_2 && !ret2_0) ==>
+      bool___unbox__(ask_user1_res) == bool___unbox__(ask_user1_res_0)
+    {
+      var p1_3: Bool
+      var p2_3: Bool
+      var p3_0: Bool
+      var p4_0: Bool
+      p1_3 := p1_2 && !ret1_0 && bool___unbox__(ask_user1_res)
+      p2_3 := p2_2 && !ret2_0 && bool___unbox__(ask_user1_res_0)
+      p3_0 := p1_2 && !ret1_0 && !bool___unbox__(ask_user1_res)
+      p4_0 := p2_2 && !ret2_0 && !bool___unbox__(ask_user1_res_0)
+      if (p1_3 && !ret1_0) {
+        r := x_14
+        inhale _isDefined(114)
+      }
+      if (p2_3 && !ret2_0) {
+        r_4 := x_14_0
+        inhale true
+      }
+    }
+    if (p1_2 && !ret1_0) {
+      _res := _checkDefined(r, 114)
+      ret1_0 := true
+    }
+    if (p2_2 && !ret2_0) {
+      _res_2 := r_4
+      ret2_0 := true
+    }
+    exhale true
+  }
+}
+
+method ask_user2(p1_4: Bool, p2_4: Bool, x_4: Ref, x_4_0: Ref)
+  returns (_res: Ref, _res_3: Ref)
+  requires (p1_4 ==> issubtype(typeof(x_4), int())) &&
+    (p2_4 ==> issubtype(typeof(x_4_0), int()))
+  ensures (p1_4 ==> issubtype(typeof(_res), bool())) &&
+    (p2_4 ==> issubtype(typeof(_res_3), bool()))
+  ensures p1_4 && p2_4 ==> _res == _res_3
+{
+  inhale p1_4
+  if (p1_4) {
+    _res := null
+    inhale false
+  }
+  if (p2_4) {
+    _res_3 := null
+    inhale false
+  }
+}
+
+method do_declassify2(p1_5: Bool, p2_5: Bool, x_5: Ref, x_5_0: Ref)
+  returns (_res: Ref, _res_4: Ref)
+  requires (p1_5 ==> issubtype(typeof(x_5), int())) &&
+    (p2_5 ==> issubtype(typeof(x_5_0), int()))
+  ensures (p1_5 ==> issubtype(typeof(_res), int())) &&
+    (p2_5 ==> issubtype(typeof(_res_4), int()))
+  ensures p1_5 && p2_5 ==> _res == _res_4
+  ensures (p1_5 ==>
+    int___eq__(_res, x_5) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_5 ==>
+    int___eq__(_res_4, x_5_0) || int___eq__(_res_4, __prim__int___box__(0)))
+{
+  var ret1_1: Bool
+  var ret2_1: Bool
+  inhale p1_5
+  ret1_1 := false
+  ret2_1 := false
+  {
+    var _err: Ref
+    var _err_2: Ref
+    var r_0: Ref
+    var r_0_0: Ref
+    var b: Ref
+    var b_0: Ref
+    var x_15: Ref
+    var x_15_0: Ref
+    var ask_user2_res: Ref
+    var ask_user2_res_0: Ref
+    if (p1_5 && !ret1_1) {
+      _res := null
+      _err := null
+      x_15 := x_5
+      r_0 := __prim__int___box__(0)
+      inhale _isDefined(3170162)
+    }
+    if (p2_5 && !ret2_1) {
+      _res_4 := null
+      _err_2 := null
+      x_15_0 := x_5_0
+      r_0_0 := __prim__int___box__(0)
+      inhale true
+    }
+    // Method call: ask_user2
+  
+    if (p1_5 && !ret1_1 || p2_5 && !ret2_1) {
+      var tmp1_1: Ref
+      var tmp2_1: Ref
+      var tmp1_2: Ref
+      var tmp2_2: Ref
+      if (p1_5 && !ret1_1) {
+        tmp1_1 := x_15
+      }
+      if (p2_5 && !ret2_1) {
+        tmp2_1 := x_15_0
+      }
+      tmp1_2, tmp2_2 := ask_user2(p1_5 && !ret1_1, p2_5 && !ret2_1, tmp1_1,
+        tmp2_1)
+      if (p1_5 && !ret1_1) {
+        ask_user2_res := tmp1_2
+      }
+      if (p2_5 && !ret2_1) {
+        ask_user2_res_0 := tmp2_2
+      }
+    }
+    if (p1_5 && !ret1_1) {
+      b := ask_user2_res
+      inhale _isDefined(98)
+    }
+    if (p2_5 && !ret2_1) {
+      b_0 := ask_user2_res_0
+      inhale true
+    }
+    assert p1_5 && !ret1_1 && (p2_5 && !ret2_1) ==>
+      bool___unbox__(_checkDefined(b, 98)) == bool___unbox__(b_0)
+    {
+      var p1_6: Bool
+      var p2_6: Bool
+      var p3_1: Bool
+      var p4_1: Bool
+      p1_6 := p1_5 && !ret1_1 && bool___unbox__(_checkDefined(b, 98))
+      p2_6 := p2_5 && !ret2_1 && bool___unbox__(b_0)
+      p3_1 := p1_5 && !ret1_1 && !bool___unbox__(_checkDefined(b, 98))
+      p4_1 := p2_5 && !ret2_1 && !bool___unbox__(b_0)
+      inhale p1_6 && !ret1_1 && (p2_6 && !ret2_1) ==> x_15 == x_15_0
+    }
+    assert p1_5 && !ret1_1 && (p2_5 && !ret2_1) ==>
+      bool___unbox__(_checkDefined(b, 98)) == bool___unbox__(b_0)
+    {
+      var p1_7: Bool
+      var p2_7: Bool
+      var p3_2: Bool
+      var p4_2: Bool
+      p1_7 := p1_5 && !ret1_1 && bool___unbox__(_checkDefined(b, 98))
+      p2_7 := p2_5 && !ret2_1 && bool___unbox__(b_0)
+      p3_2 := p1_5 && !ret1_1 && !bool___unbox__(_checkDefined(b, 98))
+      p4_2 := p2_5 && !ret2_1 && !bool___unbox__(b_0)
+      if (p1_7 && !ret1_1) {
+        r_0 := x_15
+        inhale _isDefined(3170162)
+      }
+      if (p2_7 && !ret2_1) {
+        r_0_0 := x_15_0
+        inhale true
+      }
+    }
+    if (p1_5 && !ret1_1) {
+      _res := _checkDefined(r_0, 3170162)
+      ret1_1 := true
+    }
+    if (p2_5 && !ret2_1) {
+      _res_4 := r_0_0
+      ret2_1 := true
+    }
+    exhale true
+  }
+}
+
+method ask_user(p1_8: Bool, p2_8: Bool, x_6: Ref, x_6_0: Ref)
+  returns (_res: Ref, _res_5: Ref)
+  requires (p1_8 ==> issubtype(typeof(x_6), int())) &&
+    (p2_8 ==> issubtype(typeof(x_6_0), int()))
+  ensures (p1_8 ==> issubtype(typeof(_res), bool())) &&
+    (p2_8 ==> issubtype(typeof(_res_5), bool()))
+  ensures p1_8 && p2_8 ==> _res == _res_5
+  ensures (p1_8 ==>
+    bool___unbox__(_res) ==> bool___unbox__(safe_to_declassify(x_6))) &&
+    (p2_8 ==>
+    bool___unbox__(_res_5) ==> bool___unbox__(safe_to_declassify(x_6_0)))
+{
+  inhale p1_8
+  if (p1_8) {
+    _res := null
+    inhale false
+  }
+  if (p2_8) {
+    _res_5 := null
+    inhale false
+  }
+}
+
+method do_declassify(p1_9: Bool, p2_9: Bool, x_7: Ref, x_7_0: Ref)
+  returns (_res: Ref, _res_6: Ref)
+  requires (p1_9 ==> issubtype(typeof(x_7), int())) &&
+    (p2_9 ==> issubtype(typeof(x_7_0), int()))
+  ensures (p1_9 ==> issubtype(typeof(_res), int())) &&
+    (p2_9 ==> issubtype(typeof(_res_6), int()))
+  ensures p1_9 && p2_9 ==> _res == _res_6
+  ensures (p1_9 ==>
+    int___eq__(_res, x_7) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_9 ==>
+    int___eq__(_res_6, x_7_0) || int___eq__(_res_6, __prim__int___box__(0)))
+{
+  var ret1_2: Bool
+  var ret2_2: Bool
+  inhale p1_9
+  ret1_2 := false
+  ret2_2 := false
+  {
+    var _err: Ref
+    var _err_3: Ref
+    var r_1: Ref
+    var r_1_0: Ref
+    var x_16: Ref
+    var x_16_0: Ref
+    var ask_user_res: Ref
+    var ask_user_res_0: Ref
+    if (p1_9 && !ret1_2) {
+      _res := null
+      _err := null
+      x_16 := x_7
+      r_1 := __prim__int___box__(0)
+      inhale _isDefined(3235698)
+    }
+    if (p2_9 && !ret2_2) {
+      _res_6 := null
+      _err_3 := null
+      x_16_0 := x_7_0
+      r_1_0 := __prim__int___box__(0)
+      inhale true
+    }
+    // Method call: ask_user
+  
+    if (p1_9 && !ret1_2 || p2_9 && !ret2_2) {
+      var tmp1_3: Ref
+      var tmp2_3: Ref
+      var tmp1_4: Ref
+      var tmp2_4: Ref
+      if (p1_9 && !ret1_2) {
+        tmp1_3 := x_16
+      }
+      if (p2_9 && !ret2_2) {
+        tmp2_3 := x_16_0
+      }
+      tmp1_4, tmp2_4 := ask_user(p1_9 && !ret1_2, p2_9 && !ret2_2, tmp1_3, tmp2_3)
+      if (p1_9 && !ret1_2) {
+        ask_user_res := tmp1_4
+      }
+      if (p2_9 && !ret2_2) {
+        ask_user_res_0 := tmp2_4
+      }
+    }
+    assert p1_9 && !ret1_2 && (p2_9 && !ret2_2) ==>
+      bool___unbox__(ask_user_res) == bool___unbox__(ask_user_res_0)
+    {
+      var p1_10: Bool
+      var p2_10: Bool
+      var p3_3: Bool
+      var p4_3: Bool
+      p1_10 := p1_9 && !ret1_2 && bool___unbox__(ask_user_res)
+      p2_10 := p2_9 && !ret2_2 && bool___unbox__(ask_user_res_0)
+      p3_3 := p1_9 && !ret1_2 && !bool___unbox__(ask_user_res)
+      p4_3 := p2_9 && !ret2_2 && !bool___unbox__(ask_user_res_0)
+      assert p1_10 && !ret1_2 && (p2_10 && !ret2_2) ==>
+        bool___unbox__(safe_to_declassify(x_16)) ==
+        bool___unbox__(safe_to_declassify(x_16_0))
+      {
+        var p1_11: Bool
+        var p2_11: Bool
+        var p3_4: Bool
+        var p4_4: Bool
+        p1_11 := p1_10 && !ret1_2 &&
+          bool___unbox__(safe_to_declassify(x_16))
+        p2_11 := p2_10 && !ret2_2 &&
+          bool___unbox__(safe_to_declassify(x_16_0))
+        p3_4 := p1_10 && !ret1_2 &&
+          !bool___unbox__(safe_to_declassify(x_16))
+        p4_4 := p2_10 && !ret2_2 &&
+          !bool___unbox__(safe_to_declassify(x_16_0))
+        inhale p1_11 && !ret1_2 && (p2_11 && !ret2_2) ==> x_16 == x_16_0
+      }
+      if (p1_10 && !ret1_2) {
+        r_1 := x_16
+        inhale _isDefined(3235698)
+      }
+      if (p2_10 && !ret2_2) {
+        r_1_0 := x_16_0
+        inhale true
+      }
+    }
+    if (p1_9 && !ret1_2) {
+      _res := _checkDefined(r_1, 3235698)
+      ret1_2 := true
+    }
+    if (p2_9 && !ret2_2) {
+      _res_6 := r_1_0
+      ret2_2 := true
+    }
+    exhale true
+  }
+}
+
+method do_declassify_without_asking(p1_12: Bool, p2_12: Bool, x_8: Ref, x_8_0: Ref)
+  returns (_res: Ref, _res_7: Ref)
+  requires (p1_12 ==> issubtype(typeof(x_8), int())) &&
+    (p2_12 ==> issubtype(typeof(x_8_0), int()))
+  ensures (p1_12 ==> issubtype(typeof(_res), int())) &&
+    (p2_12 ==> issubtype(typeof(_res_7), int()))
+  ensures p1_12 && p2_12 ==> _res == _res_7
+  ensures (p1_12 ==>
+    int___eq__(_res, x_8) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_12 ==>
+    int___eq__(_res_7, x_8_0) || int___eq__(_res_7, __prim__int___box__(0)))
+{
+  var ret1_3: Bool
+  var ret2_3: Bool
+  inhale p1_12
+  ret1_3 := false
+  ret2_3 := false
+  {
+    var _err: Ref
+    var _err_4: Ref
+    var r_2: Ref
+    var r_2_0: Ref
+    var x_17: Ref
+    var x_17_0: Ref
+    if (p1_12 && !ret1_3) {
+      _res := null
+      _err := null
+      x_17 := x_8
+      r_2 := __prim__int___box__(0)
+      inhale _isDefined(3301234)
+    }
+    if (p2_12 && !ret2_3) {
+      _res_7 := null
+      _err_4 := null
+      x_17_0 := x_8_0
+      r_2_0 := __prim__int___box__(0)
+      inhale true
+    }
+    inhale p1_12 && !ret1_3 && (p2_12 && !ret2_3) ==>
+      (bool___unbox__(safe_to_declassify(x_17)) ?
+        x_17 :
+        __prim__int___box__(0)) ==
+      (bool___unbox__(safe_to_declassify(x_17_0)) ?
+        x_17_0 :
+        __prim__int___box__(0))
+    if (p1_12 && !ret1_3) {
+      r_2 := x_17
+      inhale _isDefined(3301234)
+      _res := _checkDefined(r_2, 3301234)
+      ret1_3 := true
+    }
+    if (p2_12 && !ret2_3) {
+      r_2_0 := x_17_0
+      inhale true
+      _res_7 := r_2_0
+      ret2_3 := true
+    }
+    exhale true
+  }
+}
+
+method declassify_by_attrition(p1_13: Bool, p2_13: Bool, x_9: Ref, x_9_0: Ref)
+  returns (_res: Ref, _res_8: Ref)
+  requires (p1_13 ==> issubtype(typeof(x_9), int())) &&
+    (p2_13 ==> issubtype(typeof(x_9_0), int()))
+  ensures (p1_13 ==> issubtype(typeof(_res), int())) &&
+    (p2_13 ==> issubtype(typeof(_res_8), int()))
+  ensures p1_13 && p2_13 ==> _res == _res_8
+  ensures (p1_13 ==>
+    int___eq__(_res, x_9) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_13 ==>
+    int___eq__(_res_8, x_9_0) || int___eq__(_res_8, __prim__int___box__(0)))
+{
+  var ret1_4: Bool
+  var ret2_4: Bool
+  inhale p1_13
+  ret1_4 := false
+  ret2_4 := false
+  {
+    var _err: Ref
+    var _err_5: Ref
+    var x_18: Ref
+    var x_18_0: Ref
+    var _loop_check_before: Bool
+    var _loop_check_before_0: Bool
+    var _loop_termination_flag: Bool
+    var _loop_termination_flag_0: Bool
+    var _loop_original_must_terminate: Perm
+    var _loop_original_must_terminate_0: Perm
+    var _residue_190: Perm
+    var _residue_190_0: Perm
+    if (p1_13 && !ret1_4) {
+      _res := null
+      _err := null
+      x_18 := x_9
+    }
+    if (p2_13 && !ret2_4) {
+      _res_8 := null
+      _err_5 := null
+      x_18_0 := x_9_0
+    }
+    assert p1_13 && !ret1_4 && (p2_13 && !ret2_4) ==>
+      !int___eq__(__prim__int___box__(1), __prim__int___box__(0)) ==
+      !int___eq__(__prim__int___box__(1), __prim__int___box__(0))
+    {
+      var bypass1: Bool
+      var bypass2: Bool
+      var p1_14: Bool
+      var p2_14: Bool
+      bypass1 := !(p1_13 && !ret1_4)
+      bypass2 := !(p2_13 && !ret2_4)
+      while (p1_13 && !ret1_4 && !bypass1 &&
+      !int___eq__(__prim__int___box__(1), __prim__int___box__(0)) ||
+      p2_13 && !ret2_4 && !bypass2 &&
+      !int___eq__(__prim__int___box__(1), __prim__int___box__(0))) {
+        p1_14 := p1_13 && !ret1_4 &&
+          !int___eq__(__prim__int___box__(1), __prim__int___box__(0))
+        p2_14 := p2_13 && !ret2_4 &&
+          !int___eq__(__prim__int___box__(1), __prim__int___box__(0))
+      }
+    }
+    if (p1_13 && !ret1_4) {
+      _res := null
+    }
+    if (p2_13 && !ret2_4) {
+      _res_8 := null
+    }
+    assert p1_13 && !ret1_4 && (p2_13 && !ret2_4) ==>
+      bool___unbox__(safe_to_declassify(x_18)) ==
+      bool___unbox__(safe_to_declassify(x_18_0))
+    {
+      var p1_15: Bool
+      var p2_15: Bool
+      var p3_5: Bool
+      var p4_5: Bool
+      p1_15 := p1_13 && !ret1_4 && bool___unbox__(safe_to_declassify(x_18))
+      p2_15 := p2_13 && !ret2_4 &&
+        bool___unbox__(safe_to_declassify(x_18_0))
+      p3_5 := p1_13 && !ret1_4 && !bool___unbox__(safe_to_declassify(x_18))
+      p4_5 := p2_13 && !ret2_4 &&
+        !bool___unbox__(safe_to_declassify(x_18_0))
+      inhale p1_15 && !ret1_4 && (p2_15 && !ret2_4) ==> x_18 == x_18_0
+    }
+    if (p1_13 && !ret1_4) {
+      _res := x_18
+      ret1_4 := true
+    }
+    if (p2_13 && !ret2_4) {
+      _res_8 := x_18_0
+      ret2_4 := true
+    }
+    exhale true
+  }
+}
+
+method ask_user3(p1_16: Bool, p2_16: Bool, x_10: Ref, x_10_0: Ref)
+  returns (_res: Ref, _res_9: Ref)
+  requires (p1_16 ==> issubtype(typeof(x_10), int())) &&
+    (p2_16 ==> issubtype(typeof(x_10_0), int()))
+  requires (p1_16 ==> acc(io_trace(), write)) &&
+    (p2_16 ==> acc(io_trace_0(), write))
+  ensures (p1_16 ==> issubtype(typeof(_res), bool())) &&
+    (p2_16 ==> issubtype(typeof(_res_9), bool()))
+  ensures (p1_16 ==> acc(io_trace(), write)) &&
+    (p2_16 ==> acc(io_trace_0(), write))
+  ensures (p1_16 ==>
+    PSeq___eq__(io_trace_seq(), PSeq___add__(PSeq___create__(Seq(tuple___create2__(x_10,
+    _res, int(), bool(), 0)), tuple(Seq(int(), bool()))), old(io_trace_seq())))) &&
+    (p2_16 ==>
+    PSeq___eq__(io_trace_seq_0(), PSeq___add__(PSeq___create__(Seq(tuple___create2__(x_10_0,
+    _res_9, int(), bool(), 0)), tuple(Seq(int(), bool()))), old(io_trace_seq_0()))))
+  ensures p1_16 && p2_16 ==> _res == _res_9
+{
+  inhale p1_16
+  if (p1_16) {
+    _res := null
+    inhale false
+  }
+  if (p2_16) {
+    _res_9 := null
+    inhale false
+  }
+}
+
+method do_declassify3(p1_17: Bool, p2_17: Bool, x_11: Ref, x_11_0: Ref)
+  returns (_res: Ref, _res_10: Ref)
+  requires (p1_17 ==> issubtype(typeof(x_11), int())) &&
+    (p2_17 ==> issubtype(typeof(x_11_0), int()))
+  requires (p1_17 ==> acc(io_trace(), write)) &&
+    (p2_17 ==> acc(io_trace_0(), write))
+  ensures (p1_17 ==> issubtype(typeof(_res), int())) &&
+    (p2_17 ==> issubtype(typeof(_res_10), int()))
+  ensures p1_17 && p2_17 ==> _res == _res_10
+  ensures (p1_17 ==>
+    int___eq__(_res, x_11) || int___eq__(_res, __prim__int___box__(0))) &&
+    (p2_17 ==>
+    int___eq__(_res_10, x_11_0) ||
+    int___eq__(_res_10, __prim__int___box__(0)))
+  ensures (p1_17 ==> acc(io_trace(), write)) &&
+    (p2_17 ==> acc(io_trace_0(), write))
+{
+  var ret1_5: Bool
+  var ret2_5: Bool
+  inhale p1_17
+  ret1_5 := false
+  ret2_5 := false
+  {
+    var _err: Ref
+    var _err_6: Ref
+    var r_3: Ref
+    var r_3_0: Ref
+    var res: Ref
+    var res_0: Ref
+    var x_19: Ref
+    var x_19_0: Ref
+    var ask_user3_res: Ref
+    var ask_user3_res_0: Ref
+    if (p1_17 && !ret1_5) {
+      _res := null
+      _err := null
+      x_19 := x_11
+      r_3 := __prim__int___box__(0)
+      inhale _isDefined(3366770)
+    }
+    if (p2_17 && !ret2_5) {
+      _res_10 := null
+      _err_6 := null
+      x_19_0 := x_11_0
+      r_3_0 := __prim__int___box__(0)
+      inhale true
+    }
+    // Method call: ask_user3
+  
+    if (p1_17 && !ret1_5 || p2_17 && !ret2_5) {
+      var tmp1_5: Ref
+      var tmp2_5: Ref
+      var tmp1_6: Ref
+      var tmp2_6: Ref
+      if (p1_17 && !ret1_5) {
+        tmp1_5 := x_19
+      }
+      if (p2_17 && !ret2_5) {
+        tmp2_5 := x_19_0
+      }
+      tmp1_6, tmp2_6 := ask_user3(p1_17 && !ret1_5, p2_17 && !ret2_5, tmp1_5,
+        tmp2_5)
+      if (p1_17 && !ret1_5) {
+        ask_user3_res := tmp1_6
+      }
+      if (p2_17 && !ret2_5) {
+        ask_user3_res_0 := tmp2_6
+      }
+    }
+    if (p1_17 && !ret1_5) {
+      res := ask_user3_res
+      inhale _isDefined(7562610)
+    }
+    if (p2_17 && !ret2_5) {
+      res_0 := ask_user3_res_0
+      inhale true
+    }
+    assert p1_17 && !ret1_5 && (p2_17 && !ret2_5) ==>
+      bool___unbox__(_checkDefined(res, 7562610)) == bool___unbox__(res_0)
+    {
+      var p1_18: Bool
+      var p2_18: Bool
+      var p3_6: Bool
+      var p4_6: Bool
+      p1_18 := p1_17 && !ret1_5 &&
+        bool___unbox__(_checkDefined(res, 7562610))
+      p2_18 := p2_17 && !ret2_5 && bool___unbox__(res_0)
+      p3_6 := p1_17 && !ret1_5 &&
+        !bool___unbox__(_checkDefined(res, 7562610))
+      p4_6 := p2_17 && !ret2_5 && !bool___unbox__(res_0)
+      if (p1_18 && !ret1_5) {
+        fold acc(safe_to_declassify_2(), write)
+      }
+      if (p2_18 && !ret2_5) {
+        fold acc(safe_to_declassify_2_0(), write)
+      }
+      inhale p1_18 && !ret1_5 && (p2_18 && !ret2_5) ==> x_19 == x_19_0
+      if (p1_18 && !ret1_5) {
+        r_3 := x_19
+        inhale _isDefined(3366770)
+      }
+      if (p2_18 && !ret2_5) {
+        r_3_0 := x_19_0
+        inhale true
+      }
+      if (p1_18 && !ret1_5) {
+        unfold acc(safe_to_declassify_2(), write)
+      }
+      if (p2_18 && !ret2_5) {
+        unfold acc(safe_to_declassify_2_0(), write)
+      }
+    }
+    if (p1_17 && !ret1_5) {
+      _res := _checkDefined(r_3, 3366770)
+      ret1_5 := true
+    }
+    if (p2_17 && !ret2_5) {
+      _res_10 := r_3_0
+      ret2_5 := true
+    }
+    exhale true
+  }
+}
+
+method avg_get_input(p1_19: Bool, p2_19: Bool)
+  returns (_res: Ref, _res_11: Ref)
+  requires (p1_19 ==> acc(consumed_inputs(), write)) &&
+    (p2_19 ==> acc(consumed_inputs_0(), write)) &&
+    (p1_19 && p2_19 ==> consumed_inputs_low())
+  ensures (p1_19 ==> issubtype(typeof(_res), int())) &&
+    (p2_19 ==> issubtype(typeof(_res_11), int()))
+  ensures (p1_19 ==> acc(consumed_inputs(), write)) &&
+    (p2_19 ==> acc(consumed_inputs_0(), write)) &&
+    (p1_19 && p2_19 ==> consumed_inputs_low())
+  ensures (p1_19 ==>
+    PSeq___eq__(consumed_inputs_inps(), PSeq___add__(PSeq___create__(Seq(_res),
+    int()), old(consumed_inputs_inps())))) &&
+    (p2_19 ==>
+    PSeq___eq__(consumed_inputs_inps_0(), PSeq___add__(PSeq___create__(Seq(_res_11),
+    int()), old(consumed_inputs_inps_0()))))
+{
+  inhale p1_19
+  if (p1_19) {
+    _res := null
+    inhale false
+  }
+  if (p2_19) {
+    _res_11 := null
+    inhale false
+  }
+}
+
+method avg_sum_thread(p1_20: Bool, p2_20: Bool, st: Ref, st_6: Ref, l: Ref,
+  l_5: Ref)
+  requires (p1_20 ==> issubtype(typeof(st), AvgState())) &&
+    (p2_20 ==> issubtype(typeof(st_6), AvgState()))
+  requires (p1_20 ==> issubtype(typeof(l), StateLock())) &&
+    (p2_20 ==> issubtype(typeof(l_5), StateLock()))
+  requires (p1_20 ==> Lock_get_locked(l) == st) &&
+    (p2_20 ==> Lock_get_locked(l_5) == st_6) &&
+    (p1_20 && p2_20 ==> l == l_5)
+{
+  inhale p1_20
+  {
+    var _err: Ref
+    var _err_7: Ref
+    var old_inps: Ref
+    var old_inps_0: Ref
+    var old_sum: Ref
+    var old_sum_0: Ref
+    var old_count: Ref
+    var old_count_0: Ref
+    var i: Ref
+    var i_0: Ref
+    var st_3: Ref
+    var st_3_0: Ref
+    var l_2: Ref
+    var l_2_0: Ref
+    var avg_get_input_res: Ref
+    var avg_get_input_res_0: Ref
+    if (p1_20) {
+      _err := null
+      st_3 := st
+      l_2 := l
+    }
+    if (p2_20) {
+      _err_7 := null
+      st_3_0 := st_6
+      l_2_0 := l_5
+    }
+    assert p1_20 && p2_20 ==> typeof(l_2) == typeof(l_2_0)
+    // Method call: Lock_acquire
+  
+    if (p1_20 || p2_20) {
+      var tmp1_7: Ref
+      var tmp2_7: Ref
+      if (p1_20) {
+        tmp1_7 := l_2
+      }
+      if (p2_20) {
+        tmp2_7 := l_2_0
+      }
+      Lock_acquire(p1_20, p2_20, tmp1_7, tmp2_7)
+    }
+    assert p1_20 && p2_20 ==>
+      perm(Lock_invariant(l_2)) >= write &&
+      perm(Lock_invariant_0(l_2_0)) >= write ==>
+      Lock_invariant_low(l_2, l_2_0)
+    if (p1_20) {
+      unfold acc(Lock_invariant(l_2), write)
+    }
+    if (p2_20) {
+      unfold acc(Lock_invariant_0(l_2_0), write)
+    }
+    if (p1_20) {
+      old_inps := consumed_inputs_inps()
+      inhale _isDefined(8318269910604344431)
+      old_sum := st_3.AvgState_sum
+      inhale _isDefined(30809910843567215)
+      old_count := st_3.AvgState_count
+      inhale _isDefined(2147781702939348069487)
+    }
+    if (p2_20) {
+      old_inps_0 := consumed_inputs_inps_0()
+      inhale true
+      old_sum_0 := st_3_0.AvgState_sump
+      inhale true
+      old_count_0 := st_3_0.AvgState_countp
+      inhale true
+    }
+    assert (p1_20 ==>
+      acc(avg_state_correct(st_3.AvgState_sum, st_3.AvgState_count, _checkDefined(old_inps,
+      8318269910604344431)), write)) &&
+      (p2_20 ==>
+      acc(avg_state_correct_0(st_3_0.AvgState_sump, st_3_0.AvgState_countp,
+      old_inps_0), write)) &&
+      (p1_20 && p2_20 ==>
+      avg_state_correct_low(st_3.AvgState_sum, st_3.AvgState_count, _checkDefined(old_inps,
+      8318269910604344431), st_3_0.AvgState_sump, st_3_0.AvgState_countp, old_inps_0))
+    // Method call: avg_get_input
+  
+    if (p1_20 || p2_20) {
+      var tmp1_8: Ref
+      var tmp2_8: Ref
+      if (p1_20) {
+      }
+      if (p2_20) {
+      }
+      tmp1_8, tmp2_8 := avg_get_input(p1_20, p2_20)
+      if (p1_20) {
+        avg_get_input_res := tmp1_8
+      }
+      if (p2_20) {
+        avg_get_input_res_0 := tmp2_8
+      }
+    }
+    if (p1_20) {
+      i := avg_get_input_res
+      inhale _isDefined(105)
+    }
+    if (p2_20) {
+      i_0 := avg_get_input_res_0
+      inhale true
+    }
+    assert (p1_20 ==>
+      PSeq___eq__(PSeq_drop(consumed_inputs_inps(), 1), _checkDefined(old_inps,
+      8318269910604344431))) &&
+      (p2_20 ==>
+      PSeq___eq__(PSeq_drop(consumed_inputs_inps_0(), 1), old_inps_0))
+    {
+      var p1_21: Bool
+      var p2_21: Bool
+      var p3_7: Bool
+      var p4_7: Bool
+      p1_21 := p1_20 &&
+        perm(_MaySet(st_3, 2361510956306351953976394831590977)) > none
+      p2_21 := p2_20 &&
+        perm(_MaySet_0(st_3_0, 2361510956306351953976394831590977)) > none
+      p3_7 := p1_20 &&
+        !(perm(_MaySet(st_3, 2361510956306351953976394831590977)) > none)
+      p4_7 := p2_20 &&
+        !(perm(_MaySet_0(st_3_0, 2361510956306351953976394831590977)) >
+        none)
+      if (p1_21) {
+        exhale acc(_MaySet(st_3, 2361510956306351953976394831590977), write)
+        inhale acc(st_3.AvgState_count, write)
+      }
+      if (p2_21) {
+        exhale acc(_MaySet_0(st_3_0, 2361510956306351953976394831590977), write)
+        inhale acc(st_3_0.AvgState_countp, write)
+      }
+    }
+    if (p1_20) {
+      st_3.AvgState_count := __prim__int___box__(int___add__(int___unbox__(st_3.AvgState_count),
+        1))
+    }
+    if (p2_20) {
+      st_3_0.AvgState_countp := __prim__int___box__(int___add__(int___unbox__(st_3_0.AvgState_countp),
+        1))
+    }
+    {
+      var p1_22: Bool
+      var p2_22: Bool
+      var p3_8: Bool
+      var p4_8: Bool
+      p1_22 := p1_20 &&
+        perm(_MaySet(st_3, 33875855223318316363421283905)) > none
+      p2_22 := p2_20 &&
+        perm(_MaySet_0(st_3_0, 33875855223318316363421283905)) > none
+      p3_8 := p1_20 &&
+        !(perm(_MaySet(st_3, 33875855223318316363421283905)) > none)
+      p4_8 := p2_20 &&
+        !(perm(_MaySet_0(st_3_0, 33875855223318316363421283905)) > none)
+      if (p1_22) {
+        exhale acc(_MaySet(st_3, 33875855223318316363421283905), write)
+        inhale acc(st_3.AvgState_sum, write)
+      }
+      if (p2_22) {
+        exhale acc(_MaySet_0(st_3_0, 33875855223318316363421283905), write)
+        inhale acc(st_3_0.AvgState_sump, write)
+      }
+    }
+    if (p1_20) {
+      st_3.AvgState_sum := __prim__int___box__(int___add__(int___unbox__(st_3.AvgState_sum),
+        int___unbox__(_checkDefined(i, 105))))
+    }
+    if (p2_20) {
+      st_3_0.AvgState_sump := __prim__int___box__(int___add__(int___unbox__(st_3_0.AvgState_sump),
+        int___unbox__(i_0)))
+    }
+    assert (p1_20 ==>
+      __prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_sum), int___unbox__(PSeq___getitem__(consumed_inputs_inps(),
+      __prim__int___box__(0))))) ==
+      _checkDefined(old_sum, 30809910843567215)) &&
+      (p2_20 ==>
+      __prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_sump), int___unbox__(PSeq___getitem__(consumed_inputs_inps_0(),
+      __prim__int___box__(0))))) ==
+      old_sum_0)
+    assert (p1_20 ==>
+      __prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_count), 1)) ==
+      _checkDefined(old_count, 2147781702939348069487)) &&
+      (p2_20 ==>
+      __prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_countp),
+      1)) ==
+      old_count_0)
+    assert (p1_20 ==>
+      acc(avg_state_correct(__prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_sum),
+      int___unbox__(PSeq___getitem__(consumed_inputs_inps(), __prim__int___box__(0))))),
+      __prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_count), 1)),
+      PSeq_drop(consumed_inputs_inps(), 1)), write)) &&
+      (p2_20 ==>
+      acc(avg_state_correct_0(__prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_sump),
+      int___unbox__(PSeq___getitem__(consumed_inputs_inps_0(), __prim__int___box__(0))))),
+      __prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_countp),
+      1)), PSeq_drop(consumed_inputs_inps_0(), 1)), write)) &&
+      (p1_20 && p2_20 ==>
+      avg_state_correct_low(__prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_sum),
+      int___unbox__(PSeq___getitem__(consumed_inputs_inps(), __prim__int___box__(0))))),
+      __prim__int___box__(int___sub__(int___unbox__(st_3.AvgState_count), 1)),
+      PSeq_drop(consumed_inputs_inps(), 1), __prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_sump),
+      int___unbox__(PSeq___getitem__(consumed_inputs_inps_0(), __prim__int___box__(0))))),
+      __prim__int___box__(int___sub__(int___unbox__(st_3_0.AvgState_countp),
+      1)), PSeq_drop(consumed_inputs_inps_0(), 1)))
+    if (p1_20) {
+      fold acc(avg_state_correct(st_3.AvgState_sum, st_3.AvgState_count, consumed_inputs_inps()), write)
+    }
+    if (p2_20) {
+      fold acc(avg_state_correct_0(st_3_0.AvgState_sump, st_3_0.AvgState_countp,
+        consumed_inputs_inps_0()), write)
+    }
+    assert p1_20 && p2_20 ==>
+      avg_state_correct_low(st_3.AvgState_sum, st_3.AvgState_count, consumed_inputs_inps(),
+      st_3_0.AvgState_sump, st_3_0.AvgState_countp, consumed_inputs_inps_0())
+    assert p1_20 && p2_20 ==> typeof(l_2) == typeof(l_2_0)
+    if (p1_20) {
+      fold acc(Lock_invariant(l_2), write)
+    }
+    if (p2_20) {
+      fold acc(Lock_invariant_0(l_2_0), write)
+    }
+    assert p1_20 && p2_20 ==> Lock_invariant_low(l_2, l_2_0)
+    // Method call: Lock_release
+  
+    if (p1_20 || p2_20) {
+      var tmp1_9: Ref
+      var tmp2_9: Ref
+      if (p1_20) {
+        tmp1_9 := l_2
+      }
+      if (p2_20) {
+        tmp2_9 := l_2_0
+      }
+      Lock_release(p1_20, p2_20, tmp1_9, tmp2_9)
+    }
+    exhale true
+  }
+}
+
+method avg_inc_min_thread(p1_23: Bool, p2_23: Bool, st_0: Ref, st_0_0: Ref,
+  l_0: Ref, l_0_0: Ref)
+  requires (p1_23 ==> issubtype(typeof(st_0), AvgState())) &&
+    (p2_23 ==> issubtype(typeof(st_0_0), AvgState()))
+  requires (p1_23 ==> issubtype(typeof(l_0), StateLock())) &&
+    (p2_23 ==> issubtype(typeof(l_0_0), StateLock()))
+  requires (p1_23 ==> Lock_get_locked(l_0) == st_0) &&
+    (p2_23 ==> Lock_get_locked(l_0_0) == st_0_0) &&
+    (p1_23 && p2_23 ==> l_0 == l_0_0)
+{
+  inhale p1_23
+  {
+    var _err: Ref
+    var _err_8: Ref
+    var st_4: Ref
+    var st_4_0: Ref
+    var l_3: Ref
+    var l_3_0: Ref
+    if (p1_23) {
+      _err := null
+      st_4 := st_0
+      l_3 := l_0
+    }
+    if (p2_23) {
+      _err_8 := null
+      st_4_0 := st_0_0
+      l_3_0 := l_0_0
+    }
+    assert p1_23 && p2_23 ==> typeof(l_3) == typeof(l_3_0)
+    // Method call: Lock_acquire
+  
+    if (p1_23 || p2_23) {
+      var tmp1_10: Ref
+      var tmp2_10: Ref
+      if (p1_23) {
+        tmp1_10 := l_3
+      }
+      if (p2_23) {
+        tmp2_10 := l_3_0
+      }
+      Lock_acquire(p1_23, p2_23, tmp1_10, tmp2_10)
+    }
+    assert p1_23 && p2_23 ==>
+      perm(Lock_invariant(l_3)) >= write &&
+      perm(Lock_invariant_0(l_3_0)) >= write ==>
+      Lock_invariant_low(l_3, l_3_0)
+    if (p1_23) {
+      unfold acc(Lock_invariant(l_3), write)
+    }
+    if (p2_23) {
+      unfold acc(Lock_invariant_0(l_3_0), write)
+    }
+    {
+      var p1_24: Bool
+      var p2_24: Bool
+      var p3_9: Bool
+      var p4_9: Bool
+      p1_24 := p1_23 &&
+        perm(_MaySet(st_4, 34170804789105388664178308673)) > none
+      p2_24 := p2_23 &&
+        perm(_MaySet_0(st_4_0, 34170804789105388664178308673)) > none
+      p3_9 := p1_23 &&
+        !(perm(_MaySet(st_4, 34170804789105388664178308673)) > none)
+      p4_9 := p2_23 &&
+        !(perm(_MaySet_0(st_4_0, 34170804789105388664178308673)) > none)
+      if (p1_24) {
+        exhale acc(_MaySet(st_4, 34170804789105388664178308673), write)
+        inhale acc(st_4.AvgState_min, write)
+      }
+      if (p2_24) {
+        exhale acc(_MaySet_0(st_4_0, 34170804789105388664178308673), write)
+        inhale acc(st_4_0.AvgState_minp, write)
+      }
+    }
+    if (p1_23) {
+      st_4.AvgState_min := __prim__int___box__(int___add__(int___unbox__(st_4.AvgState_min),
+        1))
+    }
+    if (p2_23) {
+      st_4_0.AvgState_minp := __prim__int___box__(int___add__(int___unbox__(st_4_0.AvgState_minp),
+        1))
+    }
+    assert p1_23 && p2_23 ==> typeof(l_3) == typeof(l_3_0)
+    if (p1_23) {
+      fold acc(Lock_invariant(l_3), write)
+    }
+    if (p2_23) {
+      fold acc(Lock_invariant_0(l_3_0), write)
+    }
+    assert p1_23 && p2_23 ==> Lock_invariant_low(l_3, l_3_0)
+    // Method call: Lock_release
+  
+    if (p1_23 || p2_23) {
+      var tmp1_11: Ref
+      var tmp2_11: Ref
+      if (p1_23) {
+        tmp1_11 := l_3
+      }
+      if (p2_23) {
+        tmp2_11 := l_3_0
+      }
+      Lock_release(p1_23, p2_23, tmp1_11, tmp2_11)
+    }
+    exhale true
+  }
+}
+
+method avg_state_correct_implies(p1_25: Bool, p2_25: Bool, s: Ref, s_6: Ref,
+  c: Ref, c_6: Ref, xs_0: Ref, xs_0_0: Ref)
+  requires (p1_25 ==> issubtype(typeof(s), int())) &&
+    (p2_25 ==> issubtype(typeof(s_6), int()))
+  requires (p1_25 ==> issubtype(typeof(c), int())) &&
+    (p2_25 ==> issubtype(typeof(c_6), int()))
+  requires (p1_25 ==> issubtype(typeof(xs_0), PSeq(int()))) &&
+    (p2_25 ==> issubtype(typeof(xs_0_0), PSeq(int())))
+  requires (p1_25 ==> acc(avg_state_correct(s, c, xs_0), write)) &&
+    (p2_25 ==> acc(avg_state_correct_0(s_6, c_6, xs_0_0), write)) &&
+    (p1_25 && p2_25 ==> avg_state_correct_low(s, c, xs_0, s_6, c_6, xs_0_0))
+  requires (p1_25 ==> int() == typeof(c)) &&
+    (p2_25 ==> int() == typeof(c_6)) &&
+    ((p1_25 ==> int() == typeof(s)) && (p2_25 ==> int() == typeof(s_6)))
+  ensures (p1_25 ==> acc(avg_state_correct2(s, c, xs_0), write)) &&
+    (p2_25 ==> acc(avg_state_correct2_0(s_6, c_6, xs_0_0), write)) &&
+    (p1_25 && p2_25 ==>
+    avg_state_correct2_low(s, c, xs_0, s_6, c_6, xs_0_0))
+{
+  inhale p1_25
+  {
+    var _err: Ref
+    var _err_9: Ref
+    var y_0: Ref
+    var y_0_0: Ref
+    var ys: Ref
+    var ys_1: Ref
+    var s_4: Ref
+    var s_4_0: Ref
+    var c_4: Ref
+    var c_4_0: Ref
+    var xs_4: Ref
+    var xs_4_0: Ref
+    if (p1_25) {
+      _err := null
+      s_4 := s
+      c_4 := c
+      xs_4 := xs_0
+    }
+    if (p2_25) {
+      _err_9 := null
+      s_4_0 := s_6
+      c_4_0 := c_6
+      xs_4_0 := xs_0_0
+    }
+    assert p1_25 && p2_25 ==>
+      perm(avg_state_correct(s_4, c_4, xs_4)) >= write &&
+      perm(avg_state_correct_0(s_4_0, c_4_0, xs_4_0)) >= write ==>
+      avg_state_correct_low(s_4, c_4, xs_4, s_4_0, c_4_0, xs_4_0)
+    if (p1_25) {
+      unfold acc(avg_state_correct(s_4, c_4, xs_4), write)
+    }
+    if (p2_25) {
+      unfold acc(avg_state_correct_0(s_4_0, c_4_0, xs_4_0), write)
+    }
+    assert p1_25 && p2_25 ==>
+      int___eq__(__prim__int___box__(PSeq___len__(xs_4)), __prim__int___box__(0)) ==
+      int___eq__(__prim__int___box__(PSeq___len__(xs_4_0)), __prim__int___box__(0))
+    {
+      var p1_26: Bool
+      var p2_26: Bool
+      var p3_10: Bool
+      var p4_10: Bool
+      p1_26 := p1_25 &&
+        int___eq__(__prim__int___box__(PSeq___len__(xs_4)), __prim__int___box__(0))
+      p2_26 := p2_25 &&
+        int___eq__(__prim__int___box__(PSeq___len__(xs_4_0)), __prim__int___box__(0))
+      p3_10 := p1_25 &&
+        !int___eq__(__prim__int___box__(PSeq___len__(xs_4)), __prim__int___box__(0))
+      p4_10 := p2_25 &&
+        !int___eq__(__prim__int___box__(PSeq___len__(xs_4_0)), __prim__int___box__(0))
+      if (p1_26) {
+        fold acc(avg_state_correct2(s_4, c_4, xs_4), write)
+      }
+      if (p2_26) {
+        fold acc(avg_state_correct2_0(s_4_0, c_4_0, xs_4_0), write)
+      }
+      assert p1_26 && p2_26 ==>
+        avg_state_correct2_low(s_4, c_4, xs_4, s_4_0, c_4_0, xs_4_0)
+      assert (p3_10 ==>
+        acc(avg_state_correct(__prim__int___box__(int___sub__(int___unbox__(s_4),
+        int___unbox__(PSeq___getitem__(xs_4, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_4),
+        1)), PSeq_drop(xs_4, 1)), write)) &&
+        (p4_10 ==>
+        acc(avg_state_correct_0(__prim__int___box__(int___sub__(int___unbox__(s_4_0),
+        int___unbox__(PSeq___getitem__(xs_4_0, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_4_0),
+        1)), PSeq_drop(xs_4_0, 1)), write)) &&
+        (p3_10 && p4_10 ==>
+        avg_state_correct_low(__prim__int___box__(int___sub__(int___unbox__(s_4),
+        int___unbox__(PSeq___getitem__(xs_4, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_4),
+        1)), PSeq_drop(xs_4, 1), __prim__int___box__(int___sub__(int___unbox__(s_4_0),
+        int___unbox__(PSeq___getitem__(xs_4_0, __prim__int___box__(0))))), __prim__int___box__(int___sub__(int___unbox__(c_4_0),
+        1)), PSeq_drop(xs_4_0, 1)))
+      if (p3_10) {
+        y_0 := PSeq___getitem__(xs_4, __prim__int___box__(0))
+        inhale _isDefined(3170169)
+        ys := PSeq_drop(xs_4, 1)
+        inhale _isDefined(29561)
+      }
+      if (p4_10) {
+        y_0_0 := PSeq___getitem__(xs_4_0, __prim__int___box__(0))
+        inhale true
+        ys_1 := PSeq_drop(xs_4_0, 1)
+        inhale true
+      }
+      // Method call: avg_state_correct_implies
+  
+      if (p3_10 || p4_10) {
+        var tmp1_12: Ref
+        var tmp2_12: Ref
+        var tmp1_13: Ref
+        var tmp2_13: Ref
+        var tmp1_14: Ref
+        var tmp2_14: Ref
+        if (p3_10) {
+          tmp1_12 := __prim__int___box__(int___sub__(int___unbox__(s_4), int___unbox__(_checkDefined(y_0,
+            3170169))))
+          tmp1_13 := __prim__int___box__(int___sub__(int___unbox__(c_4), 1))
+          tmp1_14 := _checkDefined(ys, 29561)
+        }
+        if (p4_10) {
+          tmp2_12 := __prim__int___box__(int___sub__(int___unbox__(s_4_0), int___unbox__(y_0_0)))
+          tmp2_13 := __prim__int___box__(int___sub__(int___unbox__(c_4_0), 1))
+          tmp2_14 := ys_1
+        }
+        avg_state_correct_implies(p3_10, p4_10, tmp1_12, tmp2_12, tmp1_13, tmp2_13,
+          tmp1_14, tmp2_14)
+      }
+      assert p3_10 && p4_10 ==>
+        perm(avg_state_correct2(__prim__int___box__(int___sub__(int___unbox__(s_4),
+        int___unbox__(_checkDefined(y_0, 3170169)))), __prim__int___box__(int___sub__(int___unbox__(c_4),
+        1)), _checkDefined(ys, 29561))) >=
+        write &&
+        perm(avg_state_correct2_0(__prim__int___box__(int___sub__(int___unbox__(s_4_0),
+        int___unbox__(y_0_0))), __prim__int___box__(int___sub__(int___unbox__(c_4_0),
+        1)), ys_1)) >=
+        write ==>
+        avg_state_correct2_low(__prim__int___box__(int___sub__(int___unbox__(s_4),
+        int___unbox__(_checkDefined(y_0, 3170169)))), __prim__int___box__(int___sub__(int___unbox__(c_4),
+        1)), _checkDefined(ys, 29561), __prim__int___box__(int___sub__(int___unbox__(s_4_0),
+        int___unbox__(y_0_0))), __prim__int___box__(int___sub__(int___unbox__(c_4_0),
+        1)), ys_1)
+      if (p3_10) {
+        unfold acc(avg_state_correct2(__prim__int___box__(int___sub__(int___unbox__(s_4),
+          int___unbox__(_checkDefined(y_0, 3170169)))), __prim__int___box__(int___sub__(int___unbox__(c_4),
+          1)), _checkDefined(ys, 29561)), write)
+      }
+      if (p4_10) {
+        unfold acc(avg_state_correct2_0(__prim__int___box__(int___sub__(int___unbox__(s_4_0),
+          int___unbox__(y_0_0))), __prim__int___box__(int___sub__(int___unbox__(c_4_0),
+          1)), ys_1), write)
+      }
+      assert (p3_10 ==>
+        int___eq__(c_4, __prim__int___box__(PSeq___len__(xs_4)))) &&
+        (p4_10 ==>
+        int___eq__(c_4_0, __prim__int___box__(PSeq___len__(xs_4_0))))
+      assert (p3_10 ==> c_4 == __prim__int___box__(PSeq___len__(xs_4))) &&
+        (p4_10 ==> c_4_0 == __prim__int___box__(PSeq___len__(xs_4_0)))
+      if (p3_10) {
+        fold acc(avg_state_correct2(s_4, c_4, xs_4), write)
+      }
+      if (p4_10) {
+        fold acc(avg_state_correct2_0(s_4_0, c_4_0, xs_4_0), write)
+      }
+      assert p3_10 && p4_10 ==>
+        avg_state_correct2_low(s_4, c_4, xs_4, s_4_0, c_4_0, xs_4_0)
+    }
+    exhale true
+  }
+}
+
+method avg_state_correct2_implies(p1_27: Bool, p2_27: Bool, s_0: Ref, s_0_0: Ref,
+  c_0: Ref, c_0_0: Ref, xs_1: Ref, xs_1_0: Ref)
+  requires (p1_27 ==> issubtype(typeof(s_0), int())) &&
+    (p2_27 ==> issubtype(typeof(s_0_0), int()))
+  requires (p1_27 ==> issubtype(typeof(c_0), int())) &&
+    (p2_27 ==> issubtype(typeof(c_0_0), int()))
+  requires (p1_27 ==> issubtype(typeof(xs_1), PSeq(int()))) &&
+    (p2_27 ==> issubtype(typeof(xs_1_0), PSeq(int())))
+  requires (p1_27 ==> acc(avg_state_correct2(s_0, c_0, xs_1), write)) &&
+    (p2_27 ==> acc(avg_state_correct2_0(s_0_0, c_0_0, xs_1_0), write)) &&
+    (p1_27 && p2_27 ==>
+    avg_state_correct2_low(s_0, c_0, xs_1, s_0_0, c_0_0, xs_1_0))
+  ensures (p1_27 ==> acc(avg_state_correct(s_0, c_0, xs_1), write)) &&
+    (p2_27 ==> acc(avg_state_correct_0(s_0_0, c_0_0, xs_1_0), write)) &&
+    (p1_27 && p2_27 ==>
+    avg_state_correct_low(s_0, c_0, xs_1, s_0_0, c_0_0, xs_1_0))
+{
+  inhale p1_27
+  {
+    var _err: Ref
+    var _err_10: Ref
+    var y_1: Ref
+    var y_1_0: Ref
+    var ys_0: Ref
+    var ys_0_0: Ref
+    var s_5: Ref
+    var s_5_0: Ref
+    var c_5: Ref
+    var c_5_0: Ref
+    var xs_5: Ref
+    var xs_5_0: Ref
+    if (p1_27) {
+      _err := null
+      s_5 := s_0
+      c_5 := c_0
+      xs_5 := xs_1
+    }
+    if (p2_27) {
+      _err_10 := null
+      s_5_0 := s_0_0
+      c_5_0 := c_0_0
+      xs_5_0 := xs_1_0
+    }
+    assert p1_27 && p2_27 ==>
+      perm(avg_state_correct2(s_5, c_5, xs_5)) >= write &&
+      perm(avg_state_correct2_0(s_5_0, c_5_0, xs_5_0)) >= write ==>
+      avg_state_correct2_low(s_5, c_5, xs_5, s_5_0, c_5_0, xs_5_0)
+    if (p1_27) {
+      unfold acc(avg_state_correct2(s_5, c_5, xs_5), write)
+    }
+    if (p2_27) {
+      unfold acc(avg_state_correct2_0(s_5_0, c_5_0, xs_5_0), write)
+    }
+    assert p1_27 && p2_27 ==>
+      int___eq__(__prim__int___box__(PSeq___len__(xs_5)), __prim__int___box__(0)) ==
+      int___eq__(__prim__int___box__(PSeq___len__(xs_5_0)), __prim__int___box__(0))
+    {
+      var p1_28: Bool
+      var p2_28: Bool
+      var p3_11: Bool
+      var p4_11: Bool
+      p1_28 := p1_27 &&
+        int___eq__(__prim__int___box__(PSeq___len__(xs_5)), __prim__int___box__(0))
+      p2_28 := p2_27 &&
+        int___eq__(__prim__int___box__(PSeq___len__(xs_5_0)), __prim__int___box__(0))
+      p3_11 := p1_27 &&
+        !int___eq__(__prim__int___box__(PSeq___len__(xs_5)), __prim__int___box__(0))
+      p4_11 := p2_27 &&
+        !int___eq__(__prim__int___box__(PSeq___len__(xs_5_0)), __prim__int___box__(0))
+      if (p1_28) {
+        fold acc(avg_state_correct(s_5, c_5, xs_5), write)
+      }
+      if (p2_28) {
+        fold acc(avg_state_correct_0(s_5_0, c_5_0, xs_5_0), write)
+      }
+      assert p1_28 && p2_28 ==>
+        avg_state_correct_low(s_5, c_5, xs_5, s_5_0, c_5_0, xs_5_0)
+      if (p3_11) {
+        y_1 := PSeq___getitem__(xs_5, __prim__int___box__(0))
+        inhale _isDefined(3235705)
+        ys_0 := PSeq_drop(xs_5, 1)
+        inhale _isDefined(811561849)
+      }
+      if (p4_11) {
+        y_1_0 := PSeq___getitem__(xs_5_0, __prim__int___box__(0))
+        inhale true
+        ys_0_0 := PSeq_drop(xs_5_0, 1)
+        inhale true
+      }
+      assert (p3_11 ==>
+        int___eq__(__prim__int___box__(PSeq___len__(_checkDefined(ys_0, 811561849))),
+        __prim__int___box__(int___sub__(PSeq___len__(xs_5), 1)))) &&
+        (p4_11 ==>
+        int___eq__(__prim__int___box__(PSeq___len__(ys_0_0)), __prim__int___box__(int___sub__(PSeq___len__(xs_5_0),
+        1))))
+      if (p3_11) {
+        fold acc(avg_state_correct2(__prim__int___box__(int___sub__(int___unbox__(s_5),
+          int___unbox__(_checkDefined(y_1, 3235705)))), __prim__int___box__(int___sub__(int___unbox__(c_5),
+          1)), _checkDefined(ys_0, 811561849)), write)
+      }
+      if (p4_11) {
+        fold acc(avg_state_correct2_0(__prim__int___box__(int___sub__(int___unbox__(s_5_0),
+          int___unbox__(y_1_0))), __prim__int___box__(int___sub__(int___unbox__(c_5_0),
+          1)), ys_0_0), write)
+      }
+      assert p3_11 && p4_11 ==>
+        avg_state_correct2_low(__prim__int___box__(int___sub__(int___unbox__(s_5),
+        int___unbox__(_checkDefined(y_1, 3235705)))), __prim__int___box__(int___sub__(int___unbox__(c_5),
+        1)), _checkDefined(ys_0, 811561849), __prim__int___box__(int___sub__(int___unbox__(s_5_0),
+        int___unbox__(y_1_0))), __prim__int___box__(int___sub__(int___unbox__(c_5_0),
+        1)), ys_0_0)
+      // Method call: avg_state_correct2_implies
+  
+      if (p3_11 || p4_11) {
+        var tmp1_15: Ref
+        var tmp2_15: Ref
+        var tmp1_16: Ref
+        var tmp2_16: Ref
+        var tmp1_17: Ref
+        var tmp2_17: Ref
+        if (p3_11) {
+          tmp1_15 := __prim__int___box__(int___sub__(int___unbox__(s_5), int___unbox__(_checkDefined(y_1,
+            3235705))))
+          tmp1_16 := __prim__int___box__(int___sub__(int___unbox__(c_5), 1))
+          tmp1_17 := _checkDefined(ys_0, 811561849)
+        }
+        if (p4_11) {
+          tmp2_15 := __prim__int___box__(int___sub__(int___unbox__(s_5_0), int___unbox__(y_1_0)))
+          tmp2_16 := __prim__int___box__(int___sub__(int___unbox__(c_5_0), 1))
+          tmp2_17 := ys_0_0
+        }
+        avg_state_correct2_implies(p3_11, p4_11, tmp1_15, tmp2_15, tmp1_16,
+          tmp2_16, tmp1_17, tmp2_17)
+      }
+      if (p3_11) {
+        fold acc(avg_state_correct(s_5, c_5, xs_5), write)
+      }
+      if (p4_11) {
+        fold acc(avg_state_correct_0(s_5_0, c_5_0, xs_5_0), write)
+      }
+      assert p3_11 && p4_11 ==>
+        avg_state_correct_low(s_5, c_5, xs_5, s_5_0, c_5_0, xs_5_0)
+    }
+    exhale true
+  }
+}
+
+method avg_declass_thread(p1_29: Bool, p2_29: Bool, st_1: Ref, st_1_0: Ref,
+  l_1: Ref, l_1_0: Ref)
+  requires (p1_29 ==> issubtype(typeof(st_1), AvgState())) &&
+    (p2_29 ==> issubtype(typeof(st_1_0), AvgState()))
+  requires (p1_29 ==> issubtype(typeof(l_1), StateLock())) &&
+    (p2_29 ==> issubtype(typeof(l_1_0), StateLock()))
+  requires (p1_29 ==> Lock_get_locked(l_1) == st_1) &&
+    (p2_29 ==> Lock_get_locked(l_1_0) == st_1_0) &&
+    (p1_29 && p2_29 ==> l_1 == l_1_0)
+{
+  inhale p1_29
+  {
+    var _err: Ref
+    var _err_11: Ref
+    var avg: Ref
+    var avg_0: Ref
+    var s_1: Ref
+    var s_1_0: Ref
+    var c_1: Ref
+    var c_1_0: Ref
+    var inps: Ref
+    var inps_0: Ref
+    var st_5: Ref
+    var st_5_0: Ref
+    var l_4: Ref
+    var l_4_0: Ref
+    if (p1_29) {
+      _err := null
+      st_5 := st_1
+      l_4 := l_1
+    }
+    if (p2_29) {
+      _err_11 := null
+      st_5_0 := st_1_0
+      l_4_0 := l_1_0
+    }
+    assert p1_29 && p2_29 ==> typeof(l_4) == typeof(l_4_0)
+    // Method call: Lock_acquire
+  
+    if (p1_29 || p2_29) {
+      var tmp1_18: Ref
+      var tmp2_18: Ref
+      if (p1_29) {
+        tmp1_18 := l_4
+      }
+      if (p2_29) {
+        tmp2_18 := l_4_0
+      }
+      Lock_acquire(p1_29, p2_29, tmp1_18, tmp2_18)
+    }
+    assert p1_29 && p2_29 ==>
+      perm(Lock_invariant(l_4)) >= write &&
+      perm(Lock_invariant_0(l_4_0)) >= write ==>
+      Lock_invariant_low(l_4, l_4_0)
+    if (p1_29) {
+      unfold acc(Lock_invariant(l_4), write)
+    }
+    if (p2_29) {
+      unfold acc(Lock_invariant_0(l_4_0), write)
+    }
+    assert p1_29 && p2_29 ==>
+      int___gt__(int___unbox__(st_5.AvgState_count), int___unbox__(st_5.AvgState_min)) ==
+      int___gt__(int___unbox__(st_5_0.AvgState_countp), int___unbox__(st_5_0.AvgState_minp))
+    {
+      var p1_30: Bool
+      var p2_30: Bool
+      var p3_12: Bool
+      var p4_12: Bool
+      p1_30 := p1_29 &&
+        int___gt__(int___unbox__(st_5.AvgState_count), int___unbox__(st_5.AvgState_min))
+      p2_30 := p2_29 &&
+        int___gt__(int___unbox__(st_5_0.AvgState_countp), int___unbox__(st_5_0.AvgState_minp))
+      p3_12 := p1_29 &&
+        !int___gt__(int___unbox__(st_5.AvgState_count), int___unbox__(st_5.AvgState_min))
+      p4_12 := p2_29 &&
+        !int___gt__(int___unbox__(st_5_0.AvgState_countp), int___unbox__(st_5_0.AvgState_minp))
+      if (p1_30) {
+        avg := __prim__int___box__(int___floordiv__(int___unbox__(st_5.AvgState_sum),
+          int___unbox__(st_5.AvgState_count)))
+        inhale _isDefined(6780513)
+        s_1 := st_5.AvgState_sum
+        inhale _isDefined(3235699)
+        c_1 := st_5.AvgState_count
+        inhale _isDefined(3235683)
+      }
+      if (p2_30) {
+        avg_0 := __prim__int___box__(int___floordiv__(int___unbox__(st_5_0.AvgState_sump),
+          int___unbox__(st_5_0.AvgState_countp)))
+        inhale true
+        s_1_0 := st_5_0.AvgState_sump
+        inhale true
+        c_1_0 := st_5_0.AvgState_countp
+        inhale true
+      }
+      // Method call: avg_state_correct_implies
+  
+      if (p1_30 || p2_30) {
+        var tmp1_19: Ref
+        var tmp2_19: Ref
+        var tmp1_20: Ref
+        var tmp2_20: Ref
+        var tmp1_21: Ref
+        var tmp2_21: Ref
+        if (p1_30) {
+          tmp1_19 := _checkDefined(s_1, 3235699)
+          tmp1_20 := _checkDefined(c_1, 3235683)
+          tmp1_21 := consumed_inputs_inps()
+        }
+        if (p2_30) {
+          tmp2_19 := s_1_0
+          tmp2_20 := c_1_0
+          tmp2_21 := consumed_inputs_inps_0()
+        }
+        avg_state_correct_implies(p1_30, p2_30, tmp1_19, tmp2_19, tmp1_20, tmp2_20,
+          tmp1_21, tmp2_21)
+      }
+      assert p1_30 && p2_30 ==>
+        perm(avg_state_correct2(st_5.AvgState_sum, st_5.AvgState_count, consumed_inputs_inps())) >=
+        write &&
+        perm(avg_state_correct2_0(st_5_0.AvgState_sump, st_5_0.AvgState_countp,
+        consumed_inputs_inps_0())) >=
+        write ==>
+        avg_state_correct2_low(st_5.AvgState_sum, st_5.AvgState_count, consumed_inputs_inps(),
+        st_5_0.AvgState_sump, st_5_0.AvgState_countp, consumed_inputs_inps_0())
+      if (p1_30) {
+        unfold acc(avg_state_correct2(st_5.AvgState_sum, st_5.AvgState_count,
+          consumed_inputs_inps()), write)
+      }
+      if (p2_30) {
+        unfold acc(avg_state_correct2_0(st_5_0.AvgState_sump, st_5_0.AvgState_countp,
+          consumed_inputs_inps_0()), write)
+      }
+      if (p1_30) {
+        fold acc(avg_safe_to_declassify(_checkDefined(avg, 6780513), st_5), write)
+      }
+      if (p2_30) {
+        fold acc(avg_safe_to_declassify_0(avg_0, st_5_0), write)
+      }
+      assert p1_30 && p2_30 ==>
+        avg_safe_to_declassify_low(_checkDefined(avg, 6780513), st_5, avg_0,
+        st_5_0)
+      inhale p1_30 && p2_30 ==> _checkDefined(avg, 6780513) == avg_0
+      assert p1_30 && p2_30 ==>
+        perm(avg_safe_to_declassify(_checkDefined(avg, 6780513), st_5)) >=
+        write &&
+        perm(avg_safe_to_declassify_0(avg_0, st_5_0)) >= write ==>
+        avg_safe_to_declassify_low(_checkDefined(avg, 6780513), st_5, avg_0,
+        st_5_0)
+      if (p1_30) {
+        unfold acc(avg_safe_to_declassify(_checkDefined(avg, 6780513), st_5), write)
+      }
+      if (p2_30) {
+        unfold acc(avg_safe_to_declassify_0(avg_0, st_5_0), write)
+      }
+      if (p1_30) {
+        inps := consumed_inputs_inps()
+        inhale _isDefined(1936748137)
+      }
+      if (p2_30) {
+        inps_0 := consumed_inputs_inps_0()
+        inhale true
+      }
+      if (p1_30) {
+        fold acc(avg_state_correct2(_checkDefined(s_1, 3235699), _checkDefined(c_1,
+          3235683), _checkDefined(inps, 1936748137)), write)
+      }
+      if (p2_30) {
+        fold acc(avg_state_correct2_0(s_1_0, c_1_0, inps_0), write)
+      }
+      assert p1_30 && p2_30 ==>
+        avg_state_correct2_low(_checkDefined(s_1, 3235699), _checkDefined(c_1,
+        3235683), _checkDefined(inps, 1936748137), s_1_0, c_1_0, inps_0)
+      // Method call: avg_state_correct2_implies
+  
+      if (p1_30 || p2_30) {
+        var tmp1_22: Ref
+        var tmp2_22: Ref
+        var tmp1_23: Ref
+        var tmp2_23: Ref
+        var tmp1_24: Ref
+        var tmp2_24: Ref
+        if (p1_30) {
+          tmp1_22 := _checkDefined(s_1, 3235699)
+          tmp1_23 := _checkDefined(c_1, 3235683)
+          tmp1_24 := _checkDefined(inps, 1936748137)
+        }
+        if (p2_30) {
+          tmp2_22 := s_1_0
+          tmp2_23 := c_1_0
+          tmp2_24 := inps_0
+        }
+        avg_state_correct2_implies(p1_30, p2_30, tmp1_22, tmp2_22, tmp1_23,
+          tmp2_23, tmp1_24, tmp2_24)
+      }
+    }
+    assert p1_29 && p2_29 ==> typeof(l_4) == typeof(l_4_0)
+    if (p1_29) {
+      fold acc(Lock_invariant(l_4), write)
+    }
+    if (p2_29) {
+      fold acc(Lock_invariant_0(l_4_0), write)
+    }
+    assert p1_29 && p2_29 ==> Lock_invariant_low(l_4, l_4_0)
+    // Method call: Lock_release
+  
+    if (p1_29 || p2_29) {
+      var tmp1_25: Ref
+      var tmp2_25: Ref
+      if (p1_29) {
+        tmp1_25 := l_4
+      }
+      if (p2_29) {
+        tmp2_25 := l_4_0
+      }
+      Lock_release(p1_29, p2_29, tmp1_25, tmp2_25)
+    }
+    exhale true
+  }
+}
+
+method AvgState___init__(p1_31: Bool, p2_31: Bool, self: Ref, self_0: Ref, count: Ref,
+  count_1: Ref, sum: Ref, sum_1: Ref, min_1: Ref, min_1_0: Ref)
+  requires (p1_31 ==> self != null) && (p2_31 ==> self_0 != null)
+  requires (p1_31 ==>
+    acc(_MaySet(self, 2361510956306351953976394831590977), write)) &&
+    (p2_31 ==>
+    acc(_MaySet_0(self_0, 2361510956306351953976394831590977), write))
+  requires (p1_31 ==>
+    acc(_MaySet(self, 33875855223318316363421283905), write)) &&
+    (p2_31 ==> acc(_MaySet_0(self_0, 33875855223318316363421283905), write))
+  requires (p1_31 ==>
+    acc(_MaySet(self, 34170804789105388664178308673), write)) &&
+    (p2_31 ==> acc(_MaySet_0(self_0, 34170804789105388664178308673), write))
+  requires (p1_31 ==> issubtype(typeof(self), AvgState())) &&
+    (p2_31 ==> issubtype(typeof(self_0), AvgState()))
+  requires (p1_31 ==> issubtype(typeof(count), int())) &&
+    (p2_31 ==> issubtype(typeof(count_1), int()))
+  requires (p1_31 ==> issubtype(typeof(sum), int())) &&
+    (p2_31 ==> issubtype(typeof(sum_1), int()))
+  requires (p1_31 ==> issubtype(typeof(min_1), int())) &&
+    (p2_31 ==> issubtype(typeof(min_1_0), int()))
+  requires (p1_31 ==> self != null) && (p2_31 ==> self_0 != null)
+{
+  inhale p1_31
+  {
+    var _err: Ref
+    var _err_12: Ref
+    var self_6: Ref
+    var self_6_0: Ref
+    var count_0: Ref
+    var count_0_0: Ref
+    var sum_0: Ref
+    var sum_0_0: Ref
+    var min_2: Ref
+    var min_2_0: Ref
+    if (p1_31) {
+      inhale typeof(self) == AvgState()
+      _err := null
+      self_6 := self
+      count_0 := count
+      sum_0 := sum
+      min_2 := min_1
+    }
+    if (p2_31) {
+      inhale typeof(self_0) == AvgState()
+      _err_12 := null
+      self_6_0 := self_0
+      count_0_0 := count_1
+      sum_0_0 := sum_1
+      min_2_0 := min_1_0
+    }
+    {
+      var p1_32: Bool
+      var p2_32: Bool
+      var p3_13: Bool
+      var p4_13: Bool
+      p1_32 := p1_31 &&
+        perm(_MaySet(self_6, 2361510956306351953976394831590977)) > none
+      p2_32 := p2_31 &&
+        perm(_MaySet_0(self_6_0, 2361510956306351953976394831590977)) >
+        none
+      p3_13 := p1_31 &&
+        !(perm(_MaySet(self_6, 2361510956306351953976394831590977)) > none)
+      p4_13 := p2_31 &&
+        !(perm(_MaySet_0(self_6_0, 2361510956306351953976394831590977)) >
+        none)
+      if (p1_32) {
+        exhale acc(_MaySet(self_6, 2361510956306351953976394831590977), write)
+        inhale acc(self_6.AvgState_count, write)
+      }
+      if (p2_32) {
+        exhale acc(_MaySet_0(self_6_0, 2361510956306351953976394831590977), write)
+        inhale acc(self_6_0.AvgState_countp, write)
+      }
+    }
+    if (p1_31) {
+      self_6.AvgState_count := count_0
+    }
+    if (p2_31) {
+      self_6_0.AvgState_countp := count_0_0
+    }
+    {
+      var p1_33: Bool
+      var p2_33: Bool
+      var p3_14: Bool
+      var p4_14: Bool
+      p1_33 := p1_31 &&
+        perm(_MaySet(self_6, 33875855223318316363421283905)) > none
+      p2_33 := p2_31 &&
+        perm(_MaySet_0(self_6_0, 33875855223318316363421283905)) > none
+      p3_14 := p1_31 &&
+        !(perm(_MaySet(self_6, 33875855223318316363421283905)) > none)
+      p4_14 := p2_31 &&
+        !(perm(_MaySet_0(self_6_0, 33875855223318316363421283905)) > none)
+      if (p1_33) {
+        exhale acc(_MaySet(self_6, 33875855223318316363421283905), write)
+        inhale acc(self_6.AvgState_sum, write)
+      }
+      if (p2_33) {
+        exhale acc(_MaySet_0(self_6_0, 33875855223318316363421283905), write)
+        inhale acc(self_6_0.AvgState_sump, write)
+      }
+    }
+    if (p1_31) {
+      self_6.AvgState_sum := sum_0
+    }
+    if (p2_31) {
+      self_6_0.AvgState_sump := sum_0_0
+    }
+    {
+      var p1_34: Bool
+      var p2_34: Bool
+      var p3_15: Bool
+      var p4_15: Bool
+      p1_34 := p1_31 &&
+        perm(_MaySet(self_6, 34170804789105388664178308673)) > none
+      p2_34 := p2_31 &&
+        perm(_MaySet_0(self_6_0, 34170804789105388664178308673)) > none
+      p3_15 := p1_31 &&
+        !(perm(_MaySet(self_6, 34170804789105388664178308673)) > none)
+      p4_15 := p2_31 &&
+        !(perm(_MaySet_0(self_6_0, 34170804789105388664178308673)) > none)
+      if (p1_34) {
+        exhale acc(_MaySet(self_6, 34170804789105388664178308673), write)
+        inhale acc(self_6.AvgState_min, write)
+      }
+      if (p2_34) {
+        exhale acc(_MaySet_0(self_6_0, 34170804789105388664178308673), write)
+        inhale acc(self_6_0.AvgState_minp, write)
+      }
+    }
+    if (p1_31) {
+      self_6.AvgState_min := min_2
+    }
+    if (p2_31) {
+      self_6_0.AvgState_minp := min_2_0
+    }
+    exhale true
+  }
+}
+
+method Lock___init__(p1_35: Bool, p2_35: Bool, self_2: Ref, self_2_0: Ref, locked_object: Ref,
+  locked_object_0: Ref, above: Ref, above_0: Ref, below: Ref, below_0: Ref)
+  requires (p1_35 ==> self_2 != null) && (p2_35 ==> self_2_0 != null)
+  requires (p1_35 ==>
+    issubtype(typeof(self_2), Lock(Lock_arg(typeof(self_2), 0)))) &&
+    (p2_35 ==>
+    issubtype(typeof(self_2_0), Lock(Lock_arg(typeof(self_2_0), 0))))
+  requires (p1_35 ==>
+    issubtype(typeof(locked_object), Lock_arg(typeof(self_2), 0))) &&
+    (p2_35 ==>
+    issubtype(typeof(locked_object_0), Lock_arg(typeof(self_2_0), 0)))
+  requires (p1_35 ==> above == null || issubtype(typeof(above), BaseLock())) &&
+    (p2_35 ==> above_0 == null || issubtype(typeof(above_0), BaseLock()))
+  requires (p1_35 ==> below == null || issubtype(typeof(below), BaseLock())) &&
+    (p2_35 ==> below_0 == null || issubtype(typeof(below_0), BaseLock()))
+  requires (p1_35 ==> issubtype(Lock_arg(typeof(self_2), 0), object())) &&
+    (p2_35 ==> issubtype(Lock_arg(typeof(self_2_0), 0), object()))
+  requires (p1_35 ==> self_2 != null) && (p2_35 ==> self_2_0 != null)
+  requires (p1_35 ==> [true, true]) && (p2_35 ==> [true, true])
+  requires (p1_35 ==> above == null && below != null ==> true) &&
+    (p2_35 ==> above_0 == null && below_0 != null ==> true)
+  requires (p1_35 ==>
+    above != null && below != null ==> Level(above) < Level(below)) &&
+    (p2_35 ==>
+    above_0 != null && below_0 != null ==> Level(above_0) < Level(below_0))
+  requires (p1_35 ==> acc(Lock_invariant(self_2), write)) &&
+    (p2_35 ==> acc(Lock_invariant_0(self_2_0), write)) &&
+    (p1_35 && p2_35 ==> Lock_invariant_low(self_2, self_2_0))
+  ensures (p1_35 ==> above == null ==> true) &&
+    (p2_35 ==> above_0 == null ==> true)
+  ensures (p1_35 ==> above != null ==> Level(above) < Level(self_2)) &&
+    (p2_35 ==> above_0 != null ==> Level(above_0) < Level(self_2_0))
+  ensures (p1_35 ==> below != null ==> Level(self_2) < Level(below)) &&
+    (p2_35 ==> below_0 != null ==> Level(self_2_0) < Level(below_0))
+{
+  inhale p1_35
+  if (p1_35) {
+    inhale typeof(self_2) == Lock(Lock_arg(typeof(self_2), 0))
+    inhale false
+  }
+  if (p2_35) {
+    inhale typeof(self_2_0) == Lock(Lock_arg(typeof(self_2_0), 0))
+    inhale false
+  }
+}
+
+method Lock_acquire(p1_36: Bool, p2_36: Bool, self_3: Ref, self_3_0: Ref)
+  requires (p1_36 ==>
+    issubtype(typeof(self_3), Lock(Lock_arg(typeof(self_3), 0)))) &&
+    (p2_36 ==>
+    issubtype(typeof(self_3_0), Lock(Lock_arg(typeof(self_3_0), 0))))
+  requires (p1_36 ==> issubtype(Lock_arg(typeof(self_3), 0), object())) &&
+    (p2_36 ==> issubtype(Lock_arg(typeof(self_3_0), 0), object()))
+  requires (p1_36 ==> self_3 != null) && (p2_36 ==> self_3_0 != null)
+  requires (p1_36 ==> [true, true]) && (p2_36 ==> [true, true])
+  requires (p1_36 ==> true) && (p2_36 ==> true)
+  requires p1_36 && p2_36 ==> self_3 == self_3_0
+  requires (p1_36 ==> true) && (p2_36 ==> true)
+  ensures (p1_36 ==> acc(Lock_invariant(self_3), write)) &&
+    (p2_36 ==> acc(Lock_invariant_0(self_3_0), write)) &&
+    [typeof(self_3) == typeof(self_3_0) ==>
+    p1_36 && p2_36 ==> Lock_invariant_low(self_3, self_3_0),
+    p1_36 && p2_36 ==> Lock_invariant_low(self_3, self_3_0)]
+  ensures (p1_36 ==>
+    [acc(self_3.MustReleaseUnbounded, write),
+    acc(self_3.MustReleaseUnbounded, write)]) &&
+    (p2_36 ==>
+    [acc(self_3_0.MustReleaseUnboundedp, write),
+    acc(self_3_0.MustReleaseUnboundedp, write)])
+{
+  inhale p1_36
+  if (p1_36) {
+    inhale typeof(self_3) == Lock(Lock_arg(typeof(self_3), 0))
+    inhale false
+  }
+  if (p2_36) {
+    inhale typeof(self_3_0) == Lock(Lock_arg(typeof(self_3_0), 0))
+    inhale false
+  }
+}
+
+method Lock_release(p1_37: Bool, p2_37: Bool, self_4: Ref, self_4_0: Ref)
+  requires (p1_37 ==>
+    issubtype(typeof(self_4), Lock(Lock_arg(typeof(self_4), 0)))) &&
+    (p2_37 ==>
+    issubtype(typeof(self_4_0), Lock(Lock_arg(typeof(self_4_0), 0))))
+  requires (p1_37 ==> issubtype(Lock_arg(typeof(self_4), 0), object())) &&
+    (p2_37 ==> issubtype(Lock_arg(typeof(self_4_0), 0), object()))
+  requires (p1_37 ==> self_4 != null) && (p2_37 ==> self_4_0 != null)
+  requires (p1_37 ==> [true, true]) && (p2_37 ==> [true, true])
+  requires (p1_37 ==>
+    [acc(self_4.MustReleaseBounded, write),
+    (perm(self_4.MustReleaseBounded) > none ?
+      acc(self_4.MustReleaseBounded, write) :
+      acc(self_4.MustReleaseUnbounded, write))]) &&
+    (p2_37 ==>
+    [acc(self_4_0.MustReleaseBoundedp, write),
+    (perm(self_4_0.MustReleaseBoundedp) > none ?
+      acc(self_4_0.MustReleaseBoundedp, write) :
+      acc(self_4_0.MustReleaseUnboundedp, write))])
+  requires (p1_37 ==> acc(Lock_invariant(self_4), write)) &&
+    (p2_37 ==> acc(Lock_invariant_0(self_4_0), write)) &&
+    (p1_37 && p2_37 ==> Lock_invariant_low(self_4, self_4_0))
+  requires p1_37 && p2_37 ==> self_4 == self_4_0
+  requires (p1_37 ==> true) && (p2_37 ==> true)
+{
+  inhale p1_37
+  if (p1_37) {
+    inhale typeof(self_4) == Lock(Lock_arg(typeof(self_4), 0))
+    inhale false
+  }
+  if (p2_37) {
+    inhale typeof(self_4_0) == Lock(Lock_arg(typeof(self_4_0), 0))
+    inhale false
+  }
+}
+
+method main(p1_38: Bool, p2_38: Bool)
+{
+  inhale p1_38
+  {
+    var module_defined_0: Bool
+    var module_defined_0_0: Bool
+    var module_names_0: Set[_Name]
+    var module_names_0_0: Set[_Name]
+    var module_defined_1: Bool
+    var module_defined_1_0: Bool
+    var module_names_1: Set[_Name]
+    var module_names_1_0: Set[_Name]
+    var _err: Ref
+    var _err_13: Ref
+    if (p1_38) {
+      module_defined_0 := true
+      module_names_0 := Set[_Name]()
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._val, 99 / 100) &&
+        issubtype(typeof(__file__()._val), str()) &&
+        issubtype(typeof(__file__()._val), str())
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._val, 99 / 100) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+      module_defined_1 := false
+      module_names_1 := Set[_Name]()
+      module_names_1 := (module_names_1 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file___0()._val, 99 / 100) &&
+        issubtype(typeof(__file___0()._val), str()) &&
+        issubtype(typeof(__file___0()._val), str())
+      module_names_1 := (module_names_1 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name___0()._val, 99 / 100) &&
+        issubtype(typeof(__name___0()._val), str()) &&
+        issubtype(typeof(__name___0()._val), str()) &&
+        !str___eq__(str___create__(8, 6872332955275845471), __name___0()._val)
+      _err := null
+    }
+    if (p2_38) {
+      module_defined_0_0 := true
+      module_names_0_0 := Set[_Name]()
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._valp, 99 / 100) &&
+        issubtype(typeof(__file__()._valp), str()) &&
+        issubtype(typeof(__file__()._valp), str())
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._valp, 99 / 100) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._valp)
+      module_defined_1_0 := false
+      module_names_1_0 := Set[_Name]()
+      module_names_1_0 := (module_names_1_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file___0()._valp, 99 / 100) &&
+        issubtype(typeof(__file___0()._valp), str()) &&
+        issubtype(typeof(__file___0()._valp), str())
+      module_names_1_0 := (module_names_1_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name___0()._valp, 99 / 100) &&
+        issubtype(typeof(__name___0()._valp), str()) &&
+        issubtype(typeof(__name___0()._valp), str()) &&
+        !str___eq__(str___create__(8, 6872332955275845471), __name___0()._valp)
+      _err_13 := null
+    }
+    {
+      var p1_39: Bool
+      var p2_39: Bool
+      var p3_16: Bool
+      var p4_16: Bool
+      p1_39 := p1_38 && !module_defined_1
+      p2_39 := p2_38 && !module_defined_1_0
+      p3_16 := p1_38 && !!module_defined_1
+      p4_16 := p2_38 && !!module_defined_1_0
+      if (p1_39) {
+        module_defined_1 := true
+        module_names_1 := (module_names_1 union
+          Set(_single(27981962743276871)))
+        module_names_1 := (module_names_1 union
+          Set(_single(7809644653626814543)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32195171041966420)))
+        module_names_1 := (module_names_1 union
+          Set(_single(37578771102893684825896415043)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32481164592901701)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32481125787004233)))
+        module_names_1 := (module_names_1 union Set(_single(7827276)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8389754714483814220)))
+        module_names_1 := (module_names_1 union
+          Set(_single(1871507244730112373328)))
+        module_names_1 := (module_names_1 union Set(_single(1701999952)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8315178084276987218)))
+        module_names_1 := (module_names_1 union
+          Set(_single(7738150958662902082)))
+        module_names_1 := (module_names_1 union Set(_single(465558725964)))
+        module_names_1 := (module_names_1 union
+          Set(_single(122646376569110405802325325)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8038062462289584464661321053517)))
+        module_names_1 := (module_names_1 union
+          Set(_single(1999559502384759136599)))
+      }
+      if (p2_39) {
+        module_defined_1_0 := true
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(27981962743276871)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(7809644653626814543)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32195171041966420)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(37578771102893684825896415043)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32481164592901701)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32481125787004233)))
+        module_names_1_0 := (module_names_1_0 union Set(_single(7827276)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8389754714483814220)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1871507244730112373328)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1701999952)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8315178084276987218)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(7738150958662902082)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(465558725964)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(122646376569110405802325325)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8038062462289584464661321053517)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1999559502384759136599)))
+      }
+      assert (p1_39 ==> true) && (p2_39 ==> true) &&
+        ((p1_39 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_39 ==> (_single(7738150958662902082) in module_names_1_0))) &&
+        ((p1_39 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_39 ==> (_single(7738150958662902082) in module_names_1_0)))
+      assert (p1_39 ==> true) && (p2_39 ==> true) &&
+        ((p1_39 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_39 ==> (_single(7738150958662902082) in module_names_1_0)))
+      if (p1_39) {
+        module_names_1 := (module_names_1 union
+          Set(_single(6872339552563453791)))
+        module_names_1 := (module_names_1 union
+          Set(_single(474107507589505187341671)))
+        module_names_1 := (module_names_1 union
+          Set(_single(28554769915274081)))
+        module_names_1 := (module_names_1 union
+          Set(_single(28555834798400882)))
+        module_names_1 := (module_names_1 union Set(_single(1801678668)))
+      }
+      if (p2_39) {
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(6872339552563453791)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(474107507589505187341671)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(28554769915274081)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(28555834798400882)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1801678668)))
+      }
+    }
+    assert (p1_38 ==> (_single(1801678668) in module_names_1)) &&
+      (p2_38 ==> (_single(1801678668) in module_names_1_0))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union Set(_single(1801678668)))
+      module_names_0 := (module_names_0 union Set(_single(435611006292)))
+      module_names_0 := (module_names_0 union
+        Set(_single(573295510866604016756068)))
+      module_names_0 := (module_names_0 union
+        Set(_single(912133581252688835425)))
+      module_names_0 := (module_names_0 union
+        Set(_single(1003456373196571213548999491415908)))
+      module_names_0 := (module_names_0 union
+        Set(_single(930580325326398387041)))
+      module_names_0 := (module_names_0 union
+        Set(_single(1023738782800222883972946742701924)))
+      module_names_0 := (module_names_0 union
+        Set(_single(10575435567562817495913941383149432217166195)))
+      module_names_0 := (module_names_0 union
+        Set(_single(8243121640920806241)))
+      module_names_0 := (module_names_0 union
+        Set(_single(9618302617639362775584178401124)))
+      module_names_0 := (module_names_0 union
+        Set(_single(10892586820161374539732773311108517355807329403962276897851130736484)))
+      module_names_0 := (module_names_0 union
+        Set(_single(10577590996245778672801643596950776746924284420175390052)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7305790164731653993)))
+      module_names_0 := (module_names_0 union
+        Set(_single(35094452449485077488884215657)))
+      module_names_0 := (module_names_0 union
+        Set(_single(287578684770619948227599001067183771051834630515)))
+      module_names_0 := (module_names_0 union
+        Set(_single(45036460533036544044394775719153328434468613146435955)))
+      module_names_0 := (module_names_0 union
+        Set(_single(949027069400107938657)))
+      module_names_0 := (module_names_0 union
+        Set(_single(1044021192403874554396893993987940)))
+      module_names_0 := (module_names_0 union
+        Set(_single(39604874877655458763918610043830492690017)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union
+        Set(_single(7310575247372547649)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union Set(_single(1801678668)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(435611006292)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(573295510866604016756068)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(912133581252688835425)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1003456373196571213548999491415908)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(930580325326398387041)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1023738782800222883972946742701924)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(10575435567562817495913941383149432217166195)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(8243121640920806241)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(9618302617639362775584178401124)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(10892586820161374539732773311108517355807329403962276897851130736484)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(10577590996245778672801643596950776746924284420175390052)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7305790164731653993)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(35094452449485077488884215657)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(287578684770619948227599001067183771051834630515)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(45036460533036544044394775719153328434468613146435955)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(949027069400107938657)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1044021192403874554396893993987940)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(39604874877655458763918610043830492690017)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(7310575247372547649)))
+    }
+    assert (p1_38 ==> true) && (p2_38 ==> true) &&
+      ((p1_38 ==> (_single(1801678668) in module_names_0)) &&
+      (p2_38 ==> (_single(1801678668) in module_names_0_0)))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union
+        Set(_single(1980966645417719723091)))
+      inhale DUMMY() == __prim__int___box__(1)
+      module_names_0 := (module_names_0 union Set(_single(383549003076)))
+      module_names_0 := (module_names_0 union
+        Set(_single(599476202736343488281637352855465827)))
+      module_names_0 := (module_names_0 union
+        Set(_single(659041240314954131206636690090726746232718258019)))
+      module_names_0 := (module_names_0 union Set(_single(1836413811)))
+      module_names_0 := (module_names_0 union
+        Set(_single(4395219171465667791095113585170463599326817)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1980966645417719723091)))
+      inhale DUMMY() == __prim__int___box__(1)
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(383549003076)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(599476202736343488281637352855465827)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(659041240314954131206636690090726746232718258019)))
+      module_names_0_0 := (module_names_0_0 union Set(_single(1836413811)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(4395219171465667791095113585170463599326817)))
+    }
+    assert (p1_38 ==> true) && (p2_38 ==> true) &&
+      ((p1_38 ==> (_single(7310575247372547649) in module_names_0)) &&
+      (p2_38 ==> (_single(7310575247372547649) in module_names_0_0)))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union
+        Set(_single(45421149903637499570566991871087816853697578922374753)))
+      module_names_0 := (module_names_0 union
+        Set(_single(9226812518899656849785499383393)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(45421149903637499570566991871087816853697578922374753)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(9226812518899656849785499383393)))
+    }
+    assert (p1_38 ==> true) && (p2_38 ==> true) &&
+      ((p1_38 ==> (_single(1980966645417719723091) in module_names_0)) &&
+      (p2_38 ==> (_single(1980966645417719723091) in module_names_0_0))) &&
+      ((p1_38 ==> (_single(7310575247372547649) in module_names_0)) &&
+      (p2_38 ==> (_single(7310575247372547649) in module_names_0_0)))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union
+        Set(_single(2035957488425858887873303868307041)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(2035957488425858887873303868307041)))
+    }
+    assert (p1_38 ==> true) && (p2_38 ==> true) &&
+      ((p1_38 ==> (_single(7310575247372547649) in module_names_0)) &&
+      (p2_38 ==> (_single(7310575247372547649) in module_names_0_0))) &&
+      ((p1_38 ==> (_single(1980966645417719723091) in module_names_0)) &&
+      (p2_38 ==> (_single(1980966645417719723091) in module_names_0_0)))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union
+        Set(_single(8744370828835362445278917846070123116852833)))
+      module_names_0 := (module_names_0 union
+        Set(_single(724353309937404578825258541069863331726820552900843793774177)))
+      module_names_0 := (module_names_0 union
+        Set(_single(185434447343975572173522557716670883269598010956565868676871777)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(8744370828835362445278917846070123116852833)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(724353309937404578825258541069863331726820552900843793774177)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(185434447343975572173522557716670883269598010956565868676871777)))
+    }
+    assert (p1_38 ==> true) && (p2_38 ==> true) &&
+      ((p1_38 ==> (_single(7310575247372547649) in module_names_0)) &&
+      (p2_38 ==> (_single(7310575247372547649) in module_names_0_0))) &&
+      ((p1_38 ==> (_single(1980966645417719723091) in module_names_0)) &&
+      (p2_38 ==> (_single(1980966645417719723091) in module_names_0_0)))
+    if (p1_38) {
+      module_names_0 := (module_names_0 union
+        Set(_single(8744370828835362451370550184781886341477985)))
+    }
+    if (p2_38) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(8744370828835362451370550184781886341477985)))
+    }
+    exhale true
+  }
+}
+
+method invariant_invariantframe_check(p1_40: Bool, p2_40: Bool, self_5: Ref,
+  self_5_1: Ref)
+  requires (p1_40 ==> true) && (p2_40 ==> true) &&
+    ((p1_40 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_40 ==>
+    issubtype(typeof(self_5_1), Lock(Lock_arg(typeof(self_5_1), 0)))))
+  requires (p1_40 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_40 ==>
+    issubtype(typeof(self_5_1), Lock(Lock_arg(typeof(self_5_1), 0))))
+  requires (p1_40 ==> true) && (p2_40 ==> true) &&
+    ((p1_40 ==> true) && (p2_40 ==> true))
+
+
+method invariant_invariantframe_check_0(p1_41: Bool, p2_41: Bool, self_5: Ref,
+  self_5_2: Ref)
+  requires (p1_41 ==> true) && (p2_41 ==> true) &&
+    ((p1_41 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_41 ==>
+    issubtype(typeof(self_5_2), Lock(Lock_arg(typeof(self_5_2), 0)))))
+  requires (p1_41 ==> issubtype(typeof(self_5), StateLock())) &&
+    (p2_41 ==> issubtype(typeof(self_5_2), StateLock()))
+  requires (p1_41 ==> true) && (p2_41 ==> true) &&
+    ((p1_41 ==> acc(consumed_inputs(), write)) &&
+    (p2_41 ==> acc(consumed_inputs_0(), write)) &&
+    (p1_41 && p2_41 ==> consumed_inputs_low()) &&
+    ((p1_41 ==> acc(Lock_get_locked(self_5).AvgState_count, write)) &&
+    (p2_41 ==> acc(Lock_get_locked(self_5_2).AvgState_countp, write)) &&
+    ((p1_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5).AvgState_count), int())) &&
+    (p2_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5_2).AvgState_countp), int()))) &&
+    ((p1_41 ==>
+    int___ge__(int___unbox__(Lock_get_locked(self_5).AvgState_count), 0)) &&
+    (p2_41 ==>
+    int___ge__(int___unbox__(Lock_get_locked(self_5_2).AvgState_countp), 0)) &&
+    ((p1_41 && p2_41 ==>
+    Lock_get_locked(self_5).AvgState_count ==
+    Lock_get_locked(self_5_2).AvgState_countp) &&
+    ((p1_41 ==> int() == typeof(Lock_get_locked(self_5).AvgState_count)) &&
+    (p2_41 ==> int() == typeof(Lock_get_locked(self_5_2).AvgState_countp)) &&
+    ((p1_41 ==> acc(Lock_get_locked(self_5).AvgState_min, write)) &&
+    (p2_41 ==> acc(Lock_get_locked(self_5_2).AvgState_minp, write)) &&
+    ((p1_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5).AvgState_min), int())) &&
+    (p2_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5_2).AvgState_minp), int()))) &&
+    ((p1_41 ==>
+    int___gt__(int___unbox__(Lock_get_locked(self_5).AvgState_min), 0)) &&
+    (p2_41 ==>
+    int___gt__(int___unbox__(Lock_get_locked(self_5_2).AvgState_minp), 0)) &&
+    ((p1_41 && p2_41 ==>
+    Lock_get_locked(self_5).AvgState_min ==
+    Lock_get_locked(self_5_2).AvgState_minp) &&
+    ((p1_41 ==> acc(Lock_get_locked(self_5).AvgState_sum, write)) &&
+    (p2_41 ==> acc(Lock_get_locked(self_5_2).AvgState_sump, write)) &&
+    ((p1_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5).AvgState_sum), int())) &&
+    (p2_41 ==>
+    issubtype(typeof(Lock_get_locked(self_5_2).AvgState_sump), int()))) &&
+    ((p1_41 ==> int() == typeof(Lock_get_locked(self_5).AvgState_sum)) &&
+    (p2_41 ==> int() == typeof(Lock_get_locked(self_5_2).AvgState_sump)) &&
+    ((p1_41 ==>
+    acc(avg_state_correct(Lock_get_locked(self_5).AvgState_sum, Lock_get_locked(self_5).AvgState_count,
+    consumed_inputs_inps()), write)) &&
+    (p2_41 ==>
+    acc(avg_state_correct_0(Lock_get_locked(self_5_2).AvgState_sump, Lock_get_locked(self_5_2).AvgState_countp,
+    consumed_inputs_inps_0()), write)) &&
+    (p1_41 && p2_41 ==>
+    avg_state_correct_low(Lock_get_locked(self_5).AvgState_sum, Lock_get_locked(self_5).AvgState_count,
+    consumed_inputs_inps(), Lock_get_locked(self_5_2).AvgState_sump, Lock_get_locked(self_5_2).AvgState_countp,
+    consumed_inputs_inps_0())))))))))))))

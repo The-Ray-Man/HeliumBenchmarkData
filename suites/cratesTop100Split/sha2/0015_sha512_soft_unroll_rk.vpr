@@ -1,0 +1,955 @@
+domain MetadataCast  {
+  
+  function metadata_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom metadata_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { metadata_cast(input, same, same) }
+      metadata_cast(input, same, same) == input)
+  }
+}
+
+domain UnsizeValueCast  {
+  
+  function unsize_value_cast(arg0: s_Param, arg1: Type, arg2: Type): s_Param 
+  
+  axiom unsize_value_cast_eq {
+    (forall input: s_Param, same: Type ::
+      { unsize_value_cast(input, same, same) }
+      unsize_value_cast(input, same, same) == input)
+  }
+}
+
+domain MetadataCastArraySlice  {
+  
+  axiom metadata_cast_array_slice {
+    (forall input: s_Param, U$1: Type, M$0: s_UInt_usize ::
+      { metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) }
+      metadata_cast(input, s_Array_type(U$1, M$0), s_Slice_type(U$1)) ==
+      make_generic_s_UInt_usize(M$0))
+  }
+}
+
+domain UnsizeValueCastArraySlice  {
+  
+  axiom unsize_value_cast_array_slice {
+    (forall arr: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { unsize_value_cast(make_generic_s_Array(arr, U$1, M$0), s_Array_type(U$1, M$0),
+      s_Slice_type(U$1)) }
+      (forall idx: Int ::
+        { s_Array_index(arr, idx) }
+        s_Array_index(arr, idx) ==
+        s_Slice_index(unsize_value_cast(make_generic_s_Array(arr, U$1, M$0),
+        s_Array_type(U$1, M$0), s_Slice_type(U$1)).make_concrete_s_Slice, idx)))
+  }
+}
+
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain ParamTyp_make_generic_s_Slice  {
+  
+  axiom s_Param_typ_def_make_generic_s_Slice {
+    (forall x: s_Slice, T$0: Type ::
+      { make_generic_s_Slice(x, T$0) }
+      s_Param_typ(make_generic_s_Slice(x, T$0)) == s_Slice_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Slice {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Slice, s_Param_typ(p) }
+      s_Param_typ(p) == s_Slice_type(s_Param_typ(p).s_Slice_typaram_T$0) ==>
+      make_generic_s_Slice(p.make_concrete_s_Slice, s_Param_typ(p).s_Slice_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Array  {
+  
+  axiom s_Param_typ_def_make_generic_s_Array {
+    (forall x: s_Array, U$1: Type, M$0: s_UInt_usize ::
+      { make_generic_s_Array(x, U$1, M$0) }
+      s_Param_typ(make_generic_s_Array(x, U$1, M$0)) ==
+      s_Array_type(U$1, M$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Array {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Array, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Array_type(s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==>
+      make_generic_s_Array(p.make_concrete_s_Array, s_Param_typ(p).s_Array_typaram_U$1, s_Param_typ(p).s_Array_constparam_M$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u64  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u64 {
+    (forall x: s_UInt_u64 ::
+      { make_generic_s_UInt_u64(x) }
+      s_Param_typ(make_generic_s_UInt_u64(x)) == s_UInt_u64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u64, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u64_type() ==>
+      make_generic_s_UInt_u64(p.make_concrete_s_UInt_u64) == p)
+  }
+}
+
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Slice  {
+  
+  function s_Slice_index(arg0: s_Slice, arg1: Int): s_Param 
+  
+  function s_Slice_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Slice {
+    (forall T$0: Type ::
+      { inhabited(s_Slice_type(T$0)) }
+      inhabited(s_Slice_type(T$0)) == true)
+  }
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Slice  {
+  
+  axiom s_Slice_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)))
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+field p_UInt_u64_val: s_UInt_u64
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+function mir_cast_unsize_Ref_immutable_to_Ref_immutable(arg: s_Ref_immutable,
+  U$0: Type, V$1: Type): s_Ref_immutable
+{
+  s_Ref_immutable_cons(arg.s_Ref_immutable_0, metadata_cast(arg.s_Ref_immutable_1,
+  U$0, V$1), unsize_value_cast(arg.s_Ref_immutable_2, U$0, V$1))
+}
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Slice_unreachable(T$0: Type): s_Slice
+  ensures false
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Slice_index_frame(self: Ref, index: Int, T$0: Type): s_Slice
+  requires acc(p_Slice_index(self, index, T$0), write)
+
+
+function p_Slice_snap(self: Ref, T$0: Type): s_Slice
+  requires acc(p_Slice(self, T$0), write)
+
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function const_35_16_0(): s_Array
+  ensures s_UInt_u64_cons(4794697086780616226) ==
+    s_Array_index(result, 0).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8158064640168781261) ==
+    s_Array_index(result, 1).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(13096744586834688815) ==
+    s_Array_index(result, 2).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(16840607885511220156) ==
+    s_Array_index(result, 3).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(4131703408338449720) ==
+    s_Array_index(result, 4).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6480981068601479193) ==
+    s_Array_index(result, 5).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(10538285296894168987) ==
+    s_Array_index(result, 6).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(12329834152419229976) ==
+    s_Array_index(result, 7).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(15566598209576043074) ==
+    s_Array_index(result, 8).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1334009975649890238) ==
+    s_Array_index(result, 9).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2608012711638119052) ==
+    s_Array_index(result, 10).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6128411473006802146) ==
+    s_Array_index(result, 11).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8268148722764581231) ==
+    s_Array_index(result, 12).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(9286055187155687089) ==
+    s_Array_index(result, 13).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(11230858885718282805) ==
+    s_Array_index(result, 14).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(13951009754708518548) ==
+    s_Array_index(result, 15).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(16472876342353939154) ==
+    s_Array_index(result, 16).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(17275323862435702243) ==
+    s_Array_index(result, 17).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1135362057144423861) ==
+    s_Array_index(result, 18).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2597628984639134821) ==
+    s_Array_index(result, 19).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(3308224258029322869) ==
+    s_Array_index(result, 20).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(5365058923640841347) ==
+    s_Array_index(result, 21).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6679025012923562964) ==
+    s_Array_index(result, 22).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8573033837759648693) ==
+    s_Array_index(result, 23).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(10970295158949994411) ==
+    s_Array_index(result, 24).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(12119686244451234320) ==
+    s_Array_index(result, 25).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(12683024718118986047) ==
+    s_Array_index(result, 26).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(13788192230050041572) ==
+    s_Array_index(result, 27).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(14330467153632333762) ==
+    s_Array_index(result, 28).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(15395433587784984357) ==
+    s_Array_index(result, 29).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(489312712824947311) ==
+    s_Array_index(result, 30).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1452737877330783856) ==
+    s_Array_index(result, 31).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2861767655752347644) ==
+    s_Array_index(result, 32).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(3322285676063803686) ==
+    s_Array_index(result, 33).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(5560940570517711597) ==
+    s_Array_index(result, 34).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(5996557281743188959) ==
+    s_Array_index(result, 35).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(7280758554555802590) ==
+    s_Array_index(result, 36).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8532644243296465576) ==
+    s_Array_index(result, 37).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(9350256976987008742) ==
+    s_Array_index(result, 38).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(10552545826968843579) ==
+    s_Array_index(result, 39).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(11727347734174303076) ==
+    s_Array_index(result, 40).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(12113106623233404929) ==
+    s_Array_index(result, 41).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(14000437183269869457) ==
+    s_Array_index(result, 42).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(14369950271660146224) ==
+    s_Array_index(result, 43).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(15101387698204529176) ==
+    s_Array_index(result, 44).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(15463397548674623760) ==
+    s_Array_index(result, 45).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(17586052441742319658) ==
+    s_Array_index(result, 46).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1182934255886127544) ==
+    s_Array_index(result, 47).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1847814050463011016) ==
+    s_Array_index(result, 48).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2177327727835720531) ==
+    s_Array_index(result, 49).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2830643537854262169) ==
+    s_Array_index(result, 50).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(3796741975233480872) ==
+    s_Array_index(result, 51).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(4115178125766777443) ==
+    s_Array_index(result, 52).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(5681478168544905931) ==
+    s_Array_index(result, 53).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6601373596472566643) ==
+    s_Array_index(result, 54).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(7507060721942968483) ==
+    s_Array_index(result, 55).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8399075790359081724) ==
+    s_Array_index(result, 56).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(8693463985226723168) ==
+    s_Array_index(result, 57).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(9568029438360202098) ==
+    s_Array_index(result, 58).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(10144078919501101548) ==
+    s_Array_index(result, 59).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(10430055236837252648) ==
+    s_Array_index(result, 60).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(11840083180663258601) ==
+    s_Array_index(result, 61).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(13761210420658862357) ==
+    s_Array_index(result, 62).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(14299343276471374635) ==
+    s_Array_index(result, 63).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(14566680578165727644) ==
+    s_Array_index(result, 64).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(15097957966210449927) ==
+    s_Array_index(result, 65).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(16922976911328602910) ==
+    s_Array_index(result, 66).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(17689382322260857208) ==
+    s_Array_index(result, 67).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(500013540394364858) ==
+    s_Array_index(result, 68).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(748580250866718886) ==
+    s_Array_index(result, 69).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1242879168328830382) ==
+    s_Array_index(result, 70).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(1977374033974150939) ==
+    s_Array_index(result, 71).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(2944078676154940804) ==
+    s_Array_index(result, 72).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(3659926193048069267) ==
+    s_Array_index(result, 73).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(4368137639120453308) ==
+    s_Array_index(result, 74).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(4836135668995329356) ==
+    s_Array_index(result, 75).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(5532061633213252278) ==
+    s_Array_index(result, 76).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6448918945643986474) ==
+    s_Array_index(result, 77).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(6902733635092675308) ==
+    s_Array_index(result, 78).make_concrete_s_UInt_u64
+  ensures s_UInt_u64_cons(7801388544844847127) ==
+    s_Array_index(result, 79).make_concrete_s_UInt_u64
+
+
+function addr_to_ref(arg: Int): Ref
+
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Slice(self: Ref, T$0: Type) 
+
+predicate p_Slice_index(self: Ref, index: Int, T$0: Type) 
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+method m_sha512$col$$col$soft$col$$col$unroll$col$$col$rk(_0p: Ref, _1p: Ref)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  ensures inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_0p), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb2_to_bb3: Bool
+  var _tmp0: s_Ref_immutable
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_RawPtr_immutable
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  _from_bb2_to_bb3 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  p_Ref_immutable_assign(_9p, s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80)),
+    s_Ref_immutable_cons(addr_to_ref(6954422515788500959232), make_generic_s_0_Tuple(s_0_Tuple_cons()), make_generic_s_Array(const_35_16_0(), s_UInt_u64_type(), s_UInt_usize_cons(80))))
+  label _before_0_5
+  p_Ref_immutable_assign(_5p, s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80)),
+    s_Ref_immutable_cons(p_Ref_immutable_snap(_9p, s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80))).s_Ref_immutable_0, make_generic_s_0_Tuple(p_Ref_immutable_snap(_9p,
+    s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80))).s_Ref_immutable_1.make_concrete_s_0_Tuple), make_generic_s_Array(p_Ref_immutable_snap(_9p,
+    s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80))).s_Ref_immutable_2.make_concrete_s_Array, s_UInt_u64_type(), s_UInt_usize_cons(80))))
+  label _before_0_6
+  _tmp0 := p_Ref_immutable_snap(_5p, s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80)))
+  exhale inhabited(s_Ref_immutable_type(s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80)))) &&
+    acc(p_Ref_immutable(_5p, s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80))), write)
+  p_Ref_immutable_assign(_4p, s_Slice_type(s_UInt_u64_type()), mir_cast_unsize_Ref_immutable_to_Ref_immutable(_tmp0,
+    s_Array_type(s_UInt_u64_type(), s_UInt_usize_cons(80)), s_Slice_type(s_UInt_u64_type())))
+  label _before_0_7
+  label _before_0_8
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_ptr(_3p,
+    _4p, s_UInt_u64_type())
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  _tmp1 := p_UInt_usize_snap(_1p)
+  p_UInt_usize_assign(_7p, _tmp1)
+  label _before_1_3
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$add(_2p,
+    _3p, _7p, s_UInt_u64_type())
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label _before_2_2
+  label _before_2_3
+  label _before_2_4
+  _tmp2 := p_RawPtr_immutable_snap(_2p, s_UInt_u64_type())
+  p_RawPtr_immutable_assign(_8p, s_UInt_u64_type(), _tmp2)
+  label _before_2_5
+  goto bb_term_2
+  label bb_term_2
+  label pre4
+  m_core$col$$col$ptr$col$$col$read_volatile(_0p, _8p, s_UInt_u64_type())
+  make_concrete_UInt_u64(_0p)
+  label post5
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  label _before_3_1
+  label _before_3_2
+  label package_post6
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$slice$col$$col$$lt$impl$sp$$lb$T$rb$$gt$$col$$col$as_ptr(_0p: Ref,
+  _1p: Ref, T$0: Type)
+  requires inhabited(s_Ref_immutable_type(s_Slice_type(T$0))) &&
+    acc(p_Ref_immutable(_1p, s_Slice_type(T$0)), write)
+  ensures inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_0p, T$0), write)
+
+
+method m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$add(_0p: Ref,
+  _1p: Ref, _2p: Ref, T$0: Type)
+  requires inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_1p, T$0), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  ensures inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_0p, T$0), write)
+
+
+method m_core$col$$col$ptr$col$$col$read_volatile(_0p: Ref, _1p: Ref, T$0: Type)
+  requires inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_1p, T$0), write)
+  ensures inhabited(T$0) && acc(p_Param(_0p, T$0), write)
+
+
+method make_generic_Slice(self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures old(make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)) ==
+    p_Param_snap(self, s_Slice_type(T$0))
+
+
+method make_concrete_Slice(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures old(p_Param_snap(self, s_Slice_type(T$0))) ==
+    make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)
+
+
+method make_generic_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures old(make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)) ==
+    p_Param_snap(self, s_Array_type(U$1, M$0))
+
+
+method make_concrete_Array(self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Param(self, s_Array_type(U$1, M$0)), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures old(p_Param_snap(self, s_Array_type(U$1, M$0))) ==
+    make_generic_s_Array(p_Array_snap(self, U$1, M$0), U$1, M$0)
+
+
+method make_generic_UInt_u64(self: Ref)
+  requires acc(p_UInt_u64(self), write)
+  ensures acc(p_Param(self, s_UInt_u64_type()), write)
+  ensures old(make_generic_s_UInt_u64(p_UInt_u64_snap(self))) ==
+    p_Param_snap(self, s_UInt_u64_type())
+
+
+method make_concrete_UInt_u64(self: Ref)
+  requires acc(p_Param(self, s_UInt_u64_type()), write)
+  ensures acc(p_UInt_u64(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u64_type())) ==
+    make_generic_s_UInt_u64(p_UInt_u64_snap(self))
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Slice_assign(self: Ref, T$0: Type, value: s_Slice)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures p_Slice_snap(self, T$0) == value
+
+
+method p_Slice_fold_index(index: Int, self: Ref, T$0: Type)
+  requires inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  requires acc(p_Slice_index(self, index, T$0), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures (forall idx: Int ::
+      { s_Slice_index(p_Slice_snap(self, T$0), idx) }
+      s_Slice_index(p_Slice_snap(self, T$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0)) :
+        old(s_Slice_index(p_Slice_index_frame(self, index, T$0), idx))))
+
+
+method p_Slice_unfold_index(index: Int, self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  ensures acc(p_Slice_index(self, index, T$0), write)
+  ensures p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0) ==
+    old(s_Slice_index(p_Slice_snap(self, T$0), index))
+  ensures p_Slice_index_frame(self, index, T$0) ==
+    old(p_Slice_snap(self, T$0))
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+adt s_Param {
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  make_generic_s_Slice(make_concrete_s_Slice: s_Slice, make_generic_s_Slice_typaram_T$0: Type)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_Array(make_concrete_s_Array: s_Array, make_generic_s_Array_typaram_U$1: Type,
+  make_generic_s_Array_constparam_M$0: s_UInt_usize)
+  make_generic_s_UInt_u64(make_concrete_s_UInt_u64: s_UInt_u64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt Type {
+  s_UInt_u64_type()
+  s_UInt_usize_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_0_Tuple_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Slice_type(s_Slice_typaram_T$0: Type)
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  Unknown_type(id: Int)
+}

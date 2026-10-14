@@ -1,0 +1,185 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/array-util.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Multisets of Integers
+domain FlowDom {
+  function fd(m:Multiset[Int]) : FlowDom
+  function ms(f : FlowDom) : Multiset[Int]
+  axiom injective {
+      forall m:Multiset[Int] :: {fd(m)}
+        ms(fd(m)) == m
+  }
+  axiom surjective {
+      forall f:FlowDom :: {ms(f)}
+        fd(ms(f)) == f
+  }
+
+  function fdEq(p1: FlowDom, p2: FlowDom) : Bool
+  axiom fdEqDef1 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      (forall x: Int :: {no_match_int(x)} x in ms(p1) == x in ms(p2))
+      ==> fdEq(p1, p2)
+  }
+  axiom fdEqDef2 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      fdEq(p1, p2)
+      ==> (p1 == p2)
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1, p2)}
+      ms(fdPlus(p1, p2)) == ms(p1) union ms(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    fdZero() == fd(Multiset())
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  function fdLeq(p1:FlowDom, p2:FlowDom) : Bool
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+}
+
+// The fields of a node
+field isSubject : Bool // type information: is this object a subject (or an observer)?
+field val: Int // for both: the value
+field subject: Ref // for observers: the subject an observer is observing (null if none)
+field observers: Array // for subjects: tracking the observers
+field count: Int // for subjects: number of observers (length of observers array)
+field indices: IMap[Ref, Int] // for subjects: observer -> index in observers array (ghost)
+field notifiedInd: Int // for subjects: 0 <= i < notifiedInd are up to date (ghost)
+field oldVal: Int // for subjects: old value (ghost)
+
+// Definition of a node and good condition:
+
+define nodeSpatial(x) acc(x.isSubject) && acc(x.val)
+  && (x.isSubject ?
+        acc(x.observers) && array_Ref(x.observers) && acc(x.count) && acc(x.indices)
+        && acc(x.notifiedInd) && acc(x.oldVal)
+      : acc(x.subject))
+define hrepUnchanged(x)
+  x.isSubject == old(x.isSubject) && x.val == old(x.val)
+  && (x.isSubject ?
+        x.observers == old(x.observers) && unchanged_array_Ref(x.observers) && x.count == old(x.count) && x.indices == old(x.indices)
+        && x.notifiedInd == old(x.notifiedInd) && x.oldVal == old(x.oldVal)
+      : x.subject == old(x.subject))
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom,FlowDom]
+  requires nodeSpatial(x)
+{
+  (x.isSubject && 0 <= select(x.indices, y) && select(x.indices, y) < x.count)
+  ? (select(x.indices, y) < x.notifiedInd
+      ? constMap(fd(Multiset(x.val)))
+      : constMap(fd(Multiset(x.oldVal))))
+    : constMap(fdZero())
+}
+
+
+// Main Invariant. i == sub.count when in good state
+define subObsInv(sub, i, I)
+  sub in dom(I) && sub.isSubject
+  // Some sanity invariants on indices
+  && 0 <= sub.notifiedInd && sub.notifiedInd <= sub.count
+  && sub.count < length(sub.observers)
+  // sub.indices stores indices of sub.observers
+  && (forall x: Ref :: {select(sub.indices, x)}
+    0 <= select(sub.indices, x) && select(sub.indices, x) < sub.count 
+    ==> read_Ref(sub.observers, select(sub.indices, x)) == x)
+  && (forall j: Int :: {read_Ref(sub.observers, j)} 
+    0 <= j && j < sub.count 
+    ==> select(sub.indices, read_Ref(sub.observers, j)) == j)
+  && select(sub.indices, sub) == -1
+  // Data structure is closed
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.subject)}
+    x in dom(I) && !x.isSubject && x.subject != null && trig_gfe(x, x.subject)
+    ==> x.subject in dom(I))
+  && (forall j: Int :: {read_Ref(sub.observers, j)}
+    0 <= j && j < sub.count ==> read_Ref(sub.observers, j) in dom(I))
+  // sub.observers are all observers
+  && (forall j: Int :: {read_Ref(sub.observers, j)} 
+    0 <= j && j < sub.count 
+    ==> !read_Ref(sub.observers, j).isSubject)
+  // Flow tells observers the value of the subject
+  && (forall x: Ref :: {x in dom(I), Iinf(x.intf, x)}
+    x in dom(I) && !x.isSubject ==> fdEq(Iinf(x.intf, x), fd(Multiset(x.val))))
+  // Subject's notifiedInd set is i (sub.count means good state)
+  && sub.notifiedInd == i
+
+
+/* -------------------- Actual methods -------------------- */
+
+method changeValue(this: Ref, value : Int, sub: Ref, X:Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires subObsInv(sub, sub.count, intCompSet(X))
+  //requires this == sub // bug timeout
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures subObsInv(sub, sub.count, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _make_dirty(this)
+  this.oldVal := this.val
+
+  this.val := 0 // bug
+
+  this.notifiedInd := 0
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+
+  var i : Int := 0  
+  while (i < this.count) 
+    invariant forall x: Ref :: {x in X} x in X ==> node(x)
+    invariant subObsInv(sub, sub.notifiedInd, intCompSet(X))
+    invariant sub.val == value && i == sub.notifiedInd
+    invariant 0 <= i && i <= this.count 
+  {
+    // ---- Flows set-up:
+    _pre_code(FP)
+
+    // ---- Actual code:
+
+    var o: Ref
+    o := read_Ref(this.observers, i)
+    _make_dirty(o)
+    o.val := value
+
+    i := i + 1
+
+    _make_dirty(this)
+    this.notifiedInd := this.notifiedInd + 1
+
+    // ---- Post code sync:
+    _post_code_sync(FP, pre_sync)
+  }
+}

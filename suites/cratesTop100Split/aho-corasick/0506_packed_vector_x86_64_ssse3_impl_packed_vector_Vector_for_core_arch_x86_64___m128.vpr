@@ -1,0 +1,557 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Int_i64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Int_i64 {
+    (forall x: s_Int_i64 ::
+      { make_generic_s_Int_i64(x) }
+      s_Param_typ(make_generic_s_Int_i64(x)) == s_Int_i64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Int_i64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Int_i64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Int_i64_type() ==>
+      make_generic_s_Int_i64(p.make_concrete_s_Int_i64) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain s_Int_i32  {
+  
+  function s_Int_i32_cons(arg0: Int): s_Int_i32 
+  
+  function s_Int_i32_value(arg0: s_Int_i32): Int 
+  
+  axiom s_Int_i32_ax_cons {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      s_Int_i32_cons(s_Int_i32_value(s)) == s)
+  }
+  
+  axiom s_Int_i32_ax_bounds {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      -2147483648 <= s_Int_i32_value(s) && s_Int_i32_value(s) <= 2147483647)
+  }
+  
+  axiom s_Int_i32_ax_value {
+    (forall value: Int ::
+      { s_Int_i32_cons(value) }
+      -2147483648 <= value && value <= 2147483647 ==>
+      s_Int_i32_value(s_Int_i32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i {
+    inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) ==
+    inhabited(s_Array_type(s_Int_i64_type(), s_UInt_usize_cons(2)))
+  }
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_packed$col$$col$vector$col$$col$Vector  {
+  
+  function packed$col$$col$vector$col$$col$Vector_assoc_const_packed$col$$col$vector$col$$col$Vector$col$$col$BITS(arg0: Type): s_UInt_usize 
+  
+  function packed$col$$col$vector$col$$col$Vector_assoc_const_packed$col$$col$vector$col$$col$Vector$col$$col$BYTES(arg0: Type): s_UInt_usize 
+  
+  function packed$col$$col$vector$col$$col$Vector_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i  {
+  
+  axiom s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  }
+  
+  axiom s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_packed$col$$col$vector$col$$col$Vector_impl_aho_corasick_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_142_condition  {
+  
+  axiom packed$col$$col$vector$col$$col$Vector_impl_aho_corasick_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_142_condition {
+    packed$col$$col$vector$col$$col$Vector_impl(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  }
+}
+
+field p_Int_i64_val: s_Int_i64
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+function s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_unreachable(): s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  ensures false
+
+
+function s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function s_Int_i32_unreachable(): s_Int_i32
+  ensures false
+
+
+function p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(self: Ref): s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  requires acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write)
+{
+  (unfolding acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write) in
+    s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_cons(p_Array_snap(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self),
+    s_Int_i64_type(), s_UInt_usize_cons(2))))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+predicate p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self: Ref) {
+  inhabited(s_Array_type(s_Int_i64_type(), s_UInt_usize_cons(2))) &&
+  acc(p_Array(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self),
+  s_Int_i64_type(), s_UInt_usize_cons(2)), write)
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+method m_packed$col$$col$vector$col$$col$x86_64_ssse3$col$$col$$lt$impl$sp$packed$col$$col$vector$col$$col$Vector$sp$for$sp$core$col$$col$arch$col$$col$x86_64$col$$col$__m128i$gt$$col$$col$load_unaligned(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_RawPtr_immutable_type(s_UInt_u8_type())) &&
+    acc(p_RawPtr_immutable(_1p, s_UInt_u8_type()), write)
+  ensures inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_0p), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_RawPtr_immutable
+  label start
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_RawPtr_immutable_snap(_1p, s_UInt_u8_type())
+  p_RawPtr_immutable_assign(_3p, s_UInt_u8_type(), _tmp0)
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$cast(_2p,
+    _3p, s_UInt_u8_type(), s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_core$col$$col$arch$col$$col$x86_64$col$$col$_mm_loadu_si128(_0p, _2p)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label package_post4
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$ptr$col$$col$const_ptr$col$$col$$lt$impl$sp$$as$const$sp$T$gt$$col$$col$cast(_0p: Ref,
+  _1p: Ref, T$0: Type, U$1: Type)
+  requires inhabited(s_RawPtr_immutable_type(T$0)) &&
+    acc(p_RawPtr_immutable(_1p, T$0), write)
+  ensures inhabited(s_RawPtr_immutable_type(U$1)) &&
+    acc(p_RawPtr_immutable(_0p, U$1), write)
+
+
+method m_core$col$$col$arch$col$$col$x86_64$col$$col$_mm_loadu_si128(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_RawPtr_immutable_type(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())) &&
+    acc(p_RawPtr_immutable(_1p, s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()), write)
+  ensures inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_0p), write)
+
+
+method make_generic_Int_i64(self: Ref)
+  requires acc(p_Int_i64(self), write)
+  ensures acc(p_Param(self, s_Int_i64_type()), write)
+  ensures old(make_generic_s_Int_i64(p_Int_i64_snap(self))) ==
+    p_Param_snap(self, s_Int_i64_type())
+
+
+method make_concrete_Int_i64(self: Ref)
+  requires acc(p_Param(self, s_Int_i64_type()), write)
+  ensures acc(p_Int_i64(self), write)
+  ensures old(p_Param_snap(self, s_Int_i64_type())) ==
+    make_generic_s_Int_i64(p_Int_i64_snap(self))
+
+
+method p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_assign(self: Ref,
+  value: s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i)
+  ensures acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write)
+  ensures p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(self) ==
+    value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method trait_packed$col$$col$vector$col$$col$Vector_impl_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_142_fn_pre_weaken_packed$col$$col$vector$col$$col$x86_64_ssse3$col$$col$$lt$impl$sp$packed$col$$col$vector$col$$col$Vector$sp$for$sp$core$col$$col$arch$col$$col$x86_64$col$$col$__m128i$gt$$col$$col$load_unaligned(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_RawPtr_immutable_type(s_UInt_u8_type())) &&
+    acc(p_RawPtr_immutable(_1p, s_UInt_u8_type()), write)
+{
+  label start
+}
+
+method trait_packed$col$$col$vector$col$$col$Vector_impl_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_142_fn_post_strengthen_packed$col$$col$vector$col$$col$x86_64_ssse3$col$$col$$lt$impl$sp$packed$col$$col$vector$col$$col$Vector$sp$for$sp$core$col$$col$arch$col$$col$x86_64$col$$col$__m128i$gt$$col$$col$load_unaligned(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_RawPtr_immutable_type(s_UInt_u8_type())) &&
+    acc(p_RawPtr_immutable(_1p, s_UInt_u8_type()), write)
+  requires inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Int_i64(make_concrete_s_Int_i64: s_Int_i64)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i {
+  s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_cons(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_0: s_Array)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt Type {
+  s_Int_i64_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_UInt_u8_type()
+  s_0_Tuple_type()
+  Unknown_type(id: Int)
+}

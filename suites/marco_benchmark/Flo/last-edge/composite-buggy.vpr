@@ -1,0 +1,172 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Composite pattern definitions -------------------- */
+
+// Integers: used to encode the size of the subtree
+domain FlowDom {
+  function fd(j: Int) : FlowDom
+  function ss(f : FlowDom) : Int
+  axiom defn {
+    forall p: FlowDom :: {fd(ss(p))} fd(ss(p)) == p
+  }
+  axiom injective {
+    forall j: Int :: {fd(j)} ss(fd(j)) == j
+  }
+
+  function fdEq(p1: FlowDom, p2: FlowDom) : Bool
+  axiom fdEqDef1 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      ss(p1) == ss(p2) ==> fdEq(p1, p2)
+  }
+  axiom fdEqDef2 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      fdEq(p1, p2) ==> (p1 == p2)
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1, p2)}
+      ss(fdPlus(p1, p2)) == ss(p1) + ss(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    fdZero() == fd(0)
+  }
+}
+
+
+// The fields of a node
+field left: Ref
+field right: Ref
+field parent: Ref
+field total: Int
+
+define nodeSpatial(x) acc(x.left) && acc(x.right) && acc(x.parent) && acc(x.total)
+define hrepUnchanged(x)
+  x.left == old(x.left)
+  && x.right == old(x.right)
+  && x.parent == old(x.parent)
+  && x.total == old(x.total)
+
+// Definition of a node and good condition:
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom, FlowDom]
+  requires nodeSpatial(x)
+{
+  (x != y && x.parent != null && x.parent == y) ?
+    constMap(fd(x.total)) : constMap(fdZero())
+}
+
+define compInv(X)
+  intValid(intCompSet(X))
+  // Data structure is closed
+  && (forall x: Ref :: {x in X, trig_gfe(x, x.parent)}
+    x in X && x.parent != null && trig_gfe(x, x.parent) ==> x.parent in X)
+  // No parent self loops
+  && (forall x: Ref :: {x in X, trig_gfe(x, x.parent)}
+    x in X && trig_gfe(x, x.parent) ==> x != x.parent)
+
+define correctSum(x, err)  // err is the amount total is off by. 0 == good
+  x.total + err == 1 + ss(Iinf(x.intf, x))
+
+
+/* -------------------- Actual composite pattern methods -------------------- */
+
+method addRight(this: Ref, n: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires forall x: Ref :: {x in X} x in X ==> correctSum(x, 0)
+  requires compInv(X)
+  requires this in X && this.right == null && n in X && n.parent == null
+  requires this != n
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures forall x: Ref :: {x in X} x in X ==> correctSum(x, 0)
+  ensures compInv(X)
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _make_dirty(this)
+  this.parent := n // bug
+
+  _make_dirty(n)
+  n.parent := this
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+
+  // ---- Actual code: Fix the sums:
+
+  addToTotal(this, n.total, X)
+}
+
+method addToTotal(this: Ref, amt : Int, X:Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires forall x: Ref :: {x in X} x in X ==> correctSum(x, (x == this ? amt : 0))
+  requires compInv(X)
+  requires this in X
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures forall x: Ref :: {x in X} x in X ==> correctSum(x, 0)
+  ensures compInv(X)
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _make_dirty(this)
+  this.total := this.total + 2*amt // bug
+
+  _field_read(this, this.parent)
+  _make_dirty(this.parent)
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+
+  // ---- Actual code: Fix the sums:
+  if (this.parent != null)
+  {
+    addToTotal(this.parent, amt, X)
+  }
+}

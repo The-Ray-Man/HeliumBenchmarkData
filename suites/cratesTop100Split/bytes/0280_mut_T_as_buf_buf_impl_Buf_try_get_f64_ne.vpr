@@ -1,0 +1,797 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f64 {
+    (forall x: s_Float_f64 ::
+      { make_generic_s_Float_f64(x) }
+      s_Param_typ(make_generic_s_Float_f64(x)) == s_Float_f64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f64_type() ==>
+      make_generic_s_Float_f64(p.make_concrete_s_Float_f64) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_TryGetError  {
+  
+  axiom s_Param_typ_def_make_generic_s_TryGetError {
+    (forall x: s_TryGetError ::
+      { make_generic_s_TryGetError(x) }
+      s_Param_typ(make_generic_s_TryGetError(x)) == s_TryGetError_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_TryGetError {
+    (forall p: s_Param ::
+      { p.make_concrete_s_TryGetError, s_Param_typ(p) }
+      s_Param_typ(p) == s_TryGetError_type() ==>
+      make_generic_s_TryGetError(p.make_concrete_s_TryGetError) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Ref_mutable  {
+  
+  axiom s_Param_typ_def_make_generic_s_Ref_mutable {
+    (forall x: s_Ref_mutable, U$1: Type ::
+      { make_generic_s_Ref_mutable(x, U$1) }
+      s_Param_typ(make_generic_s_Ref_mutable(x, U$1)) ==
+      s_Ref_mutable_type(U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Ref_mutable {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Ref_mutable, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_Ref_mutable_type(s_Param_typ(p).s_Ref_mutable_typaram_U$1) ==>
+      make_generic_s_Ref_mutable(p.make_concrete_s_Ref_mutable, s_Param_typ(p).s_Ref_mutable_typaram_U$1) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$result$col$$col$Result {
+    (forall T$0: Type, E$1: Type ::
+      { inhabited(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)) }
+      inhabited(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)) ==
+      (inhabited(T$0) || inhabited(E$1)))
+  }
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+  
+  axiom inhabited_TryGetError {
+    inhabited(s_TryGetError_type()) ==
+    (inhabited(s_UInt_usize_type()) && inhabited(s_UInt_usize_type()))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_Ref_mutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_mutable_type(U$1)) }
+      inhabited(s_Ref_mutable_type(U$1)) == inhabited(U$1))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_buf$col$$col$buf_impl$col$$col$Buf  {
+  
+  function buf$col$$col$buf_impl$col$$col$Buf_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_core$col$$col$result$col$$col$Result  {
+  
+  axiom s_core$col$$col$result$col$$col$Result_Sized {
+    (forall T$0: Type, E$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)))
+  }
+  
+  axiom s_core$col$$col$result$col$$col$Result_MetaSized {
+    (forall T$0: Type, E$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$result$col$$col$Result_type(T$0, E$1)))
+  }
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain sizedness_TryGetError  {
+  
+  axiom s_TryGetError_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_TryGetError_type())
+  }
+  
+  axiom s_TryGetError_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_TryGetError_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_Ref_mutable  {
+  
+  axiom s_Ref_mutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)))
+  }
+  
+  axiom s_Ref_mutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)))
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_fns_buf$col$$col$buf_impl$col$$col$Buf_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne  {
+  
+  function buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(arg0: s_Ref_mutable,
+  arg1: Type): Bool 
+  
+  function buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(arg0: s_core$col$$col$result$col$$col$Result,
+  arg1: s_Ref_mutable, arg2: Type): Bool 
+  
+  axiom buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne_base {
+    (forall _1s: s_Ref_mutable, Self$0: Type ::
+      { buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_1s,
+      Self$0) }
+      true ==>
+      buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_1s,
+      Self$0))
+  }
+  
+  axiom buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne_base {
+    (forall _0s: s_core$col$$col$result$col$$col$Result, _1s: s_Ref_mutable,
+    Self$0: Type ::
+      { buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0s,
+      _1s, Self$0) }
+      buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0s,
+      _1s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_buf$col$$col$buf_impl$col$$col$Buf_impl_bytes_Ref_mutable_0_condition  {
+  
+  axiom buf$col$$col$buf_impl$col$$col$Buf_impl_bytes_Ref_mutable_0_condition {
+    (forall T$1: Type ::
+      { buf$col$$col$buf_impl$col$$col$Buf_impl(s_Ref_mutable_type(T$1)) }
+      buf$col$$col$buf_impl$col$$col$Buf_impl(T$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      buf$col$$col$buf_impl$col$$col$Buf_impl(s_Ref_mutable_type(T$1)))
+  }
+}
+
+domain trait_buf$col$$col$buf_impl$col$$col$Buf_impl_bytes_Ref_mutable_0_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne  {
+  
+  axiom buf$col$$col$buf_impl$col$$col$Buf_impl_bytes_Ref_mutable_0_fn_pre_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne {
+    (forall T$1: Type, _1s: s_Ref_mutable ::
+      { buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_1s,
+      s_Ref_mutable_type(T$1)) }
+      buf$col$$col$buf_impl$col$$col$Buf_impl(T$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      true ==>
+      buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_1s,
+      s_Ref_mutable_type(T$1)))
+  }
+  
+  axiom buf$col$$col$buf_impl$col$$col$Buf_impl_bytes_Ref_mutable_0_fn_post_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne {
+    (forall T$1: Type, _0s: s_core$col$$col$result$col$$col$Result, _1s: s_Ref_mutable ::
+      { buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0s,
+      _1s, s_Ref_mutable_type(T$1)) }
+      buf$col$$col$buf_impl$col$$col$Buf_impl(T$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0s,
+      _1s, s_Ref_mutable_type(T$1)) ==>
+      true)
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_Float_f64_val: s_Float_f64
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_Ref_mutable_addr: Ref
+
+field p_Ref_mutable_metadata: s_Param
+
+function s_core$col$$col$result$col$$col$Result_unreachable(T$0: Type, E$1: Type): s_core$col$$col$result$col$$col$Result
+  ensures false
+
+
+function s_core$col$$col$result$col$$col$Result_0_field_0(self: Ref, T$0: Type,
+  E$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$result$col$$col$Result_1_field_0(self: Ref, T$0: Type,
+  E$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$result$col$$col$Result_discr(self: s_core$col$$col$result$col$$col$Result): s_Int_isize
+{
+  (self.iss_core$col$$col$result$col$$col$Result_1_cons ?
+    s_Int_isize_cons(1) :
+    s_Int_isize_cons(0))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_TryGetError_unreachable(): s_TryGetError
+  ensures false
+
+
+function s_TryGetError_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_TryGetError_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Ref_mutable_unreachable(U$1: Type): s_Ref_mutable
+  ensures false
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function p_core$col$$col$result$col$$col$Result_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_core$col$$col$result$col$$col$Result_snap(self: Ref, T$0: Type, E$1: Type): s_core$col$$col$result$col$$col$Result
+  requires acc(p_core$col$$col$result$col$$col$Result(self, T$0, E$1), write)
+{
+  (unfolding acc(p_core$col$$col$result$col$$col$Result(self, T$0, E$1), write) in
+    (p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+    s_Int_isize_cons(1) ?
+      (unfolding acc(p_core$col$$col$result$col$$col$Result_1_owned(self, T$0,
+        E$1), write) in
+        s_core$col$$col$result$col$$col$Result_1_cons(p_Param_snap(s_core$col$$col$result$col$$col$Result_1_field_0(self,
+        T$0, E$1), E$1))) :
+      (p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+      s_Int_isize_cons(0) ?
+        (unfolding acc(p_core$col$$col$result$col$$col$Result_0_owned(self,
+          T$0, E$1), write) in
+          s_core$col$$col$result$col$$col$Result_0_cons(p_Param_snap(s_core$col$$col$result$col$$col$Result_0_field_0(self,
+          T$0, E$1), T$0))) :
+        s_core$col$$col$result$col$$col$Result_unreachable(T$0, E$1))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_TryGetError_snap(self: Ref): s_TryGetError
+  requires acc(p_TryGetError(self), write)
+{
+  (unfolding acc(p_TryGetError(self), write) in
+    s_TryGetError_cons(p_UInt_usize_snap(s_TryGetError_field_0(self)), p_UInt_usize_snap(s_TryGetError_field_1(self))))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_Ref_mutable_arbitrary_value(r: Ref, metadata: s_Param, U$1: Type): s_Ref_mutable
+  ensures result.s_Ref_mutable_0 == r
+  ensures result.s_Ref_mutable_1 == metadata
+
+
+function p_Ref_mutable_snap(self: Ref, U$1: Type): s_Ref_mutable
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_mutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+{
+  (unfolding acc(p_Ref_mutable(self, U$1), write) in
+    p_Ref_mutable_arbitrary_value(self.p_Ref_mutable_addr, self.p_Ref_mutable_metadata,
+    U$1))
+}
+
+predicate p_core$col$$col$result$col$$col$Result_0_owned(self: Ref, T$0: Type,
+  E$1: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_core$col$$col$result$col$$col$Result_0_field_0(self, T$0, E$1),
+  T$0), write)
+}
+
+predicate p_core$col$$col$result$col$$col$Result_1_owned(self: Ref, T$0: Type,
+  E$1: Type) {
+  inhabited(E$1) &&
+  acc(p_Param(s_core$col$$col$result$col$$col$Result_1_field_0(self, T$0, E$1),
+  E$1), write)
+}
+
+predicate p_core$col$$col$result$col$$col$Result(self: Ref, T$0: Type, E$1: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_core$col$$col$result$col$$col$Result_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+  s_Int_isize_cons(1)) &&
+  ((p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  inhabited(T$0) &&
+  acc(p_core$col$$col$result$col$$col$Result_0_owned(self, T$0, E$1), write)) &&
+  (p_Int_isize_snap(p_core$col$$col$result$col$$col$Result_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(E$1) &&
+  acc(p_core$col$$col$result$col$$col$Result_1_owned(self, T$0, E$1), write))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_TryGetError(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_TryGetError_field_0(self)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_TryGetError_field_1(self)), write))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_Ref_mutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_mutable_addr, write) &&
+  (acc(self.p_Ref_mutable_metadata, write) &&
+  s_Param_typ(self.p_Ref_mutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1))
+}
+
+method m_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne(_0p: Ref,
+  _1p: Ref, T$1: Type)
+  requires inhabited(s_Ref_mutable_type(s_Ref_mutable_type(T$1))) &&
+    acc(p_Ref_mutable(_1p, s_Ref_mutable_type(T$1)), write)
+  requires inhabited(s_Ref_mutable_type(T$1)) &&
+    acc(p_Param(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1)).s_Ref_mutable_0,
+    s_Ref_mutable_type(T$1)), write)
+  requires inhabited(T$1) &&
+    acc(p_Param(p_Param_snap(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1)).s_Ref_mutable_0,
+    s_Ref_mutable_type(T$1)).make_concrete_s_Ref_mutable.s_Ref_mutable_0, T$1), write)
+  ensures inhabited(s_core$col$$col$result$col$$col$Result_type(s_Float_f64_type(), s_TryGetError_type())) &&
+    acc(p_core$col$$col$result$col$$col$Result(_0p, s_Float_f64_type(), s_TryGetError_type()), write)
+  ensures inhabited(s_Ref_mutable_type(T$1)) &&
+    acc(p_Param(old(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1))).s_Ref_mutable_0,
+    s_Ref_mutable_type(T$1)), write)
+  ensures inhabited(T$1) &&
+    acc(p_Param(p_Param_snap(old(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1))).s_Ref_mutable_0,
+    s_Ref_mutable_type(T$1)).make_concrete_s_Ref_mutable.s_Ref_mutable_0, T$1), write)
+{
+  var _2p: Ref
+  var _from_bb0_to_bb1: Bool
+  label start
+  inhale buf$col$$col$buf_impl$col$$col$Buf_impl(T$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$1)
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  make_concrete_Ref_mutable(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1)).s_Ref_mutable_0,
+    T$1)
+  p_Ref_mutable_assign(_2p, T$1, p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(p_Ref_mutable_snap(_1p,
+    s_Ref_mutable_type(T$1)).s_Ref_mutable_0, T$1).s_Ref_mutable_0, p_Ref_mutable_snap(p_Ref_mutable_snap(_1p,
+    s_Ref_mutable_type(T$1)).s_Ref_mutable_0, T$1).s_Ref_mutable_1, T$1))
+  label _before_0_2
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  buf$col$$col$buf_impl$col$$col$Buf_fn_stub_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0p,
+    _2p, T$1)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  make_generic_Ref_mutable(p_Ref_mutable_snap(_1p, s_Ref_mutable_type(T$1)).s_Ref_mutable_0,
+    T$1)
+  label _before_1_1
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_Float_f64(self: Ref)
+  requires acc(p_Float_f64(self), write)
+  ensures acc(p_Param(self, s_Float_f64_type()), write)
+  ensures old(make_generic_s_Float_f64(p_Float_f64_snap(self))) ==
+    p_Param_snap(self, s_Float_f64_type())
+
+
+method make_concrete_Float_f64(self: Ref)
+  requires acc(p_Param(self, s_Float_f64_type()), write)
+  ensures acc(p_Float_f64(self), write)
+  ensures old(p_Param_snap(self, s_Float_f64_type())) ==
+    make_generic_s_Float_f64(p_Float_f64_snap(self))
+
+
+method make_generic_TryGetError(self: Ref)
+  requires acc(p_TryGetError(self), write)
+  ensures acc(p_Param(self, s_TryGetError_type()), write)
+  ensures old(make_generic_s_TryGetError(p_TryGetError_snap(self))) ==
+    p_Param_snap(self, s_TryGetError_type())
+
+
+method make_concrete_TryGetError(self: Ref)
+  requires acc(p_Param(self, s_TryGetError_type()), write)
+  ensures acc(p_TryGetError(self), write)
+  ensures old(p_Param_snap(self, s_TryGetError_type())) ==
+    make_generic_s_TryGetError(p_TryGetError_snap(self))
+
+
+method make_generic_Ref_mutable(self: Ref, U$1: Type)
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures acc(p_Param(self, s_Ref_mutable_type(U$1)), write)
+  ensures old(make_generic_s_Ref_mutable(p_Ref_mutable_snap(self, U$1), U$1)) ==
+    p_Param_snap(self, s_Ref_mutable_type(U$1))
+
+
+method make_concrete_Ref_mutable(self: Ref, U$1: Type)
+  requires acc(p_Param(self, s_Ref_mutable_type(U$1)), write)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures old(p_Param_snap(self, s_Ref_mutable_type(U$1))) ==
+    make_generic_s_Ref_mutable(p_Ref_mutable_snap(self, U$1), U$1)
+
+
+method p_core$col$$col$result$col$$col$Result_assign(self: Ref, T$0: Type, E$1: Type,
+  value: s_core$col$$col$result$col$$col$Result)
+  ensures acc(p_core$col$$col$result$col$$col$Result(self, T$0, E$1), write)
+  ensures p_core$col$$col$result$col$$col$Result_snap(self, T$0, E$1) ==
+    value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_TryGetError_assign(self: Ref, value: s_TryGetError)
+  ensures acc(p_TryGetError(self), write)
+  ensures p_TryGetError_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_Ref_mutable_assign(self: Ref, U$1: Type, value: s_Ref_mutable)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures p_Ref_mutable_snap(self, U$1) == value
+
+
+method buf$col$$col$buf_impl$col$$col$Buf_fn_stub_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(_0p: Ref,
+  _1p: Ref, Self$0: Type)
+  requires inhabited(s_Ref_mutable_type(Self$0)) &&
+    acc(p_Ref_mutable(_1p, Self$0), write)
+  requires buf$col$$col$buf_impl$col$$col$Buf_fn_pre_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(p_Ref_mutable_snap(_1p,
+    Self$0), Self$0)
+  ensures inhabited(s_core$col$$col$result$col$$col$Result_type(s_Float_f64_type(), s_TryGetError_type())) &&
+    acc(p_core$col$$col$result$col$$col$Result(_0p, s_Float_f64_type(), s_TryGetError_type()), write)
+  ensures buf$col$$col$buf_impl$col$$col$Buf_fn_post_buf$col$$col$buf_impl$col$$col$Buf$col$$col$try_get_f64_ne(p_core$col$$col$result$col$$col$Result_snap(_0p,
+    s_Float_f64_type(), s_TryGetError_type()), old(p_Ref_mutable_snap(_1p, Self$0)),
+    Self$0)
+
+
+method trait_buf$col$$col$buf_impl$col$$col$Buf_impl_Ref_mutable_0_fn_pre_weaken_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne(_0p: Ref,
+  _1p: Ref, T$1: Type)
+  requires inhabited(s_Ref_mutable_type(s_Ref_mutable_type(T$1))) &&
+    acc(p_Ref_mutable(_1p, s_Ref_mutable_type(T$1)), write)
+{
+  label start
+  inhale buf$col$$col$buf_impl$col$$col$Buf_impl(T$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$1)
+}
+
+method trait_buf$col$$col$buf_impl$col$$col$Buf_impl_Ref_mutable_0_fn_post_strengthen_$lt$$amp$mut$sp$T$sp$as$sp$buf$col$$col$buf_impl$col$$col$Buf$gt$$col$$col$try_get_f64_ne(_0p: Ref,
+  _1p: Ref, T$1: Type)
+  requires inhabited(s_Ref_mutable_type(s_Ref_mutable_type(T$1))) &&
+    acc(p_Ref_mutable(_1p, s_Ref_mutable_type(T$1)), write)
+  requires inhabited(s_core$col$$col$result$col$$col$Result_type(s_Float_f64_type(), s_TryGetError_type())) &&
+    acc(p_core$col$$col$result$col$$col$Result(_0p, s_Float_f64_type(), s_TryGetError_type()), write)
+{
+  label start
+  inhale buf$col$$col$buf_impl$col$$col$Buf_impl(T$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$1)
+}
+
+adt s_Param {
+  make_generic_s_Float_f64(make_concrete_s_Float_f64: s_Float_f64)
+  make_generic_s_TryGetError(make_concrete_s_TryGetError: s_TryGetError)
+  make_generic_s_Ref_mutable(make_concrete_s_Ref_mutable: s_Ref_mutable, make_generic_s_Ref_mutable_typaram_U$1: Type)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_core$col$$col$result$col$$col$Result {
+  s_core$col$$col$result$col$$col$Result_0_cons(s_core$col$$col$result$col$$col$Result_0_0: s_Param)
+  s_core$col$$col$result$col$$col$Result_1_cons(s_core$col$$col$result$col$$col$Result_1_0: s_Param)
+}
+
+adt s_TryGetError {
+  s_TryGetError_cons(s_TryGetError_0: s_UInt_usize, s_TryGetError_1: s_UInt_usize)
+}
+
+adt s_Ref_mutable {
+  s_Ref_mutable_cons(s_Ref_mutable_0: Ref, s_Ref_mutable_1: s_Param, s_Ref_mutable_2: s_Param)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_core$col$$col$result$col$$col$Result_type(s_core$col$$col$result$col$$col$Result_typaram_T$0: Type,
+  s_core$col$$col$result$col$$col$Result_typaram_E$1: Type)
+  s_Float_f64_type()
+  s_TryGetError_type()
+  s_UInt_usize_type()
+  s_Ref_mutable_type(s_Ref_mutable_typaram_U$1: Type)
+  s_0_Tuple_type()
+  Unknown_type(id: Int)
+}

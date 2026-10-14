@@ -1,0 +1,135 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// resolved: import "../../_preambles/defs.vpr"
+
+define valid_frog_var(gain) 0 < |gain|
+
+function rec_frogVar(gain: Seq[Int], curr: Int): Int
+    requires valid_frog_var(gain)
+    requires 0 <= curr < |gain|
+    decreases |gain| - curr
+{
+    // If we are at the end of the array, return the energy we can get from the last tile.
+    curr == |gain| - 1 ? gain[curr] : helper_frog(gain, curr, |gain| - 1, 0)
+}
+
+function helper_frog(gain: Seq[Int], curr: Int, jump: Int, currMax: Int): Int
+    requires 0 <= curr < |gain|
+    requires curr <= jump < |gain|
+    decreases |gain| - curr, jump - curr
+{
+    // If jump == curr, the recursion is done and we return the maxEnergy we can get.
+    jump == curr ? currMax :
+
+    // If the current tile is larger than the tile we want to jump to, we have to check whether the energy would be reset after jumping to the jth tile.
+    gain[curr] >= gain[jump] ? 
+
+    (rec_frogVar(gain, jump) != 0 ? 
+
+        // If not, we can either jump to the jth tile or not, we look for which decision yields more energy.
+        max(helper_frog(gain, curr, jump - 1, currMax), rec_frogVar(gain, jump) + gain[curr]) :
+
+        // If yes, this means we want to keep the currentMax. 
+        helper_frog(gain, curr, jump - 1, currMax)) :
+
+    // If the current tile is smaller than the tile we want to jump to, we have also have the option to either jump and don't get the jth gain added on or not jump.
+    // Again, we look for which decision yields more energy.
+    max(helper_frog(gain, curr, jump - 1, currMax), rec_frogVar(gain, jump) - gain[jump])
+
+}
+
+method frogDP(gain: Seq[Int]) returns (res: Int)
+    requires valid_frog_var(gain)
+    ensures res == rec_frogVar(gain, 0)
+    decreases
+{
+    var n: Int := |gain|
+    var dp: Seq[Int]
+    // For convenience, we use an assert to define the size of the DP table.
+    assume |dp| == n
+
+    // dp[i] for all i represents the maximum amount of energy a frog can obtain when starting on i and reaching the end
+    dp := dp[n - 1 := gain[n - 1]]
+
+    var i: Int := n - 2
+
+    // i is the "fixed" current tile the frog is on 
+    while (i >= 0) 
+        invariant n == |gain|
+        invariant -1 <= i < n - 1
+        invariant |dp| == n
+        invariant forall k: Int :: {dp[k]} i < k < n ==> dp[k] == rec_frogVar(gain, k)
+        decreases i
+    {
+        var maxEnergy: Int := 0
+        var j: Int := i + 1
+        // j is the tile the frog wants to jump to from i
+        while (j < n) 
+            invariant n == |gain|
+            invariant i < j <= n
+            invariant |dp| == n
+            invariant forall k: Int :: {dp[k]} i < k < n ==> dp[k] == rec_frogVar(gain, k)
+            invariant maxEnergy == helper_frog(gain, i, j - 1, 0)
+            decreases n - j
+        {
+            // check if current index i is larger than the tile j that the frog wants to jump to
+            if (gain[i] >= gain[j]) {
+                // If dp[j] == 0, this means that to reach the end from j the frog can't possibly get any energy (max energy = 0)
+                // Thus if we jump to j from i, the maxEnergy would still be 0 because no matter how much energy we can get before, 
+                // it all gets reset to 0.
+                // We only allow the possibility of adding gain[i] to dp[j] if the energy is not reset after jumping on j.
+                // This would otherwise result in a wrong result because the maxEnergy would not be reset and we would falsly assume that there is a 
+                // descending sequence up until the end.
+                if (dp[j] != 0) {
+                    // Either take the jump (by taking dp[j] + gain[i]) or do not jump to j by taking maxEnergy.
+                    // max determines which decision yields more energy.
+                    maxEnergy := max(maxEnergy, dp[j] + gain[i]) 
+                }
+            // If gain[i] is not >= gain[j] there is still the possibility of jumping to the jth tile, taking the resetting of the energy.
+            // We have to check whether this case would yield a larger amount of energy than the one we have already.
+            } else {
+            // Either take the jump (dp[j] - gain[j], gain[j] has to be subtracted, since jumping from a lower valued tile resets the energy and does not allow for the jth tiles
+            // energy to be added up) or do not jump (maxEnergy)
+                maxEnergy := max(maxEnergy, dp[j] - gain[j])
+            }
+            j := j + 1
+        }
+
+        dp := dp[i := maxEnergy]
+        i := i - 1
+
+    }
+    res := dp[0]
+}

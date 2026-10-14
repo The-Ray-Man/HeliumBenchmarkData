@@ -1,0 +1,90 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// resolved: import "../../_preambles/defs.vpr"
+// precondition needed to ensure the problem is well-defined
+define valid_frog(cost, n, jump) 0 <= n < |cost| && jump > 0
+
+function frog_rec(cost: Seq[Int], n: Int, jump: Int): Int
+    requires valid_frog(cost, n, jump)
+    decreases n
+{
+    // Base Case: the bridge is of length 0
+    n == 0 ? cost[n] : 
+
+    // The bridge's length is shorter than the jumping distance.
+    n < jump ? cost[n] + frog_rec(cost, n - 1, jump) :
+
+    // We take the minimum cost between the frog walking one plan and jumping the distance.
+    cost[n] + min(frog_rec(cost, n - 1, jump), jump + frog_rec(cost, n - jump, jump))
+}
+
+method frog_dp(cost: Seq[Int], n: Int, jump: Int) returns (minCost: Int)
+    requires valid_frog(cost, n, jump)
+
+    // Again, this is the property we are trying to prove
+    ensures minCost == frog_rec(cost, n, jump)
+    decreases
+{
+    var dp: Seq[Int]
+    // For convenience, we use an assume statement to define the length of the DP table.
+    assume |dp| == n + 1
+
+    // The first element represents a bridge of length 0 and thus is initialized to 0.
+    dp := dp[0 := cost[0]]
+
+    var i: Int := 1
+
+    while (i <= n)
+        // bounds for DP table as well as the loop variable
+        invariant |dp| == n + 1
+        invariant 0 < i <= n + 1
+
+        // The DP table is filled with the minimum cost of reaching each position.
+        invariant forall j: Int :: {dp[j]} 0 <= j < i ==> dp[j] == frog_rec(cost, j, jump)
+        decreases n - i
+    {
+        // We check if the bridge is shorter than the jumping distance.
+        if (i < jump) {
+            // If the bridge is shorter than the jumping distance, the frog can only take 1 step.
+            dp := dp[i := cost[i] + dp[i - 1]]
+        } else {
+            // We look up the minimum cost of taking a step and jumping and take the minimum of the two.
+            var temp: Int := cost[i] + min(dp[i - 1], jump + dp[i - jump])
+            dp := dp[i := temp]
+        }
+        i := i + 1
+    }
+    minCost := dp[n]
+}

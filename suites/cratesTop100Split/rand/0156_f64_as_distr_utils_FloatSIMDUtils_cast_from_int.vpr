@@ -1,0 +1,1041 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u16  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u16 {
+    (forall x: s_UInt_u16 ::
+      { make_generic_s_UInt_u16(x) }
+      s_Param_typ(make_generic_s_UInt_u16(x)) == s_UInt_u16_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u16 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u16, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u16_type() ==>
+      make_generic_s_UInt_u16(p.make_concrete_s_UInt_u16) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f64 {
+    (forall x: s_Float_f64 ::
+      { make_generic_s_Float_f64(x) }
+      s_Param_typ(make_generic_s_Float_f64(x)) == s_Float_f64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f64_type() ==>
+      make_generic_s_Float_f64(p.make_concrete_s_Float_f64) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_Bool  {
+  
+  axiom s_Param_typ_def_make_generic_s_Bool {
+    (forall x: Bool ::
+      { make_generic_s_Bool(x) }
+      s_Param_typ(make_generic_s_Bool(x)) == s_Bool_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Bool {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Bool, s_Param_typ(p) }
+      s_Param_typ(p) == s_Bool_type() ==>
+      make_generic_s_Bool(p.make_concrete_s_Bool) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u64  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u64 {
+    (forall x: s_UInt_u64 ::
+      { make_generic_s_UInt_u64(x) }
+      s_Param_typ(make_generic_s_UInt_u64(x)) == s_UInt_u64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u64, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u64_type() ==>
+      make_generic_s_UInt_u64(p.make_concrete_s_UInt_u64) == p)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u16  {
+  
+  function s_UInt_u16_cons(arg0: Int): s_UInt_u16 
+  
+  function s_UInt_u16_value(arg0: s_UInt_u16): Int 
+  
+  axiom s_UInt_u16_ax_cons {
+    (forall s: s_UInt_u16 ::
+      { s_UInt_u16_value(s) }
+      s_UInt_u16_cons(s_UInt_u16_value(s)) == s)
+  }
+  
+  axiom s_UInt_u16_ax_bounds {
+    (forall s: s_UInt_u16 ::
+      { s_UInt_u16_value(s) }
+      0 <= s_UInt_u16_value(s) && s_UInt_u16_value(s) <= 65535)
+  }
+  
+  axiom s_UInt_u16_ax_value {
+    (forall value: Int ::
+      { s_UInt_u16_cons(value) }
+      0 <= value && value <= 65535 ==>
+      s_UInt_u16_value(s_UInt_u16_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_UInt_u16 {
+    inhabited(s_UInt_u16_type()) == true
+  }
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$convert$col$$col$From  {
+  
+  function core$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain trait_distr$col$$col$utils$col$$col$FloatSIMDUtils  {
+  
+  function distr$col$$col$utils$col$$col$FloatSIMDUtils_assoc_type_distr$col$$col$utils$col$$col$FloatSIMDUtils$col$$col$Mask(arg0: Type): Type 
+  
+  function distr$col$$col$utils$col$$col$FloatSIMDUtils_assoc_type_distr$col$$col$utils$col$$col$FloatSIMDUtils$col$$col$UInt(arg0: Type): Type 
+  
+  function distr$col$$col$utils$col$$col$FloatSIMDUtils_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_UInt_u16  {
+  
+  axiom s_UInt_u16_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u16_type())
+  }
+  
+  axiom s_UInt_u16_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u16_type())
+  }
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain trait_fns_core$col$$col$convert$col$$col$From_core$col$$col$convert$col$$col$From$col$$col$from  {
+  
+  function core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(arg0: s_Param,
+  arg1: Type, arg2: Type): Bool 
+  
+  function core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(arg0: s_Param,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  axiom core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from_base {
+    (forall _1s: s_Param, Self$0: Type, T$1: Type ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      Self$0, T$1) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      Self$0, T$1))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from_base {
+    (forall _0s: s_Param, _1s: s_Param, Self$0: Type, T$1: Type ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, Self$0, T$1) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, Self$0, T$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_condition  {
+  
+  axiom distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_condition {
+    distr$col$$col$utils$col$$col$FloatSIMDUtils_impl(s_Float_f64_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { core$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u16_2251_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u16_2251_condition {
+    core$col$$col$convert$col$$col$From_impl(s_UInt_u16_type(), s_Bool_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2253_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2253_condition {
+    core$col$$col$convert$col$$col$From_impl(s_UInt_u64_type(), s_Bool_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2268_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2268_condition {
+    core$col$$col$convert$col$$col$From_impl(s_UInt_u64_type(), s_UInt_u16_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Float_f64_2311_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2311_condition {
+    core$col$$col$convert$col$$col$From_impl(s_Float_f64_type(), s_UInt_u16_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Float_f64_2322_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2322_condition {
+    core$col$$col$convert$col$$col$From_impl(s_Float_f64_type(), s_Bool_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Param_2359_$lt$T$sp$as$sp$core$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Param_2359_fn_pre_$lt$T$sp$as$sp$core$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from {
+    (forall T$0: Type, _1s: s_Param ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      T$0, T$0) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(_1s,
+      T$0, T$0))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Param_2359_fn_post_$lt$T$sp$as$sp$core$col$$col$convert$col$$col$From$lt$T$gt$$gt$$col$$col$from {
+    (forall T$0: Type, _0s: s_Param, _1s: s_Param ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, T$0, T$0) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(_0s,
+      _1s, T$0, T$0) ==>
+      true)
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$Mask  {
+  
+  axiom distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_assoc_type_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$Mask {
+    distr$col$$col$utils$col$$col$FloatSIMDUtils_assoc_type_distr$col$$col$utils$col$$col$FloatSIMDUtils$col$$col$Mask(s_Float_f64_type()) ==
+    s_Bool_type()
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$UInt  {
+  
+  axiom distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_rand_Float_f64_99_assoc_type_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$UInt {
+    distr$col$$col$utils$col$$col$FloatSIMDUtils_assoc_type_distr$col$$col$utils$col$$col$FloatSIMDUtils$col$$col$UInt(s_Float_f64_type()) ==
+    s_UInt_u64_type()
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u16_2251_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u16$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u16_2251_fn_pre_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u16$gt$$col$$col$from {
+    (forall _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_UInt_u16_type(), s_Bool_type()) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_UInt_u16_type(), s_Bool_type()))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u16_2251_fn_post_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u16$gt$$col$$col$from {
+    (forall _0s: s_UInt_u16, _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_0s),
+      make_generic_s_Bool(_1s), s_UInt_u16_type(), s_Bool_type()) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_0s),
+      make_generic_s_Bool(_1s), s_UInt_u16_type(), s_Bool_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2253_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u64$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2253_fn_pre_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u64$gt$$col$$col$from {
+    (forall _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_UInt_u64_type(), s_Bool_type()) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_UInt_u64_type(), s_Bool_type()))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2253_fn_post_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$u64$gt$$col$$col$from {
+    (forall _0s: s_UInt_u64, _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u64(_0s),
+      make_generic_s_Bool(_1s), s_UInt_u64_type(), s_Bool_type()) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u64(_0s),
+      make_generic_s_Bool(_1s), s_UInt_u64_type(), s_Bool_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2268_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$u64$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2268_fn_pre_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$u64$gt$$col$$col$from {
+    (forall _1s: s_UInt_u16 ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_1s),
+      s_UInt_u64_type(), s_UInt_u16_type()) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_1s),
+      s_UInt_u64_type(), s_UInt_u16_type()))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_UInt_u64_2268_fn_post_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$u64$gt$$col$$col$from {
+    (forall _0s: s_UInt_u64, _1s: s_UInt_u16 ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u64(_0s),
+      make_generic_s_UInt_u16(_1s), s_UInt_u64_type(), s_UInt_u16_type()) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u64(_0s),
+      make_generic_s_UInt_u16(_1s), s_UInt_u64_type(), s_UInt_u16_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Float_f64_2311_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$f64$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2311_fn_pre_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _1s: s_UInt_u16 ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_1s),
+      s_Float_f64_type(), s_UInt_u16_type()) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_UInt_u16(_1s),
+      s_Float_f64_type(), s_UInt_u16_type()))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2311_fn_post_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$u16$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _0s: s_Float_f64, _1s: s_UInt_u16 ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_UInt_u16(_1s), s_Float_f64_type(), s_UInt_u16_type()) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_UInt_u16(_1s), s_Float_f64_type(), s_UInt_u16_type()) ==>
+      true)
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Float_f64_2322_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$f64$gt$$col$$col$from  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2322_fn_pre_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_Float_f64_type(), s_Bool_type()) }
+      true ==>
+      core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Bool(_1s),
+      s_Float_f64_type(), s_Bool_type()))
+  }
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Float_f64_2322_fn_post_core$col$$col$convert$col$$col$num$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$bool$gt$$sp$for$sp$f64$gt$$col$$col$from {
+    (forall _0s: s_Float_f64, _1s: Bool ::
+      { core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_Bool(_1s), s_Float_f64_type(), s_Bool_type()) }
+      core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(make_generic_s_Float_f64(_0s),
+      make_generic_s_Bool(_1s), s_Float_f64_type(), s_Bool_type()) ==>
+      true)
+  }
+}
+
+field p_Float_f64_val: s_Float_f64
+
+field p_UInt_u64_val: s_UInt_u64
+
+field p_UInt_u16_val: s_UInt_u16
+
+field p_Bool_val: Bool
+
+function mir_binop_Eq_UInt_u64_UInt_u64(arg1: s_UInt_u64, arg2: s_UInt_u64): Bool
+{
+  s_UInt_u64_value(arg1) == s_UInt_u64_value(arg2)
+}
+
+function mir_binop_Div_UInt_u64_UInt_u64(arg1: s_UInt_u64, arg2: s_UInt_u64): s_UInt_u64
+  requires 0 != s_UInt_u64_value(arg2)
+{
+  s_UInt_u64_cons(s_UInt_u64_value(arg1) \ s_UInt_u64_value(arg2))
+}
+
+function mir_binop_Mul_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_mul(arg1, arg2)
+}
+
+function mir_binop_Rem_UInt_u64_UInt_u64(arg1: s_UInt_u64, arg2: s_UInt_u64): s_UInt_u64
+  requires 0 != s_UInt_u64_value(arg2)
+{
+  s_UInt_u64_cons(s_UInt_u64_value(arg1) % s_UInt_u64_value(arg2))
+}
+
+function mir_binop_Add_Float_f64_Float_f64(arg1: s_Float_f64, arg2: s_Float_f64): s_Float_f64
+{
+  s_Float_f64_add(arg1, arg2)
+}
+
+function mir_cast_i2i_UInt_u64_to_UInt_u16(arg: s_UInt_u64): s_UInt_u16
+{
+  s_UInt_u16_cons(s_UInt_u64_value(arg) % 65536)
+}
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function s_UInt_u16_unreachable(): s_UInt_u16
+  ensures false
+
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+function p_UInt_u16_snap(self: Ref): s_UInt_u16
+  requires acc(p_UInt_u16(self), write)
+{
+  (unfolding acc(p_UInt_u16(self), write) in self.p_UInt_u16_val)
+}
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+predicate p_UInt_u16(self: Ref) {
+  acc(self.p_UInt_u16_val, write)
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+method m_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$cast_from_int(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _13p: Ref
+  var _14p: Ref
+  var _15p: Ref
+  var _16p: Ref
+  var _17p: Ref
+  var _18p: Ref
+  var _19p: Ref
+  var _20p: Ref
+  var _21p: Ref
+  var _22p: Ref
+  var _23p: Ref
+  var _24p: Ref
+  var _25p: Ref
+  var _26p: Ref
+  var _27p: Ref
+  var _28p: Ref
+  var _29p: Ref
+  var _30p: Ref
+  var _31p: Ref
+  var _from_bb4_to_bb5: Bool
+  var _from_bb3_to_bb4: Bool
+  var _from_bb2_to_bb3: Bool
+  var _from_bb5_to_bb6: Bool
+  var _from_bb0_to_bb1: Bool
+  var _from_bb6_to_bb7: Bool
+  var _from_bb9_to_bb10: Bool
+  var _from_bb1_to_bb2: Bool
+  var _from_bb8_to_bb9: Bool
+  var _from_bb7_to_bb8: Bool
+  var _tmp0: s_UInt_u64
+  var _tmp1: s_UInt_u64
+  var _tmp2: Bool
+  var _tmp3: s_UInt_u64
+  var _tmp4: s_UInt_u64
+  var _tmp5: s_Float_f64
+  var _tmp6: s_UInt_u64
+  var _tmp7: Bool
+  var _tmp8: s_UInt_u64
+  var _tmp9: Bool
+  var _tmp10: s_UInt_u64
+  var _tmp11: s_UInt_u64
+  var _tmp12: s_Float_f64
+  var _tmp13: s_Float_f64
+  var _tmp14: s_Float_f64
+  var _tmp15: s_UInt_u64
+  var _tmp16: Bool
+  var _tmp17: s_UInt_u64
+  var _tmp18: Bool
+  var _tmp19: s_UInt_u64
+  var _tmp20: s_UInt_u64
+  var _tmp21: s_Float_f64
+  var _tmp22: s_Float_f64
+  var _tmp23: s_Float_f64
+  var _tmp24: s_UInt_u64
+  var _tmp25: Bool
+  var _tmp26: s_UInt_u64
+  var _tmp27: s_UInt_u64
+  var _tmp28: s_Float_f64
+  var _tmp29: s_Float_f64
+  label start
+  _from_bb4_to_bb5 := false
+  _from_bb3_to_bb4 := false
+  _from_bb2_to_bb3 := false
+  _from_bb5_to_bb6 := false
+  _from_bb0_to_bb1 := false
+  _from_bb6_to_bb7 := false
+  _from_bb9_to_bb10 := false
+  _from_bb1_to_bb2 := false
+  _from_bb8_to_bb9 := false
+  _from_bb7_to_bb8 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_UInt_u64_snap(_1p)
+  p_UInt_u64_assign(_2p, _tmp0)
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  label _before_0_5
+  label _before_0_6
+  label _before_0_7
+  label _before_0_8
+  label _before_0_9
+  label _before_0_10
+  _tmp1 := p_UInt_u64_snap(_2p)
+  p_UInt_u64_assign(_9p, _tmp1)
+  label _before_0_11
+  p_Bool_assign(_10p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(281474976710656),
+    s_UInt_u64_cons(0)))
+  label _before_0_12
+  _tmp2 := p_Bool_snap(_10p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_10p), write)
+  exhale _tmp2 == false
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  _tmp3 := p_UInt_u64_snap(_9p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_9p), write)
+  p_UInt_u64_assign(_8p, mir_binop_Div_UInt_u64_UInt_u64(_tmp3, s_UInt_u64_cons(281474976710656)))
+  label _before_1_1
+  label _before_1_2
+  _tmp4 := p_UInt_u64_snap(_8p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_8p), write)
+  p_UInt_u16_assign(_7p, mir_cast_i2i_UInt_u64_to_UInt_u16(_tmp4))
+  label _before_1_3
+  label _before_1_4
+  goto bb_term_1
+  label bb_term_1
+  label pre0
+  make_generic_UInt_u16(_7p)
+  core$col$$col$convert$col$$col$From_fn_stub_core$col$$col$convert$col$$col$From$col$$col$from(_6p,
+    _7p, s_Float_f64_type(), s_UInt_u16_type())
+  make_concrete_Float_f64(_6p)
+  label post1
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  _tmp5 := p_Float_f64_snap(_6p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_6p), write)
+  p_Float_f64_assign(_5p, mir_binop_Mul_Float_f64_Float_f64(_tmp5, s_Float_f64_cons(4823355200913801216)))
+  label _before_2_2
+  label _before_2_3
+  label _before_2_4
+  label _before_2_5
+  label _before_2_6
+  label _before_2_7
+  label _before_2_8
+  label _before_2_9
+  _tmp6 := p_UInt_u64_snap(_2p)
+  p_UInt_u64_assign(_16p, _tmp6)
+  label _before_2_10
+  p_Bool_assign(_17p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(4294967296),
+    s_UInt_u64_cons(0)))
+  label _before_2_11
+  _tmp7 := p_Bool_snap(_17p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_17p), write)
+  exhale _tmp7 == false
+  label _after_2
+  _from_bb2_to_bb3 := true
+  goto bb_3
+  label bb_3
+  label _before_3_0
+  _tmp8 := p_UInt_u64_snap(_16p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_16p), write)
+  p_UInt_u64_assign(_15p, mir_binop_Div_UInt_u64_UInt_u64(_tmp8, s_UInt_u64_cons(4294967296)))
+  label _before_3_1
+  label _before_3_2
+  p_Bool_assign(_18p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(65536),
+    s_UInt_u64_cons(0)))
+  label _before_3_3
+  _tmp9 := p_Bool_snap(_18p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_18p), write)
+  exhale _tmp9 == false
+  label _after_3
+  _from_bb3_to_bb4 := true
+  goto bb_4
+  label bb_4
+  label _before_4_0
+  _tmp10 := p_UInt_u64_snap(_15p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_15p), write)
+  p_UInt_u64_assign(_14p, mir_binop_Rem_UInt_u64_UInt_u64(_tmp10, s_UInt_u64_cons(65536)))
+  label _before_4_1
+  label _before_4_2
+  _tmp11 := p_UInt_u64_snap(_14p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_14p), write)
+  p_UInt_u16_assign(_13p, mir_cast_i2i_UInt_u64_to_UInt_u16(_tmp11))
+  label _before_4_3
+  label _before_4_4
+  goto bb_term_4
+  label bb_term_4
+  label pre2
+  make_generic_UInt_u16(_13p)
+  core$col$$col$convert$col$$col$From_fn_stub_core$col$$col$convert$col$$col$From$col$$col$from(_12p,
+    _13p, s_Float_f64_type(), s_UInt_u16_type())
+  make_concrete_Float_f64(_12p)
+  label post3
+  label _after_4
+  _from_bb4_to_bb5 := true
+  goto bb_5
+  label bb_5
+  label _before_5_0
+  label _before_5_1
+  _tmp12 := p_Float_f64_snap(_12p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_12p), write)
+  p_Float_f64_assign(_11p, mir_binop_Mul_Float_f64_Float_f64(_tmp12, s_Float_f64_cons(4751297606875873280)))
+  label _before_5_2
+  label _before_5_3
+  _tmp13 := p_Float_f64_snap(_5p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_5p), write)
+  _tmp14 := p_Float_f64_snap(_11p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_11p), write)
+  p_Float_f64_assign(_4p, mir_binop_Add_Float_f64_Float_f64(_tmp13, _tmp14))
+  label _before_5_4
+  label _before_5_5
+  label _before_5_6
+  label _before_5_7
+  label _before_5_8
+  label _before_5_9
+  label _before_5_10
+  label _before_5_11
+  label _before_5_12
+  _tmp15 := p_UInt_u64_snap(_2p)
+  p_UInt_u64_assign(_24p, _tmp15)
+  label _before_5_13
+  p_Bool_assign(_25p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(65536),
+    s_UInt_u64_cons(0)))
+  label _before_5_14
+  _tmp16 := p_Bool_snap(_25p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_25p), write)
+  exhale _tmp16 == false
+  label _after_5
+  _from_bb5_to_bb6 := true
+  goto bb_6
+  label bb_6
+  label _before_6_0
+  _tmp17 := p_UInt_u64_snap(_24p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_24p), write)
+  p_UInt_u64_assign(_23p, mir_binop_Div_UInt_u64_UInt_u64(_tmp17, s_UInt_u64_cons(65536)))
+  label _before_6_1
+  label _before_6_2
+  p_Bool_assign(_26p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(65536),
+    s_UInt_u64_cons(0)))
+  label _before_6_3
+  _tmp18 := p_Bool_snap(_26p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_26p), write)
+  exhale _tmp18 == false
+  label _after_6
+  _from_bb6_to_bb7 := true
+  goto bb_7
+  label bb_7
+  label _before_7_0
+  _tmp19 := p_UInt_u64_snap(_23p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_23p), write)
+  p_UInt_u64_assign(_22p, mir_binop_Rem_UInt_u64_UInt_u64(_tmp19, s_UInt_u64_cons(65536)))
+  label _before_7_1
+  label _before_7_2
+  _tmp20 := p_UInt_u64_snap(_22p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_22p), write)
+  p_UInt_u16_assign(_21p, mir_cast_i2i_UInt_u64_to_UInt_u16(_tmp20))
+  label _before_7_3
+  label _before_7_4
+  goto bb_term_7
+  label bb_term_7
+  label pre4
+  make_generic_UInt_u16(_21p)
+  core$col$$col$convert$col$$col$From_fn_stub_core$col$$col$convert$col$$col$From$col$$col$from(_20p,
+    _21p, s_Float_f64_type(), s_UInt_u16_type())
+  make_concrete_Float_f64(_20p)
+  label post5
+  label _after_7
+  _from_bb7_to_bb8 := true
+  goto bb_8
+  label bb_8
+  label _before_8_0
+  label _before_8_1
+  _tmp21 := p_Float_f64_snap(_20p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_20p), write)
+  p_Float_f64_assign(_19p, mir_binop_Mul_Float_f64_Float_f64(_tmp21, s_Float_f64_cons(4679240012837945344)))
+  label _before_8_2
+  label _before_8_3
+  _tmp22 := p_Float_f64_snap(_4p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_4p), write)
+  _tmp23 := p_Float_f64_snap(_19p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_19p), write)
+  p_Float_f64_assign(_3p, mir_binop_Add_Float_f64_Float_f64(_tmp22, _tmp23))
+  label _before_8_4
+  label _before_8_5
+  label _before_8_6
+  label _before_8_7
+  label _before_8_8
+  label _before_8_9
+  label _before_8_10
+  _tmp24 := p_UInt_u64_snap(_2p)
+  p_UInt_u64_assign(_30p, _tmp24)
+  label _before_8_11
+  p_Bool_assign(_31p, mir_binop_Eq_UInt_u64_UInt_u64(s_UInt_u64_cons(65536),
+    s_UInt_u64_cons(0)))
+  label _before_8_12
+  _tmp25 := p_Bool_snap(_31p)
+  exhale inhabited(s_Bool_type()) && acc(p_Bool(_31p), write)
+  exhale _tmp25 == false
+  label _after_8
+  _from_bb8_to_bb9 := true
+  goto bb_9
+  label bb_9
+  label _before_9_0
+  _tmp26 := p_UInt_u64_snap(_30p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_30p), write)
+  p_UInt_u64_assign(_29p, mir_binop_Rem_UInt_u64_UInt_u64(_tmp26, s_UInt_u64_cons(65536)))
+  label _before_9_1
+  label _before_9_2
+  _tmp27 := p_UInt_u64_snap(_29p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_29p), write)
+  p_UInt_u16_assign(_28p, mir_cast_i2i_UInt_u64_to_UInt_u16(_tmp27))
+  label _before_9_3
+  label _before_9_4
+  goto bb_term_9
+  label bb_term_9
+  label pre6
+  make_generic_UInt_u16(_28p)
+  core$col$$col$convert$col$$col$From_fn_stub_core$col$$col$convert$col$$col$From$col$$col$from(_27p,
+    _28p, s_Float_f64_type(), s_UInt_u16_type())
+  make_concrete_Float_f64(_27p)
+  label post7
+  label _after_9
+  _from_bb9_to_bb10 := true
+  goto bb_10
+  label bb_10
+  label _before_10_0
+  label _before_10_1
+  _tmp28 := p_Float_f64_snap(_3p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_3p), write)
+  _tmp29 := p_Float_f64_snap(_27p)
+  exhale inhabited(s_Float_f64_type()) && acc(p_Float_f64(_27p), write)
+  p_Float_f64_assign(_0p, mir_binop_Add_Float_f64_Float_f64(_tmp28, _tmp29))
+  label _before_10_2
+  label _before_10_3
+  label _before_10_4
+  label _before_10_5
+  label package_post8
+  goto end
+  label bb_11
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_UInt_u16(self: Ref)
+  requires acc(p_UInt_u16(self), write)
+  ensures acc(p_Param(self, s_UInt_u16_type()), write)
+  ensures old(make_generic_s_UInt_u16(p_UInt_u16_snap(self))) ==
+    p_Param_snap(self, s_UInt_u16_type())
+
+
+method make_concrete_UInt_u16(self: Ref)
+  requires acc(p_Param(self, s_UInt_u16_type()), write)
+  ensures acc(p_UInt_u16(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u16_type())) ==
+    make_generic_s_UInt_u16(p_UInt_u16_snap(self))
+
+
+method make_generic_Float_f64(self: Ref)
+  requires acc(p_Float_f64(self), write)
+  ensures acc(p_Param(self, s_Float_f64_type()), write)
+  ensures old(make_generic_s_Float_f64(p_Float_f64_snap(self))) ==
+    p_Param_snap(self, s_Float_f64_type())
+
+
+method make_concrete_Float_f64(self: Ref)
+  requires acc(p_Param(self, s_Float_f64_type()), write)
+  ensures acc(p_Float_f64(self), write)
+  ensures old(p_Param_snap(self, s_Float_f64_type())) ==
+    make_generic_s_Float_f64(p_Float_f64_snap(self))
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+method p_UInt_u16_assign(self: Ref, value: s_UInt_u16)
+  ensures acc(p_UInt_u16(self), write)
+  ensures p_UInt_u16_snap(self) == value
+
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method core$col$$col$convert$col$$col$From_fn_stub_core$col$$col$convert$col$$col$From$col$$col$from(_0p: Ref,
+  _1p: Ref, Self$0: Type, T$1: Type)
+  requires inhabited(T$1) && acc(p_Param(_1p, T$1), write)
+  requires core$col$$col$convert$col$$col$From_fn_pre_core$col$$col$convert$col$$col$From$col$$col$from(p_Param_snap(_1p,
+    T$1), Self$0, T$1)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+  ensures core$col$$col$convert$col$$col$From_fn_post_core$col$$col$convert$col$$col$From$col$$col$from(p_Param_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, T$1)), Self$0, T$1)
+
+
+method trait_distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_Float_f64_99_fn_pre_weaken_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$cast_from_int(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+{
+  label start
+}
+
+method trait_distr$col$$col$utils$col$$col$FloatSIMDUtils_impl_Float_f64_99_fn_post_strengthen_$lt$f64$sp$as$sp$distr$col$$col$utils$col$$col$FloatSIMDUtils$gt$$col$$col$cast_from_int(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_UInt_u16(make_concrete_s_UInt_u16: s_UInt_u16)
+  make_generic_s_Float_f64(make_concrete_s_Float_f64: s_Float_f64)
+  make_generic_s_Bool(make_concrete_s_Bool: Bool)
+  make_generic_s_UInt_u64(make_concrete_s_UInt_u64: s_UInt_u64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Float_f64_type()
+  s_UInt_u64_type()
+  s_UInt_u16_type()
+  s_Bool_type()
+  Unknown_type(id: Int)
+}

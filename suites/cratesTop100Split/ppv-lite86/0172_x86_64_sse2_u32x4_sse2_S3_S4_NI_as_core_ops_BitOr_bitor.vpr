@@ -1,0 +1,619 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Int_i64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Int_i64 {
+    (forall x: s_Int_i64 ::
+      { make_generic_s_Int_i64(x) }
+      s_Param_typ(make_generic_s_Int_i64(x)) == s_Int_i64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Int_i64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Int_i64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Int_i64_type() ==>
+      make_generic_s_Int_i64(p.make_concrete_s_Int_i64) == p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i {
+    inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) ==
+    inhabited(s_Array_type(s_Int_i64_type(), s_UInt_usize_cons(2)))
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_x86_64$col$$col$sse2$col$$col$u32x4_sse2 {
+    (forall S3$0: Type, S4$1: Type, NI$2: Type ::
+      { inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) }
+      inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) ==
+      (inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(S3$0)) &&
+      (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(S4$1)) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(NI$2)))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$BitOr  {
+  
+  function core$col$$col$ops$col$$col$BitOr_assoc_type_core$col$$col$ops$col$$col$BitOr$col$$col$Output(arg0: Type,
+  arg1: Type): Type 
+  
+  function core$col$$col$ops$col$$col$BitOr_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i  {
+  
+  axiom s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  }
+  
+  axiom s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type())
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_x86_64$col$$col$sse2$col$$col$u32x4_sse2  {
+  
+  axiom s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_Sized {
+    (forall S3$0: Type, S4$1: Type, NI$2: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)))
+  }
+  
+  axiom s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_MetaSized {
+    (forall S3$0: Type, S4$1: Type, NI$2: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitOr_impl_ppv_lite86_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitOr_impl_ppv_lite86_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_condition {
+    (forall S3$0: Type, S4$1: Type, NI$2: Type ::
+      { core$col$$col$ops$col$$col$BitOr_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2),
+      s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(NI$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S4$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(S3$0)) ==>
+      core$col$$col$ops$col$$col$BitOr_impl(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2),
+      s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitOr_impl_core_Int_i64_3035_condition  {
+  
+  axiom core$col$$col$ops$col$$col$BitOr_impl_core_Int_i64_3035_condition {
+    core$col$$col$ops$col$$col$BitOr_impl(s_Int_i64_type(), s_Int_i64_type())
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitOr_impl_core_Int_i64_3035_$lt$i64$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitOr_impl_core_Int_i64_3035_assoc_type_$lt$i64$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$Output {
+    core$col$$col$ops$col$$col$BitOr_assoc_type_core$col$$col$ops$col$$col$BitOr$col$$col$Output(s_Int_i64_type(),
+    s_Int_i64_type()) ==
+    s_Int_i64_type()
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$BitOr_impl_ppv_lite86_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_$lt$x86_64$col$$col$sse2$col$$col$u32x4_sse2$lt$S3$com$$sp$S4$com$$sp$NI$gt$$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$Output  {
+  
+  axiom core$col$$col$ops$col$$col$BitOr_impl_ppv_lite86_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_assoc_type_$lt$x86_64$col$$col$sse2$col$$col$u32x4_sse2$lt$S3$com$$sp$S4$com$$sp$NI$gt$$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$Output {
+    (forall S3$0: Type, S4$1: Type, NI$2: Type ::
+      { core$col$$col$ops$col$$col$BitOr_assoc_type_core$col$$col$ops$col$$col$BitOr$col$$col$Output(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2),
+      s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) }
+      core$col$$col$marker$col$$col$Sized_impl(NI$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(S4$1) &&
+      core$col$$col$marker$col$$col$Sized_impl(S3$0)) ==>
+      core$col$$col$ops$col$$col$BitOr_assoc_type_core$col$$col$ops$col$$col$BitOr$col$$col$Output(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2),
+      s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) ==
+      s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2))
+  }
+}
+
+field p_Int_i64_val: s_Int_i64
+
+function s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_unreachable(S3$0: Type,
+  S4$1: Type, NI$2: Type): s_x86_64$col$$col$sse2$col$$col$u32x4_sse2
+  ensures false
+
+
+function s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_0(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_1(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_2(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_3(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_unreachable(): s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  ensures false
+
+
+function s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_x86_64$col$$col$sse2$col$$col$u32x4_sse2_snap(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type): s_x86_64$col$$col$sse2$col$$col$u32x4_sse2
+  requires acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(self, S3$0, S4$1,
+    NI$2), write)
+{
+  (unfolding acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(self, S3$0, S4$1,
+    NI$2), write) in
+    s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_cons(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_0(self,
+    S3$0, S4$1, NI$2)), p_core$col$$col$marker$col$$col$PhantomData_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_1(self,
+    S3$0, S4$1, NI$2), S3$0), p_core$col$$col$marker$col$$col$PhantomData_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_2(self,
+    S3$0, S4$1, NI$2), S4$1), p_core$col$$col$marker$col$$col$PhantomData_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_3(self,
+    S3$0, S4$1, NI$2), NI$2)))
+}
+
+function p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(self: Ref): s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  requires acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write)
+{
+  (unfolding acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write) in
+    s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_cons(p_Array_snap(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self),
+    s_Int_i64_type(), s_UInt_usize_cons(2))))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+predicate p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type) {
+  inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+  acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_0(self,
+  S3$0, S4$1, NI$2)), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(S3$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_1(self,
+  S3$0, S4$1, NI$2), S3$0), write)) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(S4$1)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_2(self,
+  S3$0, S4$1, NI$2), S4$1), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(NI$2)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_3(self,
+  S3$0, S4$1, NI$2), NI$2), write)))
+}
+
+predicate p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self: Ref) {
+  inhabited(s_Array_type(s_Int_i64_type(), s_UInt_usize_cons(2))) &&
+  acc(p_Array(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_field_0(self),
+  s_Int_i64_type(), s_UInt_usize_cons(2)), write)
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+method m_$lt$x86_64$col$$col$sse2$col$$col$u32x4_sse2$lt$S3$com$$sp$S4$com$$sp$NI$gt$$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$bitor(_0p: Ref,
+  _1p: Ref, _2p: Ref, S3$0: Type, S4$1: Type, NI$2: Type)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_1p, S3$0, S4$1, NI$2), write)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_2p, S3$0, S4$1, NI$2), write)
+  ensures inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_0p, S3$0, S4$1, NI$2), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  var _tmp1: s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(NI$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S4$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S3$0)
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  unfold acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_1p, S3$0, S4$1, NI$2), write)
+  _tmp0 := p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_0(_1p,
+    S3$0, S4$1, NI$2))
+  p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_assign(_4p, _tmp0)
+  label _before_0_3
+  fold acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_1p, S3$0, S4$1, NI$2), write)
+  label _before_0_4
+  unfold acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_2p, S3$0, S4$1, NI$2), write)
+  _tmp1 := p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_field_0(_2p,
+    S3$0, S4$1, NI$2))
+  p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_assign(_5p, _tmp1)
+  label _before_0_5
+  fold acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_2p, S3$0, S4$1, NI$2), write)
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_core$col$$col$arch$col$$col$x86_64$col$$col$_mm_or_si128(_3p, _4p, _5p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  goto bb_term_1
+  label bb_term_1
+  label pre2
+  m_x86_64$col$$col$sse2$col$$col$u32x4_sse2$col$$col$$lt$S3$com$$sp$S4$com$$sp$NI$gt$$col$$col$new(_0p,
+    _3p, S3$0, S4$1, NI$2)
+  label post3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label _before_2_1
+  label package_post4
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$arch$col$$col$x86_64$col$$col$_mm_or_si128(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_1p), write)
+  requires inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_2p), write)
+  ensures inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_0p), write)
+
+
+method m_x86_64$col$$col$sse2$col$$col$u32x4_sse2$col$$col$$lt$S3$com$$sp$S4$com$$sp$NI$gt$$col$$col$new(_0p: Ref,
+  _1p: Ref, S3$0: Type, S4$1: Type, NI$2: Type)
+  requires inhabited(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()) &&
+    acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(_1p), write)
+  ensures inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_0p, S3$0, S4$1, NI$2), write)
+
+
+method make_generic_Int_i64(self: Ref)
+  requires acc(p_Int_i64(self), write)
+  ensures acc(p_Param(self, s_Int_i64_type()), write)
+  ensures old(make_generic_s_Int_i64(p_Int_i64_snap(self))) ==
+    p_Param_snap(self, s_Int_i64_type())
+
+
+method make_concrete_Int_i64(self: Ref)
+  requires acc(p_Param(self, s_Int_i64_type()), write)
+  ensures acc(p_Int_i64(self), write)
+  ensures old(p_Param_snap(self, s_Int_i64_type())) ==
+    make_generic_s_Int_i64(p_Int_i64_snap(self))
+
+
+method p_x86_64$col$$col$sse2$col$$col$u32x4_sse2_assign(self: Ref, S3$0: Type,
+  S4$1: Type, NI$2: Type, value: s_x86_64$col$$col$sse2$col$$col$u32x4_sse2)
+  ensures acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(self, S3$0, S4$1, NI$2), write)
+  ensures p_x86_64$col$$col$sse2$col$$col$u32x4_sse2_snap(self, S3$0, S4$1,
+    NI$2) ==
+    value
+
+
+method p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_assign(self: Ref,
+  value: s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i)
+  ensures acc(p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i(self), write)
+  ensures p_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_snap(self) ==
+    value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method trait_core$col$$col$ops$col$$col$BitOr_impl_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_fn_pre_weaken_$lt$x86_64$col$$col$sse2$col$$col$u32x4_sse2$lt$S3$com$$sp$S4$com$$sp$NI$gt$$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$bitor(_0p: Ref,
+  _1p: Ref, _2p: Ref, S3$0: Type, S4$1: Type, NI$2: Type)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_1p, S3$0, S4$1, NI$2), write)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_2p, S3$0, S4$1, NI$2), write)
+{
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(NI$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S4$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S3$0)
+}
+
+method trait_core$col$$col$ops$col$$col$BitOr_impl_x86_64$col$$col$sse2$col$$col$u32x4_sse2_94_fn_post_strengthen_$lt$x86_64$col$$col$sse2$col$$col$u32x4_sse2$lt$S3$com$$sp$S4$com$$sp$NI$gt$$sp$as$sp$core$col$$col$ops$col$$col$BitOr$gt$$col$$col$bitor(_0p: Ref,
+  _1p: Ref, _2p: Ref, S3$0: Type, S4$1: Type, NI$2: Type)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_1p, S3$0, S4$1, NI$2), write)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_2p, S3$0, S4$1, NI$2), write)
+  requires inhabited(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(S3$0, S4$1, NI$2)) &&
+    acc(p_x86_64$col$$col$sse2$col$$col$u32x4_sse2(_0p, S3$0, S4$1, NI$2), write)
+{
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(NI$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S4$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(S3$0)
+}
+
+adt s_Param {
+  make_generic_s_Int_i64(make_concrete_s_Int_i64: s_Int_i64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_x86_64$col$$col$sse2$col$$col$u32x4_sse2 {
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_cons(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_0: s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i,
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_1: s_core$col$$col$marker$col$$col$PhantomData,
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_2: s_core$col$$col$marker$col$$col$PhantomData,
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_3: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i {
+  s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_cons(s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_0: s_Array)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt Type {
+  s_Int_i64_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_core$col$$col$arch$col$$col$x86_64$col$$col$__m128i_type()
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_type(s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_typaram_S3$0: Type,
+  s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_typaram_S4$1: Type, s_x86_64$col$$col$sse2$col$$col$u32x4_sse2_typaram_NI$2: Type)
+  Unknown_type(id: Int)
+}

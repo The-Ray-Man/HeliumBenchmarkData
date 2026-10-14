@@ -1,0 +1,371 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  axiom s_Param_typ_def_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall x: s_core$col$$col$mem$col$$col$MaybeUninit, T$0: Type ::
+      { make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(x, T$0) }
+      s_Param_typ(make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(x, T$0)) ==
+      s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_core$col$$col$mem$col$$col$MaybeUninit_type(s_Param_typ(p).s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0) ==>
+      make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p.make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit, s_Param_typ(p).s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0) ==
+      p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_core$col$$col$mem$col$$col$MaybeUninit {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) == true)
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_Buffer {
+    inhabited(s_Buffer_type()) ==
+    inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(40)))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_core$col$$col$mem$col$$col$MaybeUninit  {
+  
+  axiom s_core$col$$col$mem$col$$col$MaybeUninit_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$mem$col$$col$MaybeUninit_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)))
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_Buffer  {
+  
+  axiom s_Buffer_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Buffer_type())
+  }
+  
+  axiom s_Buffer_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Buffer_type())
+  }
+}
+
+function s_Buffer_unreachable(): s_Buffer
+  ensures false
+
+
+function s_Buffer_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_core$col$$col$mem$col$$col$MaybeUninit_unreachable(T$0: Type): s_core$col$$col$mem$col$$col$MaybeUninit
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_Buffer_snap(self: Ref): s_Buffer
+  requires acc(p_Buffer(self), write)
+{
+  (unfolding acc(p_Buffer(self), write) in
+    s_Buffer_cons(p_Array_snap(s_Buffer_field_0(self), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40))))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_core$col$$col$mem$col$$col$MaybeUninit_snap(self: Ref, T$0: Type): s_core$col$$col$mem$col$$col$MaybeUninit
+  requires acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+
+
+predicate p_Buffer(self: Ref) {
+  inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(40))) &&
+  acc(p_Array(s_Buffer_field_0(self), s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+  s_UInt_usize_cons(40)), write)
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type) 
+
+method m_Buffer$col$$col$new(_0p: Ref)
+  ensures inhabited(s_Buffer_type()) && acc(p_Buffer(_0p), write)
+{
+  var _1p: Ref
+  var _2p: Ref
+  var _3p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_core$col$$col$mem$col$$col$MaybeUninit
+  var _tmp1: s_Array
+  var _tmp2: s_Array
+  var _tmp3: s_Array
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$uninit(_2p,
+    s_UInt_u8_type())
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  _tmp0 := p_core$col$$col$mem$col$$col$MaybeUninit_snap(_2p, s_UInt_u8_type())
+  exhale inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type())) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_2p, s_UInt_u8_type()), write)
+  inhale (forall idx: Int ::
+      { s_Array_index(_tmp1, idx).make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit }
+      s_Array_index(_tmp1, idx).make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit ==
+      _tmp0)
+  p_Array_assign(_1p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40), _tmp1)
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label _before_1_4
+  _tmp2 := p_Array_snap(_1p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40))
+  p_Array_assign(_3p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40), _tmp2)
+  label _before_1_5
+  _tmp3 := p_Array_snap(_3p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40))
+  exhale inhabited(s_Array_type(s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()), s_UInt_usize_cons(40))) &&
+    acc(p_Array(_3p, s_core$col$$col$mem$col$$col$MaybeUninit_type(s_UInt_u8_type()),
+    s_UInt_usize_cons(40)), write)
+  p_Buffer_assign(_0p, s_Buffer_cons(_tmp3))
+  label _before_1_6
+  label _before_1_7
+  label _before_1_8
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$mem$col$$col$MaybeUninit$col$$col$$lt$T$gt$$col$$col$uninit(_0p: Ref,
+  T$0: Type)
+  ensures inhabited(s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)) &&
+    acc(p_core$col$$col$mem$col$$col$MaybeUninit(_0p, T$0), write)
+
+
+method make_generic_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type)
+  requires acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures acc(p_Param(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)), write)
+  ensures old(make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p_core$col$$col$mem$col$$col$MaybeUninit_snap(self,
+    T$0), T$0)) ==
+    p_Param_snap(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))
+
+
+method make_concrete_core$col$$col$mem$col$$col$MaybeUninit(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0)), write)
+  ensures acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures old(p_Param_snap(self, s_core$col$$col$mem$col$$col$MaybeUninit_type(T$0))) ==
+    make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(p_core$col$$col$mem$col$$col$MaybeUninit_snap(self,
+    T$0), T$0)
+
+
+method p_Buffer_assign(self: Ref, value: s_Buffer)
+  ensures acc(p_Buffer(self), write)
+  ensures p_Buffer_snap(self) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_core$col$$col$mem$col$$col$MaybeUninit_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$mem$col$$col$MaybeUninit)
+  ensures acc(p_core$col$$col$mem$col$$col$MaybeUninit(self, T$0), write)
+  ensures p_core$col$$col$mem$col$$col$MaybeUninit_snap(self, T$0) == value
+
+
+adt s_Param {
+  make_generic_s_core$col$$col$mem$col$$col$MaybeUninit(make_concrete_s_core$col$$col$mem$col$$col$MaybeUninit: s_core$col$$col$mem$col$$col$MaybeUninit,
+  make_generic_s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Buffer {
+  s_Buffer_cons(s_Buffer_0: s_Array)
+}
+
+adt Type {
+  s_core$col$$col$mem$col$$col$MaybeUninit_type(s_core$col$$col$mem$col$$col$MaybeUninit_typaram_T$0: Type)
+  s_UInt_u8_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_Buffer_type()
+  Unknown_type(id: Int)
+}

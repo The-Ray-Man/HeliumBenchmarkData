@@ -1,0 +1,2170 @@
+domain BoolWellFoundedOrder  {
+  
+  axiom bool_ax_bound {
+    (forall bool1: Bool ::
+      { (bounded(bool1): Bool) }
+      (bounded(bool1): Bool))
+  }
+  
+  axiom bool_ax_dec {
+    (decreasing(false, true): Bool)
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+}
+
+domain String  {
+  
+  function strConcat(l: Int, r: Int): Int 
+  
+  function strLen(id: Int): Int 
+  
+  unique function stringLit(): Int 
+  
+  axiom {
+    (forall l: Int, r: Int ::
+      { strLen(strConcat(l, r)) }
+      strLen(strConcat(l, r)) == strLen(l) + strLen(r))
+  }
+  
+  axiom {
+    (forall str: Int :: { strLen(str) } 0 <= strLen(str))
+  }
+  
+  axiom {
+    strLen(stringLit()) == 0
+  }
+}
+
+domain Tuple2[T0, T1]  {
+  
+  function get0of2(p: Tuple2[T0, T1]): T0 
+  
+  function get1of2(p: Tuple2[T0, T1]): T1 
+  
+  function tuple2(t0: T0, t1: T1): Tuple2[T0, T1] 
+  
+  axiom getter_over_tuple2 {
+    (forall t0: T0, t1: T1 ::
+      { (tuple2(t0, t1): Tuple2[T0, T1]) }
+      (get0of2((tuple2(t0, t1): Tuple2[T0, T1])): T0) == t0 &&
+      (get1of2((tuple2(t0, t1): Tuple2[T0, T1])): T1) == t1)
+  }
+  
+  axiom tuple2_over_getter {
+    (forall p: Tuple2[T0, T1] ::
+      { (get0of2(p): T0) }
+      { (get1of2(p): T1) }
+      (tuple2((get0of2(p): T0), (get1of2(p): T1)): Tuple2[T0, T1]) == p)
+  }
+}
+
+domain Types  {
+  
+  function behavioral_subtype_Types(l: Types, r: Types): Bool 
+  
+  function comparableType_Types(t: Types): Bool 
+  
+  function empty_interface_Types(): Types 
+  
+  unique function empty_interface_Types_tag(): Int 
+  
+  function nil_Types(): Types 
+  
+  unique function nil_Types_tag(): Int 
+  
+  function tag_Types(t: Types): Int 
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, a) }
+      behavioral_subtype_Types(a, a))
+  }
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, empty_interface_Types()) }
+      behavioral_subtype_Types(a, empty_interface_Types()))
+  }
+  
+  axiom {
+    (forall a: Types, b: Types, c: Types ::
+      { behavioral_subtype_Types(a, b), behavioral_subtype_Types(b, c) }
+      behavioral_subtype_Types(a, b) && behavioral_subtype_Types(b, c) ==>
+      behavioral_subtype_Types(a, c))
+  }
+  
+  axiom {
+    comparableType_Types(empty_interface_Types()) == false
+  }
+  
+  axiom {
+    comparableType_Types(nil_Types()) == true
+  }
+  
+  axiom {
+    tag_Types(empty_interface_Types()) == empty_interface_Types_tag()
+  }
+  
+  axiom {
+    tag_Types(nil_Types()) == nil_Types_tag()
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function bounded(arg1: T): Bool 
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+}
+
+function Dubious_3b4ea30d_F(): Int
+{
+  1 + Dubious_3b4ea30d_F()
+}
+
+// decreases x_V0
+function F_v1_3b4ea30d_F(x_V0: Int): Int
+{
+  (x_V0 < 10 ? x_V0 : F_v1_3b4ea30d_F(x_V0 - 1))
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+function IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]): Bool
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+
+
+// decreases hi_V0 - lo_V0
+function SeqSum_3b4ea30d_F(s_V0: Seq[Int], lo_V0: Int, hi_V0: Int): Int
+  requires 0 <= lo_V0 && lo_V0 <= hi_V0 && hi_V0 <= |s_V0|
+{
+  (lo_V0 == hi_V0 ?
+    0 :
+    s_V0[lo_V0] + SeqSum_3b4ea30d_F(s_V0, lo_V0 + 1, hi_V0))
+}
+
+predicate ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types]) 
+
+method $IMPORTS_3b4ea30d_3b4ea30d()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_3b4ea30d_a4af0e5e()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_65049209()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_9b6bf945()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_9bf1ce39()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_ba8528d9()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_e98df17c()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_ecb4b916()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_3b4ea30d_f5cdf35f()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases m_V0, n_V0
+method Ack_3b4ea30d_F(m_V0: Int, n_V0: Int) returns (r_V0: Int)
+  requires 0 <= m_V0
+  requires 0 <= n_V0
+  ensures 0 <= r_V0
+{
+  inhale r_V0 == 0
+  
+  // decl m_V0_CN0: int°°, n_V0_CN1: int°°, r_V0_CN2: int°°
+  {
+    var m_V0_CN0: Int
+    var n_V0_CN1: Int
+    var r_V0_CN2: Int
+    
+    
+    
+    // init m_V0_CN0
+    inhale m_V0_CN0 == 0
+    
+    // init n_V0_CN1
+    inhale n_V0_CN1 == 0
+    
+    // init r_V0_CN2
+    inhale r_V0_CN2 == 0
+    
+    // m_V0_CN0 = m_V0
+    m_V0_CN0 := m_V0
+    
+    // n_V0_CN1 = n_V0
+    n_V0_CN1 := n_V0
+    
+    // decl 
+    
+    // if(m_V0_CN0 == 0) {...} else {...}
+    if (m_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // r_V0_CN2 = n_V0_CN1 + 1
+      r_V0_CN2 := n_V0_CN1 + 1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(n_V0_CN1 == 0) {...} else {...}
+      if (n_V0_CN1 == 0) {
+        
+        // decl N5: int°°
+        {
+          var N5: Int
+          
+          // N5 = Ack_3b4ea30d_F(m_V0_CN0 - 1, 1)
+          assert (decreasing(m_V0_CN0 - 1, old(m_V0)): Bool) &&
+            (bounded(old(m_V0)): Bool) ||
+            m_V0_CN0 - 1 == old(m_V0) &&
+            ((decreasing(1, old(n_V0)): Bool) && (bounded(old(n_V0)): Bool) ||
+            1 == old(n_V0) && false)
+          N5 := Ack_3b4ea30d_F(m_V0_CN0 - 1, 1)
+          
+          // r_V0_CN2 = N5
+          r_V0_CN2 := N5
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // decl N3: int°°, N4: int°°
+        {
+          var N3: Int
+          var N4: Int
+          
+          // N3 = Ack_3b4ea30d_F(m_V0_CN0, n_V0_CN1 - 1)
+          assert (decreasing(m_V0_CN0, old(m_V0)): Bool) &&
+            (bounded(old(m_V0)): Bool) ||
+            m_V0_CN0 == old(m_V0) &&
+            ((decreasing(n_V0_CN1 - 1, old(n_V0)): Bool) &&
+            (bounded(old(n_V0)): Bool) ||
+            n_V0_CN1 - 1 == old(n_V0) && false)
+          N3 := Ack_3b4ea30d_F(m_V0_CN0, n_V0_CN1 - 1)
+          
+          // N4 = Ack_3b4ea30d_F(m_V0_CN0 - 1, N3)
+          assert (decreasing(m_V0_CN0 - 1, old(m_V0)): Bool) &&
+            (bounded(old(m_V0)): Bool) ||
+            m_V0_CN0 - 1 == old(m_V0) &&
+            ((decreasing(N3, old(n_V0)): Bool) &&
+            (bounded(old(n_V0)): Bool) ||
+            N3 == old(n_V0) && false)
+          N4 := Ack_3b4ea30d_F(m_V0_CN0 - 1, N3)
+          
+          // r_V0_CN2 = N4
+          r_V0_CN2 := N4
+          
+          // return
+          goto returnLabel
+        }
+      }
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN2
+    r_V0 := r_V0_CN2
+  }
+}
+
+method BadDouble_3b4ea30d_F(x_V0: Int) returns (d_V0: Int)
+  ensures d_V0 == 2 * x_V0
+{
+  inhale d_V0 == 0
+  
+  // decl x_V0_CN0: int°°, d_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var d_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init d_V0_CN1
+    inhale d_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl N2: int°°, y_V1: int°°
+    {
+      var N2: Int
+      var y_V1: Int
+      
+      // N2 = BadDouble_3b4ea30d_F(x_V0_CN0 - 1)
+      N2 := BadDouble_3b4ea30d_F(x_V0_CN0 - 1)
+      
+      // init y_V1
+      inhale y_V1 == 0
+      
+      // y_V1 = N2
+      y_V1 := N2
+      
+      // d_V0_CN1 = y_V1 + 2
+      d_V0_CN1 := y_V1 + 2
+      
+      // d_V0_CN1 = d_V0_CN1
+      d_V0_CN1 := d_V0_CN1
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+    
+    // d_V0 = d_V0_CN1
+    d_V0 := d_V0_CN1
+  }
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Duplicate_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==>
+    acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method Error_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf: Tuple2[Ref, Types])
+  returns (P0_PO0: Int)
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), write)
+  ensures IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf) ==
+    old(IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf))
+
+
+// decreases n_V0, 1
+method ExpLess1_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 0 <= n_V0
+  ensures 0 <= r_V0
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 == 0) {...} else {...}
+    if (n_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // r_V0_CN1 = 0
+      r_V0_CN1 := 0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N2: int°°
+      {
+        var N2: Int
+        
+        // N2 = ExpLess2_3b4ea30d_F(n_V0_CN0)
+        assert (decreasing(n_V0_CN0, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 == old(n_V0) &&
+          ((decreasing(0, old(1)): Bool) && (bounded(old(1)): Bool) ||
+          0 == old(1) && false)
+        N2 := ExpLess2_3b4ea30d_F(n_V0_CN0)
+        
+        // r_V0_CN1 = N2 + 1
+        r_V0_CN1 := N2 + 1
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases n_V0, 0
+method ExpLess2_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 1 <= n_V0
+  ensures 0 <= r_V0
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl N2: int°°
+    {
+      var N2: Int
+      
+      // N2 = ExpLess1_3b4ea30d_F(n_V0_CN0 - 1)
+      assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+        (bounded(old(n_V0)): Bool) ||
+        n_V0_CN0 - 1 == old(n_V0) &&
+        ((decreasing(1, old(0)): Bool) && (bounded(old(0)): Bool) ||
+        1 == old(0) && false)
+      N2 := ExpLess1_3b4ea30d_F(n_V0_CN0 - 1)
+      
+      // r_V0_CN1 = 2 * N2
+      r_V0_CN1 := 2 * N2
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases x_V0 % 2 == 1, (x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0)
+method F_3b4ea30d_F(x_V0: Int, y_V0: Int) returns (P0_PO0: Int)
+  requires 0 <= x_V0
+  requires 0 <= y_V0
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // decl 
+    
+    // if(1000 <= x_V0_CN0) {...} else {...}
+    if (1000 <= x_V0_CN0) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0 + y_V0_CN1
+      P0_PO0 := x_V0_CN0 + y_V0_CN1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(x_V0_CN0 % 2 == 0) {...} else {...}
+      if (x_V0_CN0 % 2 == 0) {
+        
+        // decl N4: int°°
+        {
+          var N4: Int
+          
+          // N4 = F_3b4ea30d_F(x_V0_CN0 + 2, y_V0_CN1 + 1)
+          assert (decreasing((x_V0_CN0 + 2) % 2 == 1, old(x_V0 % 2 == 1)): Bool) &&
+            (bounded(old(x_V0 % 2 == 1)): Bool) ||
+            ((x_V0_CN0 + 2) % 2 == 1) == old(x_V0 % 2 == 1) &&
+            ((decreasing(((x_V0_CN0 + 2) % 2 == 1 ?
+              x_V0_CN0 + 2 :
+              1000 - (x_V0_CN0 + 2)), old((x_V0 % 2 == 1 ?
+              x_V0 :
+              1000 - x_V0))): Bool) &&
+            (bounded(old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0))): Bool) ||
+            ((x_V0_CN0 + 2) % 2 == 1 ?
+              x_V0_CN0 + 2 :
+              1000 - (x_V0_CN0 + 2)) ==
+            old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0)) &&
+            false)
+          N4 := F_3b4ea30d_F(x_V0_CN0 + 2, y_V0_CN1 + 1)
+          
+          // P0_PO0 = N4
+          P0_PO0 := N4
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // if(x_V0_CN0 < 6) {...} else {...}
+        if (x_V0_CN0 < 6) {
+          
+          // decl N3: int°°
+          {
+            var N3: Int
+            
+            // N3 = F_3b4ea30d_F(2 * y_V0_CN1, y_V0_CN1)
+            assert (decreasing(2 * y_V0_CN1 % 2 == 1, old(x_V0 % 2 == 1)): Bool) &&
+              (bounded(old(x_V0 % 2 == 1)): Bool) ||
+              (2 * y_V0_CN1 % 2 == 1) == old(x_V0 % 2 == 1) &&
+              ((decreasing((2 * y_V0_CN1 % 2 == 1 ?
+                2 * y_V0_CN1 :
+                1000 - 2 * y_V0_CN1), old((x_V0 % 2 == 1 ?
+                x_V0 :
+                1000 - x_V0))): Bool) &&
+              (bounded(old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0))): Bool) ||
+              (2 * y_V0_CN1 % 2 == 1 ? 2 * y_V0_CN1 : 1000 - 2 * y_V0_CN1) ==
+              old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0)) &&
+              false)
+            N3 := F_3b4ea30d_F(2 * y_V0_CN1, y_V0_CN1)
+            
+            // P0_PO0 = N3
+            P0_PO0 := N3
+            
+            // return
+            goto returnLabel
+          }
+        } else {
+          
+          // decl N2: int°°
+          {
+            var N2: Int
+            
+            // N2 = F_3b4ea30d_F(x_V0_CN0 - 4, y_V0_CN1 + 3)
+            assert (decreasing((x_V0_CN0 - 4) % 2 == 1, old(x_V0 % 2 == 1)): Bool) &&
+              (bounded(old(x_V0 % 2 == 1)): Bool) ||
+              ((x_V0_CN0 - 4) % 2 == 1) == old(x_V0 % 2 == 1) &&
+              ((decreasing(((x_V0_CN0 - 4) % 2 == 1 ?
+                x_V0_CN0 - 4 :
+                1000 - (x_V0_CN0 - 4)), old((x_V0 % 2 == 1 ?
+                x_V0 :
+                1000 - x_V0))): Bool) &&
+              (bounded(old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0))): Bool) ||
+              ((x_V0_CN0 - 4) % 2 == 1 ?
+                x_V0_CN0 - 4 :
+                1000 - (x_V0_CN0 - 4)) ==
+              old((x_V0 % 2 == 1 ? x_V0 : 1000 - x_V0)) &&
+              false)
+            N2 := F_3b4ea30d_F(x_V0_CN0 - 4, y_V0_CN1 + 3)
+            
+            // P0_PO0 = N2
+            P0_PO0 := N2
+            
+            // return
+            goto returnLabel
+          }
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases x_V0
+method F_v1_3b4ea30d_F_termination_proof(x_V0: Int)
+{
+  if (x_V0 < 10) {
+  } else {
+    assert (decreasing(x_V0 - 1, old(x_V0)): Bool) &&
+      (bounded(old(x_V0)): Bool)}
+}
+
+// decreases x_V0
+method F_v2_3b4ea30d_F(x_V0: Int) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°
+  {
+    var x_V0_CN0: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 < 10) {...} else {...}
+    if (x_V0_CN0 < 10) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0
+      P0_PO0 := x_V0_CN0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N1: int°°
+      {
+        var N1: Int
+        
+        // N1 = F_v2_3b4ea30d_F(x_V0_CN0 - 1)
+        assert (decreasing(x_V0_CN0 - 1, old(x_V0)): Bool) &&
+          (bounded(old(x_V0)): Bool) ||
+          x_V0_CN0 - 1 == old(x_V0) && false
+        N1 := F_v2_3b4ea30d_F(x_V0_CN0 - 1)
+        
+        // P0_PO0 = N1
+        P0_PO0 := N1
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases n_V0, 1
+method F_v3_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 0 <= n_V0
+  ensures 0 <= r_V0 && r_V0 <= n_V0 + 1
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 == 0) {...} else {...}
+    if (n_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // r_V0_CN1 = 1
+      r_V0_CN1 := 1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N2: int°°, N3: int°°
+      {
+        var N2: Int
+        var N3: Int
+        
+        // N2 = F_v3_3b4ea30d_F(n_V0_CN0 - 1)
+        assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 - 1 == old(n_V0) &&
+          ((decreasing(1, old(1)): Bool) && (bounded(old(1)): Bool) ||
+          1 == old(1) && false)
+        N2 := F_v3_3b4ea30d_F(n_V0_CN0 - 1)
+        
+        // N3 = M_v3_3b4ea30d_F(N2)
+        assert (decreasing(N2, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          N2 == old(n_V0) &&
+          ((decreasing(0, old(1)): Bool) && (bounded(old(1)): Bool) ||
+          0 == old(1) && false)
+        N3 := M_v3_3b4ea30d_F(N2)
+        
+        // r_V0_CN1 = n_V0_CN0 - N3
+        r_V0_CN1 := n_V0_CN0 - N3
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases n_V0
+method Fib_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 0 <= n_V0
+  ensures 0 <= r_V0
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 < 2) {...} else {...}
+    if (n_V0_CN0 < 2) {
+      
+      // decl 
+      
+      // r_V0_CN1 = n_V0_CN0
+      r_V0_CN1 := n_V0_CN0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N2: int°°, N3: int°°
+      {
+        var N2: Int
+        var N3: Int
+        
+        // N2 = Fib_3b4ea30d_F(n_V0_CN0 - 2)
+        assert (decreasing(n_V0_CN0 - 2, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 - 2 == old(n_V0) && false
+        N2 := Fib_3b4ea30d_F(n_V0_CN0 - 2)
+        
+        // N3 = Fib_3b4ea30d_F(n_V0_CN0 - 1)
+        assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 - 1 == old(n_V0) && false
+        N3 := Fib_3b4ea30d_F(n_V0_CN0 - 1)
+        
+        // r_V0_CN1 = N2 + N3
+        r_V0_CN1 := N2 + N3
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases n_V0
+method G_3_7_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 0 <= n_V0
+  ensures 0 <= r_V0 && r_V0 <= n_V0
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 == 0) {...} else {...}
+    if (n_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // r_V0_CN1 = 0
+      r_V0_CN1 := 0
+    } else {
+      
+      // decl N2: int°°, N3: int°°
+      {
+        var N2: Int
+        var N3: Int
+        
+        // N2 = G_3_7_3b4ea30d_F(n_V0_CN0 - 1)
+        assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 - 1 == old(n_V0) && false
+        N2 := G_3_7_3b4ea30d_F(n_V0_CN0 - 1)
+        
+        // N3 = G_3_7_3b4ea30d_F(N2)
+        assert (decreasing(N2, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          N2 == old(n_V0) && false
+        N3 := G_3_7_3b4ea30d_F(N2)
+        
+        // r_V0_CN1 = n_V0_CN0 - N3
+        r_V0_CN1 := n_V0_CN0 - N3
+      }
+    }
+    
+    // r_V0_CN1 = r_V0_CN1
+    r_V0_CN1 := r_V0_CN1
+    
+    // return
+    goto returnLabel
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases x_V0
+method G_3b4ea30d_F(x_V0: Int) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°
+  {
+    var x_V0_CN0: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl 
+    
+    // if(0 <= x_V0_CN0) {...} else {...}
+    if (0 <= x_V0_CN0) {
+      
+      // decl N1: int°°
+      {
+        var N1: Int
+        
+        // N1 = G_3b4ea30d_F(x_V0_CN0 - 2)
+        assert (decreasing(x_V0_CN0 - 2, old(x_V0)): Bool) &&
+          (bounded(old(x_V0)): Bool) ||
+          x_V0_CN0 - 2 == old(x_V0) && false
+        N1 := G_3b4ea30d_F(x_V0_CN0 - 2)
+        
+        // P0_PO0 = N1
+        P0_PO0 := N1
+        
+        // return
+        goto returnLabel
+      }
+    } else {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0
+      P0_PO0 := x_V0_CN0
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+  }
+}
+
+// decreases x_V0 + 60
+method H_3b4ea30d_F(x_V0: Int) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°
+  {
+    var x_V0_CN0: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 < 0 - 60) {...} else {...}
+    if (x_V0_CN0 < 0 - 60) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0
+      P0_PO0 := x_V0_CN0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N1: int°°
+      {
+        var N1: Int
+        
+        // N1 = H_3b4ea30d_F(x_V0_CN0 - 1)
+        assert (decreasing(x_V0_CN0 - 1 + 60, old(x_V0 + 60)): Bool) &&
+          (bounded(old(x_V0 + 60)): Bool) ||
+          x_V0_CN0 - 1 + 60 == old(x_V0 + 60) && false
+        N1 := H_3b4ea30d_F(x_V0_CN0 - 1)
+        
+        // P0_PO0 = N1
+        P0_PO0 := N1
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases x_V0, y_V0
+method I_3b4ea30d_F(x_V0: Int, y_V0: Int) returns (P0_PO0: Int)
+  requires 0 <= x_V0
+  requires 0 <= y_V0
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 == 0 || y_V0_CN1 == 0) {...} else {...}
+    if (x_V0_CN0 == 0 || y_V0_CN1 == 0) {
+      
+      // decl 
+      
+      // P0_PO0 = 12
+      P0_PO0 := 12
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(x_V0_CN0 % 2 == y_V0_CN1 % 2) {...} else {...}
+      if (x_V0_CN0 % 2 == y_V0_CN1 % 2) {
+        
+        // decl N3: int°°
+        {
+          var N3: Int
+          
+          // N3 = I_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1)
+          assert (decreasing(x_V0_CN0 - 1, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 - 1 == old(x_V0) &&
+            ((decreasing(y_V0_CN1, old(y_V0)): Bool) &&
+            (bounded(old(y_V0)): Bool) ||
+            y_V0_CN1 == old(y_V0) && false)
+          N3 := I_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1)
+          
+          // P0_PO0 = N3
+          P0_PO0 := N3
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // decl N2: int°°
+        {
+          var N2: Int
+          
+          // N2 = I_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1)
+          assert (decreasing(x_V0_CN0, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 == old(x_V0) &&
+            ((decreasing(y_V0_CN1 - 1, old(y_V0)): Bool) &&
+            (bounded(old(y_V0)): Bool) ||
+            y_V0_CN1 - 1 == old(y_V0) && false)
+          N2 := I_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1)
+          
+          // P0_PO0 = N2
+          P0_PO0 := N2
+          
+          // return
+          goto returnLabel
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+method Impossible_3b4ea30d_F(x_V0: Int) returns (y_V0: Int)
+  ensures y_V0 % 2 == 0 && y_V0 == 10 * x_V0 - 3
+{
+  inhale y_V0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl N2: int°°
+    {
+      var N2: Int
+      
+      // N2 = Impossible_3b4ea30d_F(x_V0_CN0)
+      N2 := Impossible_3b4ea30d_F(x_V0_CN0)
+      
+      // y_V0_CN1 = N2
+      y_V0_CN1 := N2
+      
+      // y_V0_CN1 = y_V0_CN1
+      y_V0_CN1 := y_V0_CN1
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+    
+    // y_V0 = y_V0_CN1
+    y_V0 := y_V0_CN1
+  }
+}
+
+// decreases a_V0, b_V0
+method Inner_v1_3b4ea30d_F(a_V0: Int, b_V0: Int)
+  requires 1 <= a_V0
+  requires 0 <= b_V0
+{
+  
+  // decl a_V0_CN0: int°°, b_V0_CN1: int°°
+  {
+    var a_V0_CN0: Int
+    var b_V0_CN1: Int
+    
+    
+    
+    // init a_V0_CN0
+    inhale a_V0_CN0 == 0
+    
+    // init b_V0_CN1
+    inhale b_V0_CN1 == 0
+    
+    // a_V0_CN0 = a_V0
+    a_V0_CN0 := a_V0
+    
+    // b_V0_CN1 = b_V0
+    b_V0_CN1 := b_V0
+    
+    // decl 
+    
+    // if(b_V0_CN1 == 0) {...} else {...}
+    if (b_V0_CN1 == 0) {
+      
+      // decl 
+      
+      // Outer_v1_3b4ea30d_F(a_V0_CN0 - 1)
+      assert (decreasing(a_V0_CN0 - 1, old(a_V0)): Bool) &&
+        (bounded(old(a_V0)): Bool) ||
+        a_V0_CN0 - 1 == old(a_V0) && false
+      Outer_v1_3b4ea30d_F(a_V0_CN0 - 1)
+    } else {
+      
+      // decl 
+      
+      // Inner_v1_3b4ea30d_F(a_V0_CN0, b_V0_CN1 - 1)
+      assert (decreasing(a_V0_CN0, old(a_V0)): Bool) &&
+        (bounded(old(a_V0)): Bool) ||
+        a_V0_CN0 == old(a_V0) &&
+        ((decreasing(b_V0_CN1 - 1, old(b_V0)): Bool) &&
+        (bounded(old(b_V0)): Bool) ||
+        b_V0_CN1 - 1 == old(b_V0) && false)
+      Inner_v1_3b4ea30d_F(a_V0_CN0, b_V0_CN1 - 1)
+    }
+    label returnLabel
+  }
+}
+
+// decreases a_V0, 1, b_V0
+method Inner_v2_3b4ea30d_F(a_V0: Int, b_V0: Int)
+  requires 0 <= a_V0
+  requires 0 <= b_V0
+{
+  
+  // decl a_V0_CN0: int°°, b_V0_CN1: int°°
+  {
+    var a_V0_CN0: Int
+    var b_V0_CN1: Int
+    
+    
+    
+    // init a_V0_CN0
+    inhale a_V0_CN0 == 0
+    
+    // init b_V0_CN1
+    inhale b_V0_CN1 == 0
+    
+    // a_V0_CN0 = a_V0
+    a_V0_CN0 := a_V0
+    
+    // b_V0_CN1 = b_V0
+    b_V0_CN1 := b_V0
+    
+    // decl 
+    
+    // if(b_V0_CN1 == 0) {...} else {...}
+    if (b_V0_CN1 == 0) {
+      
+      // decl 
+      
+      // Outer_v2_3b4ea30d_F(a_V0_CN0)
+      assert (decreasing(a_V0_CN0, old(a_V0)): Bool) &&
+        (bounded(old(a_V0)): Bool) ||
+        a_V0_CN0 == old(a_V0) &&
+        ((decreasing(0, old(1)): Bool) && (bounded(old(1)): Bool) ||
+        0 == old(1) && false)
+      Outer_v2_3b4ea30d_F(a_V0_CN0)
+    } else {
+      
+      // decl 
+      
+      // Inner_v2_3b4ea30d_F(a_V0_CN0, b_V0_CN1 - 1)
+      assert (decreasing(a_V0_CN0, old(a_V0)): Bool) &&
+        (bounded(old(a_V0)): Bool) ||
+        a_V0_CN0 == old(a_V0) &&
+        ((decreasing(1, old(1)): Bool) && (bounded(old(1)): Bool) ||
+        1 == old(1) &&
+        ((decreasing(b_V0_CN1 - 1, old(b_V0)): Bool) &&
+        (bounded(old(b_V0)): Bool) ||
+        b_V0_CN1 - 1 == old(b_V0) && false))
+      Inner_v2_3b4ea30d_F(a_V0_CN0, b_V0_CN1 - 1)
+    }
+    label returnLabel
+  }
+}
+
+// decreases @ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf)
+method IsDuplicableMem_a4af0e5e_SY$db8f20c_a4af0e5e__pres_termination_proof(thisItf: Tuple2[Ref, Types])
+{
+  var $condInEx: Bool
+  if (!(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))) {
+    inhale acc(ErrorMem_a4af0e5e_SY$db8f20c_a4af0e5e_(thisItf), wildcard)
+  }
+}
+
+// decreases x_V0, y_V0
+method J_3b4ea30d_F(x_V0: Int, y_V0: Int) returns (P0_PO0: Int)
+  requires 0 <= x_V0
+  requires 0 <= y_V0
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 == 0) {...} else {...}
+    if (x_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // P0_PO0 = y_V0_CN1
+      P0_PO0 := y_V0_CN1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(y_V0_CN1 == 0) {...} else {...}
+      if (y_V0_CN1 == 0) {
+        
+        // decl N3: int°°
+        {
+          var N3: Int
+          
+          // N3 = J_3b4ea30d_F(x_V0_CN0 - 1, 3)
+          assert (decreasing(x_V0_CN0 - 1, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 - 1 == old(x_V0) &&
+            ((decreasing(3, old(y_V0)): Bool) && (bounded(old(y_V0)): Bool) ||
+            3 == old(y_V0) && false)
+          N3 := J_3b4ea30d_F(x_V0_CN0 - 1, 3)
+          
+          // P0_PO0 = N3
+          P0_PO0 := N3
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // decl N2: int°°
+        {
+          var N2: Int
+          
+          // N2 = J_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1)
+          assert (decreasing(x_V0_CN0, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 == old(x_V0) &&
+            ((decreasing(y_V0_CN1 - 1, old(y_V0)): Bool) &&
+            (bounded(old(y_V0)): Bool) ||
+            y_V0_CN1 - 1 == old(y_V0) && false)
+          N2 := J_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1)
+          
+          // P0_PO0 = N2
+          P0_PO0 := N2
+          
+          // return
+          goto returnLabel
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases x_V0, y_V0
+method K_3b4ea30d_F(x_V0: Int, y_V0: Int, z_V0: Int) returns (P0_PO0: Int)
+  requires 0 <= x_V0
+  requires 0 <= y_V0
+  requires 0 <= z_V0
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°, z_V0_CN2: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    var z_V0_CN2: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // init z_V0_CN2
+    inhale z_V0_CN2 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // z_V0_CN2 = z_V0
+    z_V0_CN2 := z_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 < 10 || y_V0_CN1 < 5) {...} else {...}
+    if (x_V0_CN0 < 10 || y_V0_CN1 < 5) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0 + y_V0_CN1
+      P0_PO0 := x_V0_CN0 + y_V0_CN1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(z_V0_CN2 == 0) {...} else {...}
+      if (z_V0_CN2 == 0) {
+        
+        // decl N4: int°°
+        {
+          var N4: Int
+          
+          // N4 = K_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1, 5)
+          assert (decreasing(x_V0_CN0 - 1, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 - 1 == old(x_V0) &&
+            ((decreasing(y_V0_CN1, old(y_V0)): Bool) &&
+            (bounded(old(y_V0)): Bool) ||
+            y_V0_CN1 == old(y_V0) && false)
+          N4 := K_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1, 5)
+          
+          // P0_PO0 = N4
+          P0_PO0 := N4
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // decl N3: int°°
+        {
+          var N3: Int
+          
+          // N3 = K_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1, z_V0_CN2 - 1)
+          assert (decreasing(x_V0_CN0, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 == old(x_V0) &&
+            ((decreasing(y_V0_CN1 - 1, old(y_V0)): Bool) &&
+            (bounded(old(y_V0)): Bool) ||
+            y_V0_CN1 - 1 == old(y_V0) && false)
+          N3 := K_3b4ea30d_F(x_V0_CN0, y_V0_CN1 - 1, z_V0_CN2 - 1)
+          
+          // P0_PO0 = N3
+          P0_PO0 := N3
+          
+          // return
+          goto returnLabel
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases 100 - x_V0
+method L_3b4ea30d_F(x_V0: Int) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°
+  {
+    var x_V0_CN0: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 < 100) {...} else {...}
+    if (x_V0_CN0 < 100) {
+      
+      // decl N1: int°°
+      {
+        var N1: Int
+        
+        // N1 = L_3b4ea30d_F(x_V0_CN0 + 1)
+        assert (decreasing(100 - (x_V0_CN0 + 1), old(100 - x_V0)): Bool) &&
+          (bounded(old(100 - x_V0)): Bool) ||
+          100 - (x_V0_CN0 + 1) == old(100 - x_V0) && false
+        N1 := L_3b4ea30d_F(x_V0_CN0 + 1)
+        
+        // P0_PO0 = N1 + 10
+        P0_PO0 := N1 + 10
+        
+        // return
+        goto returnLabel
+      }
+    } else {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0
+      P0_PO0 := x_V0_CN0
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+  }
+}
+
+// decreases 40 - n_V0, h_V0
+method Learn_3b4ea30d_F(n_V0: Int, h_V0: Int)
+  requires 0 <= n_V0 && n_V0 < 40
+  requires 0 <= h_V0
+{
+  
+  // decl n_V0_CN0: int°°, h_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var h_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init h_V0_CN1
+    inhale h_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // h_V0_CN1 = h_V0
+    h_V0_CN1 := h_V0
+    
+    // decl 
+    
+    // if(h_V0_CN1 == 0) {...} else {...}
+    if (h_V0_CN1 == 0) {
+      
+      // decl 
+      
+      // StudyPlan_3b4ea30d_F(n_V0_CN0 + 1)
+      assert (decreasing(40 - (n_V0_CN0 + 1), old(40 - n_V0)): Bool) &&
+        (bounded(old(40 - n_V0)): Bool) ||
+        40 - (n_V0_CN0 + 1) == old(40 - n_V0) && false
+      StudyPlan_3b4ea30d_F(n_V0_CN0 + 1)
+    } else {
+      
+      // decl 
+      
+      // Learn_3b4ea30d_F(n_V0_CN0, h_V0_CN1 - 1)
+      assert (decreasing(40 - n_V0_CN0, old(40 - n_V0)): Bool) &&
+        (bounded(old(40 - n_V0)): Bool) ||
+        40 - n_V0_CN0 == old(40 - n_V0) &&
+        ((decreasing(h_V0_CN1 - 1, old(h_V0)): Bool) &&
+        (bounded(old(h_V0)): Bool) ||
+        h_V0_CN1 - 1 == old(h_V0) && false)
+      Learn_3b4ea30d_F(n_V0_CN0, h_V0_CN1 - 1)
+    }
+    label returnLabel
+  }
+}
+
+// decreases !b_V0
+method M_3b4ea30d_F(x_V0: Int, b_V0: Bool) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, b_V0_CN1: bool°°
+  {
+    var x_V0_CN0: Int
+    var b_V0_CN1: Bool
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init b_V0_CN1
+    inhale b_V0_CN1 == false
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // b_V0_CN1 = b_V0
+    b_V0_CN1 := b_V0
+    
+    // decl 
+    
+    // if(b_V0_CN1) {...} else {...}
+    if (b_V0_CN1) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0
+      P0_PO0 := x_V0_CN0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N2: int°°
+      {
+        var N2: Int
+        
+        // N2 = M_3b4ea30d_F(x_V0_CN0 + 25, true)
+        assert (decreasing(!true, old(!b_V0)): Bool) &&
+          (bounded(old(!b_V0)): Bool) ||
+          !true == old(!b_V0) && false
+        N2 := M_3b4ea30d_F(x_V0_CN0 + 25, true)
+        
+        // P0_PO0 = N2
+        P0_PO0 := N2
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases n_V0, 0
+method M_v3_3b4ea30d_F(n_V0: Int) returns (r_V0: Int)
+  requires 0 <= n_V0
+  ensures 0 <= r_V0 && r_V0 <= n_V0
+{
+  inhale r_V0 == 0
+  
+  // decl n_V0_CN0: int°°, r_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var r_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init r_V0_CN1
+    inhale r_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 == 0) {...} else {...}
+    if (n_V0_CN0 == 0) {
+      
+      // decl 
+      
+      // r_V0_CN1 = 0
+      r_V0_CN1 := 0
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // decl N2: int°°, N3: int°°
+      {
+        var N2: Int
+        var N3: Int
+        
+        // N2 = M_v3_3b4ea30d_F(n_V0_CN0 - 1)
+        assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          n_V0_CN0 - 1 == old(n_V0) &&
+          ((decreasing(0, old(0)): Bool) && (bounded(old(0)): Bool) ||
+          0 == old(0) && false)
+        N2 := M_v3_3b4ea30d_F(n_V0_CN0 - 1)
+        
+        // N3 = F_v3_3b4ea30d_F(N2)
+        assert (decreasing(N2, old(n_V0)): Bool) &&
+          (bounded(old(n_V0)): Bool) ||
+          N2 == old(n_V0) &&
+          ((decreasing(1, old(0)): Bool) && (bounded(old(0)): Bool) ||
+          1 == old(0) && false)
+        N3 := F_v3_3b4ea30d_F(N2)
+        
+        // r_V0_CN1 = n_V0_CN0 - N3
+        r_V0_CN1 := n_V0_CN0 - N3
+        
+        // return
+        goto returnLabel
+      }
+    }
+    label returnLabel
+    
+    // r_V0 = r_V0_CN1
+    r_V0 := r_V0_CN1
+  }
+}
+
+// decreases x_V0, b_V0
+method N_3b4ea30d_F(x_V0: Int, y_V0: Int, b_V0: Bool) returns (P0_PO0: Int)
+{
+  inhale P0_PO0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°, b_V0_CN2: bool°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    var b_V0_CN2: Bool
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // init b_V0_CN2
+    inhale b_V0_CN2 == false
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // y_V0_CN1 = y_V0
+    y_V0_CN1 := y_V0
+    
+    // b_V0_CN2 = b_V0
+    b_V0_CN2 := b_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 <= 0 || y_V0_CN1 <= 0) {...} else {...}
+    if (x_V0_CN0 <= 0 || y_V0_CN1 <= 0) {
+      
+      // decl 
+      
+      // P0_PO0 = x_V0_CN0 + y_V0_CN1
+      P0_PO0 := x_V0_CN0 + y_V0_CN1
+      
+      // return
+      goto returnLabel
+    } else {
+      
+      // if(b_V0_CN2) {...} else {...}
+      if (b_V0_CN2) {
+        
+        // decl N4: int°°
+        {
+          var N4: Int
+          
+          // N4 = N_3b4ea30d_F(x_V0_CN0, y_V0_CN1 + 3, !b_V0_CN2)
+          assert (decreasing(x_V0_CN0, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 == old(x_V0) &&
+            ((decreasing(!b_V0_CN2, old(b_V0)): Bool) &&
+            (bounded(old(b_V0)): Bool) ||
+            !b_V0_CN2 == old(b_V0) && false)
+          N4 := N_3b4ea30d_F(x_V0_CN0, y_V0_CN1 + 3, !b_V0_CN2)
+          
+          // P0_PO0 = N4
+          P0_PO0 := N4
+          
+          // return
+          goto returnLabel
+        }
+      } else {
+        
+        // decl N3: int°°
+        {
+          var N3: Int
+          
+          // N3 = N_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1, true)
+          assert (decreasing(x_V0_CN0 - 1, old(x_V0)): Bool) &&
+            (bounded(old(x_V0)): Bool) ||
+            x_V0_CN0 - 1 == old(x_V0) &&
+            ((decreasing(true, old(b_V0)): Bool) &&
+            (bounded(old(b_V0)): Bool) ||
+            true == old(b_V0) && false)
+          N3 := N_3b4ea30d_F(x_V0_CN0 - 1, y_V0_CN1, true)
+          
+          // P0_PO0 = N3
+          P0_PO0 := N3
+          
+          // return
+          goto returnLabel
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases a_V0
+method Outer_v1_3b4ea30d_F(a_V0: Int)
+  requires 0 <= a_V0
+{
+  
+  // decl a_V0_CN0: int°°
+  {
+    var a_V0_CN0: Int
+    
+    
+    
+    // init a_V0_CN0
+    inhale a_V0_CN0 == 0
+    
+    // a_V0_CN0 = a_V0
+    a_V0_CN0 := a_V0
+    
+    // decl 
+    
+    // if(a_V0_CN0 != 0) {...} else {...}
+    if (!(a_V0_CN0 == 0)) {
+      
+      // decl N1: int°°, b_V1: int°°
+      {
+        var N1: Int
+        var b_V1: Int
+        
+        // N1 = RequiredStudyTime_3b4ea30d_F(a_V0_CN0 - 1)
+        N1 := RequiredStudyTime_3b4ea30d_F(a_V0_CN0 - 1)
+        
+        // init b_V1
+        inhale b_V1 == 0
+        
+        // b_V1 = N1
+        b_V1 := N1
+        
+        // Inner_v1_3b4ea30d_F(a_V0_CN0, b_V1)
+        assert (decreasing(a_V0_CN0, old(a_V0)): Bool) &&
+          (bounded(old(a_V0)): Bool) ||
+          a_V0_CN0 == old(a_V0) && true
+        Inner_v1_3b4ea30d_F(a_V0_CN0, b_V1)
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases a_V0, 0
+method Outer_v2_3b4ea30d_F(a_V0: Int)
+  requires 0 <= a_V0
+{
+  
+  // decl a_V0_CN0: int°°
+  {
+    var a_V0_CN0: Int
+    
+    
+    
+    // init a_V0_CN0
+    inhale a_V0_CN0 == 0
+    
+    // a_V0_CN0 = a_V0
+    a_V0_CN0 := a_V0
+    
+    // decl 
+    
+    // if(a_V0_CN0 != 0) {...} else {...}
+    if (!(a_V0_CN0 == 0)) {
+      
+      // decl N1: int°°, b_V1: int°°
+      {
+        var N1: Int
+        var b_V1: Int
+        
+        // N1 = RequiredStudyTime_3b4ea30d_F(a_V0_CN0 - 1)
+        N1 := RequiredStudyTime_3b4ea30d_F(a_V0_CN0 - 1)
+        
+        // init b_V1
+        inhale b_V1 == 0
+        
+        // b_V1 = N1
+        b_V1 := N1
+        
+        // Inner_v2_3b4ea30d_F(a_V0_CN0 - 1, b_V1)
+        assert (decreasing(a_V0_CN0 - 1, old(a_V0)): Bool) &&
+          (bounded(old(a_V0)): Bool) ||
+          a_V0_CN0 - 1 == old(a_V0) &&
+          ((decreasing(1, old(0)): Bool) && (bounded(old(0)): Bool) ||
+          1 == old(0) && true)
+        Inner_v2_3b4ea30d_F(a_V0_CN0 - 1, b_V1)
+      }
+    }
+    label returnLabel
+  }
+}
+
+method PartialId_3b4ea30d_F(x_V0: Int) returns (y_V0: Int)
+  ensures y_V0 == x_V0
+{
+  inhale y_V0 == 0
+  
+  // decl x_V0_CN0: int°°, y_V0_CN1: int°°
+  {
+    var x_V0_CN0: Int
+    var y_V0_CN1: Int
+    
+    
+    
+    // init x_V0_CN0
+    inhale x_V0_CN0 == 0
+    
+    // init y_V0_CN1
+    inhale y_V0_CN1 == 0
+    
+    // x_V0_CN0 = x_V0
+    x_V0_CN0 := x_V0
+    
+    // decl 
+    
+    // if(x_V0_CN0 % 2 == 0) {...} else {...}
+    if (x_V0_CN0 % 2 == 0) {
+      
+      // decl 
+      
+      // y_V0_CN1 = x_V0_CN0
+      y_V0_CN1 := x_V0_CN0
+    } else {
+      
+      // decl N2: int°°
+      {
+        var N2: Int
+        
+        // N2 = PartialId_3b4ea30d_F(x_V0_CN0)
+        N2 := PartialId_3b4ea30d_F(x_V0_CN0)
+        
+        // y_V0_CN1 = N2
+        y_V0_CN1 := N2
+      }
+    }
+    
+    // y_V0_CN1 = y_V0_CN1
+    y_V0_CN1 := y_V0_CN1
+    
+    // return
+    goto returnLabel
+    label returnLabel
+    
+    // y_V0 = y_V0_CN1
+    y_V0 := y_V0_CN1
+  }
+}
+
+// decreases _
+method RequiredStudyTime_3b4ea30d_F(c_V0: Int) returns (hours_V0: Int)
+  requires 0 <= c_V0
+  ensures 0 <= hours_V0
+
+
+// decreases hi_V0 - lo_V0
+method SeqSum_3b4ea30d_F_termination_proof(s_V0: Seq[Int], lo_V0: Int, hi_V0: Int)
+  requires 0 <= lo_V0 && lo_V0 <= hi_V0 && hi_V0 <= |s_V0|
+{
+  if (lo_V0 == hi_V0) {
+  } else {
+    assert (decreasing(hi_V0 - (lo_V0 + 1), old(hi_V0 - lo_V0)): Bool) &&
+      (bounded(old(hi_V0 - lo_V0)): Bool)}
+}
+
+// decreases 40 - n_V0
+method StudyPlan_3b4ea30d_F(n_V0: Int)
+  requires 0 <= n_V0 && n_V0 <= 40
+{
+  
+  // decl n_V0_CN0: int°°
+  {
+    var n_V0_CN0: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // decl 
+    
+    // if(n_V0_CN0 == 40) {...} else {...}
+    if (n_V0_CN0 == 40) {
+      
+      // decl 
+      
+    } else {
+      
+      // decl N1: int°°, hours_V1: int°°
+      {
+        var N1: Int
+        var hours_V1: Int
+        
+        // N1 = RequiredStudyTime_3b4ea30d_F(n_V0_CN0)
+        N1 := RequiredStudyTime_3b4ea30d_F(n_V0_CN0)
+        
+        // init hours_V1
+        inhale hours_V1 == 0
+        
+        // hours_V1 = N1
+        hours_V1 := N1
+        
+        // Learn_3b4ea30d_F(n_V0_CN0, hours_V1)
+        assert (decreasing(40 - n_V0_CN0, old(40 - n_V0)): Bool) &&
+          (bounded(old(40 - n_V0)): Bool) ||
+          40 - n_V0_CN0 == old(40 - n_V0) && true
+        Learn_3b4ea30d_F(n_V0_CN0, hours_V1)
+      }
+    }
+    label returnLabel
+  }
+}
+
+// decreases n_V0, h_V0
+method Study_3b4ea30d_F(n_V0: Int, h_V0: Int)
+  requires 0 <= n_V0
+  requires 0 <= h_V0
+{
+  
+  // decl n_V0_CN0: int°°, h_V0_CN1: int°°
+  {
+    var n_V0_CN0: Int
+    var h_V0_CN1: Int
+    
+    
+    
+    // init n_V0_CN0
+    inhale n_V0_CN0 == 0
+    
+    // init h_V0_CN1
+    inhale h_V0_CN1 == 0
+    
+    // n_V0_CN0 = n_V0
+    n_V0_CN0 := n_V0
+    
+    // h_V0_CN1 = h_V0
+    h_V0_CN1 := h_V0
+    
+    // decl 
+    
+    // if(h_V0_CN1 != 0) {...} else {...}
+    if (!(h_V0_CN1 == 0)) {
+      
+      // decl 
+      
+      // Study_3b4ea30d_F(n_V0_CN0, h_V0_CN1 - 1)
+      assert (decreasing(n_V0_CN0, old(n_V0)): Bool) &&
+        (bounded(old(n_V0)): Bool) ||
+        n_V0_CN0 == old(n_V0) &&
+        ((decreasing(h_V0_CN1 - 1, old(h_V0)): Bool) &&
+        (bounded(old(h_V0)): Bool) ||
+        h_V0_CN1 - 1 == old(h_V0) && false)
+      Study_3b4ea30d_F(n_V0_CN0, h_V0_CN1 - 1)
+    } else {
+      
+      // if(n_V0_CN0 == 0) {...} else {...}
+      if (n_V0_CN0 == 0) {
+        
+        // decl 
+        
+      } else {
+        
+        // decl N2: int°°, hours_V1: int°°
+        {
+          var N2: Int
+          var hours_V1: Int
+          
+          // N2 = RequiredStudyTime_3b4ea30d_F(n_V0_CN0 - 1)
+          N2 := RequiredStudyTime_3b4ea30d_F(n_V0_CN0 - 1)
+          
+          // init hours_V1
+          inhale hours_V1 == 0
+          
+          // hours_V1 = N2
+          hours_V1 := N2
+          
+          // Study_3b4ea30d_F(n_V0_CN0 - 1, hours_V1)
+          assert (decreasing(n_V0_CN0 - 1, old(n_V0)): Bool) &&
+            (bounded(old(n_V0)): Bool) ||
+            n_V0_CN0 - 1 == old(n_V0) &&
+            ((decreasing(hours_V1, old(h_V0)): Bool) &&
+            (bounded(old(h_V0)): Bool) ||
+            hours_V1 == old(h_V0) && false)
+          Study_3b4ea30d_F(n_V0_CN0 - 1, hours_V1)
+        }
+      }
+    }
+    label returnLabel
+  }
+}
+
+method panic_a4af0e5e_F(v_V0: Tuple2[Ref, Types])
+  requires false

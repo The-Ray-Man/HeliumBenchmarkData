@@ -1,0 +1,56 @@
+/**
+ * The List ADT is defined here.
+ */
+import "examples-6.1.vpr"
+
+/** 
+ * This import is part of the termination plugin. It provides the definitions of the functions
+ * bounded and decreasing required to define a custom well-founded order for our abstract data type List.
+ */ 
+import <decreases/all.vpr>
+
+/** 
+ * The ADT plugin of Viper does not automatically generate a well-founded order for ADTs.
+ * Therefore we have to define a well-founded order ourselves. This is needed to prove the
+ * termination of functions and methods involving the ADT. 
+ *
+ * To define a well-founded order, we need to define the functions bounded and decreasing.
+ * We do this inside of a domain, which allows us to define axioms.
+ * Domains can also be used to define new types, by introducing functions and axioms to describe the functions.
+ */
+domain ListWellFoundedOrder[T] {
+
+  /** 
+   * The function bounded is true when an element has a lower bound. The Nil-list is always
+   * a lower bound, so bounded is always true. 
+   * When using quantifiers like 'forall', it is better to provide explicit triggers, 
+   * here the bounded(y) in curly brackets is the trigger.
+   */
+  axiom {
+    forall y: List[T] :: {bounded(y)} bounded(y) 
+  }
+
+  /** 
+   * The function decreasing is true when the first argument is smaller than the second argument.
+   * We define our well-founded order over the structural inclusion of a list. This means that a
+   * list x is smaller than a list y if and only if x is a suffix of y.
+   *
+   * This is not the only way of defining a well-founded order on lists, we could have also defined 
+   * it over the length of a list. That would require us to have a length function. As we would want to
+   * prove termination on this function, we would have a circular problem.
+   */ 
+  axiom {
+    forall xs: List[T] , y: T :: 
+      decreasing(xs, Cons(y, xs)) 
+  }
+
+  /** 
+   * This axiom defines the transitivity of the well-founded order relation on
+   * List[T], so that if xs < ys and ys < zs, then xs < zs. This could also be
+   * proven in a lemma, but would require us to call it often throughout.
+   */
+  axiom {
+    forall xs: List[T], ys: List[T], zs: List[T] :: {decreasing(xs, ys), decreasing(ys, zs)}
+      decreasing(xs, ys) && decreasing(ys, zs) ==> decreasing(xs, zs)
+  }
+}

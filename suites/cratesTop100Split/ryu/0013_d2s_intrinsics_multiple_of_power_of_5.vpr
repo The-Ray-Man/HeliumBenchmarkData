@@ -1,0 +1,251 @@
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+field p_Bool_val: Bool
+
+field p_UInt_u64_val: s_UInt_u64
+
+field p_UInt_u32_val: s_UInt_u32
+
+function mir_binop_Ge_UInt_u32_UInt_u32(arg1: s_UInt_u32, arg2: s_UInt_u32): Bool
+{
+  s_UInt_u32_value(arg1) >= s_UInt_u32_value(arg2)
+}
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+method m_d2s_intrinsics$col$$col$multiple_of_power_of_5(_0p: Ref, _1p: Ref,
+  _2p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  requires inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_2p), write)
+  ensures inhabited(s_Bool_type()) && acc(p_Bool(_0p), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_UInt_u64
+  var _tmp1: s_UInt_u32
+  var _tmp2: s_UInt_u32
+  var _tmp3: s_UInt_u32
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  _tmp0 := p_UInt_u64_snap(_1p)
+  p_UInt_u64_assign(_4p, _tmp0)
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_d2s_intrinsics$col$$col$pow5_factor(_3p, _4p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  _tmp1 := p_UInt_u32_snap(_2p)
+  p_UInt_u32_assign(_5p, _tmp1)
+  label _before_1_3
+  _tmp2 := p_UInt_u32_snap(_3p)
+  exhale inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_3p), write)
+  _tmp3 := p_UInt_u32_snap(_5p)
+  exhale inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_5p), write)
+  p_Bool_assign(_0p, mir_binop_Ge_UInt_u32_UInt_u32(_tmp2, _tmp3))
+  label _before_1_4
+  label _before_1_5
+  label _before_1_6
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_d2s_intrinsics$col$$col$pow5_factor(_0p: Ref, _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Bool_type()
+  s_UInt_u64_type()
+  s_UInt_u32_type()
+  Unknown_type(id: Int)
+}

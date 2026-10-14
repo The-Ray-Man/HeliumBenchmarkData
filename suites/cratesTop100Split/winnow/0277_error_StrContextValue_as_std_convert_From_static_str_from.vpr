@@ -1,0 +1,569 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_Char  {
+  
+  function s_Char_cons(arg0: Int): s_Char 
+  
+  function s_Char_value(arg0: s_Char): Int 
+  
+  axiom s_Char_ax_cons {
+    (forall s: s_Char ::
+      { s_Char_value(s) }
+      s_Char_cons(s_Char_value(s)) == s)
+  }
+  
+  axiom s_Char_ax_value {
+    (forall value: Int ::
+      { s_Char_cons(value) }
+      s_Char_value(s_Char_cons(value)) == value)
+  }
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_Char {
+    inhabited(s_Char_type()) == true
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+  
+  axiom inhabited_error$col$$col$StrContextValue {
+    inhabited(s_error$col$$col$StrContextValue_type()) ==
+    (inhabited(s_Char_type()) ||
+    (inhabited(s_Ref_immutable_type(s_Str_type())) ||
+    inhabited(s_Ref_immutable_type(s_Str_type()))))
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_std$col$$col$ptr$col$$col$Pointee  {
+  
+  function std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function std$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$convert$col$$col$From  {
+  
+  function std$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_Char  {
+  
+  axiom s_Char_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Char_type())
+  }
+  
+  axiom s_Char_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Char_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_error$col$$col$StrContextValue  {
+  
+  axiom s_error$col$$col$StrContextValue_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_error$col$$col$StrContextValue_type())
+  }
+  
+  axiom s_error$col$$col$StrContextValue_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_error$col$$col$StrContextValue_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_winnow_error$col$$col$StrContextValue_60_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_winnow_error$col$$col$StrContextValue_60_condition {
+    std$col$$col$convert$col$$col$From_impl(s_error$col$$col$StrContextValue_type(),
+    s_Ref_immutable_type(s_Str_type()))
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { std$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_winnow_error$col$$col$StrContextValue_59_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_winnow_error$col$$col$StrContextValue_59_condition {
+    std$col$$col$convert$col$$col$From_impl(s_error$col$$col$StrContextValue_type(),
+    s_Char_type())
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_Char_val: s_Char
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+function s_error$col$$col$StrContextValue_unreachable(): s_error$col$$col$StrContextValue
+  ensures false
+
+
+function s_error$col$$col$StrContextValue_0_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$StrContextValue_1_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$StrContextValue_2_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_error$col$$col$StrContextValue_discr(self: s_error$col$$col$StrContextValue): s_Int_isize
+{
+  (self.iss_error$col$$col$StrContextValue_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_error$col$$col$StrContextValue_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Char_unreachable(): s_Char
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_error$col$$col$StrContextValue_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_error$col$$col$StrContextValue_snap(self: Ref): s_error$col$$col$StrContextValue
+  requires acc(p_error$col$$col$StrContextValue(self), write)
+{
+  (unfolding acc(p_error$col$$col$StrContextValue(self), write) in
+    (p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_error$col$$col$StrContextValue_2_owned(self), write) in
+        s_error$col$$col$StrContextValue_2_cons(p_Ref_immutable_snap(s_error$col$$col$StrContextValue_2_field_0(self),
+        s_Str_type()))) :
+      (p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_error$col$$col$StrContextValue_1_owned(self), write) in
+          s_error$col$$col$StrContextValue_1_cons(p_Ref_immutable_snap(s_error$col$$col$StrContextValue_1_field_0(self),
+          s_Str_type()))) :
+        (p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_error$col$$col$StrContextValue_0_owned(self), write) in
+            s_error$col$$col$StrContextValue_0_cons(p_Char_snap(s_error$col$$col$StrContextValue_0_field_0(self)))) :
+          s_error$col$$col$StrContextValue_unreachable()))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Char_snap(self: Ref): s_Char
+  requires acc(p_Char(self), write)
+{
+  (unfolding acc(p_Char(self), write) in self.p_Char_val)
+}
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+predicate p_error$col$$col$StrContextValue_0_owned(self: Ref) {
+  inhabited(s_Char_type()) &&
+  acc(p_Char(s_error$col$$col$StrContextValue_0_field_0(self)), write)
+}
+
+predicate p_error$col$$col$StrContextValue_1_owned(self: Ref) {
+  inhabited(s_Ref_immutable_type(s_Str_type())) &&
+  acc(p_Ref_immutable(s_error$col$$col$StrContextValue_1_field_0(self), s_Str_type()), write)
+}
+
+predicate p_error$col$$col$StrContextValue_2_owned(self: Ref) {
+  inhabited(s_Ref_immutable_type(s_Str_type())) &&
+  acc(p_Ref_immutable(s_error$col$$col$StrContextValue_2_field_0(self), s_Str_type()), write)
+}
+
+predicate p_error$col$$col$StrContextValue(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_error$col$$col$StrContextValue_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  inhabited(s_Char_type()) &&
+  acc(p_error$col$$col$StrContextValue_0_owned(self), write)) &&
+  ((p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(s_Ref_immutable_type(s_Str_type())) &&
+  acc(p_error$col$$col$StrContextValue_1_owned(self), write)) &&
+  (p_Int_isize_snap(p_error$col$$col$StrContextValue_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  inhabited(s_Ref_immutable_type(s_Str_type())) &&
+  acc(p_error$col$$col$StrContextValue_2_owned(self), write)))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Char(self: Ref) {
+  acc(self.p_Char_val, write)
+}
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  std$col$$col$ptr$col$$col$Pointee_assoc_type_std$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Str(self: Ref) 
+
+method m_$lt$error$col$$col$StrContextValue$sp$as$sp$std$col$$col$convert$col$$col$From$lt$$amp$$sq$static$sp$str$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  ensures inhabited(s_error$col$$col$StrContextValue_type()) &&
+    acc(p_error$col$$col$StrContextValue(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: s_Ref_immutable
+  var _tmp1: s_Ref_immutable
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Ref_immutable_snap(_1p, s_Str_type())
+  p_Ref_immutable_assign(_2p, s_Str_type(), _tmp0)
+  label _before_0_2
+  _tmp1 := p_Ref_immutable_snap(_2p, s_Str_type())
+  exhale inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_2p, s_Str_type()), write)
+  p_error$col$$col$StrContextValue_assign(_0p, s_error$col$$col$StrContextValue_1_cons(_tmp1))
+  label _before_0_3
+  label _before_0_4
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method p_error$col$$col$StrContextValue_assign(self: Ref, value: s_error$col$$col$StrContextValue)
+  ensures acc(p_error$col$$col$StrContextValue(self), write)
+  ensures p_error$col$$col$StrContextValue_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Char_assign(self: Ref, value: s_Char)
+  ensures acc(p_Char(self), write)
+  ensures p_Char_snap(self) == value
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method trait_std$col$$col$convert$col$$col$From_impl_error$col$$col$StrContextValue_60_fn_pre_weaken_$lt$error$col$$col$StrContextValue$sp$as$sp$std$col$$col$convert$col$$col$From$lt$$amp$$sq$static$sp$str$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+{
+  label start
+}
+
+method trait_std$col$$col$convert$col$$col$From_impl_error$col$$col$StrContextValue_60_fn_post_strengthen_$lt$error$col$$col$StrContextValue$sp$as$sp$std$col$$col$convert$col$$col$From$lt$$amp$$sq$static$sp$str$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  requires inhabited(s_error$col$$col$StrContextValue_type()) &&
+    acc(p_error$col$$col$StrContextValue(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_error$col$$col$StrContextValue {
+  s_error$col$$col$StrContextValue_0_cons(s_error$col$$col$StrContextValue_0_0: s_Char)
+  s_error$col$$col$StrContextValue_1_cons(s_error$col$$col$StrContextValue_1_0: s_Ref_immutable)
+  s_error$col$$col$StrContextValue_2_cons(s_error$col$$col$StrContextValue_2_0: s_Ref_immutable)
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt Type {
+  s_Str_type()
+  s_UInt_usize_type()
+  s_Int_isize_type()
+  s_Char_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_error$col$$col$StrContextValue_type()
+  Unknown_type(id: Int)
+}

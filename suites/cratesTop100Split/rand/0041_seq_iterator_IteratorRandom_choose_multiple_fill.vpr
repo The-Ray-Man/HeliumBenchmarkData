@@ -1,0 +1,595 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Slice  {
+  
+  axiom s_Param_typ_def_make_generic_s_Slice {
+    (forall x: s_Slice, T$0: Type ::
+      { make_generic_s_Slice(x, T$0) }
+      s_Param_typ(make_generic_s_Slice(x, T$0)) == s_Slice_type(T$0))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Slice {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Slice, s_Param_typ(p) }
+      s_Param_typ(p) == s_Slice_type(s_Param_typ(p).s_Slice_typaram_T$0) ==>
+      make_generic_s_Slice(p.make_concrete_s_Slice, s_Param_typ(p).s_Slice_typaram_T$0) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Slice  {
+  
+  function s_Slice_index(arg0: s_Slice, arg1: Int): s_Param 
+  
+  function s_Slice_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_Ref_mutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_mutable_type(U$1)) }
+      inhabited(s_Ref_mutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Slice {
+    (forall T$0: Type ::
+      { inhabited(s_Slice_type(T$0)) }
+      inhabited(s_Slice_type(T$0)) == true)
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$iter$col$$col$Iterator  {
+  
+  function core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(arg0: Type): Type 
+  
+  function core$col$$col$iter$col$$col$Iterator_impl(arg0: Type): Bool 
+}
+
+domain trait_rand_core$col$$col$Rng  {
+  
+  function rand_core$col$$col$Rng_impl(arg0: Type): Bool 
+}
+
+domain trait_rand_core$col$$col$TryRng  {
+  
+  function rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(arg0: Type): Type 
+  
+  function rand_core$col$$col$TryRng_impl(arg0: Type): Bool 
+}
+
+domain trait_seq$col$$col$iterator$col$$col$IteratorRandom  {
+  
+  function seq$col$$col$iterator$col$$col$IteratorRandom_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref  {
+  
+  function core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(arg0: Type): Type 
+  
+  function core$col$$col$ops$col$$col$Deref_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ops$col$$col$DerefMut  {
+  
+  function core$col$$col$ops$col$$col$DerefMut_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_Ref_mutable  {
+  
+  axiom s_Ref_mutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_mutable_type(U$1)))
+  }
+  
+  axiom s_Ref_mutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_mutable_type(U$1)))
+  }
+}
+
+domain sizedness_Slice  {
+  
+  axiom s_Slice_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Slice_type(T$0)))
+  }
+}
+
+domain sizedness_rand_core$col$$col$Infallible  {
+  
+  axiom s_rand_core$col$$col$Infallible_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_rand_core$col$$col$Infallible_type())
+  }
+  
+  axiom s_rand_core$col$$col$Infallible_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_rand_core$col$$col$Infallible_type())
+  }
+}
+
+domain trait_fns_seq$col$$col$iterator$col$$col$IteratorRandom_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill  {
+  
+  function seq$col$$col$iterator$col$$col$IteratorRandom_fn_pre_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(arg0: s_Param,
+  arg1: s_Ref_mutable, arg2: s_Ref_mutable, arg3: Type, arg4: Type): Bool 
+  
+  function seq$col$$col$iterator$col$$col$IteratorRandom_fn_post_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(arg0: s_UInt_usize,
+  arg1: s_Param, arg2: s_Ref_mutable, arg3: s_Ref_mutable, arg4: Type, arg5: Type): Bool 
+  
+  axiom seq$col$$col$iterator$col$$col$IteratorRandom_fn_pre_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill_base {
+    (forall _1s: s_Param, _2s: s_Ref_mutable, _3s: s_Ref_mutable, Self$0: Type,
+    R$1: Type ::
+      { seq$col$$col$iterator$col$$col$IteratorRandom_fn_pre_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_1s,
+      _2s, _3s, Self$0, R$1) }
+      true ==>
+      seq$col$$col$iterator$col$$col$IteratorRandom_fn_pre_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_1s,
+      _2s, _3s, Self$0, R$1))
+  }
+  
+  axiom seq$col$$col$iterator$col$$col$IteratorRandom_fn_post_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill_base {
+    (forall _0s: s_UInt_usize, _1s: s_Param, _2s: s_Ref_mutable, _3s: s_Ref_mutable,
+    Self$0: Type, R$1: Type ::
+      { seq$col$$col$iterator$col$$col$IteratorRandom_fn_post_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_0s,
+      _1s, _2s, _3s, Self$0, R$1) }
+      seq$col$$col$iterator$col$$col$IteratorRandom_fn_post_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_0s,
+      _1s, _2s, _3s, Self$0, R$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_rand_core$col$$col$Rng_impl_rand_core_Param_19_condition  {
+  
+  axiom rand_core$col$$col$Rng_impl_rand_core_Param_19_condition {
+    (forall R$0: Type ::
+      { rand_core$col$$col$Rng_impl(R$0) }
+      core$col$$col$marker$col$$col$MetaSized_impl(R$0) &&
+      (rand_core$col$$col$TryRng_impl(R$0) &&
+      rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(R$0) ==
+      s_rand_core$col$$col$Infallible_type()) ==>
+      rand_core$col$$col$Rng_impl(R$0))
+  }
+}
+
+domain trait_rand_core$col$$col$TryRng_impl_rand_core_Param_12_condition  {
+  
+  axiom rand_core$col$$col$TryRng_impl_rand_core_Param_12_condition {
+    (forall R$0: Type ::
+      { rand_core$col$$col$TryRng_impl(R$0) }
+      rand_core$col$$col$TryRng_impl(core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(R$0)) &&
+      core$col$$col$ops$col$$col$DerefMut_impl(R$0) &&
+      (core$col$$col$ops$col$$col$Deref_impl(R$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(R$0)) ==>
+      rand_core$col$$col$TryRng_impl(R$0))
+  }
+}
+
+domain trait_seq$col$$col$iterator$col$$col$IteratorRandom_impl_rand_Param_299_condition  {
+  
+  axiom seq$col$$col$iterator$col$$col$IteratorRandom_impl_rand_Param_299_condition {
+    (forall I$0: Type ::
+      { seq$col$$col$iterator$col$$col$IteratorRandom_impl(I$0) }
+      core$col$$col$iter$col$$col$Iterator_impl(I$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(I$0) ==>
+      seq$col$$col$iterator$col$$col$IteratorRandom_impl(I$0))
+  }
+}
+
+domain trait_core$col$$col$iter$col$$col$Iterator_impl_core_Ref_mutable_8121_condition  {
+  
+  axiom core$col$$col$iter$col$$col$Iterator_impl_core_Ref_mutable_8121_condition {
+    (forall I$1: Type ::
+      { core$col$$col$iter$col$$col$Iterator_impl(s_Ref_mutable_type(I$1)) }
+      core$col$$col$iter$col$$col$Iterator_impl(I$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(I$1) ==>
+      core$col$$col$iter$col$$col$Iterator_impl(s_Ref_mutable_type(I$1)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_condition  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_condition {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_impl(s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_impl(s_Ref_mutable_type(T$1)))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$DerefMut_impl_core_Ref_mutable_7626_condition  {
+  
+  axiom core$col$$col$ops$col$$col$DerefMut_impl_core_Ref_mutable_7626_condition {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$DerefMut_impl(s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$DerefMut_impl(s_Ref_mutable_type(T$1)))
+  }
+}
+
+domain trait_rand_core$col$$col$TryRng_impl_rand_core_Param_12_$lt$R$sp$as$sp$rand_core$col$$col$TryRng$gt$$col$$col$Error  {
+  
+  axiom rand_core$col$$col$TryRng_impl_rand_core_Param_12_assoc_type_$lt$R$sp$as$sp$rand_core$col$$col$TryRng$gt$$col$$col$Error {
+    (forall R$0: Type ::
+      { rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(R$0) }
+      rand_core$col$$col$TryRng_impl(core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(R$0)) &&
+      core$col$$col$ops$col$$col$DerefMut_impl(R$0) &&
+      (core$col$$col$ops$col$$col$Deref_impl(R$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(R$0)) ==>
+      rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(R$0) ==
+      rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(R$0)))
+  }
+}
+
+domain trait_core$col$$col$iter$col$$col$Iterator_impl_core_Ref_mutable_8121_$lt$$amp$mut$sp$I$sp$as$sp$core$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item  {
+  
+  axiom core$col$$col$iter$col$$col$Iterator_impl_core_Ref_mutable_8121_assoc_type_$lt$$amp$mut$sp$I$sp$as$sp$core$col$$col$iter$col$$col$Iterator$gt$$col$$col$Item {
+    (forall I$1: Type ::
+      { core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(s_Ref_mutable_type(I$1)) }
+      core$col$$col$iter$col$$col$Iterator_impl(I$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(I$1) ==>
+      core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(s_Ref_mutable_type(I$1)) ==
+      core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(I$1))
+  }
+}
+
+domain trait_core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target  {
+  
+  axiom core$col$$col$ops$col$$col$Deref_impl_core_Ref_mutable_7615_assoc_type_$lt$$amp$mut$sp$T$sp$as$sp$core$col$$col$ops$col$$col$Deref$gt$$col$$col$Target {
+    (forall T$1: Type ::
+      { core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_mutable_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(T$1) ==>
+      core$col$$col$ops$col$$col$Deref_assoc_type_core$col$$col$ops$col$$col$Deref$col$$col$Target(s_Ref_mutable_type(T$1)) ==
+      T$1)
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_Ref_mutable_addr: Ref
+
+field p_Ref_mutable_metadata: s_Param
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Ref_mutable_unreachable(U$1: Type): s_Ref_mutable
+  ensures false
+
+
+function s_Slice_unreachable(T$0: Type): s_Slice
+  ensures false
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Ref_mutable_arbitrary_value(r: Ref, metadata: s_Param, U$1: Type): s_Ref_mutable
+  ensures result.s_Ref_mutable_0 == r
+  ensures result.s_Ref_mutable_1 == metadata
+
+
+function p_Ref_mutable_snap(self: Ref, U$1: Type): s_Ref_mutable
+  requires acc(p_Ref_mutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_mutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+{
+  (unfolding acc(p_Ref_mutable(self, U$1), write) in
+    p_Ref_mutable_arbitrary_value(self.p_Ref_mutable_addr, self.p_Ref_mutable_metadata,
+    U$1))
+}
+
+function p_Slice_index_frame(self: Ref, index: Int, T$0: Type): s_Slice
+  requires acc(p_Slice_index(self, index, T$0), write)
+
+
+function p_Slice_snap(self: Ref, T$0: Type): s_Slice
+  requires acc(p_Slice(self, T$0), write)
+
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Ref_mutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_mutable_addr, write) &&
+  (acc(self.p_Ref_mutable_metadata, write) &&
+  s_Param_typ(self.p_Ref_mutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1))
+}
+
+predicate p_Slice(self: Ref, T$0: Type) 
+
+predicate p_Slice_index(self: Ref, index: Int, T$0: Type) 
+
+method m_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$choose_multiple_fill(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref, Self$0: Type, R$1: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(s_Ref_mutable_type(R$1)) &&
+    acc(p_Ref_mutable(_2p, R$1), write)
+  requires inhabited(s_Ref_mutable_type(s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0)))) &&
+    acc(p_Ref_mutable(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))), write)
+  requires inhabited(R$1) &&
+    acc(p_Param(p_Ref_mutable_snap(_2p, R$1).s_Ref_mutable_0, R$1), write)
+  requires inhabited(s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))) &&
+    acc(p_Param(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0,
+    s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))), write)
+  ensures inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+  ensures inhabited(R$1) &&
+    acc(p_Param(old(p_Ref_mutable_snap(_2p, R$1)).s_Ref_mutable_0, R$1), write)
+  ensures inhabited(s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))) &&
+    acc(p_Param(old(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0)))).s_Ref_mutable_0,
+    s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))), write)
+{
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _from_bb1_to_bb2: Bool
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  label start
+  inhale rand_core$col$$col$Rng_impl(R$1)
+  inhale rand_core$col$$col$TryRng_impl(R$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(R$1)
+  inhale seq$col$$col$iterator$col$$col$IteratorRandom_impl(Self$0)
+  inhale core$col$$col$iter$col$$col$Iterator_impl(Self$0)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Self$0)
+  inhale rand_core$col$$col$TryRng_assoc_type_rand_core$col$$col$TryRng$col$$col$Error(R$1) ==
+    s_rand_core$col$$col$Infallible_type()
+  _from_bb1_to_bb2 := false
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Param_snap(_1p, Self$0)
+  exhale inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  p_Param_assign(_4p, Self$0, _tmp0)
+  label _before_0_2
+  label _before_0_3
+  p_Ref_mutable_assign(_5p, R$1, p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_2p,
+    R$1).s_Ref_mutable_0, p_Ref_mutable_snap(_2p, R$1).s_Ref_mutable_1, R$1))
+  label _before_0_4
+  label _before_0_5
+  make_concrete_Slice(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0,
+    core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))
+  p_Ref_mutable_assign(_6p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0)),
+    p_Ref_mutable_arbitrary_value(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0,
+    make_generic_s_UInt_usize(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_1.make_concrete_s_UInt_usize),
+    s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))))
+  make_generic_Slice(p_Ref_mutable_snap(_6p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0,
+    core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))
+  label _before_0_6
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  seq$col$$col$iterator$col$$col$IteratorRandom_fn_stub_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_0p,
+    _4p, _5p, _6p, Self$0, R$1)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  make_concrete_Slice(old[_before_0_6](p_Ref_mutable_snap(old[_before_0_6](_6p),
+    s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0),
+    core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))
+  make_generic_Slice(p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))).s_Ref_mutable_0,
+    core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label _after_1
+  _from_bb1_to_bb2 := true
+  goto bb_2
+  label bb_2
+  label _before_2_0
+  label package_post2
+  goto end
+  label bb_3
+  assert false
+  goto end
+  label bb_4
+  assert false
+  goto end
+  label bb_5
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_Slice(self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures old(make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)) ==
+    p_Param_snap(self, s_Slice_type(T$0))
+
+
+method make_concrete_Slice(self: Ref, T$0: Type)
+  requires acc(p_Param(self, s_Slice_type(T$0)), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures old(p_Param_snap(self, s_Slice_type(T$0))) ==
+    make_generic_s_Slice(p_Slice_snap(self, T$0), T$0)
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Ref_mutable_assign(self: Ref, U$1: Type, value: s_Ref_mutable)
+  ensures acc(p_Ref_mutable(self, U$1), write)
+  ensures p_Ref_mutable_snap(self, U$1) == value
+
+
+method p_Slice_assign(self: Ref, T$0: Type, value: s_Slice)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures p_Slice_snap(self, T$0) == value
+
+
+method p_Slice_fold_index(index: Int, self: Ref, T$0: Type)
+  requires inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  requires acc(p_Slice_index(self, index, T$0), write)
+  ensures acc(p_Slice(self, T$0), write)
+  ensures (forall idx: Int ::
+      { s_Slice_index(p_Slice_snap(self, T$0), idx) }
+      s_Slice_index(p_Slice_snap(self, T$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0)) :
+        old(s_Slice_index(p_Slice_index_frame(self, index, T$0), idx))))
+
+
+method p_Slice_unfold_index(index: Int, self: Ref, T$0: Type)
+  requires acc(p_Slice(self, T$0), write)
+  ensures inhabited(T$0) &&
+    acc(p_Param(s_Slice_index_ref(self, index, T$0), T$0), write)
+  ensures acc(p_Slice_index(self, index, T$0), write)
+  ensures p_Param_snap(s_Slice_index_ref(self, index, T$0), T$0) ==
+    old(s_Slice_index(p_Slice_snap(self, T$0), index))
+  ensures p_Slice_index_frame(self, index, T$0) ==
+    old(p_Slice_snap(self, T$0))
+
+
+method seq$col$$col$iterator$col$$col$IteratorRandom_fn_stub_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref, Self$0: Type, R$1: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(s_Ref_mutable_type(R$1)) &&
+    acc(p_Ref_mutable(_2p, R$1), write)
+  requires inhabited(s_Ref_mutable_type(s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0)))) &&
+    acc(p_Ref_mutable(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))), write)
+  requires seq$col$$col$iterator$col$$col$IteratorRandom_fn_pre_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(p_Param_snap(_1p,
+    Self$0), p_Ref_mutable_snap(_2p, R$1), p_Ref_mutable_snap(_3p, s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0))),
+    Self$0, R$1)
+  ensures inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_0p), write)
+  ensures seq$col$$col$iterator$col$$col$IteratorRandom_fn_post_seq$col$$col$iterator$col$$col$IteratorRandom$col$$col$sample_fill(p_UInt_usize_snap(_0p),
+    old(p_Param_snap(_1p, Self$0)), old(p_Ref_mutable_snap(_2p, R$1)), old(p_Ref_mutable_snap(_3p,
+    s_Slice_type(core$col$$col$iter$col$$col$Iterator_assoc_type_core$col$$col$iter$col$$col$Iterator$col$$col$Item(Self$0)))),
+    Self$0, R$1)
+
+
+adt s_Param {
+  make_generic_s_Slice(make_concrete_s_Slice: s_Slice, make_generic_s_Slice_typaram_T$0: Type)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Ref_mutable {
+  s_Ref_mutable_cons(s_Ref_mutable_0: Ref, s_Ref_mutable_1: s_Param, s_Ref_mutable_2: s_Param)
+}
+
+adt Type {
+  s_UInt_usize_type()
+  s_Ref_mutable_type(s_Ref_mutable_typaram_U$1: Type)
+  s_Slice_type(s_Slice_typaram_T$0: Type)
+  s_rand_core$col$$col$Infallible_type()
+  Unknown_type(id: Int)
+}

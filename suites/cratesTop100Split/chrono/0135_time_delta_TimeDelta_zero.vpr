@@ -1,0 +1,217 @@
+domain s_Int_i64  {
+  
+  function s_Int_i64_cons(arg0: Int): s_Int_i64 
+  
+  function s_Int_i64_value(arg0: s_Int_i64): Int 
+  
+  axiom s_Int_i64_ax_cons {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      s_Int_i64_cons(s_Int_i64_value(s)) == s)
+  }
+  
+  axiom s_Int_i64_ax_bounds {
+    (forall s: s_Int_i64 ::
+      { s_Int_i64_value(s) }
+      -9223372036854775808 <= s_Int_i64_value(s) &&
+      s_Int_i64_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_i64_ax_value {
+    (forall value: Int ::
+      { s_Int_i64_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_i64_value(s_Int_i64_cons(value)) == value)
+  }
+}
+
+domain s_Int_i32  {
+  
+  function s_Int_i32_cons(arg0: Int): s_Int_i32 
+  
+  function s_Int_i32_value(arg0: s_Int_i32): Int 
+  
+  axiom s_Int_i32_ax_cons {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      s_Int_i32_cons(s_Int_i32_value(s)) == s)
+  }
+  
+  axiom s_Int_i32_ax_bounds {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      -2147483648 <= s_Int_i32_value(s) && s_Int_i32_value(s) <= 2147483647)
+  }
+  
+  axiom s_Int_i32_ax_value {
+    (forall value: Int ::
+      { s_Int_i32_cons(value) }
+      -2147483648 <= value && value <= 2147483647 ==>
+      s_Int_i32_value(s_Int_i32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_i64 {
+    inhabited(s_Int_i64_type()) == true
+  }
+  
+  axiom inhabited_Int_i32 {
+    inhabited(s_Int_i32_type()) == true
+  }
+  
+  axiom inhabited_time_delta$col$$col$TimeDelta {
+    inhabited(s_time_delta$col$$col$TimeDelta_type()) ==
+    (inhabited(s_Int_i64_type()) && inhabited(s_Int_i32_type()))
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_i64  {
+  
+  axiom s_Int_i64_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_i64_type())
+  }
+  
+  axiom s_Int_i64_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_i64_type())
+  }
+}
+
+domain sizedness_Int_i32  {
+  
+  axiom s_Int_i32_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_i32_type())
+  }
+  
+  axiom s_Int_i32_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_i32_type())
+  }
+}
+
+domain sizedness_time_delta$col$$col$TimeDelta  {
+  
+  axiom s_time_delta$col$$col$TimeDelta_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_time_delta$col$$col$TimeDelta_type())
+  }
+  
+  axiom s_time_delta$col$$col$TimeDelta_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_time_delta$col$$col$TimeDelta_type())
+  }
+}
+
+field p_Int_i64_val: s_Int_i64
+
+field p_Int_i32_val: s_Int_i32
+
+function s_time_delta$col$$col$TimeDelta_unreachable(): s_time_delta$col$$col$TimeDelta
+  ensures false
+
+
+function s_time_delta$col$$col$TimeDelta_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_time_delta$col$$col$TimeDelta_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Int_i64_unreachable(): s_Int_i64
+  ensures false
+
+
+function s_Int_i32_unreachable(): s_Int_i32
+  ensures false
+
+
+function p_time_delta$col$$col$TimeDelta_snap(self: Ref): s_time_delta$col$$col$TimeDelta
+  requires acc(p_time_delta$col$$col$TimeDelta(self), write)
+{
+  (unfolding acc(p_time_delta$col$$col$TimeDelta(self), write) in
+    s_time_delta$col$$col$TimeDelta_cons(p_Int_i64_snap(s_time_delta$col$$col$TimeDelta_field_0(self)), p_Int_i32_snap(s_time_delta$col$$col$TimeDelta_field_1(self))))
+}
+
+function p_Int_i64_snap(self: Ref): s_Int_i64
+  requires acc(p_Int_i64(self), write)
+{
+  (unfolding acc(p_Int_i64(self), write) in self.p_Int_i64_val)
+}
+
+function p_Int_i32_snap(self: Ref): s_Int_i32
+  requires acc(p_Int_i32(self), write)
+{
+  (unfolding acc(p_Int_i32(self), write) in self.p_Int_i32_val)
+}
+
+predicate p_time_delta$col$$col$TimeDelta(self: Ref) {
+  inhabited(s_Int_i64_type()) &&
+  acc(p_Int_i64(s_time_delta$col$$col$TimeDelta_field_0(self)), write) &&
+  (inhabited(s_Int_i32_type()) &&
+  acc(p_Int_i32(s_time_delta$col$$col$TimeDelta_field_1(self)), write))
+}
+
+predicate p_Int_i64(self: Ref) {
+  acc(self.p_Int_i64_val, write)
+}
+
+predicate p_Int_i32(self: Ref) {
+  acc(self.p_Int_i32_val, write)
+}
+
+method m_time_delta$col$$col$TimeDelta$col$$col$zero(_0p: Ref)
+  ensures inhabited(s_time_delta$col$$col$TimeDelta_type()) &&
+    acc(p_time_delta$col$$col$TimeDelta(_0p), write)
+{
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  p_time_delta$col$$col$TimeDelta_assign(_0p, s_time_delta$col$$col$TimeDelta_cons(s_Int_i64_cons(0), s_Int_i32_cons(0)))
+  label _before_0_1
+  label package_post0
+  goto end
+  label end
+}
+
+method p_time_delta$col$$col$TimeDelta_assign(self: Ref, value: s_time_delta$col$$col$TimeDelta)
+  ensures acc(p_time_delta$col$$col$TimeDelta(self), write)
+  ensures p_time_delta$col$$col$TimeDelta_snap(self) == value
+
+
+method p_Int_i64_assign(self: Ref, value: s_Int_i64)
+  ensures acc(p_Int_i64(self), write)
+  ensures p_Int_i64_snap(self) == value
+
+
+method p_Int_i32_assign(self: Ref, value: s_Int_i32)
+  ensures acc(p_Int_i32(self), write)
+  ensures p_Int_i32_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_time_delta$col$$col$TimeDelta {
+  s_time_delta$col$$col$TimeDelta_cons(s_time_delta$col$$col$TimeDelta_0: s_Int_i64,
+  s_time_delta$col$$col$TimeDelta_1: s_Int_i32)
+}
+
+adt Type {
+  s_Int_i64_type()
+  s_Int_i32_type()
+  s_time_delta$col$$col$TimeDelta_type()
+  Unknown_type(id: Int)
+}

@@ -1,0 +1,2685 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function SR(): PyType 
+  
+  unique function Runtime(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_SR {
+    extends_(SR(), object()) && get_basic(SR()) == SR()
+  }
+  
+  axiom subtype_Runtime {
+    extends_(Runtime(), object()) && get_basic(Runtime()) == Runtime()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+  
+  axiom low_true {
+    (forall x: T :: { (Low(x): Bool) } (Low(x): Bool))
+  }
+  
+  axiom lowevent_true {
+    (LowEvent(): Bool)
+  }
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+field SR_runs: Ref
+
+field SR_data: Ref
+
+field Runtime_steps: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function triggera1(i: Ref): Ref
+  requires issubtype(typeof(i), int())
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__(true)
+}
+
+function triggerb1(j: Ref): Ref
+  requires issubtype(typeof(j), int())
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__(true)
+}
+
+function triggerc1(i_0: Ref): Ref
+  requires issubtype(typeof(i_0), int())
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__(true)
+}
+
+function triggerd1(i_1: Ref): Ref
+  requires issubtype(typeof(i_1), int())
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__(true)
+}
+
+function runs_bounds(runs_0: Ref, data_0: Ref, end: Ref): Ref
+  requires issubtype(typeof(runs_0), PSeq(int()))
+  requires issubtype(typeof(data_0), PSeq(int()))
+  requires issubtype(typeof(end), int())
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__(int___gt__(PSeq___len__(runs_0), 0) &&
+  int___gt__(PSeq___len__(data_0), 0) &&
+  (int___eq__(PSeq___getitem__(runs_0, __prim__int___box__(-1)), end) &&
+  (forall lambda47_21$i: Ref ::
+    { PSeq___getitem__(runs_0, lambda47_21$i) }
+    issubtype(typeof(lambda47_21$i), int()) ==>
+    issubtype(typeof(lambda47_21$i), int()) ==>
+    int___ge__(int___unbox__(lambda47_21$i), 0) &&
+    int___lt__(int___unbox__(lambda47_21$i), int___sub__(PSeq___len__(runs_0),
+    1)) ==>
+    int___lt__(0, int___unbox__(PSeq___getitem__(runs_0, lambda47_21$i))) &&
+    (int___lt__(int___unbox__(PSeq___getitem__(runs_0, lambda47_21$i)), int___unbox__(PSeq___getitem__(runs_0,
+    __prim__int___box__(int___add__(int___unbox__(lambda47_21$i), 1))))) &&
+    int___lt__(int___unbox__(PSeq___getitem__(runs_0, lambda47_21$i)), PSeq___len__(data_0))))))
+}
+
+function correct_runs(runs_1: Ref, data_1: Ref, end_0: Ref): Ref
+  requires issubtype(typeof(runs_1), PSeq(int()))
+  requires issubtype(typeof(data_1), PSeq(int()))
+  requires issubtype(typeof(end_0), int())
+  requires int___le__(0, int___unbox__(end_0)) &&
+    int___le__(int___unbox__(end_0), PSeq___len__(data_1))
+  requires bool___unbox__(runs_bounds(runs_1, data_1, end_0))
+  ensures issubtype(typeof(result), bool())
+{
+  __prim__bool___box__((int___gt__(PSeq___len__(runs_1), 1) ==>
+  int___lt__(int___unbox__(PSeq___getitem__(data_1, __prim__int___box__(0))),
+  int___unbox__(PSeq___getitem__(data_1, PSeq___getitem__(runs_1, __prim__int___box__(0)))))) &&
+  ((forall lambda57_25$j: Ref ::
+    { triggerc1(lambda57_25$j) }
+    issubtype(typeof(lambda57_25$j), int()) ==>
+    issubtype(typeof(lambda57_25$j), int()) ==>
+    int___gt__(int___unbox__(lambda57_25$j), 0) &&
+    (int___lt__(int___unbox__(lambda57_25$j), int___unbox__(PSeq___getitem__(runs_1,
+    __prim__int___box__(0)))) &&
+    bool___unbox__(triggerc1(lambda57_25$j))) ==>
+    int___eq__(PSeq___getitem__(data_1, lambda57_25$j), PSeq___getitem__(data_1,
+    __prim__int___box__(0)))) &&
+  ((forall lambda59_25$i: Ref ::
+    { triggera1(lambda59_25$i) }
+    issubtype(typeof(lambda59_25$i), int()) ==>
+    issubtype(typeof(lambda59_25$i), int()) ==>
+    int___ge__(int___unbox__(lambda59_25$i), 0) &&
+    (int___lt__(int___unbox__(lambda59_25$i), int___sub__(PSeq___len__(runs_1),
+    1)) &&
+    bool___unbox__(triggera1(lambda59_25$i))) ==>
+    (forall lambda60_56$j: Ref ::
+      { triggerb1(lambda60_56$j) }
+      issubtype(typeof(lambda60_56$j), int()) ==>
+      issubtype(typeof(lambda60_56$j), int()) ==>
+      int___gt__(int___unbox__(lambda60_56$j), int___unbox__(PSeq___getitem__(runs_1,
+      lambda59_25$i))) &&
+      (int___lt__(int___unbox__(lambda60_56$j), int___unbox__(PSeq___getitem__(runs_1,
+      __prim__int___box__(int___add__(int___unbox__(lambda59_25$i), 1))))) &&
+      bool___unbox__(triggerb1(lambda60_56$j))) ==>
+      int___eq__(PSeq___getitem__(data_1, lambda60_56$j), PSeq___getitem__(data_1,
+      PSeq___getitem__(runs_1, lambda59_25$i))))) &&
+  (forall lambda64_25$i: Ref ::
+    { triggerd1(lambda64_25$i) }
+    issubtype(typeof(lambda64_25$i), int()) ==>
+    issubtype(typeof(lambda64_25$i), int()) ==>
+    int___ge__(int___unbox__(lambda64_25$i), 0) &&
+    (int___lt__(int___unbox__(lambda64_25$i), int___sub__(PSeq___len__(runs_1),
+    2)) &&
+    bool___unbox__(triggerd1(lambda64_25$i))) ==>
+    int___lt__(int___unbox__(PSeq___getitem__(data_1, PSeq___getitem__(runs_1,
+    lambda64_25$i))), int___unbox__(PSeq___getitem__(data_1, PSeq___getitem__(runs_1,
+    __prim__int___box__(int___add__(int___unbox__(lambda64_25$i), 1))))))))))
+}
+
+function log2(i_2: Ref): Ref
+  requires issubtype(typeof(i_2), int())
+  requires int___ge__(int___unbox__(i_2), 0)
+  ensures issubtype(typeof(result), int())
+{
+  (let cond_0 ==
+    (__prim__bool___box__(int___le__(int___unbox__(i_2), 1))) in
+    (true && bool___unbox__(cond_0) ?
+      __prim__int___box__(1) :
+      __prim__int___box__(int___add__(1, int___unbox__(log2(__prim__int___box__(int___floordiv__(int___unbox__(i_2),
+      2))))))))
+}
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function RT(): Ref
+  ensures issubtype(typeof(result), Runtime())
+
+
+function PROVE_CORRECT_RUNS(): Ref
+  ensures issubtype(typeof(result), bool())
+  ensures result == __prim__bool___box__(false)
+{
+  __prim__bool___box__(false)
+}
+
+function PROVE_PERMUTATION(): Ref
+  ensures issubtype(typeof(result), bool())
+  ensures result == __prim__bool___box__(false)
+{
+  __prim__bool___box__(false)
+}
+
+function PROVE_RUNTIME(): Ref
+  ensures issubtype(typeof(result), bool())
+  ensures result == __prim__bool___box__(false)
+{
+  __prim__bool___box__(false)
+}
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+  decreases _
+{
+  self >= other
+}
+
+function int___gt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self > other
+}
+
+function int___le__(self: Int, other: Int): Bool
+  decreases _
+{
+  self <= other
+}
+
+function int___lt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self < other
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+  decreases _
+{
+  self - other
+}
+
+function int___mul__(self: Int, other: Int): Int
+  decreases _
+{
+  self * other
+}
+
+function int___floordiv__(self: Int, other: Int): Int
+  decreases _
+  requires other != 0
+{
+  self / other
+}
+
+function list___len__(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+{
+  |self.list_acc|
+}
+
+function list___getitem__(self: Ref, key: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_acc, wildcard)
+  requires (let ln ==
+      (list___len__(self)) in
+      (int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln) &&
+      (int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_acc[int___unbox__(key)] :
+      self.list_acc[list___len__(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+
+
+function list___sil_seq__(self: Ref): Seq[Ref]
+  decreases _
+  requires acc(self.list_acc, wildcard)
+{
+  self.list_acc
+}
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool
+  decreases _
+{
+  (forall m: Measure$ ::
+    { (m in map) }
+    (m in map) ==>
+    Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function PSeq___create__(prim: Seq[Ref], cont_type: PyType): Ref
+  decreases _
+  ensures typeof(result) == PSeq(cont_type)
+  ensures PSeq___sil_seq__(result) == prim
+
+
+function PSeq___sil_seq__(box: Ref): Seq[Ref]
+  decreases _
+  requires issubtype(typeof(box), PSeq(PSeq_arg(typeof(box), 0)))
+
+
+function PSeq___getitem__(self: Ref, index: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(index), int())
+  requires (let ln ==
+      (PSeq___len__(self)) in
+      (int___unbox__(index) < 0 ==> int___unbox__(index) >= -ln) &&
+      (int___unbox__(index) >= 0 ==> int___unbox__(index) < ln))
+  ensures result ==
+    (int___unbox__(index) >= 0 ?
+      PSeq___sil_seq__(self)[int___unbox__(index)] :
+      PSeq___sil_seq__(self)[PSeq___len__(self) + int___unbox__(index)])
+  ensures issubtype(typeof(result), PSeq_arg(typeof(self), 0))
+
+
+function PSeq___len__(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == |PSeq___sil_seq__(self)|
+
+
+function PSeq_take(self: Ref, no: Int): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result ==
+    PSeq___create__(PSeq___sil_seq__(self)[..no], PSeq_arg(typeof(self), 0))
+
+
+function PSeq_drop(self: Ref, no: Int): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result ==
+    PSeq___create__(PSeq___sil_seq__(self)[no..], PSeq_arg(typeof(self), 0))
+
+
+function PSeq___add__(self: Ref, other: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PSeq(PSeq_arg(typeof(other), 0)))
+  requires PSeq_arg(typeof(self), 0) == PSeq_arg(typeof(other), 0)
+  ensures result ==
+    PSeq___create__(PSeq___sil_seq__(self) ++ PSeq___sil_seq__(other), PSeq_arg(typeof(self),
+    0))
+
+
+function PSeq___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PSeq(PSeq_arg(typeof(other), 0)))
+  requires PSeq_arg(typeof(self), 0) == PSeq_arg(typeof(other), 0)
+  ensures result == (PSeq___sil_seq__(self) == PSeq___sil_seq__(other))
+  ensures result ==> self == other
+
+
+function PMultiset___create__(prim: Multiset[Ref], cont_type: PyType): Ref
+  decreases _
+  ensures typeof(result) == PMultiset(cont_type)
+  ensures PMultiset___unbox__(result) == prim
+
+
+function PMultiset___unbox__(box: Ref): Multiset[Ref]
+  decreases _
+  requires issubtype(typeof(box), PMultiset(PMultiset_arg(typeof(box), 0)))
+
+
+function PMultiset___add__(self: Ref, other: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), PMultiset(PMultiset_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PMultiset(PMultiset_arg(typeof(other), 0)))
+  requires PMultiset_arg(typeof(self), 0) ==
+    PMultiset_arg(typeof(other), 0)
+  ensures result ==
+    PMultiset___create__((PMultiset___unbox__(self) union
+    PMultiset___unbox__(other)), PMultiset_arg(typeof(self), 0))
+
+
+function PMultiset___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), PMultiset(PMultiset_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), PMultiset(PMultiset_arg(typeof(other), 0)))
+  requires PMultiset_arg(typeof(self), 0) ==
+    PMultiset_arg(typeof(other), 0)
+  ensures result ==
+    (PMultiset___unbox__(self) == PMultiset___unbox__(other))
+  ensures result ==> self == other
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+method sorted_proof(_cthread_164: Ref, _caller_measures_164: Seq[Measure$],
+  _residue_164: Perm, runs_2: Ref, data_2: Ref, j_0: Ref)
+  returns (_current_wait_level_164: Perm)
+  requires _cthread_164 != null
+  requires issubtype(typeof(_cthread_164), Thread_0())
+  requires issubtype(typeof(runs_2), PSeq(int()))
+  requires issubtype(typeof(data_2), PSeq(int()))
+  requires issubtype(typeof(j_0), int())
+  requires bool___unbox__(runs_bounds(runs_2, data_2, __prim__int___box__(PSeq___len__(data_2))))
+  requires bool___unbox__(correct_runs(runs_2, data_2, __prim__int___box__(PSeq___len__(data_2))))
+  requires int___ge__(int___unbox__(j_0), 0) &&
+    int___lt__(int___unbox__(j_0), int___sub__(PSeq___len__(data_2), 1))
+  requires [true,
+    perm(MustTerminate(_cthread_164)) == none &&
+    ((forperm _r_3: Ref [MustInvokeBounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [MustInvokeUnbounded(_r_3)] :: false) &&
+    ((forperm _r_3: Ref [_r_3.MustReleaseBounded] :: false) &&
+    (forperm _r_3: Ref [_r_3.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_1: Ref [_r_1.MustReleaseBounded] :: Level(_r_1) <=
+      _current_wait_level_164) &&
+    ((forperm
+      _r_1: Ref [_r_1.MustReleaseUnbounded] :: Level(_r_1) <=
+      _current_wait_level_164) &&
+    _residue_164 <= _current_wait_level_164),
+    true]
+  ensures int___le__(int___unbox__(PSeq___getitem__(data_2, j_0)), int___unbox__(PSeq___getitem__(data_2,
+    __prim__int___box__(int___add__(int___unbox__(j_0), 1)))))
+  ensures [true,
+    (forperm _r_2: Ref [MustInvokeBounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [MustInvokeUnbounded(_r_2)] :: false) &&
+    ((forperm _r_2: Ref [_r_2.MustReleaseBounded] :: false) &&
+    (forperm _r_2: Ref [_r_2.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var i_3: Ref
+  var runs_6: Ref
+  var data_6: Ref
+  var j_1: Ref
+  var _loop_measures: Seq[Measure$]
+  var _loop_check_before: Bool
+  var _loop_termination_flag: Bool
+  var _loop_original_must_terminate: Perm
+  var _residue_169: Perm
+  var _cwl_164: Perm
+  var _method_measures_164: Seq[Measure$]
+  _method_measures_164 := Seq[Measure$]()
+  _err := null
+  runs_6 := runs_2
+  data_6 := data_2
+  j_1 := j_0
+  if (int___gt__(int___unbox__(PSeq___getitem__(runs_6, __prim__int___box__(0))),
+  int___unbox__(j_1))) {
+    i_3 := __prim__int___box__(0)
+    inhale _isDefined(3366761)
+    assert bool___unbox__(triggerc1(j_1))
+  } else {
+    i_3 := __prim__int___box__(1)
+    inhale _isDefined(3366761)
+    // Save current MustTerminate amount.
+    _loop_original_must_terminate := perm(MustTerminate(_cthread_164))
+    // Save loop termination promise.
+    _loop_termination_flag := true
+    // We are before loop.
+    _loop_check_before := true
+    while (int___lt__(int___unbox__(_checkDefined(i_3, 3366761)), PSeq___len__(runs_6)) &&
+    int___le__(int___unbox__(PSeq___getitem__(runs_6, _checkDefined(i_3, 3366761))),
+    int___unbox__(j_1)))
+      invariant [(forperm
+          _r: Ref [_r.MustReleaseBounded] :: Level(_r) <= _residue_169) &&
+        ((forperm
+          _r: Ref [_r.MustReleaseUnbounded] :: Level(_r) <= _residue_169) &&
+        _residue_164 <= _residue_169),
+        true]
+      invariant true
+      invariant issubtype(typeof(i_3), int())
+      invariant int___ge__(int___unbox__(_checkDefined(i_3, 3366761)), 1) &&
+        int___le__(int___unbox__(_checkDefined(i_3, 3366761)), PSeq___len__(runs_6))
+      invariant int___le__(int___unbox__(PSeq___getitem__(runs_6, __prim__int___box__(int___sub__(int___unbox__(_checkDefined(i_3,
+        3366761)), 1)))), int___unbox__(j_1))
+      invariant (int___lt__(int___unbox__(_checkDefined(i_3, 3366761)), PSeq___len__(runs_6)) &&
+        int___le__(int___unbox__(PSeq___getitem__(runs_6, _checkDefined(i_3,
+        3366761))), int___unbox__(j_1)) ==>
+        int___sub__(PSeq___len__(runs_6), int___unbox__(_checkDefined(i_3, 3366761))) >
+        0) &&
+        [acc(MustTerminate(_cthread_164), write), true]
+      invariant [true,
+        _loop_check_before ==>
+        _loop_termination_flag ||
+        (!(int___lt__(int___unbox__(_checkDefined(i_3, 3366761)), PSeq___len__(runs_6)) &&
+        int___le__(int___unbox__(PSeq___getitem__(runs_6, _checkDefined(i_3,
+        3366761))), int___unbox__(j_1))) ||
+        perm(MustTerminate(_cthread_164)) == none &&
+        ((forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+        ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+        ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+        (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))))]
+      invariant [true,
+        !_loop_check_before ==>
+        (forperm _r_0: Ref [MustInvokeBounded(_r_0)] :: false) &&
+        ((forperm _r_0: Ref [MustInvokeUnbounded(_r_0)] :: false) &&
+        ((forperm _r_0: Ref [_r_0.MustReleaseBounded] :: false) &&
+        (forperm _r_0: Ref [_r_0.MustReleaseUnbounded] :: false)))] 
+    {
+      _loop_measures := Seq(Measure$create(true, _cthread_164, int___sub__(PSeq___len__(runs_6),
+        int___unbox__(_checkDefined(i_3, 3366761)))))
+      i_3 := __prim__int___box__(int___add__(int___unbox__(i_3), 1))
+      inhale _isDefined(3366761)
+      label loop_end
+      // We are after loop body.
+      _loop_check_before := false
+      // Check if loop continues to terminate.
+      assert _loop_termination_flag ==>
+        !(int___lt__(int___unbox__(_checkDefined(i_3, 3366761)), PSeq___len__(runs_6)) &&
+        int___le__(int___unbox__(PSeq___getitem__(runs_6, _checkDefined(i_3,
+        3366761))), int___unbox__(j_1))) ||
+        Measure$check(_loop_measures, _cthread_164, int___sub__(PSeq___len__(runs_6),
+        int___unbox__(_checkDefined(i_3, 3366761))))
+    }
+    // Reset MustTerminate amount to original level.
+    exhale perm(MustTerminate(_cthread_164)) > none ==>
+      acc(MustTerminate(_cthread_164), perm(MustTerminate(_cthread_164)) -
+      _loop_original_must_terminate)
+    label post_loop
+    assert bool___unbox__(triggera1(__prim__int___box__(int___sub__(int___unbox__(_checkDefined(i_3,
+      3366761)), 1))))
+    assert bool___unbox__(triggerb1(j_1))
+  }
+  if (int___gt__(int___unbox__(PSeq___getitem__(runs_6, _checkDefined(i_3, 3366761))),
+  int___add__(int___unbox__(j_1), 1))) {
+    if (int___eq__(_checkDefined(i_3, 3366761), __prim__int___box__(0))) {
+      assert bool___unbox__(triggerc1(__prim__int___box__(int___add__(int___unbox__(j_1),
+        1))))
+    } else {
+      assert bool___unbox__(triggerb1(__prim__int___box__(int___add__(int___unbox__(j_1),
+        1))))}
+  } else {
+    assert bool___unbox__(triggerd1(__prim__int___box__(int___sub__(int___unbox__(_checkDefined(i_3,
+      3366761)), 1))))}
+  goto __end
+  label __end
+}
+
+method merge(_cthread_165: Ref, _caller_measures_165: Seq[Measure$], _residue_165: Perm,
+  r1: Ref, r2: Ref)
+  returns (_current_wait_level_165: Perm, _res: Ref)
+  requires _cthread_165 != null
+  requires issubtype(typeof(_cthread_165), Thread_0())
+  requires issubtype(typeof(r1), SR())
+  requires issubtype(typeof(r2), SR())
+  requires acc(r1.SR_runs, 1 / 2) &&
+    issubtype(typeof(r1.SR_runs), list(int())) &&
+    (acc(r1.SR_data, 1 / 2) && issubtype(typeof(r1.SR_data), list(int())) &&
+    (acc(r1.SR_runs.list_acc, 1 / 2) && acc(r1.SR_data.list_acc, 1 / 2)))
+  requires acc(r2.SR_runs, 1 / 2) &&
+    issubtype(typeof(r2.SR_runs), list(int())) &&
+    (acc(r2.SR_data, 1 / 2) && issubtype(typeof(r2.SR_data), list(int())) &&
+    (acc(r2.SR_runs.list_acc, 1 / 2) && acc(r2.SR_data.list_acc, 1 / 2)))
+  requires bool___unbox__(runs_bounds(PSeq___create__(r1.SR_runs.list_acc, int()),
+    PSeq___create__(r1.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1.SR_data.list_acc,
+    int()))))) &&
+    bool___unbox__(runs_bounds(PSeq___create__(r2.SR_runs.list_acc, int()),
+    PSeq___create__(r2.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2.SR_data.list_acc,
+    int())))))
+  requires bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    bool___unbox__(correct_runs(PSeq___create__(r1.SR_runs.list_acc, int()),
+    PSeq___create__(r1.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1.SR_data.list_acc,
+    int()))))) &&
+    bool___unbox__(correct_runs(PSeq___create__(r2.SR_runs.list_acc, int()),
+    PSeq___create__(r2.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2.SR_data.list_acc,
+    int())))))
+  requires bool___unbox__(PROVE_RUNTIME()) ==>
+    acc(RT().Runtime_steps, write) &&
+    issubtype(typeof(RT().Runtime_steps), int())
+  requires [acc(MustTerminate(_cthread_165), write), true]
+  requires [true,
+    Measure$check(_caller_measures_165, _cthread_165, 4) ||
+    perm(MustTerminate(_cthread_165)) == none &&
+    ((forperm _r_6: Ref [MustInvokeBounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [MustInvokeUnbounded(_r_6)] :: false) &&
+    ((forperm _r_6: Ref [_r_6.MustReleaseBounded] :: false) &&
+    (forperm _r_6: Ref [_r_6.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_4: Ref [_r_4.MustReleaseBounded] :: Level(_r_4) <=
+      _current_wait_level_165) &&
+    ((forperm
+      _r_4: Ref [_r_4.MustReleaseUnbounded] :: Level(_r_4) <=
+      _current_wait_level_165) &&
+    _residue_165 <= _current_wait_level_165),
+    true]
+  ensures issubtype(typeof(_res), SR())
+  ensures acc(_res.SR_runs, write) &&
+    issubtype(typeof(_res.SR_runs), list(int())) &&
+    (acc(_res.SR_data, write) &&
+    issubtype(typeof(_res.SR_data), list(int())) &&
+    (acc(_res.SR_runs.list_acc, write) && acc(_res.SR_data.list_acc, write)))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int()))), __prim__int___box__(int___add__(int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(r1.SR_data.list_acc,
+    int()))))), int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(r2.SR_data.list_acc,
+    int()))))))))
+  ensures bool___unbox__(runs_bounds(PSeq___create__(_res.SR_runs.list_acc,
+    int()), PSeq___create__(_res.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int())))))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    bool___unbox__(correct_runs(PSeq___create__(_res.SR_runs.list_acc, int()),
+    PSeq___create__(_res.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int())))))
+  ensures bool___unbox__(PROVE_PERMUTATION()) ==>
+    PMultiset___create__((__toMS(_res.SR_data.list_acc): Multiset[Ref]), int()) ==
+    PMultiset___add__(old(PMultiset___create__((__toMS(r1.SR_data.list_acc): Multiset[Ref]),
+    int())), old(PMultiset___create__((__toMS(r2.SR_data.list_acc): Multiset[Ref]),
+    int())))
+  ensures bool___unbox__(PROVE_RUNTIME()) ==>
+    acc(RT().Runtime_steps, write) &&
+    issubtype(typeof(RT().Runtime_steps), int()) &&
+    int___eq__(RT().Runtime_steps, __prim__int___box__(int___add__(int___add__(int___unbox__(old(RT().Runtime_steps)),
+    int___unbox__(old(__prim__int___box__(list___len__(r1.SR_data))))), int___unbox__(old(__prim__int___box__(list___len__(r2.SR_data)))))))
+  ensures [true,
+    (forperm _r_5: Ref [MustInvokeBounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [MustInvokeUnbounded(_r_5)] :: false) &&
+    ((forperm _r_5: Ref [_r_5.MustReleaseBounded] :: false) &&
+    (forperm _r_5: Ref [_r_5.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var data_3: Ref
+  var runs_3: Ref
+  var res: Ref
+  var r1_2: Ref
+  var r2_1: Ref
+  var list_0: Ref
+  var list_1: Ref
+  var SR_res: Ref
+  var _cwl_165: Perm
+  var _method_measures_165: Seq[Measure$]
+  _method_measures_165 := Seq(Measure$create(true, _cthread_165, 4))
+  _res := null
+  _err := null
+  r1_2 := r1
+  r2_1 := r2
+  _cwl_165, list_0 := list___init__(_cthread_165, _method_measures_165, _residue_165)
+  inhale issubtype(typeof(list_0), list(int()))
+  data_3 := list_0
+  inhale _isDefined(56484749926756)
+  _cwl_165, list_1 := list___init__(_cthread_165, _method_measures_165, _residue_165)
+  inhale issubtype(typeof(list_1), list(int()))
+  runs_3 := list_1
+  inhale _isDefined(56485051528562)
+  SR_res := new()
+  inhale typeof(SR_res) == SR()
+  inhale acc(_MaySet(SR_res, 32491073030804051), write)
+  inhale acc(_MaySet(SR_res, 27431034385551955), write)
+  _cwl_165 := SR___init__(_cthread_165, _method_measures_165, _residue_165,
+    SR_res, _checkDefined(runs_3, 56485051528562), _checkDefined(data_3, 56484749926756))
+  res := SR_res
+  inhale _isDefined(7562610)
+  _cwl_165 := outer_loop(_cthread_165, _method_measures_165, _residue_165, r1_2,
+    r2_1, _checkDefined(res, 7562610))
+  _res := _checkDefined(res, 7562610)
+  goto __end
+  goto __end
+  label __end
+}
+
+method outer_loop(_cthread_166: Ref, _caller_measures_166: Seq[Measure$], _residue_166: Perm,
+  r1_0: Ref, r2_0: Ref, res_0: Ref)
+  returns (_current_wait_level_166: Perm)
+  requires _cthread_166 != null
+  requires issubtype(typeof(_cthread_166), Thread_0())
+  requires issubtype(typeof(r1_0), SR())
+  requires issubtype(typeof(r2_0), SR())
+  requires issubtype(typeof(res_0), SR())
+  requires acc(res_0.SR_data, 1 / 4) &&
+    issubtype(typeof(res_0.SR_data), list(int()))
+  requires acc(res_0.SR_data.list_acc, write) &&
+    int___eq__(__prim__int___box__(list___len__(res_0.SR_data)), __prim__int___box__(0))
+  requires acc(res_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(res_0.SR_runs), list(int()))
+  requires acc(res_0.SR_runs.list_acc, write) &&
+    int___eq__(__prim__int___box__(list___len__(res_0.SR_runs)), __prim__int___box__(0))
+  requires acc(r1_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(r1_0.SR_runs), list(int())) &&
+    acc(r1_0.SR_runs.list_acc, 1 / 4)
+  requires acc(r2_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(r2_0.SR_runs), list(int())) &&
+    acc(r2_0.SR_runs.list_acc, 1 / 4)
+  requires acc(r1_0.SR_data, 1 / 4) &&
+    issubtype(typeof(r1_0.SR_data), list(int())) &&
+    acc(r1_0.SR_data.list_acc, 1 / 4)
+  requires acc(r2_0.SR_data, 1 / 4) &&
+    issubtype(typeof(r2_0.SR_data), list(int())) &&
+    acc(r2_0.SR_data.list_acc, 1 / 4)
+  requires bool___unbox__(runs_bounds(PSeq___create__(r1_0.SR_runs.list_acc,
+    int()), PSeq___create__(r1_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_0.SR_data.list_acc,
+    int()))))) &&
+    bool___unbox__(runs_bounds(PSeq___create__(r2_0.SR_runs.list_acc, int()),
+    PSeq___create__(r2_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2_0.SR_data.list_acc,
+    int())))))
+  requires bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    bool___unbox__(correct_runs(PSeq___create__(r1_0.SR_runs.list_acc, int()),
+    PSeq___create__(r1_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_0.SR_data.list_acc,
+    int()))))) &&
+    bool___unbox__(correct_runs(PSeq___create__(r2_0.SR_runs.list_acc, int()),
+    PSeq___create__(r2_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2_0.SR_data.list_acc,
+    int())))))
+  requires [acc(MustTerminate(_cthread_166), write), true]
+  requires [true,
+    Measure$check(_caller_measures_166, _cthread_166, 3) ||
+    perm(MustTerminate(_cthread_166)) == none &&
+    ((forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) &&
+    ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) &&
+    (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_9: Ref [_r_9.MustReleaseBounded] :: Level(_r_9) <=
+      _current_wait_level_166) &&
+    ((forperm
+      _r_9: Ref [_r_9.MustReleaseUnbounded] :: Level(_r_9) <=
+      _current_wait_level_166) &&
+    _residue_166 <= _current_wait_level_166),
+    true]
+  ensures acc(res_0.SR_data, 1 / 4) &&
+    issubtype(typeof(res_0.SR_data), list(int()))
+  ensures acc(res_0.SR_data.list_acc, write)
+  ensures acc(res_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(res_0.SR_runs), list(int()))
+  ensures acc(res_0.SR_runs.list_acc, write)
+  ensures acc(r1_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(r1_0.SR_runs), list(int())) &&
+    acc(r1_0.SR_runs.list_acc, 1 / 4)
+  ensures acc(r2_0.SR_runs, 1 / 4) &&
+    issubtype(typeof(r2_0.SR_runs), list(int())) &&
+    acc(r2_0.SR_runs.list_acc, 1 / 4)
+  ensures acc(r1_0.SR_data, 1 / 4) &&
+    issubtype(typeof(r1_0.SR_data), list(int())) &&
+    acc(r1_0.SR_data.list_acc, 1 / 4)
+  ensures acc(r2_0.SR_data, 1 / 4) &&
+    issubtype(typeof(r2_0.SR_data), list(int())) &&
+    acc(r2_0.SR_data.list_acc, 1 / 4)
+  ensures bool___unbox__(runs_bounds(PSeq___create__(r1_0.SR_runs.list_acc,
+    int()), PSeq___create__(r1_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_0.SR_data.list_acc,
+    int()))))) &&
+    bool___unbox__(runs_bounds(PSeq___create__(r2_0.SR_runs.list_acc, int()),
+    PSeq___create__(r2_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2_0.SR_data.list_acc,
+    int())))))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_0.SR_data.list_acc,
+    int()))), __prim__int___box__(int___add__(int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(r1_0.SR_data.list_acc,
+    int()))))), int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(r2_0.SR_data.list_acc,
+    int()))))))))
+  ensures bool___unbox__(runs_bounds(PSeq___create__(res_0.SR_runs.list_acc,
+    int()), PSeq___create__(res_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(res_0.SR_data.list_acc,
+    int())))))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    bool___unbox__(correct_runs(PSeq___create__(res_0.SR_runs.list_acc, int()),
+    PSeq___create__(res_0.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(res_0.SR_data.list_acc,
+    int())))))
+  ensures bool___unbox__(PROVE_PERMUTATION()) ==>
+    PMultiset___eq__(PMultiset___create__((__toMS(res_0.SR_data.list_acc): Multiset[Ref]),
+    int()), PMultiset___add__(PMultiset___create__((__toMS(r1_0.SR_data.list_acc): Multiset[Ref]),
+    int()), PMultiset___create__((__toMS(r2_0.SR_data.list_acc): Multiset[Ref]),
+    int())))
+  ensures [true,
+    (forperm _r_10: Ref [MustInvokeBounded(_r_10)] :: false) &&
+    ((forperm _r_10: Ref [MustInvokeUnbounded(_r_10)] :: false) &&
+    ((forperm _r_10: Ref [_r_10.MustReleaseBounded] :: false) &&
+    (forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var di1: Ref
+  var di2: Ref
+  var ri1: Ref
+  var ri2: Ref
+  var old_run_seq: Ref
+  var old_data_seq: Ref
+  var old_di1: Ref
+  var old_di2: Ref
+  var old_r1_data: Ref
+  var old_r2_data: Ref
+  var t1: Ref
+  var t2: Ref
+  var end_1: Ref
+  var to_add_d1: Ref
+  var runs_4: Ref
+  var data_4: Ref
+  var cur_i: Ref
+  var to_add_d2: Ref
+  var r1_3: Ref
+  var r2_2: Ref
+  var res_3: Ref
+  var _loop_measures_0: Seq[Measure$]
+  var _loop_check_before_0: Bool
+  var _loop_termination_flag_0: Bool
+  var _loop_original_must_terminate_0: Perm
+  var _residue_170: Perm
+  var inner_loop_res: Ref
+  var inner_loop_res_0: Ref
+  var _cwl_166: Perm
+  var _method_measures_166: Seq[Measure$]
+  _method_measures_166 := Seq(Measure$create(true, _cthread_166, 3))
+  _err := null
+  r1_3 := r1_0
+  r2_2 := r2_0
+  res_3 := res_0
+  di1 := __prim__int___box__(0)
+  inhale _isDefined(3238244)
+  di2 := __prim__int___box__(0)
+  inhale _isDefined(3303780)
+  ri1 := __prim__int___box__(0)
+  inhale _isDefined(3238258)
+  ri2 := __prim__int___box__(0)
+  inhale _isDefined(3303794)
+  // Save current MustTerminate amount.
+  _loop_original_must_terminate_0 := perm(MustTerminate(_cthread_166))
+  // Save loop termination promise.
+  _loop_termination_flag_0 := true
+  // We are before loop.
+  _loop_check_before_0 := true
+  while (int___lt__(int___unbox__(_checkDefined(ri1, 3238258)), list___len__(r1_3.SR_runs)) ||
+  int___lt__(int___unbox__(_checkDefined(ri2, 3303794)), list___len__(r2_2.SR_runs)))
+    invariant [(forperm
+        _r_7: Ref [_r_7.MustReleaseBounded] :: Level(_r_7) <= _residue_170) &&
+      ((forperm
+        _r_7: Ref [_r_7.MustReleaseUnbounded] :: Level(_r_7) <=
+        _residue_170) &&
+      _residue_166 <= _residue_170),
+      true]
+    invariant true
+    invariant issubtype(typeof(di1), int())
+    invariant issubtype(typeof(ri1), int())
+    invariant issubtype(typeof(di2), int())
+    invariant issubtype(typeof(ri2), int())
+    invariant acc(res_3.SR_data, 1 / 6) &&
+      issubtype(typeof(res_3.SR_data), list(int()))
+    invariant acc(res_3.SR_data.list_acc, write)
+    invariant acc(res_3.SR_runs, 1 / 6) &&
+      issubtype(typeof(res_3.SR_runs), list(int()))
+    invariant acc(res_3.SR_runs.list_acc, write)
+    invariant acc(r1_3.SR_runs, 1 / 6) &&
+      issubtype(typeof(r1_3.SR_runs), list(int())) &&
+      acc(r1_3.SR_runs.list_acc, 1 / 6)
+    invariant acc(r2_2.SR_runs, 1 / 6) &&
+      issubtype(typeof(r2_2.SR_runs), list(int())) &&
+      acc(r2_2.SR_runs.list_acc, 1 / 6)
+    invariant acc(r1_3.SR_data, 1 / 6) &&
+      issubtype(typeof(r1_3.SR_data), list(int())) &&
+      acc(r1_3.SR_data.list_acc, 1 / 6)
+    invariant acc(r2_2.SR_data, 1 / 6) &&
+      issubtype(typeof(r2_2.SR_data), list(int())) &&
+      acc(r2_2.SR_data.list_acc, 1 / 6)
+    invariant bool___unbox__(runs_bounds(PSeq___create__(r1_3.SR_runs.list_acc,
+      int()), PSeq___create__(r1_3.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_3.SR_data.list_acc,
+      int()))))) &&
+      bool___unbox__(runs_bounds(PSeq___create__(r2_2.SR_runs.list_acc, int()),
+      PSeq___create__(r2_2.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2_2.SR_data.list_acc,
+      int())))))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+      bool___unbox__(correct_runs(PSeq___create__(r1_3.SR_runs.list_acc, int()),
+      PSeq___create__(r1_3.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_3.SR_data.list_acc,
+      int()))))) &&
+      bool___unbox__(correct_runs(PSeq___create__(r2_2.SR_runs.list_acc, int()),
+      PSeq___create__(r2_2.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r2_2.SR_data.list_acc,
+      int())))))
+    invariant int___eq__(_checkDefined(ri1, 3238258), __prim__int___box__(0)) &&
+      int___eq__(_checkDefined(ri2, 3303794), __prim__int___box__(0)) ==>
+      int___eq__(__prim__int___box__(list___len__(res_3.SR_data)), __prim__int___box__(0)) &&
+      int___eq__(__prim__int___box__(list___len__(res_3.SR_runs)), __prim__int___box__(0))
+    invariant int___gt__(int___unbox__(_checkDefined(ri1, 3238258)), 0) ||
+      int___gt__(int___unbox__(_checkDefined(ri2, 3303794)), 0) ==>
+      int___gt__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc, int())),
+      0) &&
+      (int___gt__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc, int())),
+      0) &&
+      bool___unbox__(runs_bounds(PSeq___create__(res_3.SR_runs.list_acc, int()),
+      PSeq___create__(res_3.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc,
+      int()))))))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      (int___gt__(int___unbox__(_checkDefined(ri1, 3238258)), 0) ||
+      int___gt__(int___unbox__(_checkDefined(ri2, 3303794)), 0)) ==>
+      bool___unbox__(correct_runs(PSeq___create__(res_3.SR_runs.list_acc, int()),
+      PSeq___create__(res_3.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc,
+      int())))))
+    invariant int___ge__(int___unbox__(_checkDefined(ri1, 3238258)), 0) &&
+      int___ge__(int___unbox__(_checkDefined(ri2, 3303794)), 0)
+    invariant int___le__(int___unbox__(_checkDefined(ri1, 3238258)), PSeq___len__(PSeq___create__(r1_3.SR_runs.list_acc,
+      int()))) &&
+      int___le__(int___unbox__(_checkDefined(ri2, 3303794)), PSeq___len__(PSeq___create__(r2_2.SR_runs.list_acc,
+      int())))
+    invariant int___ge__(int___unbox__(_checkDefined(di1, 3238244)), 0) &&
+      int___ge__(int___unbox__(_checkDefined(di2, 3303780)), 0)
+    invariant int___le__(int___unbox__(_checkDefined(di1, 3238244)), PSeq___len__(PSeq___create__(r1_3.SR_data.list_acc,
+      int()))) &&
+      int___le__(int___unbox__(_checkDefined(di2, 3303780)), PSeq___len__(PSeq___create__(r2_2.SR_data.list_acc,
+      int())))
+    invariant int___eq__(_checkDefined(ri1, 3238258), __prim__int___box__(0)) ==>
+      int___eq__(_checkDefined(di1, 3238244), __prim__int___box__(0))
+    invariant int___gt__(int___unbox__(_checkDefined(ri1, 3238258)), 0) ==>
+      int___eq__(_checkDefined(di1, 3238244), PSeq___getitem__(PSeq___create__(r1_3.SR_runs.list_acc,
+      int()), __prim__int___box__(int___sub__(int___unbox__(_checkDefined(ri1,
+      3238258)), 1))))
+    invariant int___eq__(_checkDefined(ri2, 3303794), __prim__int___box__(0)) ==>
+      int___eq__(_checkDefined(di2, 3303780), __prim__int___box__(0))
+    invariant int___gt__(int___unbox__(_checkDefined(ri2, 3303794)), 0) ==>
+      int___eq__(_checkDefined(di2, 3303780), PSeq___getitem__(PSeq___create__(r2_2.SR_runs.list_acc,
+      int()), __prim__int___box__(int___sub__(int___unbox__(_checkDefined(ri2,
+      3303794)), 1))))
+    invariant int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc,
+      int()))), __prim__int___box__(int___add__(int___unbox__(_checkDefined(di1,
+      3238244)), int___unbox__(_checkDefined(di2, 3303780)))))
+    invariant int___eq__(_checkDefined(ri1, 3238258), __prim__int___box__(0)) &&
+      int___eq__(_checkDefined(ri2, 3303794), __prim__int___box__(0)) ==>
+      int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc,
+      int()))), __prim__int___box__(0))
+    invariant int___gt__(int___unbox__(_checkDefined(ri1, 3238258)), 0) ||
+      int___gt__(int___unbox__(_checkDefined(ri2, 3303794)), 0) ==>
+      int___gt__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc, int())),
+      0) &&
+      int___eq__(PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()),
+      __prim__int___box__(-1)), __prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc,
+      int()))))
+    invariant (forall lambda195_30$i: Ref ::
+        { PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()), lambda195_30$i) }
+        issubtype(typeof(lambda195_30$i), int()) ==>
+        issubtype(typeof(lambda195_30$i), int()) ==>
+        int___ge__(int___unbox__(lambda195_30$i), 0) &&
+        int___lt__(int___unbox__(lambda195_30$i), int___sub__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc,
+        int())), 1)) ==>
+        int___lt__(0, int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()), lambda195_30$i))) &&
+        (int___lt__(int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()), lambda195_30$i)), int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()), __prim__int___box__(int___add__(int___unbox__(lambda195_30$i),
+        1))))) &&
+        int___lt__(int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()), lambda195_30$i)), PSeq___len__(PSeq___create__(res_3.SR_data.list_acc,
+        int())))))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      (int___gt__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc, int())),
+      0) &&
+      int___lt__(int___unbox__(_checkDefined(di1, 3238244)), PSeq___len__(PSeq___create__(r1_3.SR_data.list_acc,
+      int())))) ==>
+      int___lt__(int___unbox__(list___getitem__(res_3.SR_data, __prim__int___box__(-1))),
+      int___unbox__(list___getitem__(r1_3.SR_data, _checkDefined(di1, 3238244))))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      (int___gt__(PSeq___len__(PSeq___create__(res_3.SR_data.list_acc, int())),
+      0) &&
+      int___lt__(int___unbox__(_checkDefined(di2, 3303780)), PSeq___len__(PSeq___create__(r2_2.SR_data.list_acc,
+      int())))) ==>
+      int___lt__(int___unbox__(list___getitem__(res_3.SR_data, __prim__int___box__(-1))),
+      int___unbox__(list___getitem__(r2_2.SR_data, _checkDefined(di2, 3303780))))
+    invariant bool___unbox__(PROVE_PERMUTATION()) ==>
+      PMultiset___eq__(PMultiset___create__((__toMS(res_3.SR_data.list_acc): Multiset[Ref]),
+      int()), PMultiset___add__(PMultiset___create__((__toMS(PSeq___sil_seq__(PSeq_take(PSeq___create__(r1_3.SR_data.list_acc,
+      int()), int___unbox__(_checkDefined(di1, 3238244))))): Multiset[Ref]),
+      int()), PMultiset___create__((__toMS(PSeq___sil_seq__(PSeq_take(PSeq___create__(r2_2.SR_data.list_acc,
+      int()), int___unbox__(_checkDefined(di2, 3303780))))): Multiset[Ref]),
+      int())))
+    invariant (int___lt__(int___unbox__(_checkDefined(ri1, 3238258)), list___len__(r1_3.SR_runs)) ||
+      int___lt__(int___unbox__(_checkDefined(ri2, 3303794)), list___len__(r2_2.SR_runs)) ==>
+      int___sub__(int___sub__(int___add__(int___add__(list___len__(r1_3.SR_runs),
+      list___len__(r2_2.SR_runs)), 1), int___unbox__(_checkDefined(ri1, 3238258))),
+      int___unbox__(_checkDefined(ri2, 3303794))) >
+      0) &&
+      [acc(MustTerminate(_cthread_166), write), true]
+    invariant [true,
+      _loop_check_before_0 ==>
+      _loop_termination_flag_0 ||
+      (!(int___lt__(int___unbox__(_checkDefined(ri1, 3238258)), list___len__(r1_3.SR_runs)) ||
+      int___lt__(int___unbox__(_checkDefined(ri2, 3303794)), list___len__(r2_2.SR_runs))) ||
+      perm(MustTerminate(_cthread_166)) == none &&
+      ((forperm _r_8: Ref [MustInvokeBounded(_r_8)] :: false) &&
+      ((forperm _r_8: Ref [MustInvokeUnbounded(_r_8)] :: false) &&
+      ((forperm _r_8: Ref [_r_8.MustReleaseBounded] :: false) &&
+      (forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: false)))))]
+    invariant [true,
+      !_loop_check_before_0 ==>
+      (forperm _r_8: Ref [MustInvokeBounded(_r_8)] :: false) &&
+      ((forperm _r_8: Ref [MustInvokeUnbounded(_r_8)] :: false) &&
+      ((forperm _r_8: Ref [_r_8.MustReleaseBounded] :: false) &&
+      (forperm _r_8: Ref [_r_8.MustReleaseUnbounded] :: false)))] 
+  {
+    _loop_measures_0 := Seq(Measure$create(true, _cthread_166, int___sub__(int___sub__(int___add__(int___add__(list___len__(r1_3.SR_runs),
+      list___len__(r2_2.SR_runs)), 1), int___unbox__(_checkDefined(ri1, 3238258))),
+      int___unbox__(_checkDefined(ri2, 3303794)))))
+    if (int___eq__(_checkDefined(ri1, 3238258), __prim__int___box__(0))) {
+      assert int___eq__(_checkDefined(di1, 3238244), __prim__int___box__(0))
+    }
+    assert int___gt__(list___len__(r1_3.SR_data), 0)
+    if (int___eq__(_checkDefined(ri2, 3303794), __prim__int___box__(0))) {
+      assert int___eq__(_checkDefined(di2, 3303780), __prim__int___box__(0))
+    }
+    assert int___gt__(list___len__(r2_2.SR_data), 0)
+    old_run_seq := PSeq___create__(res_3.SR_runs.list_acc, int())
+    inhale _isDefined(137087704883354222635281519)
+    old_data_seq := PSeq___create__(res_3.SR_data.list_acc, int())
+    inhale _isDefined(35094452449201632126855048303)
+    old_di1 := _checkDefined(di1, 3238244)
+    inhale _isDefined(13908153676885103)
+    old_di2 := _checkDefined(di2, 3303780)
+    inhale _isDefined(14189628653595759)
+    old_r1_data := PSeq_take(PSeq___create__(r1_3.SR_data.list_acc, int()),
+      int___unbox__(_checkDefined(di1, 3238244)))
+    inhale _isDefined(117815395581360952494550127)
+    old_r2_data := PSeq_take(PSeq___create__(r2_2.SR_data.list_acc, int()),
+      int___unbox__(_checkDefined(di2, 3303780)))
+    inhale _isDefined(117815395581362052006177903)
+    assert (forall lambda217_27$i: Ref ::
+        { PSeq___getitem__(_checkDefined(old_run_seq, 137087704883354222635281519),
+        lambda217_27$i) }
+        issubtype(typeof(lambda217_27$i), int()) ==>
+        issubtype(typeof(lambda217_27$i), int()) ==>
+        int___ge__(int___unbox__(lambda217_27$i), 0) &&
+        int___lt__(int___unbox__(lambda217_27$i), PSeq___len__(_checkDefined(old_run_seq,
+        137087704883354222635281519))) ==>
+        PSeq___getitem__(_checkDefined(old_run_seq, 137087704883354222635281519),
+        lambda217_27$i) ==
+        PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()), lambda217_27$i))
+    assert (forall lambda221_27$i: Ref ::
+        { PSeq___getitem__(_checkDefined(old_run_seq, 137087704883354222635281519),
+        lambda221_27$i) }
+        issubtype(typeof(lambda221_27$i), int()) ==>
+        issubtype(typeof(lambda221_27$i), int()) ==>
+        int___ge__(int___unbox__(lambda221_27$i), 0) &&
+        int___lt__(int___unbox__(lambda221_27$i), int___sub__(PSeq___len__(_checkDefined(old_run_seq,
+        137087704883354222635281519)), 1)) ==>
+        int___lt__(0, int___unbox__(PSeq___getitem__(_checkDefined(old_run_seq,
+        137087704883354222635281519), lambda221_27$i))) &&
+        int___lt__(int___unbox__(PSeq___getitem__(_checkDefined(old_run_seq,
+        137087704883354222635281519), lambda221_27$i)), int___unbox__(PSeq___getitem__(_checkDefined(old_run_seq,
+        137087704883354222635281519), __prim__int___box__(int___add__(int___unbox__(lambda221_27$i),
+        1))))))
+    t1 := __prim__bool___box__(int___lt__(int___unbox__(_checkDefined(ri1, 3238258)),
+      list___len__(r1_3.SR_runs)) &&
+      (int___eq__(_checkDefined(ri2, 3303794), __prim__int___box__(list___len__(r2_2.SR_runs))) ||
+      int___le__(int___unbox__(list___getitem__(r1_3.SR_data, _checkDefined(di1,
+      3238244))), int___unbox__(list___getitem__(r2_2.SR_data, _checkDefined(di2,
+      3303780))))))
+    inhale _isDefined(12660)
+    t2 := __prim__bool___box__(int___lt__(int___unbox__(_checkDefined(ri2, 3303794)),
+      list___len__(r2_2.SR_runs)) &&
+      (int___eq__(_checkDefined(ri1, 3238258), __prim__int___box__(list___len__(r1_3.SR_runs))) ||
+      int___le__(int___unbox__(list___getitem__(r2_2.SR_data, _checkDefined(di2,
+      3303780))), int___unbox__(list___getitem__(r1_3.SR_data, _checkDefined(di1,
+      3238244))))))
+    inhale _isDefined(12916)
+    assert bool___unbox__(_checkDefined(t1, 12660)) ||
+      bool___unbox__(_checkDefined(t2, 12916))
+    end_1 := __prim__int___box__(list___len__(res_3.SR_data))
+    inhale _isDefined(212053814885)
+    assert bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      int___gt__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc, int())),
+      1) ==>
+      int___lt__(int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_data.list_acc,
+      int()), __prim__int___box__(0))), int___unbox__(PSeq___getitem__(PSeq___create__(res_3.SR_data.list_acc,
+      int()), PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()),
+      __prim__int___box__(0)))))
+    if (bool___unbox__(_checkDefined(t1, 12660))) {
+      to_add_d1 := PSeq___getitem__(PSeq___create__(r1_3.SR_data.list_acc, int()),
+        _checkDefined(di1, 3238244))
+      inhale _isDefined(911123069520641486708)
+      _cwl_166, inner_loop_res := inner_loop(_cthread_166, _method_measures_166,
+        _residue_170, r1_3, res_3, _checkDefined(ri1, 3238258), _checkDefined(di1,
+        3238244), _checkDefined(end_1, 212053814885))
+      di1 := inner_loop_res
+      inhale _isDefined(3238244)
+      ri1 := __prim__int___box__(int___add__(int___unbox__(ri1), 1))
+      inhale _isDefined(3238258)
+      if (bool___unbox__(PROVE_CORRECT_RUNS())) {
+        assert int___eq__(PSeq___getitem__(PSeq___create__(res_3.SR_data.list_acc,
+          int()), __prim__int___box__(int___sub__(list___len__(res_3.SR_data),
+          1))), _checkDefined(to_add_d1, 911123069520641486708))
+        if (int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()))), __prim__int___box__(1))) {
+          assert bool___unbox__(triggerd1(__prim__int___box__(int___sub__(int___unbox__(_checkDefined(ri1,
+            3238258)), 2))))
+          assert bool___unbox__(triggerc1(__prim__int___box__(int___sub__(PSeq___len__(_checkDefined(old_data_seq,
+            35094452449201632126855048303)), 1))))
+        } else {
+          runs_4 := PSeq___create__(res_3.SR_runs.list_acc, int())
+          inhale _isDefined(57584563156338)
+          data_4 := PSeq___create__(res_3.SR_data.list_acc, int())
+          inhale _isDefined(57584261554532)
+          cur_i := __prim__int___box__(int___sub__(PSeq___len__(_checkDefined(runs_4,
+            57584563156338)), 2))
+          inhale _isDefined(452572902755)
+          assert bool___unbox__(triggera1(_checkDefined(cur_i, 452572902755)))
+          assert bool___unbox__(triggerb1(__prim__int___box__(int___sub__(PSeq___len__(_checkDefined(old_data_seq,
+            35094452449201632126855048303)), 1))))
+        }
+      }
+    }
+    if (bool___unbox__(_checkDefined(t2, 12916))) {
+      to_add_d2 := PSeq___getitem__(PSeq___create__(r2_2.SR_data.list_acc, int()),
+        _checkDefined(di2, 3303780))
+      inhale _isDefined(929569813594351038324)
+      if (bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      bool___unbox__(_checkDefined(t1, 12660))) {
+        assert int___eq__(_checkDefined(to_add_d1, 911123069520641486708), _checkDefined(to_add_d2,
+          929569813594351038324))
+      }
+      _cwl_166, inner_loop_res_0 := inner_loop(_cthread_166, _method_measures_166,
+        _residue_170, r2_2, res_3, _checkDefined(ri2, 3303794), _checkDefined(di2,
+        3303780), _checkDefined(end_1, 212053814885))
+      di2 := inner_loop_res_0
+      inhale _isDefined(3303780)
+      ri2 := __prim__int___box__(int___add__(int___unbox__(ri2), 1))
+      inhale _isDefined(3303794)
+      if (bool___unbox__(PROVE_CORRECT_RUNS())) {
+        assert int___eq__(PSeq___getitem__(PSeq___create__(res_3.SR_data.list_acc,
+          int()), __prim__int___box__(int___sub__(list___len__(res_3.SR_data),
+          1))), _checkDefined(to_add_d2, 929569813594351038324))
+        if (int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_3.SR_runs.list_acc,
+        int()))), __prim__int___box__(1))) {
+          assert bool___unbox__(triggerd1(__prim__int___box__(int___sub__(int___unbox__(_checkDefined(ri2,
+            3303794)), 2))))
+          assert bool___unbox__(triggerc1(__prim__int___box__(int___sub__(PSeq___len__(_checkDefined(old_data_seq,
+            35094452449201632126855048303)), 1))))
+        } else {
+          runs_4 := PSeq___create__(res_3.SR_runs.list_acc, int())
+          inhale _isDefined(57584563156338)
+          data_4 := PSeq___create__(res_3.SR_data.list_acc, int())
+          inhale _isDefined(57584261554532)
+          cur_i := __prim__int___box__(int___sub__(PSeq___len__(_checkDefined(runs_4,
+            57584563156338)), 2))
+          inhale _isDefined(452572902755)
+          assert bool___unbox__(triggera1(_checkDefined(cur_i, 452572902755)))
+          assert bool___unbox__(triggerb1(__prim__int___box__(int___sub__(PSeq___len__(_checkDefined(old_data_seq,
+            35094452449201632126855048303)), 1))))
+        }
+      }
+    }
+    assert bool___unbox__(PROVE_PERMUTATION()) ==>
+      PSeq___eq__(PSeq___create__(res_3.SR_data.list_acc, int()), PSeq___add__(PSeq___add__(_checkDefined(old_data_seq,
+      35094452449201632126855048303), PSeq_take(PSeq_drop(PSeq___create__(r1_3.SR_data.list_acc,
+      int()), int___unbox__(_checkDefined(old_di1, 13908153676885103))), int___sub__(int___unbox__(_checkDefined(di1,
+      3238244)), int___unbox__(_checkDefined(old_di1, 13908153676885103))))),
+      PSeq_take(PSeq_drop(PSeq___create__(r2_2.SR_data.list_acc, int()), int___unbox__(_checkDefined(old_di2,
+      14189628653595759))), int___sub__(int___unbox__(_checkDefined(di2, 3303780)),
+      int___unbox__(_checkDefined(old_di2, 14189628653595759))))))
+    assert bool___unbox__(PROVE_PERMUTATION()) ==>
+      PSeq___eq__(PSeq_take(PSeq___create__(r1_3.SR_data.list_acc, int()), int___unbox__(_checkDefined(di1,
+      3238244))), PSeq___add__(_checkDefined(old_r1_data, 117815395581360952494550127),
+      PSeq_take(PSeq_drop(PSeq___create__(r1_3.SR_data.list_acc, int()), int___unbox__(_checkDefined(old_di1,
+      13908153676885103))), int___sub__(int___unbox__(_checkDefined(di1, 3238244)),
+      int___unbox__(_checkDefined(old_di1, 13908153676885103))))))
+    assert bool___unbox__(PROVE_PERMUTATION()) ==>
+      PSeq___eq__(PSeq_take(PSeq___create__(r2_2.SR_data.list_acc, int()), int___unbox__(_checkDefined(di2,
+      3303780))), PSeq___add__(_checkDefined(old_r2_data, 117815395581362052006177903),
+      PSeq_take(PSeq_drop(PSeq___create__(r2_2.SR_data.list_acc, int()), int___unbox__(_checkDefined(old_di2,
+      14189628653595759))), int___sub__(int___unbox__(_checkDefined(di2, 3303780)),
+      int___unbox__(_checkDefined(old_di2, 14189628653595759))))))
+    assert _checkDefined(old_run_seq, 137087704883354222635281519) ==
+      PSeq___create__(res_3.SR_runs.list_acc, int())
+    _cwl_166 := list_append(_cthread_166, _method_measures_166, _residue_170,
+      res_3.SR_runs, __prim__int___box__(list___len__(res_3.SR_data)))
+    assert (forall lambda288_27$i: Ref ::
+        { PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()), lambda288_27$i) }
+        issubtype(typeof(lambda288_27$i), int()) ==>
+        issubtype(typeof(lambda288_27$i), int()) ==>
+        int___ge__(int___unbox__(lambda288_27$i), 0) &&
+        int___lt__(int___unbox__(lambda288_27$i), PSeq___len__(_checkDefined(old_run_seq,
+        137087704883354222635281519))) ==>
+        PSeq___getitem__(_checkDefined(old_run_seq, 137087704883354222635281519),
+        lambda288_27$i) ==
+        PSeq___getitem__(PSeq___create__(res_3.SR_runs.list_acc, int()), lambda288_27$i))
+    label loop_end_0
+    // We are after loop body.
+    _loop_check_before_0 := false
+    // Check if loop continues to terminate.
+    assert _loop_termination_flag_0 ==>
+      !(int___lt__(int___unbox__(_checkDefined(ri1, 3238258)), list___len__(r1_3.SR_runs)) ||
+      int___lt__(int___unbox__(_checkDefined(ri2, 3303794)), list___len__(r2_2.SR_runs))) ||
+      Measure$check(_loop_measures_0, _cthread_166, int___sub__(int___sub__(int___add__(int___add__(list___len__(r1_3.SR_runs),
+      list___len__(r2_2.SR_runs)), 1), int___unbox__(_checkDefined(ri1, 3238258))),
+      int___unbox__(_checkDefined(ri2, 3303794))))
+  }
+  // Reset MustTerminate amount to original level.
+  exhale perm(MustTerminate(_cthread_166)) > none ==>
+    acc(MustTerminate(_cthread_166), perm(MustTerminate(_cthread_166)) -
+    _loop_original_must_terminate_0)
+  label post_loop_0
+  assert bool___unbox__(PROVE_PERMUTATION()) ==>
+    PSeq___eq__(PSeq_take(PSeq___create__(r1_3.SR_data.list_acc, int()), int___unbox__(_checkDefined(di1,
+    3238244))), PSeq___create__(r1_3.SR_data.list_acc, int()))
+  assert bool___unbox__(PROVE_PERMUTATION()) ==>
+    PSeq___eq__(PSeq_take(PSeq___create__(r2_2.SR_data.list_acc, int()), int___unbox__(_checkDefined(di2,
+    3303780))), PSeq___create__(r2_2.SR_data.list_acc, int()))
+  goto __end
+  label __end
+}
+
+method inner_loop(_cthread_167: Ref, _caller_measures_167: Seq[Measure$], _residue_167: Perm,
+  r1_1: Ref, res_1: Ref, ri1_0: Ref, di1_0: Ref, end_2: Ref)
+  returns (_current_wait_level_167: Perm, _res: Ref)
+  requires _cthread_167 != null
+  requires issubtype(typeof(_cthread_167), Thread_0())
+  requires issubtype(typeof(r1_1), SR())
+  requires issubtype(typeof(res_1), SR())
+  requires issubtype(typeof(ri1_0), int())
+  requires issubtype(typeof(di1_0), int())
+  requires issubtype(typeof(end_2), int())
+  requires acc(res_1.SR_data, 1 / 8) &&
+    issubtype(typeof(res_1.SR_data), list(int()))
+  requires acc(res_1.SR_data.list_acc, write)
+  requires acc(res_1.SR_runs, 1 / 8) &&
+    issubtype(typeof(res_1.SR_runs), list(int()))
+  requires acc(res_1.SR_runs.list_acc, 1 / 8)
+  requires acc(r1_1.SR_data, 1 / 8) &&
+    issubtype(typeof(r1_1.SR_data), list(int()))
+  requires acc(r1_1.SR_data.list_acc, 1 / 8)
+  requires acc(r1_1.SR_runs, 1 / 8) &&
+    issubtype(typeof(r1_1.SR_runs), list(int()))
+  requires acc(r1_1.SR_runs.list_acc, 1 / 8)
+  requires int___ge__(int___unbox__(ri1_0), 0)
+  requires int___lt__(int___unbox__(ri1_0), PSeq___len__(PSeq___create__(r1_1.SR_runs.list_acc,
+    int())))
+  requires int___ge__(int___unbox__(di1_0), 0) &&
+    int___le__(int___unbox__(di1_0), int___unbox__(PSeq___getitem__(PSeq___create__(r1_1.SR_runs.list_acc,
+    int()), ri1_0)))
+  requires bool___unbox__(runs_bounds(PSeq___create__(r1_1.SR_runs.list_acc,
+    int()), PSeq___create__(r1_1.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_1.SR_data.list_acc,
+    int())))))
+  requires bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    bool___unbox__(correct_runs(PSeq___create__(r1_1.SR_runs.list_acc, int()),
+    PSeq___create__(r1_1.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(r1_1.SR_data.list_acc,
+    int())))))
+  requires int___eq__(ri1_0, __prim__int___box__(0)) &&
+    int___eq__(di1_0, __prim__int___box__(0)) ||
+    int___gt__(int___unbox__(ri1_0), 0) &&
+    int___eq__(di1_0, PSeq___getitem__(PSeq___create__(r1_1.SR_runs.list_acc,
+    int()), __prim__int___box__(int___sub__(int___unbox__(ri1_0), 1))))
+  requires int___ge__(int___unbox__(end_2), 0) &&
+    int___le__(int___unbox__(end_2), PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+    int())))
+  requires int___gt__(list___len__(res_1.SR_runs), 0) ==>
+    bool___unbox__(runs_bounds(PSeq___create__(res_1.SR_runs.list_acc, int()),
+    PSeq___create__(res_1.SR_data.list_acc, int()), end_2))
+  requires bool___unbox__(PROVE_CORRECT_RUNS()) &&
+    int___gt__(list___len__(res_1.SR_runs), 0) ==>
+    bool___unbox__(correct_runs(PSeq___create__(res_1.SR_runs.list_acc, int()),
+    PSeq___create__(res_1.SR_data.list_acc, int()), end_2))
+  requires [acc(MustTerminate(_cthread_167), write), true]
+  requires [true,
+    Measure$check(_caller_measures_167, _cthread_167, 2) ||
+    perm(MustTerminate(_cthread_167)) == none &&
+    ((forperm _r_16: Ref [MustInvokeBounded(_r_16)] :: false) &&
+    ((forperm _r_16: Ref [MustInvokeUnbounded(_r_16)] :: false) &&
+    ((forperm _r_16: Ref [_r_16.MustReleaseBounded] :: false) &&
+    (forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_14: Ref [_r_14.MustReleaseBounded] :: Level(_r_14) <=
+      _current_wait_level_167) &&
+    ((forperm
+      _r_14: Ref [_r_14.MustReleaseUnbounded] :: Level(_r_14) <=
+      _current_wait_level_167) &&
+    _residue_167 <= _current_wait_level_167),
+    true]
+  ensures issubtype(typeof(_res), int())
+  ensures int___eq__(_res, old(list___getitem__(r1_1.SR_runs, ri1_0)))
+  ensures acc(res_1.SR_data, 1 / 8) &&
+    issubtype(typeof(res_1.SR_data), list(int()))
+  ensures acc(res_1.SR_data.list_acc, write)
+  ensures acc(res_1.SR_runs, 1 / 8) &&
+    issubtype(typeof(res_1.SR_runs), list(int()))
+  ensures acc(res_1.SR_runs.list_acc, 1 / 8) &&
+    PSeq___create__(res_1.SR_runs.list_acc, int()) ==
+    old(PSeq___create__(res_1.SR_runs.list_acc, int()))
+  ensures acc(r1_1.SR_data, 1 / 8) &&
+    issubtype(typeof(r1_1.SR_data), list(int()))
+  ensures acc(r1_1.SR_data.list_acc, 1 / 8)
+  ensures acc(r1_1.SR_runs, 1 / 8) &&
+    issubtype(typeof(r1_1.SR_runs), list(int()))
+  ensures acc(r1_1.SR_runs.list_acc, 1 / 8)
+  ensures int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+    int()))), __prim__int___box__(int___add__(int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+    int()))))), int___sub__(int___unbox__(_res), int___unbox__(di1_0)))))
+  ensures PSeq___create__(r1_1.SR_runs.list_acc, int()) ==
+    old(PSeq___create__(r1_1.SR_runs.list_acc, int()))
+  ensures int___eq__(ri1_0, __prim__int___box__(0)) &&
+    int___eq__(di1_0, __prim__int___box__(0)) ||
+    int___gt__(int___unbox__(ri1_0), 0) &&
+    int___eq__(di1_0, PSeq___getitem__(PSeq___create__(r1_1.SR_runs.list_acc,
+    int()), __prim__int___box__(int___sub__(int___unbox__(ri1_0), 1))))
+  ensures int___ge__(int___unbox__(end_2), 0) &&
+    int___le__(int___unbox__(end_2), PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+    int())))
+  ensures int___gt__(list___len__(res_1.SR_runs), 0) ==>
+    bool___unbox__(runs_bounds(PSeq___create__(res_1.SR_runs.list_acc, int()),
+    PSeq___create__(res_1.SR_data.list_acc, int()), end_2))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) &&
+    int___gt__(list___len__(res_1.SR_runs), 0) ==>
+    bool___unbox__(correct_runs(PSeq___create__(res_1.SR_runs.list_acc, int()),
+    PSeq___create__(res_1.SR_data.list_acc, int()), end_2))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    (forall lambda337_32$i: Ref ::
+      { PSeq___getitem__(PSeq___create__(res_1.SR_data.list_acc, int()), lambda337_32$i) }
+      issubtype(typeof(lambda337_32$i), int()) ==>
+      issubtype(typeof(lambda337_32$i), int()) ==>
+      int___ge__(int___unbox__(lambda337_32$i), 0) &&
+      int___lt__(int___unbox__(lambda337_32$i), int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+      int())))))) ==>
+      PSeq___getitem__(PSeq___create__(res_1.SR_data.list_acc, int()), lambda337_32$i) ==
+      PSeq___getitem__(old(PSeq___create__(res_1.SR_data.list_acc, int())),
+      lambda337_32$i))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+    (forall lambda339_32$i: Ref ::
+      { PSeq___getitem__(PSeq___create__(res_1.SR_data.list_acc, int()), lambda339_32$i) }
+      issubtype(typeof(lambda339_32$i), int()) ==>
+      issubtype(typeof(lambda339_32$i), int()) ==>
+      int___ge__(int___unbox__(lambda339_32$i), int___unbox__(old(__prim__int___box__(PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+      int())))))) &&
+      int___lt__(int___unbox__(lambda339_32$i), PSeq___len__(PSeq___create__(res_1.SR_data.list_acc,
+      int()))) ==>
+      int___eq__(PSeq___getitem__(PSeq___create__(res_1.SR_data.list_acc, int()),
+      lambda339_32$i), PSeq___getitem__(old(PSeq___create__(r1_1.SR_data.list_acc,
+      int())), di1_0)))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) &&
+    int___lt__(int___unbox__(_res), PSeq___len__(PSeq___create__(r1_1.SR_data.list_acc,
+    int()))) ==>
+    int___gt__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_1.SR_data.list_acc,
+    int()), _res)), int___unbox__(PSeq___getitem__(old(PSeq___create__(r1_1.SR_data.list_acc,
+    int())), di1_0)))
+  ensures bool___unbox__(PROVE_PERMUTATION()) ==>
+    PSeq___eq__(PSeq___create__(res_1.SR_data.list_acc, int()), PSeq___add__(old(PSeq___create__(res_1.SR_data.list_acc,
+    int())), PSeq_take(PSeq_drop(PSeq___create__(r1_1.SR_data.list_acc, int()),
+    int___unbox__(di1_0)), int___sub__(int___unbox__(_res), int___unbox__(di1_0)))))
+  ensures [true,
+    (forperm _r_15: Ref [MustInvokeBounded(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [MustInvokeUnbounded(_r_15)] :: false) &&
+    ((forperm _r_15: Ref [_r_15.MustReleaseBounded] :: false) &&
+    (forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var old_data: Ref
+  var old_data_d1: Ref
+  var old_runs_d1: Ref
+  var old_di1_0: Ref
+  var old_val: Ref
+  var pre_append_data: Ref
+  var r1_4: Ref
+  var res_4: Ref
+  var ri1_1: Ref
+  var di1_1: Ref
+  var end_3: Ref
+  var _loop_measures_1: Seq[Measure$]
+  var _loop_check_before_1: Bool
+  var _loop_termination_flag_1: Bool
+  var _loop_original_must_terminate_1: Perm
+  var _residue_171: Perm
+  var _cwl_167: Perm
+  var _method_measures_167: Seq[Measure$]
+  _method_measures_167 := Seq(Measure$create(true, _cthread_167, 2))
+  _res := null
+  _err := null
+  r1_4 := r1_1
+  res_4 := res_1
+  ri1_1 := ri1_0
+  di1_1 := di1_0
+  end_3 := end_2
+  old_data := PSeq___create__(res_4.SR_data.list_acc, int())
+  inhale _isDefined(7022344802702486639)
+  old_data_d1 := PSeq___create__(r1_4.SR_data.list_acc, int())
+  inhale _isDefined(59711361272435599191862383)
+  old_runs_d1 := PSeq___create__(r1_4.SR_runs.list_acc, int())
+  inhale _isDefined(59711362567805492376398959)
+  old_di1_0 := di1_1
+  inhale _isDefined(892303095125338516591)
+  old_val := PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+    di1_1)
+  inhale _isDefined(30506458519202927)
+  if (bool___unbox__(PROVE_CORRECT_RUNS())) {
+    if (int___eq__(ri1_1, __prim__int___box__(0))) {
+      assert (forall lambda352_31$j: Ref ::
+          { PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          lambda352_31$j) }
+          issubtype(typeof(lambda352_31$j), int()) ==>
+          issubtype(typeof(lambda352_31$j), int()) ==>
+          int___ge__(int___unbox__(lambda352_31$j), int___unbox__(_checkDefined(old_di1_0,
+          892303095125338516591))) &&
+          (int___lt__(int___unbox__(lambda352_31$j), int___unbox__(PSeq___getitem__(_checkDefined(old_runs_d1,
+          59711362567805492376398959), ri1_1))) &&
+          bool___unbox__(triggerc1(lambda352_31$j))) ==>
+          int___eq__(PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          lambda352_31$j), PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          di1_1)))
+    } else {
+      assert bool___unbox__(triggera1(__prim__int___box__(int___sub__(int___unbox__(ri1_1),
+        1))))
+      assert (forall lambda356_31$j: Ref ::
+          { PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          lambda356_31$j) }
+          issubtype(typeof(lambda356_31$j), int()) ==>
+          issubtype(typeof(lambda356_31$j), int()) ==>
+          int___ge__(int___unbox__(lambda356_31$j), int___unbox__(_checkDefined(old_di1_0,
+          892303095125338516591))) &&
+          (int___lt__(int___unbox__(lambda356_31$j), int___unbox__(PSeq___getitem__(_checkDefined(old_runs_d1,
+          59711362567805492376398959), ri1_1))) &&
+          bool___unbox__(triggerb1(lambda356_31$j))) ==>
+          int___eq__(PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          lambda356_31$j), PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+          di1_1)))
+    }
+  }
+  // Save current MustTerminate amount.
+  _loop_original_must_terminate_1 := perm(MustTerminate(_cthread_167))
+  // Save loop termination promise.
+  _loop_termination_flag_1 := true
+  // We are before loop.
+  _loop_check_before_1 := true
+  while (int___lt__(int___unbox__(di1_1), int___unbox__(list___getitem__(r1_4.SR_runs,
+  ri1_1))))
+    invariant [(forperm
+        _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) <=
+        _residue_171) &&
+      ((forperm
+        _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) <=
+        _residue_171) &&
+      _residue_167 <= _residue_171),
+      true]
+    invariant true
+    invariant issubtype(typeof(di1_1), int())
+    invariant acc(res_4.SR_data, 1 / 16) &&
+      issubtype(typeof(res_4.SR_data), list(int()))
+    invariant acc(res_4.SR_data.list_acc, write)
+    invariant acc(res_4.SR_runs, 1 / 16) &&
+      issubtype(typeof(res_4.SR_runs), list(int()))
+    invariant acc(res_4.SR_runs.list_acc, 1 / 16) &&
+      PSeq___create__(res_4.SR_runs.list_acc, int()) ==
+      old(PSeq___create__(res_4.SR_runs.list_acc, int()))
+    invariant acc(r1_4.SR_data, 1 / 16) &&
+      issubtype(typeof(r1_4.SR_data), list(int()))
+    invariant acc(r1_4.SR_data.list_acc, 1 / 16) &&
+      PSeq___create__(r1_4.SR_data.list_acc, int()) ==
+      _checkDefined(old_data_d1, 59711361272435599191862383)
+    invariant acc(r1_4.SR_runs, 1 / 16) &&
+      issubtype(typeof(r1_4.SR_runs), list(int()))
+    invariant acc(r1_4.SR_runs.list_acc, 1 / 16) &&
+      PSeq___create__(r1_4.SR_runs.list_acc, int()) ==
+      _checkDefined(old_runs_d1, 59711362567805492376398959)
+    invariant int___ge__(int___unbox__(ri1_1), 0)
+    invariant int___lt__(int___unbox__(ri1_1), PSeq___len__(_checkDefined(old_runs_d1,
+      59711362567805492376398959)))
+    invariant int___ge__(int___unbox__(di1_1), 0) &&
+      (int___le__(int___unbox__(di1_1), int___unbox__(PSeq___getitem__(_checkDefined(old_runs_d1,
+      59711362567805492376398959), ri1_1))) &&
+      int___ge__(int___unbox__(di1_1), int___unbox__(_checkDefined(old_di1_0,
+      892303095125338516591))))
+    invariant bool___unbox__(runs_bounds(_checkDefined(old_runs_d1, 59711362567805492376398959),
+      _checkDefined(old_data_d1, 59711361272435599191862383), __prim__int___box__(PSeq___len__(_checkDefined(old_data_d1,
+      59711361272435599191862383)))))
+    invariant int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(res_4.SR_data.list_acc,
+      int()))), old(__prim__int___box__(int___add__(PSeq___len__(_checkDefined(old_data,
+      7022344802702486639)), int___sub__(int___unbox__(di1_1), int___unbox__(_checkDefined(old_di1_0,
+      892303095125338516591)))))))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+      (forall lambda375_38$i: Ref ::
+        { PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc, int()), lambda375_38$i) }
+        issubtype(typeof(lambda375_38$i), int()) ==>
+        issubtype(typeof(lambda375_38$i), int()) ==>
+        int___ge__(int___unbox__(lambda375_38$i), 0) &&
+        int___lt__(int___unbox__(lambda375_38$i), PSeq___len__(_checkDefined(old_data,
+        7022344802702486639))) ==>
+        PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc, int()), lambda375_38$i) ==
+        PSeq___getitem__(_checkDefined(old_data, 7022344802702486639), lambda375_38$i))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+      (forall lambda377_38$i: Ref ::
+        { PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc, int()), lambda377_38$i) }
+        issubtype(typeof(lambda377_38$i), int()) ==>
+        issubtype(typeof(lambda377_38$i), int()) ==>
+        int___ge__(int___unbox__(lambda377_38$i), PSeq___len__(_checkDefined(old_data,
+        7022344802702486639))) &&
+        int___lt__(int___unbox__(lambda377_38$i), PSeq___len__(PSeq___create__(res_4.SR_data.list_acc,
+        int()))) ==>
+        int___eq__(PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc,
+        int()), lambda377_38$i), _checkDefined(old_val, 30506458519202927)))
+    invariant int___gt__(list___len__(res_4.SR_runs), 0) ==>
+      bool___unbox__(runs_bounds(PSeq___create__(res_4.SR_runs.list_acc, int()),
+      PSeq___create__(res_4.SR_data.list_acc, int()), end_3))
+    invariant bool___unbox__(PROVE_CORRECT_RUNS()) &&
+      int___gt__(list___len__(res_4.SR_runs), 0) ==>
+      bool___unbox__(correct_runs(PSeq___create__(res_4.SR_runs.list_acc, int()),
+      PSeq___create__(res_4.SR_data.list_acc, int()), end_3))
+    invariant bool___unbox__(PROVE_PERMUTATION()) ==>
+      PSeq___eq__(PSeq___create__(res_4.SR_data.list_acc, int()), PSeq___add__(old(PSeq___create__(res_4.SR_data.list_acc,
+      int())), PSeq_take(PSeq_drop(PSeq___create__(r1_4.SR_data.list_acc, int()),
+      int___unbox__(_checkDefined(old_di1_0, 892303095125338516591))), int___sub__(int___unbox__(di1_1),
+      int___unbox__(_checkDefined(old_di1_0, 892303095125338516591))))))
+    invariant (int___lt__(int___unbox__(di1_1), int___unbox__(list___getitem__(r1_4.SR_runs,
+      ri1_1))) ==>
+      int___sub__(int___add__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_4.SR_runs.list_acc,
+      int()), ri1_1)), 1), int___unbox__(di1_1)) >
+      0) &&
+      [acc(MustTerminate(_cthread_167), write), true]
+    invariant [true,
+      _loop_check_before_1 ==>
+      _loop_termination_flag_1 ||
+      (!int___lt__(int___unbox__(di1_1), int___unbox__(list___getitem__(r1_4.SR_runs,
+      ri1_1))) ||
+      perm(MustTerminate(_cthread_167)) == none &&
+      ((forperm _r_13: Ref [MustInvokeBounded(_r_13)] :: false) &&
+      ((forperm _r_13: Ref [MustInvokeUnbounded(_r_13)] :: false) &&
+      ((forperm _r_13: Ref [_r_13.MustReleaseBounded] :: false) &&
+      (forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: false)))))]
+    invariant [true,
+      !_loop_check_before_1 ==>
+      (forperm _r_13: Ref [MustInvokeBounded(_r_13)] :: false) &&
+      ((forperm _r_13: Ref [MustInvokeUnbounded(_r_13)] :: false) &&
+      ((forperm _r_13: Ref [_r_13.MustReleaseBounded] :: false) &&
+      (forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: false)))] 
+  {
+    _loop_measures_1 := Seq(Measure$create(true, _cthread_167, int___sub__(int___add__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_4.SR_runs.list_acc,
+      int()), ri1_1)), 1), int___unbox__(di1_1))))
+    assert int___le__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_4.SR_runs.list_acc,
+      int()), ri1_1)), PSeq___len__(PSeq___create__(r1_4.SR_data.list_acc, int())))
+    pre_append_data := PSeq___create__(res_4.SR_data.list_acc, int())
+    inhale _isDefined(506013270987488965474880074230887024)
+    assert PSeq___create__(r1_4.SR_data.list_acc, int()) ==
+      _checkDefined(old_data_d1, 59711361272435599191862383)
+    assert int___ge__(int___unbox__(di1_1), int___unbox__(_checkDefined(old_di1_0,
+      892303095125338516591))) &&
+      int___lt__(int___unbox__(di1_1), int___unbox__(PSeq___getitem__(_checkDefined(old_runs_d1,
+      59711362567805492376398959), ri1_1)))
+    assert bool___unbox__(PROVE_CORRECT_RUNS()) ==>
+      int___eq__(PSeq___getitem__(_checkDefined(old_data_d1, 59711361272435599191862383),
+      di1_1), _checkDefined(old_val, 30506458519202927))
+    _cwl_167 := list_append(_cthread_167, _method_measures_167, _residue_171,
+      res_4.SR_data, list___getitem__(r1_4.SR_data, di1_1))
+    assert (forall lambda390_27$i: Ref ::
+        { PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc, int()), lambda390_27$i) }
+        issubtype(typeof(lambda390_27$i), int()) ==>
+        issubtype(typeof(lambda390_27$i), int()) ==>
+        int___ge__(int___unbox__(lambda390_27$i), 0) &&
+        int___lt__(int___unbox__(lambda390_27$i), PSeq___len__(_checkDefined(pre_append_data,
+        506013270987488965474880074230887024))) ==>
+        PSeq___getitem__(PSeq___create__(res_4.SR_data.list_acc, int()), lambda390_27$i) ==
+        PSeq___getitem__(_checkDefined(pre_append_data, 506013270987488965474880074230887024),
+        lambda390_27$i))
+    di1_1 := __prim__int___box__(int___add__(int___unbox__(di1_1), 1))
+    label loop_end_1
+    // We are after loop body.
+    _loop_check_before_1 := false
+    // Check if loop continues to terminate.
+    assert _loop_termination_flag_1 ==>
+      !int___lt__(int___unbox__(di1_1), int___unbox__(list___getitem__(r1_4.SR_runs,
+      ri1_1))) ||
+      Measure$check(_loop_measures_1, _cthread_167, int___sub__(int___add__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_4.SR_runs.list_acc,
+      int()), ri1_1)), 1), int___unbox__(di1_1)))
+  }
+  // Reset MustTerminate amount to original level.
+  exhale perm(MustTerminate(_cthread_167)) > none ==>
+    acc(MustTerminate(_cthread_167), perm(MustTerminate(_cthread_167)) -
+    _loop_original_must_terminate_1)
+  label post_loop_1
+  _res := null
+  if (int___gt__(int___unbox__(ri1_1), 0)) {
+    assert bool___unbox__(triggerd1(__prim__int___box__(int___sub__(int___unbox__(ri1_1),
+      1))))
+  }
+  assert bool___unbox__(PROVE_CORRECT_RUNS()) &&
+    int___lt__(int___unbox__(di1_1), PSeq___len__(PSeq___create__(r1_4.SR_data.list_acc,
+    int()))) ==>
+    int___gt__(int___unbox__(PSeq___getitem__(PSeq___create__(r1_4.SR_data.list_acc,
+    int()), di1_1)), int___unbox__(PSeq___getitem__(old(PSeq___create__(r1_4.SR_data.list_acc,
+    int())), _checkDefined(old_di1_0, 892303095125338516591))))
+  _res := di1_1
+  goto __end
+  goto __end
+  label __end
+}
+
+method msort(_cthread_168: Ref, _caller_measures_168: Seq[Measure$], _residue_168: Perm,
+  a: Ref, l: Ref, h: Ref)
+  returns (_current_wait_level_168: Perm, _res: Ref)
+  requires _cthread_168 != null
+  requires issubtype(typeof(_cthread_168), Thread_0())
+  requires issubtype(typeof(a), list(int()))
+  requires issubtype(typeof(l), int())
+  requires issubtype(typeof(h), int())
+  requires acc(a.list_acc, write)
+  requires int___ge__(int___unbox__(h), int___unbox__(l))
+  requires int___ge__(int___unbox__(l), 0) &&
+    int___le__(int___unbox__(h), list___len__(a))
+  requires int___add__(int___sub__(int___unbox__(h), int___unbox__(l)), 5) >
+    0 &&
+    [acc(MustTerminate(_cthread_168), write), true]
+  requires bool___unbox__(PROVE_RUNTIME()) ==>
+    acc(RT().Runtime_steps, write) &&
+    issubtype(typeof(RT().Runtime_steps), int())
+  requires [true,
+    Measure$check(_caller_measures_168, _cthread_168, int___add__(int___sub__(int___unbox__(h),
+    int___unbox__(l)), 5)) ||
+    perm(MustTerminate(_cthread_168)) == none &&
+    ((forperm _r_19: Ref [MustInvokeBounded(_r_19)] :: false) &&
+    ((forperm _r_19: Ref [MustInvokeUnbounded(_r_19)] :: false) &&
+    ((forperm _r_19: Ref [_r_19.MustReleaseBounded] :: false) &&
+    (forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <=
+      _current_wait_level_168) &&
+    ((forperm
+      _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <=
+      _current_wait_level_168) &&
+    _residue_168 <= _current_wait_level_168),
+    true]
+  ensures issubtype(typeof(_res), SR())
+  ensures acc(a.list_acc, write)
+  ensures PSeq___create__(a.list_acc, int()) ==
+    old(PSeq___create__(a.list_acc, int()))
+  ensures acc(_res.SR_runs, write) &&
+    issubtype(typeof(_res.SR_runs), list(int())) &&
+    (acc(_res.SR_data, write) &&
+    issubtype(typeof(_res.SR_data), list(int())) &&
+    (acc(_res.SR_runs.list_acc, write) && acc(_res.SR_data.list_acc, write)))
+  ensures int___gt__(int___unbox__(h), int___unbox__(l)) ==>
+    bool___unbox__(runs_bounds(PSeq___create__(_res.SR_runs.list_acc, int()),
+    PSeq___create__(_res.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int())))))
+  ensures bool___unbox__(PROVE_CORRECT_RUNS()) &&
+    int___gt__(int___unbox__(h), int___unbox__(l)) ==>
+    bool___unbox__(correct_runs(PSeq___create__(_res.SR_runs.list_acc, int()),
+    PSeq___create__(_res.SR_data.list_acc, int()), __prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int())))))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(PSeq___create__(_res.SR_data.list_acc,
+    int()))), __prim__int___box__(int___sub__(int___unbox__(h), int___unbox__(l))))
+  ensures bool___unbox__(PROVE_PERMUTATION()) ==>
+    PMultiset___eq__(PMultiset___create__((__toMS(_res.SR_data.list_acc): Multiset[Ref]),
+    int()), old(PMultiset___create__((__toMS(PSeq___sil_seq__(PSeq_take(PSeq_drop(PSeq___create__(a.list_acc,
+    int()), int___unbox__(l)), int___sub__(int___unbox__(h), int___unbox__(l))))): Multiset[Ref]),
+    int())))
+  ensures bool___unbox__(PROVE_RUNTIME()) ==>
+    acc(RT().Runtime_steps, write) &&
+    issubtype(typeof(RT().Runtime_steps), int()) &&
+    int___eq__(RT().Runtime_steps, __prim__int___box__(int___add__(int___unbox__(old(RT().Runtime_steps)),
+    int___mul__(int___unbox__(log2(__prim__int___box__(int___sub__(int___unbox__(h),
+    int___unbox__(l))))), int___sub__(int___unbox__(h), int___unbox__(l))))))
+  ensures [true,
+    (forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) &&
+    ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) &&
+    ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) &&
+    (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var data_5: Ref
+  var runs_5: Ref
+  var res_2: Ref
+  var m_0: Ref
+  var res1: Ref
+  var res2: Ref
+  var s1: Ref
+  var s2: Ref
+  var s_all: Ref
+  var a_0: Ref
+  var l_0: Ref
+  var h_0: Ref
+  var list_2: Ref
+  var list_3: Ref
+  var SR_res_0: Ref
+  var msort_res: Ref
+  var msort_res_0: Ref
+  var merge_res: Ref
+  var _cwl_168: Perm
+  var _method_measures_168: Seq[Measure$]
+  _method_measures_168 := Seq(Measure$create(true, _cthread_168, int___add__(int___sub__(int___unbox__(h),
+    int___unbox__(l)), 5)))
+  _res := null
+  _err := null
+  a_0 := a
+  l_0 := l
+  h_0 := h
+  _cwl_168, list_2 := list___init__(_cthread_168, _method_measures_168, _residue_168)
+  inhale issubtype(typeof(list_2), list(int()))
+  data_5 := list_2
+  inhale _isDefined(58683773182308)
+  _cwl_168, list_3 := list___init__(_cthread_168, _method_measures_168, _residue_168)
+  inhale issubtype(typeof(list_3), list(int()))
+  runs_5 := list_3
+  inhale _isDefined(58684074784114)
+  SR_res_0 := new()
+  inhale typeof(SR_res_0) == SR()
+  inhale acc(_MaySet(SR_res_0, 32491073030804051), write)
+  inhale acc(_MaySet(SR_res_0, 27431034385551955), write)
+  _cwl_168 := SR___init__(_cthread_168, _method_measures_168, _residue_168,
+    SR_res_0, _checkDefined(runs_5, 58684074784114), _checkDefined(data_5, 58683773182308))
+  res_2 := SR_res_0
+  inhale _isDefined(216349762930)
+  if (int___eq__(l_0, h_0)) {
+    _res := _checkDefined(res_2, 216349762930)
+    goto __end
+  }
+  if (int___eq__(__prim__int___box__(int___sub__(int___unbox__(h_0), int___unbox__(l_0))),
+  __prim__int___box__(1))) {
+    if (bool___unbox__(PROVE_RUNTIME())) {
+      if (perm(_MaySet(RT(), 9146023661670932150562761635154)) > none) {
+        exhale acc(_MaySet(RT(), 9146023661670932150562761635154), write)
+        inhale acc(RT().Runtime_steps, write)
+      }
+      RT().Runtime_steps := __prim__int___box__(int___add__(int___unbox__(RT().Runtime_steps),
+        1))
+    }
+    _cwl_168 := list_append(_cthread_168, _method_measures_168, _residue_168,
+      _checkDefined(res_2, 216349762930).SR_data, list___getitem__(a_0, l_0))
+    _cwl_168 := list_append(_cthread_168, _method_measures_168, _residue_168,
+      _checkDefined(res_2, 216349762930).SR_runs, __prim__int___box__(list___len__(_checkDefined(res_2,
+      216349762930).SR_data)))
+    assert bool___unbox__(PROVE_PERMUTATION()) ==>
+      PSeq___eq__(PSeq___create__(Seq(list___getitem__(a_0, l_0)), int()), PSeq_take(PSeq_drop(PSeq___create__(a_0.list_acc,
+      int()), int___unbox__(l_0)), int___sub__(int___unbox__(h_0), int___unbox__(l_0))))
+    _res := _checkDefined(res_2, 216349762930)
+    goto __end
+  }
+  m_0 := __prim__int___box__(int___add__(int___unbox__(l_0), int___floordiv__(int___sub__(int___unbox__(h_0),
+    int___unbox__(l_0)), 2)))
+  inhale _isDefined(3170157)
+  _cwl_168, msort_res := msort(_cthread_168, _method_measures_168, _residue_168,
+    a_0, l_0, _checkDefined(m_0, 3170157))
+  res1 := msort_res
+  inhale _isDefined(829646194)
+  _cwl_168, msort_res_0 := msort(_cthread_168, _method_measures_168, _residue_168,
+    a_0, _checkDefined(m_0, 3170157), h_0)
+  res2 := msort_res_0
+  inhale _isDefined(846423410)
+  s1 := PSeq_take(PSeq_drop(PSeq___create__(a_0.list_acc, int()), int___unbox__(l_0)),
+    int___sub__(int___unbox__(_checkDefined(m_0, 3170157)), int___unbox__(l_0)))
+  inhale _isDefined(12659)
+  s2 := PSeq_take(PSeq_drop(PSeq___create__(a_0.list_acc, int()), int___unbox__(_checkDefined(m_0,
+    3170157))), int___sub__(int___unbox__(h_0), int___unbox__(_checkDefined(m_0,
+    3170157))))
+  inhale _isDefined(12915)
+  s_all := PSeq_take(PSeq_drop(PSeq___create__(a_0.list_acc, int()), int___unbox__(l_0)),
+    int___sub__(int___unbox__(h_0), int___unbox__(l_0)))
+  inhale _isDefined(465674788723)
+  assert bool___unbox__(PROVE_PERMUTATION()) ==>
+    PSeq___eq__(_checkDefined(s_all, 465674788723), PSeq___add__(_checkDefined(s1,
+    12659), _checkDefined(s2, 12915)))
+  _cwl_168, merge_res := merge(_cthread_168, _method_measures_168, _residue_168,
+    _checkDefined(res1, 829646194), _checkDefined(res2, 846423410))
+  res_2 := merge_res
+  inhale _isDefined(216349762930)
+  assert bool___unbox__(PROVE_PERMUTATION()) ==>
+    PMultiset___create__((__toMS(_checkDefined(res_2, 216349762930).SR_data.list_acc): Multiset[Ref]),
+    int()) ==
+    old(PMultiset___create__((__toMS(PSeq___sil_seq__(PSeq_take(PSeq_drop(PSeq___create__(a_0.list_acc,
+    int()), int___unbox__(l_0)), int___sub__(int___unbox__(h_0), int___unbox__(l_0))))): Multiset[Ref]),
+    int()))
+  _res := _checkDefined(res_2, 216349762930)
+  goto __end
+  goto __end
+  label __end
+}
+
+method SR___init__(_cthread_155: Ref, _caller_measures_155: Seq[Measure$], _residue_155: Perm,
+  self: Ref, runs: Ref, data: Ref)
+  returns (_current_wait_level_155: Perm)
+  requires _cthread_155 != null
+  requires issubtype(typeof(_cthread_155), Thread_0())
+  requires self != null
+  requires acc(_MaySet(self, 32491073030804051), write)
+  requires acc(_MaySet(self, 27431034385551955), write)
+  requires issubtype(typeof(self), SR())
+  requires issubtype(typeof(runs), list(int()))
+  requires issubtype(typeof(data), list(int()))
+  requires self != null
+  requires [acc(MustTerminate(_cthread_155), write), true]
+  requires [true,
+    Measure$check(_caller_measures_155, _cthread_155, 1) ||
+    perm(MustTerminate(_cthread_155)) == none &&
+    ((forperm _r_22: Ref [MustInvokeBounded(_r_22)] :: false) &&
+    ((forperm _r_22: Ref [MustInvokeUnbounded(_r_22)] :: false) &&
+    ((forperm _r_22: Ref [_r_22.MustReleaseBounded] :: false) &&
+    (forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_20: Ref [_r_20.MustReleaseBounded] :: Level(_r_20) <=
+      _current_wait_level_155) &&
+    ((forperm
+      _r_20: Ref [_r_20.MustReleaseUnbounded] :: Level(_r_20) <=
+      _current_wait_level_155) &&
+    _residue_155 <= _current_wait_level_155),
+    true]
+  ensures acc(self.SR_runs, write) &&
+    issubtype(typeof(self.SR_runs), list(int())) &&
+    (acc(self.SR_data, write) &&
+    issubtype(typeof(self.SR_data), list(int())) &&
+    (self.SR_runs == runs && self.SR_data == data))
+  ensures [true,
+    (forperm _r_21: Ref [MustInvokeBounded(_r_21)] :: false) &&
+    ((forperm _r_21: Ref [MustInvokeUnbounded(_r_21)] :: false) &&
+    ((forperm _r_21: Ref [_r_21.MustReleaseBounded] :: false) &&
+    (forperm _r_21: Ref [_r_21.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_1: Ref
+  var runs_7: Ref
+  var data_7: Ref
+  var _cwl_155: Perm
+  var _method_measures_155: Seq[Measure$]
+  _method_measures_155 := Seq(Measure$create(true, _cthread_155, 1))
+  inhale typeof(self) == SR()
+  _err := null
+  self_1 := self
+  runs_7 := runs
+  data_7 := data
+  if (perm(_MaySet(self_1, 32491073030804051)) > none) {
+    exhale acc(_MaySet(self_1, 32491073030804051), write)
+    inhale acc(self_1.SR_runs, write)
+  }
+  self_1.SR_runs := runs_7
+  if (perm(_MaySet(self_1, 27431034385551955)) > none) {
+    exhale acc(_MaySet(self_1, 27431034385551955), write)
+    inhale acc(self_1.SR_data, write)
+  }
+  self_1.SR_data := data_7
+  goto __end
+  label __end
+}
+
+method Runtime___init__(_cthread_156: Ref, _caller_measures_156: Seq[Measure$],
+  _residue_156: Perm, self_0: Ref)
+  returns (_current_wait_level_156: Perm)
+  requires _cthread_156 != null
+  requires issubtype(typeof(_cthread_156), Thread_0())
+  requires self_0 != null
+  requires acc(_MaySet(self_0, 9146023661670932150562761635154), write)
+  requires issubtype(typeof(self_0), Runtime())
+  requires self_0 != null
+  requires [true,
+    perm(MustTerminate(_cthread_156)) == none &&
+    ((forperm _r_25: Ref [MustInvokeBounded(_r_25)] :: false) &&
+    ((forperm _r_25: Ref [MustInvokeUnbounded(_r_25)] :: false) &&
+    ((forperm _r_25: Ref [_r_25.MustReleaseBounded] :: false) &&
+    (forperm _r_25: Ref [_r_25.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_23: Ref [_r_23.MustReleaseBounded] :: Level(_r_23) <=
+      _current_wait_level_156) &&
+    ((forperm
+      _r_23: Ref [_r_23.MustReleaseUnbounded] :: Level(_r_23) <=
+      _current_wait_level_156) &&
+    _residue_156 <= _current_wait_level_156),
+    true]
+  ensures acc(self_0.Runtime_steps, write) &&
+    issubtype(typeof(self_0.Runtime_steps), int()) &&
+    int___eq__(self_0.Runtime_steps, __prim__int___box__(0))
+  ensures [true,
+    (forperm _r_24: Ref [MustInvokeBounded(_r_24)] :: false) &&
+    ((forperm _r_24: Ref [MustInvokeUnbounded(_r_24)] :: false) &&
+    ((forperm _r_24: Ref [_r_24.MustReleaseBounded] :: false) &&
+    (forperm _r_24: Ref [_r_24.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var self_2: Ref
+  var _cwl_156: Perm
+  var _method_measures_156: Seq[Measure$]
+  _method_measures_156 := Seq[Measure$]()
+  inhale typeof(self_0) == Runtime()
+  _err := null
+  self_2 := self_0
+  if (perm(_MaySet(self_2, 9146023661670932150562761635154)) > none) {
+    exhale acc(_MaySet(self_2, 9146023661670932150562761635154), write)
+    inhale acc(self_2.Runtime_steps, write)
+  }
+  self_2.Runtime_steps := __prim__int___box__(0)
+  goto __end
+  label __end
+}
+
+method main(_cthread_169: Ref, _caller_measures_169: Seq[Measure$], _residue_172: Perm)
+  returns (_current_wait_level_169: Perm)
+  requires _cthread_169 != null
+  requires issubtype(typeof(_cthread_169), Thread_0())
+  requires [true,
+    perm(MustTerminate(_cthread_169)) == none &&
+    ((forperm _r_28: Ref [MustInvokeBounded(_r_28)] :: false) &&
+    ((forperm _r_28: Ref [MustInvokeUnbounded(_r_28)] :: false) &&
+    ((forperm _r_28: Ref [_r_28.MustReleaseBounded] :: false) &&
+    (forperm _r_28: Ref [_r_28.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm
+      _r_26: Ref [_r_26.MustReleaseBounded] :: Level(_r_26) <=
+      _current_wait_level_169) &&
+    ((forperm
+      _r_26: Ref [_r_26.MustReleaseUnbounded] :: Level(_r_26) <=
+      _current_wait_level_169) &&
+    _residue_172 <= _current_wait_level_169),
+    true]
+  ensures [true,
+    (forperm _r_27: Ref [MustInvokeBounded(_r_27)] :: false) &&
+    ((forperm _r_27: Ref [MustInvokeUnbounded(_r_27)] :: false) &&
+    ((forperm _r_27: Ref [_r_27.MustReleaseBounded] :: false) &&
+    (forperm _r_27: Ref [_r_27.MustReleaseUnbounded] :: false)))]
+{
+  var Runtime_res: Ref
+  var module_defined_0: Bool
+  var module_names_0: Set[_Name]
+  var _cwl_169: Perm
+  var _method_measures_169: Seq[Measure$]
+  _method_measures_169 := Seq[Measure$]()
+  module_defined_0 := true
+  module_names_0 := Set[_Name]()
+  module_names_0 := (module_names_0 union
+    Set(_single(6872323072689856351)))
+  inhale acc(__file__()._val, 99 / 100) &&
+    issubtype(typeof(__file__()._val), str()) &&
+    issubtype(typeof(__file__()._val), str())
+  module_names_0 := (module_names_0 union
+    Set(_single(6872323076851130207)))
+  inhale acc(__name__()._val, 99 / 100) &&
+    issubtype(typeof(__name__()._val), str()) &&
+    issubtype(typeof(__name__()._val), str()) &&
+    str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+  module_names_0 := (module_names_0 union Set(_single(1953720652)))
+  module_names_0 := (module_names_0 union
+    Set(_single(8038062462289584464661321053517)))
+  module_names_0 := (module_names_0 union
+    Set(_single(6872339552563453791)))
+  module_names_0 := (module_names_0 union Set(_single(21075)))
+  module_names_0 := (module_names_0 union
+    Set(_single(6872339552563453791)))
+  module_names_0 := (module_names_0 union Set(_single(28549272340165970)))
+  assert true && (_single(28549272340165970) in module_names_0)
+  Runtime_res := new()
+  inhale typeof(Runtime_res) == Runtime()
+  inhale acc(_MaySet(Runtime_res, 9146023661670932150562761635154), write)
+  _cwl_169 := Runtime___init__(_cthread_169, _method_measures_169, _residue_172,
+    Runtime_res)
+  inhale RT() == Runtime_res
+  module_names_0 := (module_names_0 union Set(_single(21586)))
+  module_names_0 := (module_names_0 union
+    Set(_single(910912245875583054452)))
+  module_names_0 := (module_names_0 union
+    Set(_single(910984303469620982388)))
+  module_names_0 := (module_names_0 union
+    Set(_single(911056361063658910324)))
+  module_names_0 := (module_names_0 union
+    Set(_single(911128418657696838260)))
+  module_names_0 := (module_names_0 union
+    Set(_single(139500743507907814613742962)))
+  module_names_0 := (module_names_0 union
+    Set(_single(35724312596297844082210926435)))
+  inhale PROVE_CORRECT_RUNS() == __prim__bool___box__(false)
+  module_names_0 := (module_names_0 union
+    Set(_single(7256975169037422686823388115475434814001744)))
+  inhale PROVE_PERMUTATION() == __prim__bool___box__(false)
+  module_names_0 := (module_names_0 union
+    Set(_single(26647414378069218681346507439819321201232)))
+  inhale PROVE_RUNTIME() == __prim__bool___box__(false)
+  module_names_0 := (module_names_0 union
+    Set(_single(5490662208949093412168356811344)))
+  module_names_0 := (module_names_0 union
+    Set(_single(31702188061460144823771230067)))
+  assert true && (_single(21075) in module_names_0) &&
+    (_single(21075) in module_names_0) &&
+    (_single(21075) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(435527247213)))
+  assert true && (_single(21075) in module_names_0) &&
+    (_single(21075) in module_names_0) &&
+    (_single(21075) in module_names_0)
+  module_names_0 := (module_names_0 union
+    Set(_single(530960663570762651956591)))
+  assert true && (_single(21075) in module_names_0) &&
+    (_single(21075) in module_names_0)
+  module_names_0 := (module_names_0 union
+    Set(_single(530960663570762651561577)))
+  assert true && (_single(21075) in module_names_0)
+  module_names_0 := (module_names_0 union Set(_single(500136113005)))
+  module_names_0 := (module_names_0 union Set(_single(845639532)))
+  goto __end
+  label __end
+}
+
+method list___init__(_cthread_8: Ref, _caller_measures_8: Seq[Measure$], _residue_8: Perm)
+  returns (_current_wait_level_8: Perm, res: Ref)
+  requires _cthread_8 != null
+  requires Measure$check(_caller_measures_8, _cthread_8, 1)
+  requires issubtype(typeof(_cthread_8), Thread_0())
+  requires [true, Measure$check(_caller_measures_8, _cthread_8, 1)]
+  ensures [(forperm
+      _r_29: Ref [_r_29.MustReleaseBounded] :: Level(_r_29) <=
+      _current_wait_level_8) &&
+    ((forperm
+      _r_29: Ref [_r_29.MustReleaseUnbounded] :: Level(_r_29) <=
+      _current_wait_level_8) &&
+    _residue_8 <= _current_wait_level_8),
+    true]
+  ensures acc(res.list_acc, write)
+  ensures res.list_acc == Seq[Ref]()
+  ensures typeof(res) == list(list_arg(typeof(res), 0))
+  ensures (Low(res): Bool)
+{
+  var _cwl_8: Perm
+  inhale false
+}
+
+method list_append(_cthread_9: Ref, _caller_measures_9: Seq[Measure$], _residue_9: Perm,
+  self: Ref, item: Ref)
+  returns (_current_wait_level_9: Perm)
+  requires _cthread_9 != null
+  requires Measure$check(_caller_measures_9, _cthread_9, 1)
+  requires issubtype(typeof(_cthread_9), Thread_0())
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, write)
+  requires issubtype(typeof(item), list_arg(typeof(self), 0))
+  requires [true, Measure$check(_caller_measures_9, _cthread_9, 1)]
+  ensures [(forperm
+      _r_31: Ref [_r_31.MustReleaseBounded] :: Level(_r_31) <=
+      _current_wait_level_9) &&
+    ((forperm
+      _r_31: Ref [_r_31.MustReleaseUnbounded] :: Level(_r_31) <=
+      _current_wait_level_9) &&
+    _residue_9 <= _current_wait_level_9),
+    true]
+  ensures acc(self.list_acc, write)
+  ensures self.list_acc == old(self.list_acc) ++ Seq(item)
+{
+  var _cwl_9: Perm
+  inhale false
+}

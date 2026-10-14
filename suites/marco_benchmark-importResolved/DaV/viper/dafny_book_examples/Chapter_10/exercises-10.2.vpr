@@ -1,0 +1,612 @@
+// ===== begin import: DaV/viper/dafny_book_examples/definitions.vpr =====
+/**
+ * This file contains auxiliary definitions that are used in multiple locations
+ */
+
+
+/**
+ * The Unit data type has a single value, `unit()`. We use it as the return value of
+ * translated lemmas. Viper does not provide a special syntax for defining lemmas.
+ * As lemmas need to be callable in a pure context, we translate them to functions
+ * with `Unit` as the return type. We could also use an arbitrary type like bool as
+ * the return type. We chose this way to express the fact that the return value is
+ * not important.
+ */
+adt Unit {
+  unit()
+}
+
+/**
+ * Viper sometimes has a problem where the postconditions of called functions are not
+ * added to the context. This function forces a condition to be checked, which will add 
+ * it, allowing us to use it in proofs.
+ */
+function asserting(x: Bool): Unit
+    requires x
+    decreases
+{
+    unit()
+}
+
+/**
+ * Viper does not have built-in support for tuples (pairs, triples, ...), so we
+ * need to define a pair type via a custom domain.
+ */
+domain Pair[T, G] {
+
+    /**
+     * The constructor takes two elements and returns a pair containing both of them.
+     */
+    function pair(T, G): Pair[T, G]
+
+    /**
+     * The destructors allow access to the elements of a pair.
+     */
+    function getLeft(Pair[T, G]): T
+    function getRight(Pair[T, G]): G
+
+    /**
+     * These axioms define the behavior of the functions above: If we create a pair 
+     * and then access its elements, we get the original elements back.
+     */
+    axiom axGetLeft {
+        forall x: T, y: G :: getLeft(pair(x, y)) == x
+    }
+
+    axiom axGetRight {
+        forall x: T, y: G :: getRight(pair(x, y)) == y
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/definitions.vpr =====
+
+// ===== begin import: <std>/decreases/declaration.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain WellFoundedOrder[T]{
+    // arg1 is smaller then arg2
+    function decreasing(arg1:T, arg2:T):Bool
+    function bounded(arg1:T):Bool
+}
+// ===== end import: <std>/decreases/declaration.vpr =====
+
+// ===== begin import: <std>/decreases/bool.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain BoolWellFoundedOrder{
+    //Booleans
+    axiom bool_ax_dec{
+        decreasing(false, true)
+    }
+    axiom bool_ax_bound{
+        forall bool1: Bool :: {bounded(bool1)}
+            bounded(bool1)
+    }
+}
+// ===== end import: <std>/decreases/bool.vpr =====
+
+// ===== begin import: <std>/decreases/int.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain IntWellFoundedOrder{
+	//Integers
+    axiom integer_ax_dec{
+        forall int1: Int, int2: Int :: {decreasing(int1, int2)}
+            (int1 < int2) ==> decreasing(int1, int2)
+    }
+    axiom integer_ax_bound{
+        forall int1: Int :: {bounded(int1)}
+            int1 >= 0 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/int.vpr =====
+
+// ===== begin import: <std>/decreases/multiset.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain MultiSetWellFoundedOrder[S]{
+    //MultiSet
+    axiom multiset_ax_dec{
+        forall mSet1: Multiset[S], mSet2: Multiset[S] :: {decreasing(mSet1, mSet2)}
+            (|mSet1| < |mSet2|) ==> decreasing(mSet1, mSet2)
+    }
+    axiom multiset_ax_bound{
+        forall mSet1: Multiset[S] :: {bounded(mSet1)}
+            bounded(mSet1)
+    }
+}
+// ===== end import: <std>/decreases/multiset.vpr =====
+
+// ===== begin import: <std>/predicateinstance/pi.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain PredicateInstance{}
+// ===== end import: <std>/predicateinstance/pi.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance_nested.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesNestedRelation{
+    function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance) : Bool
+
+    //Transitivity of the nested-Function
+    axiom nestedTrans{
+        forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance :: {nestedPredicates(l1, l2), nestedPredicates(l2, l3)}
+            nestedPredicates(l1,l2) && nestedPredicates(l2,l3) ==> nestedPredicates(l1,l3)
+    }
+
+    //A predicate cannot be nested inside itself
+    axiom nestedReflex{
+        forall l1: PredicateInstance ::
+            !nestedPredicates(l1, l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance_nested.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+// resolved: import "predicate_instance_nested.vpr"
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesWellFoundedOrder {
+    axiom predicate_instances_ax_dec{
+        forall l1: PredicateInstance, l2: PredicateInstance :: {nestedPredicates(l1,l2)}
+            decreasing(l1, l2) <==> nestedPredicates(l1,l2)
+    }
+
+    axiom predicate_instances_ax_bound{
+        forall l1: PredicateInstance :: {bounded(l1)}
+            bounded(l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance.vpr =====
+
+// ===== begin import: <std>/decreases/perm.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain PermWellFoundedOrder{
+	//Rationals
+    axiom rational_ax_dec{
+        forall int1: Perm, int2: Perm :: {decreasing(int1, int2)}
+            (int1 <= int2 - 1/1) ==> decreasing(int1, int2)
+    }
+    axiom rational_ax_bound{
+        forall int1: Perm :: {bounded(int1)}
+            int1 >= 0/1 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/perm.vpr =====
+
+// ===== begin import: <std>/decreases/ref.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain RefWellFoundedOrder{
+    //References
+	axiom ref_ax_dec{
+        forall ref1: Ref :: {decreasing(null,ref1)}
+            ref1 != null ==> decreasing(null, ref1)
+    }
+    axiom ref_ax_bound{
+        forall ref1: Ref :: {bounded(ref1)}
+            bounded(ref1)
+    }
+}
+// ===== end import: <std>/decreases/ref.vpr =====
+
+// ===== begin import: <std>/decreases/seq.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SeqWellFoundedOrder[S]{
+    //Sequences
+    axiom seq_ax_dec{
+        forall seq1: Seq[S], seq2: Seq[S] :: {decreasing(seq1,seq2)}
+            (|seq1| < |seq2|) ==> decreasing(seq1, seq2)
+    }
+    axiom seq_ax_bound{
+        forall seq1: Seq[S] :: {bounded(seq1)}
+            (|seq1| >= 0) ==> bounded(seq1)
+    }
+}
+// ===== end import: <std>/decreases/seq.vpr =====
+
+// ===== begin import: <std>/decreases/set.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SetWellFoundedOrder[S]{
+    //Sets
+    axiom set_ax_dec{
+        forall set1: Set[S], set2: Set[S] :: {decreasing(set1, set2)}
+            (|set1| < |set2|) ==> decreasing(set1, set2)
+    }
+    axiom set_ax_bound{
+        forall set1: Set[S] ::  {bounded(set1)}
+            bounded(set1)
+    }
+}
+// ===== end import: <std>/decreases/set.vpr =====
+
+// ===== begin import: <std>/decreases/all.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "bool.vpr"
+// resolved: import "int.vpr"
+// resolved: import "multiset.vpr"
+// resolved: import "predicate_instance.vpr"
+// resolved: import "perm.vpr"
+// resolved: import "ref.vpr"
+// resolved: import "seq.vpr"
+// resolved: import "set.vpr"
+// ===== end import: <std>/decreases/all.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_10/BraunTree.vpr =====
+/** 
+ * Just like in chapter 6 in the file examples-6.1.vpr, we have to import
+ * the library definitions of decreases and bounded in order to define
+ * a well-founded order.
+ */ 
+// resolved: import <decreases/all.vpr>
+
+/**
+ * In order to use the self-defined adt BraunTree, we have to define a well-founded
+ * order on the BraunTree. Otherwise, we will not be able to prove termination of
+ * our functions using this adt.
+ */
+domain BraunTreeWellFoundedOrder{
+
+  /**
+   * Just as with the Lists above, we have to define that every BraunTree is bounded.
+   * The lowest element of a BraunTree would be leaf().
+   */
+  axiom {
+    forall y: BraunTree :: {bounded(y)} bounded(y)
+  }
+
+  /**
+   * We also have to define the decreasing relationship between BraunTrees.
+   * With this we tell the SMT solver that, the left and right subtrees of
+   * such an adt will be smaller elements.
+   */
+  axiom {
+    forall pq: BraunTree ::
+      decreasing(pq.left, pq) && decreasing(pq.right, pq)
+  }
+
+  /**
+   * Finally, we also define the transitive relationship between BraunTrees.
+   * Meaning that if a BraunTree is a subtree of another, then its subtree will
+   * also be a subtree to its parent.
+   */
+  axiom {
+    forall pq1: BraunTree, pq2: BraunTree, pq3: BraunTree ::
+      decreasing(pq1, pq2) && decreasing(pq2, pq3) ==> decreasing(pq1, pq3)
+  }
+}
+
+ /**
+ * This ADT is the translation of the BraunTree created in the book.
+ * The BraunTree is an ADT with two cases. Either it is an empty leaf,
+ * or a Node. Each node consists of an Int value, as well as two BraunTrees.
+ */
+adt BraunTree {
+    Leaf()
+    Node(x: Int, left: BraunTree, right: BraunTree)
+}
+
+/**
+ * In the book, they use 'type PQueue = BraunTree'. This is not possible in 
+ * Viper. Therefore we will be using a macro to alias PQueue with BraunTree.
+ * This will allow us to follow the book more closely.
+ */
+define PQueue BraunTree
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_10/BraunTree.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_10/examples-10.2.vpr =====
+// resolved: import "../definitions.vpr"
+// resolved: import "BraunTree.vpr"
+
+/**
+ * In this chapter, we will implement the functions from the previous subsections.
+ */
+
+function Valid(pq: PQueue): Bool
+    decreases
+{
+    IsBinaryHeap(pq) && IsBalanced(pq)
+}
+
+/**
+ * This function checks whether the BraunTree is a binary heap, so the value of the left
+ * child is always less than the value of the parent and the value of the right child is
+ * always greater than the value of the parent.
+ */
+function IsBinaryHeap(pq: PQueue): Bool
+    decreases pq
+{
+    pq.isNode ==> (
+        IsBinaryHeap(pq.left) && IsBinaryHeap(pq.right) &&
+        (pq.left == Leaf() || pq.x <= pq.left.x) &&
+        (pq.right == Leaf() || pq.x <= pq.right.x))
+}
+
+/**
+ * This function checks whether the tree is balanced, so the number of children on the 
+ * left and right sides only differ by one.
+ */
+function IsBalanced(pq: PQueue): Bool
+    decreases pq
+{
+    pq.isLeaf ? true : (IsBalanced(pq.left) && IsBalanced(pq.right) && 
+                        let L == (|Elements(pq.left)|) in 
+                        let R == (|Elements(pq.right)|) in 
+                        L == R || L == R + 1)
+}
+
+function Elements(pq: PQueue): Multiset[Int]
+    decreases pq
+{
+    pq.isLeaf ? Multiset(): Multiset(pq.x) union Elements(pq.left) union Elements(pq.right)
+}
+
+/**
+ * The function Empty simply returns a leaf.
+ */
+function Empty(): PQueue
+   decreases
+{
+    Leaf()
+}
+
+/**
+ * This function checks whether a PQueue is equal to a leaf or not.
+ */
+function IsEmpty(pq: PQueue): Bool
+    decreases
+{
+    pq == Leaf()
+}
+
+function lemmaEmptyCorrect(): Unit
+    ensures let pq == (Empty()) in
+            Valid(pq) && Elements(pq) == Multiset()
+    decreases
+{
+    unit()
+}
+
+function lemmaIsEmptyCorrect(pq: PQueue): Unit
+    requires Valid(pq)
+    ensures IsEmpty(pq) <==> Elements(pq) == Multiset()
+    decreases
+{
+    unit()
+}
+
+function Insert(pq: PQueue, y: Int): PQueue
+    decreases pq
+{
+    pq.isLeaf ? Node(y, Leaf(), Leaf()) 
+        : 
+        (y < pq.x) ? Node(y, Insert(pq.right, pq.x), pq.left) 
+            :
+            Node(pq.x, Insert(pq.right, y), pq.left)
+}
+
+/**
+ * This lemma proves that if an element y is Inserted into the
+ * PQueue, then it is added to the multiset of its Elements.
+ */
+function lemmaInsertCorrect(pq: PQueue, y: Int): Unit
+    requires Valid(pq)
+    ensures let pq2 == (Insert(pq, y)) in
+            Valid(pq2) && Elements(pq2) == Elements(pq) union Multiset(y)
+    decreases pq
+{
+    let pq2 == (Insert(pq, y)) in
+    let L == (|Elements(pq.left)|) in 
+    let R == (|Elements(pq.right)|) in
+    pq.isLeaf ? unit() : (y < pq.x) ? let _0 == (lemmaInsertCorrect(pq.right, pq.x)) in
+                                        let _1 == (asserting(Valid(Insert(pq.right, pq.x)))) in
+                                        unit() 
+                                        :
+                                        let _0 == (lemmaInsertCorrect(pq.right, y)) in
+                                        let _1 == (asserting(Valid(Insert(pq.right, y)))) in
+                                        unit()
+}
+
+
+function IsMin(y: Int, s: Multiset[Int]): Bool
+    decreases
+{
+    (y in s) > 0 && (forall x: Int :: (x in s) > 0 ==> y <= x)
+}
+
+/**
+ * This function removes the minimal element from the PQueue
+ * and returns a Pair, where the first element of the pair is
+ * the removed element from the PQueue and the second element
+ * of the pair is the new PQueue after the minimal element has
+ * been removed.
+ */
+function RemoveMin(pq: PQueue): Pair[Int, PQueue]
+    requires !IsEmpty(pq)
+    decreases pq
+{
+    pair(pq.x, DeleteMin(pq))
+}
+
+/**
+ * This function deletes the minimal element from a PQueue.
+ * There are no assumptions yet made about the BraunTree 
+ * being balanced. 
+ */
+function DeleteMin(pq: PQueue): PQueue
+    requires !IsEmpty(pq)
+    decreases pq
+{
+    (pq.left == Leaf() || pq.right == Leaf()) ? pq.left 
+        :
+        (pq.left.x <= pq.right.x) ? Node(pq.left.x, pq.right, DeleteMin(pq.left)) 
+            :
+            Node(pq.right.x, ReplaceRoot(pq.right, pq.left.x), DeleteMin(pq.left))
+}
+
+function lemmaRemoveMinCorrect(pq: PQueue): Unit
+    requires Valid(pq) && !IsEmpty(pq)
+    ensures let y == (getLeft(RemoveMin(pq))) in 
+            let pq2 == (getRight(RemoveMin(pq))) in
+            Valid(pq2) && 
+            IsMin(y, Elements(pq)) &&
+            Elements(pq2) union Multiset(y) == Elements(pq)
+    decreases pq
+{
+    let y == (getLeft(RemoveMin(pq))) in
+    let pq2 == (getRight(RemoveMin(pq))) in
+    pq.isLeaf ? unit() 
+                : 
+                let _0 == (lemmaDeleteMinCorrect(pq)) in
+                            let L == (pq.left.isLeaf ? pq.x : getLeft(RemoveMin(pq.left))) in 
+                            let R == (pq.right.isLeaf ? pq.x : getLeft(RemoveMin(pq.right))) in
+                            let _1 == (pq.left == Leaf() ? unit() : lemmaRemoveMinCorrect(pq.left)) in
+                            let _2 == (pq.right == Leaf() ? unit() : lemmaRemoveMinCorrect(pq.right)) in
+                            let _3 == (pq.left == Leaf() ? unit() : asserting(IsMin(L, Elements(pq.left)))) in 
+                            let _4 == (pq.right == Leaf() ? unit() : asserting(IsMin(R, Elements(pq.right)))) in
+                            unit()             
+}
+
+function lemmaDeleteMinCorrect(pq: PQueue): Unit
+    requires Valid(pq) && pq != Leaf()
+    ensures let pq2 == (DeleteMin(pq)) in 
+            Valid(pq2) &&
+            Elements(pq2) union Multiset(pq.x) == Elements(pq)
+    decreases pq
+{
+    (pq.left == Leaf() || pq.right == Leaf()) ? unit()
+            :
+            (pq.left.x <= pq.right.x) ? let _0 == (lemmaDeleteMinCorrect(pq.left)) in
+                    let _1 == (asserting(Valid(DeleteMin(pq.left)))) in
+                    unit()
+                    :
+                    let left == (ReplaceRoot(pq.right, pq.left.x)) in
+                    let right == (DeleteMin(pq.left)) in
+                    let pq2 == (Node(pq.right.x, left, right)) in
+                    let _0 == (lemmaDeleteMinCorrect(pq.left)) in
+                    let _1 == (asserting(Valid(DeleteMin(pq.left)))) in
+                    let _2 == (lemmaReplaceRootCorrect(pq.right, pq.left.x)) in
+                    let _3 == (asserting(Elements(pq.right) union Multiset(pq.left.x) union 
+                        Elements(right) union Multiset(pq.x) == Elements(right) union 
+                        Multiset(pq.left.x) union Elements(pq.right) union Multiset(pq.x))) in
+                    let _4 == (asserting(Elements(pq.left) union Elements(pq.right) union  
+                        Multiset(pq.x) == Multiset(pq.x) union 
+                        Elements(pq.left) union Elements(pq.right))) in
+                    unit()
+}
+
+function ReplaceRoot(pq: PQueue, y: Int): PQueue
+    requires !IsEmpty(pq)
+    decreases pq
+{
+    (pq.left == Leaf() || (y <= pq.left.x && (pq.right == Leaf() || y <= pq.right.x))) ? Node(y, pq.left, pq.right) 
+        :
+        (pq.right == Leaf()) ? Node(pq.left.x, Node(y, Leaf(), Leaf()), Leaf()) 
+            :
+            (pq.left.x <= pq.right.x) ? Node(pq.left.x, ReplaceRoot(pq.left, y), pq.right) 
+                :
+                Node(pq.right.x, pq.left, ReplaceRoot(pq.right, y))
+}
+
+/** 
+ * This lemma ensures the correctness of the ReplaceRoot function.
+ */
+function lemmaReplaceRootCorrect(pq: PQueue, y: Int): Unit
+    requires Valid(pq) && !IsEmpty(pq)
+    ensures let pq2 == (ReplaceRoot(pq, y)) in
+            Valid(pq2) &&
+            Elements(pq) union Multiset(y) == Elements(pq2) union Multiset(pq.x) &&
+            |Elements(pq2)| == |Elements(pq)|
+    decreases pq
+{
+    (pq.left == Leaf() || (y <= pq.left.x && (pq.right == Leaf() || y <= pq.right.x))) ?
+            unit()
+            : 
+            (pq.right == Leaf()) ? let left == (Node(y, Leaf(), Leaf())) in
+                let right == (Leaf()) in
+                let pq2 == (ReplaceRoot(pq, y)) in
+                let _0 == (asserting(IsBalanced(left) && IsBalanced(right))) in
+                let _1 == (asserting(IsBalanced(pq2))) in
+                let _2 == (asserting(IsBinaryHeap(left) && IsBinaryHeap(right))) in
+                unit()
+                :
+                (pq.left.x <= pq.right.x) ? let left == (ReplaceRoot(pq.left, y)) in
+                    let pq2 == (Node(pq.left.x, left, pq.right)) in
+                    let _0 == (lemmaReplaceRootCorrect(pq.left, y)) in
+                    let _1 == (asserting(Valid(left))) in
+                    let _2 == (asserting((Elements(pq2) == Elements(pq.left) union 
+                        Multiset(y) union Elements(pq2.right)))) in
+                    unit()
+                    :
+                    let right == (ReplaceRoot(pq.right, y)) in
+                    let pq2 == (Node(pq.right.x, pq.left, ReplaceRoot(pq.right, y))) in
+                    let _0 == (lemmaReplaceRootCorrect(pq.right, y)) in
+                    let _1 == (asserting(Valid(right))) in
+                    let _2 == (asserting(Elements(pq2) == Elements(pq.right) union 
+                        Multiset(y) union Elements(pq2.left))) in
+                    unit()
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_10/examples-10.2.vpr =====
+
+// resolved: import "examples-10.2.vpr"
+
+//Exercise 10.2
+/**
+ * In this exercise we are asked to prove the lemma 
+ * BinaryHeapStoresMinimum, which proves that the smallest
+ * value is stored in the root.
+ */
+function lemmaBinaryHeapStoresMinimum(pq: PQueue, y: Int): Unit
+    requires IsBinaryHeap(pq) && (y in Elements(pq)) > 0
+    ensures pq.x <= y
+{
+    pq.isLeaf ? unit()
+        :
+        ((y in Elements(pq.left)) > 0) ? lemmaBinaryHeapStoresMinimum(pq.left, y)
+                :
+                ((y in Elements(pq.right)) > 0) ? lemmaBinaryHeapStoresMinimum(pq.right, y)
+                    :
+                    unit()
+}
+
+//Exercise 10.3
+/**
+ * If we would use only the second disjunction, then we can not infer
+ * that left is of type Node and would fail when we try to access the value 
+ * x of left.
+ */

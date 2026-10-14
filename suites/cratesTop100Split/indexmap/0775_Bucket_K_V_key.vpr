@@ -1,0 +1,264 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_HashValue {
+    inhabited(s_HashValue_type()) == inhabited(s_UInt_usize_type())
+  }
+  
+  axiom inhabited_Bucket {
+    (forall K$0: Type, V$1: Type ::
+      { inhabited(s_Bucket_type(K$0, V$1)) }
+      inhabited(s_Bucket_type(K$0, V$1)) ==
+      (inhabited(s_HashValue_type()) && (inhabited(K$0) && inhabited(V$1))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_HashValue  {
+  
+  axiom s_HashValue_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_HashValue_type())
+  }
+  
+  axiom s_HashValue_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_HashValue_type())
+  }
+}
+
+domain sizedness_Bucket  {
+  
+  axiom s_Bucket_Sized {
+    (forall K$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Bucket_type(K$0, V$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Bucket_type(K$0, V$1)))
+  }
+  
+  axiom s_Bucket_MetaSized {
+    (forall K$0: Type, V$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Bucket_type(K$0, V$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(V$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Bucket_type(K$0, V$1)))
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Bucket_unreachable(K$0: Type, V$1: Type): s_Bucket
+  ensures false
+
+
+function s_Bucket_field_0(self: Ref, K$0: Type, V$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Bucket_field_1(self: Ref, K$0: Type, V$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Bucket_field_2(self: Ref, K$0: Type, V$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_HashValue_unreachable(): s_HashValue
+  ensures false
+
+
+function s_HashValue_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Bucket_snap(self: Ref, K$0: Type, V$1: Type): s_Bucket
+  requires acc(p_Bucket(self, K$0, V$1), write)
+{
+  (unfolding acc(p_Bucket(self, K$0, V$1), write) in
+    s_Bucket_cons(p_HashValue_snap(s_Bucket_field_0(self, K$0, V$1)), p_Param_snap(s_Bucket_field_1(self,
+    K$0, V$1), K$0), p_Param_snap(s_Bucket_field_2(self, K$0, V$1), V$1)))
+}
+
+function p_HashValue_snap(self: Ref): s_HashValue
+  requires acc(p_HashValue(self), write)
+{
+  (unfolding acc(p_HashValue(self), write) in
+    s_HashValue_cons(p_UInt_usize_snap(s_HashValue_field_0(self))))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Bucket(self: Ref, K$0: Type, V$1: Type) {
+  inhabited(s_HashValue_type()) &&
+  acc(p_HashValue(s_Bucket_field_0(self, K$0, V$1)), write) &&
+  (inhabited(K$0) &&
+  acc(p_Param(s_Bucket_field_1(self, K$0, V$1), K$0), write) &&
+  (inhabited(V$1) &&
+  acc(p_Param(s_Bucket_field_2(self, K$0, V$1), V$1), write)))
+}
+
+predicate p_HashValue(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_HashValue_field_0(self)), write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_Bucket$col$$col$$lt$K$com$$sp$V$gt$$col$$col$key(_0p: Ref, _1p: Ref,
+  K$0: Type, V$1: Type)
+  requires inhabited(s_Bucket_type(K$0, V$1)) &&
+    acc(p_Bucket(_1p, K$0, V$1), write)
+  ensures inhabited(K$0) && acc(p_Param(_0p, K$0), write)
+{
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Param
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(V$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(K$0)
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_Bucket(_1p, K$0, V$1), write)
+  _tmp0 := p_Param_snap(s_Bucket_field_1(_1p, K$0, V$1), K$0)
+  exhale inhabited(K$0) &&
+    acc(p_Param(s_Bucket_field_1(_1p, K$0, V$1), K$0), write)
+  p_Param_assign(_0p, K$0, _tmp0)
+  label _before_0_1
+  exhale inhabited(s_HashValue_type()) &&
+    acc(p_HashValue(s_Bucket_field_0(_1p, K$0, V$1)), write)
+  exhale inhabited(V$1) &&
+    acc(p_Param(s_Bucket_field_2(_1p, K$0, V$1), V$1), write)
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label package_post0
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Bucket_assign(self: Ref, K$0: Type, V$1: Type, value: s_Bucket)
+  ensures acc(p_Bucket(self, K$0, V$1), write)
+  ensures p_Bucket_snap(self, K$0, V$1) == value
+
+
+method p_HashValue_assign(self: Ref, value: s_HashValue)
+  ensures acc(p_HashValue(self), write)
+  ensures p_HashValue_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Bucket {
+  s_Bucket_cons(s_Bucket_0: s_HashValue, s_Bucket_1: s_Param, s_Bucket_2: s_Param)
+}
+
+adt s_HashValue {
+  s_HashValue_cons(s_HashValue_0: s_UInt_usize)
+}
+
+adt Type {
+  s_UInt_usize_type()
+  s_HashValue_type()
+  s_Bucket_type(s_Bucket_typaram_K$0: Type, s_Bucket_typaram_V$1: Type)
+  Unknown_type(id: Int)
+}

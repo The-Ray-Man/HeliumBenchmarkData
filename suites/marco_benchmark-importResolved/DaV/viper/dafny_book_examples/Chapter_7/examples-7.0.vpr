@@ -1,0 +1,394 @@
+// ===== begin import: DaV/viper/dafny_book_examples/definitions.vpr =====
+/**
+ * This file contains auxiliary definitions that are used in multiple locations
+ */
+
+
+/**
+ * The Unit data type has a single value, `unit()`. We use it as the return value of
+ * translated lemmas. Viper does not provide a special syntax for defining lemmas.
+ * As lemmas need to be callable in a pure context, we translate them to functions
+ * with `Unit` as the return type. We could also use an arbitrary type like bool as
+ * the return type. We chose this way to express the fact that the return value is
+ * not important.
+ */
+adt Unit {
+  unit()
+}
+
+/**
+ * Viper sometimes has a problem where the postconditions of called functions are not
+ * added to the context. This function forces a condition to be checked, which will add 
+ * it, allowing us to use it in proofs.
+ */
+function asserting(x: Bool): Unit
+    requires x
+    decreases
+{
+    unit()
+}
+
+/**
+ * Viper does not have built-in support for tuples (pairs, triples, ...), so we
+ * need to define a pair type via a custom domain.
+ */
+domain Pair[T, G] {
+
+    /**
+     * The constructor takes two elements and returns a pair containing both of them.
+     */
+    function pair(T, G): Pair[T, G]
+
+    /**
+     * The destructors allow access to the elements of a pair.
+     */
+    function getLeft(Pair[T, G]): T
+    function getRight(Pair[T, G]): G
+
+    /**
+     * These axioms define the behavior of the functions above: If we create a pair 
+     * and then access its elements, we get the original elements back.
+     */
+    axiom axGetLeft {
+        forall x: T, y: G :: getLeft(pair(x, y)) == x
+    }
+
+    axiom axGetRight {
+        forall x: T, y: G :: getRight(pair(x, y)) == y
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/definitions.vpr =====
+
+// ===== begin import: <std>/decreases/declaration.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain WellFoundedOrder[T]{
+    // arg1 is smaller then arg2
+    function decreasing(arg1:T, arg2:T):Bool
+    function bounded(arg1:T):Bool
+}
+// ===== end import: <std>/decreases/declaration.vpr =====
+
+// ===== begin import: <std>/decreases/bool.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain BoolWellFoundedOrder{
+    //Booleans
+    axiom bool_ax_dec{
+        decreasing(false, true)
+    }
+    axiom bool_ax_bound{
+        forall bool1: Bool :: {bounded(bool1)}
+            bounded(bool1)
+    }
+}
+// ===== end import: <std>/decreases/bool.vpr =====
+
+// ===== begin import: <std>/decreases/int.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain IntWellFoundedOrder{
+	//Integers
+    axiom integer_ax_dec{
+        forall int1: Int, int2: Int :: {decreasing(int1, int2)}
+            (int1 < int2) ==> decreasing(int1, int2)
+    }
+    axiom integer_ax_bound{
+        forall int1: Int :: {bounded(int1)}
+            int1 >= 0 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/int.vpr =====
+
+// ===== begin import: <std>/decreases/multiset.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain MultiSetWellFoundedOrder[S]{
+    //MultiSet
+    axiom multiset_ax_dec{
+        forall mSet1: Multiset[S], mSet2: Multiset[S] :: {decreasing(mSet1, mSet2)}
+            (|mSet1| < |mSet2|) ==> decreasing(mSet1, mSet2)
+    }
+    axiom multiset_ax_bound{
+        forall mSet1: Multiset[S] :: {bounded(mSet1)}
+            bounded(mSet1)
+    }
+}
+// ===== end import: <std>/decreases/multiset.vpr =====
+
+// ===== begin import: <std>/predicateinstance/pi.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain PredicateInstance{}
+// ===== end import: <std>/predicateinstance/pi.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance_nested.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesNestedRelation{
+    function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance) : Bool
+
+    //Transitivity of the nested-Function
+    axiom nestedTrans{
+        forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance :: {nestedPredicates(l1, l2), nestedPredicates(l2, l3)}
+            nestedPredicates(l1,l2) && nestedPredicates(l2,l3) ==> nestedPredicates(l1,l3)
+    }
+
+    //A predicate cannot be nested inside itself
+    axiom nestedReflex{
+        forall l1: PredicateInstance ::
+            !nestedPredicates(l1, l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance_nested.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+// resolved: import "predicate_instance_nested.vpr"
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesWellFoundedOrder {
+    axiom predicate_instances_ax_dec{
+        forall l1: PredicateInstance, l2: PredicateInstance :: {nestedPredicates(l1,l2)}
+            decreasing(l1, l2) <==> nestedPredicates(l1,l2)
+    }
+
+    axiom predicate_instances_ax_bound{
+        forall l1: PredicateInstance :: {bounded(l1)}
+            bounded(l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance.vpr =====
+
+// ===== begin import: <std>/decreases/perm.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain PermWellFoundedOrder{
+	//Rationals
+    axiom rational_ax_dec{
+        forall int1: Perm, int2: Perm :: {decreasing(int1, int2)}
+            (int1 <= int2 - 1/1) ==> decreasing(int1, int2)
+    }
+    axiom rational_ax_bound{
+        forall int1: Perm :: {bounded(int1)}
+            int1 >= 0/1 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/perm.vpr =====
+
+// ===== begin import: <std>/decreases/ref.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain RefWellFoundedOrder{
+    //References
+	axiom ref_ax_dec{
+        forall ref1: Ref :: {decreasing(null,ref1)}
+            ref1 != null ==> decreasing(null, ref1)
+    }
+    axiom ref_ax_bound{
+        forall ref1: Ref :: {bounded(ref1)}
+            bounded(ref1)
+    }
+}
+// ===== end import: <std>/decreases/ref.vpr =====
+
+// ===== begin import: <std>/decreases/seq.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SeqWellFoundedOrder[S]{
+    //Sequences
+    axiom seq_ax_dec{
+        forall seq1: Seq[S], seq2: Seq[S] :: {decreasing(seq1,seq2)}
+            (|seq1| < |seq2|) ==> decreasing(seq1, seq2)
+    }
+    axiom seq_ax_bound{
+        forall seq1: Seq[S] :: {bounded(seq1)}
+            (|seq1| >= 0) ==> bounded(seq1)
+    }
+}
+// ===== end import: <std>/decreases/seq.vpr =====
+
+// ===== begin import: <std>/decreases/set.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SetWellFoundedOrder[S]{
+    //Sets
+    axiom set_ax_dec{
+        forall set1: Set[S], set2: Set[S] :: {decreasing(set1, set2)}
+            (|set1| < |set2|) ==> decreasing(set1, set2)
+    }
+    axiom set_ax_bound{
+        forall set1: Set[S] ::  {bounded(set1)}
+            bounded(set1)
+    }
+}
+// ===== end import: <std>/decreases/set.vpr =====
+
+// ===== begin import: <std>/decreases/all.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "bool.vpr"
+// resolved: import "int.vpr"
+// resolved: import "multiset.vpr"
+// resolved: import "predicate_instance.vpr"
+// resolved: import "perm.vpr"
+// resolved: import "ref.vpr"
+// resolved: import "seq.vpr"
+// resolved: import "set.vpr"
+// ===== end import: <std>/decreases/all.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_7/well-founded_order_Unary.vpr =====
+/**
+ * We need to import the examples file, in order to get our data
+ * type Unary defined in examples-7.0.vpr.
+ */
+// resolved: import "examples-7.0.vpr"
+
+/**
+ * For our new Abstract Data Type Unary we will have to define an absolute order
+ * again. To define this absolute order, we need the functions bounded as well
+ * as decreasing. Both of those functions are defined in this decreases/all.vpr
+ * file. 
+ *
+ * This file was not defined by us. It is part of the standard library.
+ */
+// resolved: import <decreases/all.vpr>
+
+/**
+ * Just like in chapter 6.1, we will define the well-founded order of this data
+ * type using a Domain.
+ */
+domain UnaryWellFoundedOrder {
+
+    /**
+     * This axiom tells us that for each element of type Unary, there exists a
+     * lower bound. The lowest bound for each Unary element is zero().
+     */
+  axiom {
+    forall y: Unary ::
+    bounded(y) 
+  }
+
+  /**
+   * This axiom defines the order of the Unary elements. As we see here, x.pred
+   * is smaller than x. We could have also defined to order to be 
+   * decreasing(x, Suc(x)). 
+   */
+  axiom { 
+    forall x: Unary ::
+    decreasing(x.pred, x)
+  }
+
+  /**
+   * This axiom adds the transitivity of the Unary data type.
+   */
+  axiom {
+    forall x: Unary, y: Unary, z: Unary :: {decreasing(x, y), decreasing(y, z)}
+    decreasing(x, y) && decreasing(y, z) ==> decreasing(x, z)
+  }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_7/well-founded_order_Unary.vpr =====
+
+// resolved: import "../definitions.vpr"
+
+/**
+ * In this chapter, we define the Abstract Data Type 'Unary', which
+ * models the natural numbers.
+ */
+adt Unary {
+    /**
+     * Zero() is defined as the lowest element of the Unary data type.
+     */
+    Zero()
+
+    /**
+     * The unary Suc represents the successor of a unary pred.
+     */
+    Suc(pred: Unary)
+}
+
+/**
+ * To prove termination with Unary data types, we have to define a well-founded order.
+ */
+// resolved: import "well-founded_order_Unary.vpr"
+
+/**
+ * This function maps a value of type `Unary` to a non-negative `Int`.
+ * A Unary cannot represent a negative number.
+ */
+function UnaryToNat(x: Unary): Int
+    ensures result >= 0 
+    decreases x
+{
+    x.isZero ? 0 : 1 + UnaryToNat(x.pred)
+}
+
+/**
+ * This function creates an injective function between the non-negative 
+ * Int type of Viper and our Unary data type. Together the two functions
+ * UnaryToNat and NatToUnary form a bijection between Unary and positive 
+ * integers.
+ */
+function NatToUnary(n: Int): Unary 
+    /**
+     * Since we can only model positive numbers with our Unary data
+     * type, we have to make sure that the Int we get as a parameter
+     * to the function will be greater or equal to zero.
+     */
+    requires n >= 0 
+    decreases n
+{
+    (n==0) ? Zero() : Suc(NatToUnary(n-1))
+}
+
+/**
+ * This lemma proves that the two functions are indeed a bijection.
+ */
+function lemmaNatUnaryCorrespondence(n: Int, x: Unary): Unit
+    /**
+     * Here we need n to be a natural number since we have only positive 
+     * Ints have an equivalent in Unary.
+     */
+    requires n >= 0
+    ensures UnaryToNat(NatToUnary(n)) == n
+    ensures NatToUnary(UnaryToNat(x)) == x
+    decreases x, n
+{
+    (x.isZero && n==0) ? unit() 
+        : 
+        (x.isZero && n!=0) ? lemmaNatUnaryCorrespondence(n-1,x) 
+            : 
+            (x.isSuc && n==0) ? lemmaNatUnaryCorrespondence(n, x.pred) 
+                : 
+                lemmaNatUnaryCorrespondence(n-1, x.pred)
+}

@@ -1,0 +1,523 @@
+domain Address  {
+  
+  
+}
+
+domain Bytes  {
+  
+  
+}
+
+domain FunctionGas  {
+  
+  function function_gas_level$(_0: FunctionGas): FunctionGas 
+  
+  function function_no_gas$(): FunctionGas 
+}
+
+domain Lifetime  {
+  
+  function included(_0: Lifetime, _1: Lifetime): Bool 
+  
+  function intersect(_0: Set[Lifetime]): Lifetime 
+  
+  axiom included_in_itself$ {
+    (forall lft: Lifetime :: { included(lft, lft) } included(lft, lft))
+  }
+  
+  axiom included_intersect$1 {
+    (forall lft_1: Set[Lifetime], lft_2: Set[Lifetime] ::
+      { included(intersect(lft_1), intersect(lft_2)) }
+      included(intersect(lft_1), intersect(lft_2)) == (lft_2 subset lft_1))
+  }
+  
+  axiom included_intersect$2 {
+    (forall lft_1: Set[Lifetime], lft_2: Lifetime ::
+      { included(intersect(lft_1), lft_2) }
+      included(intersect(lft_1), lft_2) == (lft_2 in lft_1))
+  }
+  
+  axiom intersect_singleton$ {
+    (forall lft: Lifetime ::
+      { intersect(Set(lft)) }
+      intersect(Set(lft)) == lft)
+  }
+}
+
+domain MarkerCalls  {
+  
+  function basic_block_marker$start_label$marker(): Bool 
+  
+  function basic_block_marker$label_entry$marker(): Bool 
+  
+  function basic_block_marker$label_bb0$marker(): Bool 
+  
+  function basic_block_marker$label_bb1$marker(): Bool 
+  
+  function basic_block_marker$label_bb2$marker(): Bool 
+  
+  function basic_block_marker$return_label$marker(): Bool 
+  
+  function basic_block_marker$end_label$marker(): Bool 
+}
+
+domain Place  {
+  
+  unique function _1$place(): Place 
+  
+  unique function _2$place(): Place 
+  
+  unique function _0$place(): Place 
+}
+
+domain PlaceOption  {
+  
+  function place_option_some(_0: Place): PlaceOption 
+}
+
+domain Size  {
+  
+  function PaddingSize$struct$m_test_no_drop_check_2$$NoDropCheck$$(): Snap$Usize 
+  
+  function PaddingSize$Tuple$$(): Snap$Usize 
+  
+  axiom PaddingSize$struct$m_test_no_drop_check_2$$NoDropCheck$$$valid {
+    valid$Snap$Usize(PaddingSize$struct$m_test_no_drop_check_2$$NoDropCheck$$())
+  }
+  
+  axiom PaddingSize$Tuple$$$valid {
+    valid$Snap$Usize(PaddingSize$Tuple$$())
+  }
+}
+
+domain Snap$Bool  {
+  
+  function constructor$Snap$Bool$(value: Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$$value(value: Snap$Bool): Bool 
+  
+  function snapshot_equality$Snap$Bool$(left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Bool(_0: Snap$Bool): Bool 
+  
+  axiom constructor$Snap$Bool$$top_down_injectivity_axiom {
+    (forall value: Snap$Bool ::
+      { valid$Snap$Bool(value) }
+      { constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)) }
+      valid$Snap$Bool(value) ==>
+      value == constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      (destructor$Snap$Bool$$value(left) ==
+      destructor$Snap$Bool$$value(right))))
+  }
+  
+  axiom Snap$Bool$$validity_axiom_bottom_up_alternative {
+    (forall value: Bool ::
+      { valid$Snap$Bool(constructor$Snap$Bool$(value)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(value)))
+  }
+  
+  axiom constructor$Snap$Bool$$bottom_up_injectivity_axiom$value {
+    (forall value: Bool ::
+      { constructor$Snap$Bool$(value) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$(value)) == value)
+  }
+}
+
+domain Snap$Tuple$  {
+  
+  function constructor$Snap$Tuple$$(): Snap$Tuple$ 
+  
+  function snapshot_equality$Snap$Tuple$$(left: Snap$Tuple$, right: Snap$Tuple$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Tuple$(_0: Snap$Tuple$): Bool 
+  
+  function to_bytes$Tuple$(snapshot: Snap$Tuple$): Bytes 
+  
+  axiom constructor$Snap$Tuple$$$top_down_injectivity_axiom {
+    (forall value: Snap$Tuple$ ::
+      { valid$Snap$Tuple$(value) }
+      valid$Snap$Tuple$(value) ==> value == constructor$Snap$Tuple$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Tuple$$$snapshot_equality_axiom {
+    (forall left: Snap$Tuple$, right: Snap$Tuple$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) ==
+      snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) == (left == right))
+  }
+  
+  axiom Snap$Tuple$$validity_axiom_bottom_up_alternative_no_parameters {
+    valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  }
+}
+
+domain Snap$Usize  {
+  
+  function constructor$Snap$Usize$(value: Int): Snap$Usize 
+  
+  function destructor$Snap$Usize$$value(value: Snap$Usize): Int 
+  
+  function snapshot_equality$Snap$Usize$(left: Snap$Usize, right: Snap$Usize,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Usize(_0: Snap$Usize): Bool 
+  
+  axiom constructor$Snap$Usize$$top_down_injectivity_axiom {
+    (forall value: Snap$Usize ::
+      { valid$Snap$Usize(value) }
+      { constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)) }
+      valid$Snap$Usize(value) ==>
+      value == constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Usize$$snapshot_equality_axiom {
+    (forall left: Snap$Usize, right: Snap$Usize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Usize$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      (destructor$Snap$Usize$$value(left) ==
+      destructor$Snap$Usize$$value(right))))
+  }
+  
+  axiom Snap$Usize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Usize(constructor$Snap$Usize$(value)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(value)) ==
+      (0 <= value && value <= 18446744073709551615))
+  }
+  
+  axiom constructor$Snap$Usize$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Usize$(value) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(value)) == value)
+  }
+}
+
+domain Snap$struct$m_test_no_drop_check_2$$NoDropCheck$  {
+  
+  function constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(): Snap$struct$m_test_no_drop_check_2$$NoDropCheck$ 
+  
+  function snapshot_equality$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(left: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$,
+  right: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(_0: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$): Bool 
+  
+  function to_bytes$struct$m_test_no_drop_check_2$$NoDropCheck$(snapshot: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$): Bytes 
+  
+  axiom constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$$top_down_injectivity_axiom {
+    (forall value: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$ ::
+      { valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(value) }
+      valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(value) ==>
+      value ==
+      constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$$snapshot_equality_axiom {
+    (forall left: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$, right: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$,
+    gas$: FunctionGas ::
+      { snapshot_equality$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(left,
+      right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(left,
+      right, gas$) ==
+      snapshot_equality$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(left,
+      right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$(left,
+      right, gas$) ==
+      (left == right))
+  }
+  
+  axiom Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$validity_axiom_bottom_up_alternative_no_parameters {
+    valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$())
+  }
+}
+
+domain ComputeAddress  {
+  
+  function address_is_non_aliased(address: Address): Bool 
+}
+
+function MemoryBlock$bytes(address: Address, size: Snap$Usize): Bytes
+  requires acc(MemoryBlock(address, size), wildcard)
+
+
+function snap_owned_non_aliased$Tuple$(place: PlaceOption, address: Address): Snap$Tuple$
+  requires acc(OwnedNonAliased$Tuple$(place, address), wildcard)
+  ensures valid$Snap$Tuple$(result)
+  ensures (unfolding acc(OwnedNonAliased$Tuple$(place, address), wildcard) in
+      true)
+
+
+function snap_owned_non_aliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place: PlaceOption,
+  address: Address): Snap$struct$m_test_no_drop_check_2$$NoDropCheck$
+  requires acc(OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place,
+    address), wildcard)
+  ensures valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(result)
+  ensures (unfolding acc(OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place,
+      address), wildcard) in
+      true)
+
+
+@qpresource()
+predicate OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place: PlaceOption,
+  address: Address) {
+  acc(MemoryBlock(address, PaddingSize$struct$m_test_no_drop_check_2$$NoDropCheck$$()), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$Tuple$(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, PaddingSize$Tuple$$()), write)
+}
+
+@qpresource()
+predicate DeadLifetimeToken(lifetime: Lifetime) 
+
+predicate LifetimeToken(lifetime: Lifetime) 
+
+@qpresource()
+predicate MemoryBlock(address: Address, size: Snap$Usize) 
+
+@qpresource()
+predicate MemoryBlockStackDrop(address: Address, size: Snap$Usize) 
+
+method m_test_no_drop_check_2$MemorySafety$Regular()
+{
+  var _0$address$snapshot$0: Address
+  var _0$snapshot$1: Snap$Tuple$
+  var _1$address$snapshot$0: Address
+  var _1$snapshot$1: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$
+  var _2$address$snapshot$0: Address
+  var _2$snapshot$0: Snap$Tuple$
+  var _3$address$snapshot$0: Address
+  var bw0$snapshot$0: Lifetime
+  var bw1$snapshot$0: Lifetime
+  var end_label$marker$snapshot$0: Bool
+  var end_label$marker$snapshot$1: Bool
+  var label_bb0$marker$snapshot$0: Bool
+  var label_bb0$marker$snapshot$1: Bool
+  var label_bb1$marker$snapshot$0: Bool
+  var label_bb1$marker$snapshot$1: Bool
+  var label_bb2$marker$snapshot$0: Bool
+  var label_bb2$marker$snapshot$1: Bool
+  var label_entry$marker$snapshot$0: Bool
+  var label_entry$marker$snapshot$1: Bool
+  var lft_0$snapshot$1: Lifetime
+  var lft_1$snapshot$1: Lifetime
+  var lifetime_token_perm_amount$0$snapshot$0: Perm
+  var return_label$marker$snapshot$0: Bool
+  var return_label$marker$snapshot$1: Bool
+  var start_label$marker$snapshot$0: Bool
+  var start_label$marker$snapshot$1: Bool
+  var tmp$0: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$
+  label start_label
+  inhale !start_label$marker$snapshot$0 && !label_entry$marker$snapshot$0 &&
+    !label_bb0$marker$snapshot$0 &&
+    !label_bb1$marker$snapshot$0 &&
+    !label_bb2$marker$snapshot$0 &&
+    !return_label$marker$snapshot$0 &&
+    !end_label$marker$snapshot$0 &&
+    start_label$marker$snapshot$1
+  inhale basic_block_marker$start_label$marker()
+  inhale lifetime_token_perm_amount$0$snapshot$0 > none &&
+    lifetime_token_perm_amount$0$snapshot$0 < write &&
+    acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0) &&
+    acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  lft_0$snapshot$1 := lft_tok_sep_take$1(bw0$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    6)
+  lft_1$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    6)
+  inhale acc(MemoryBlock(_0$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  goto label_entry
+  label label_entry
+  inhale label_entry$marker$snapshot$1
+  inhale basic_block_marker$label_entry$marker()
+  goto label_bb0
+  label label_bb0
+  inhale label_bb0$marker$snapshot$1
+  inhale basic_block_marker$label_bb0$marker()
+  inhale acc(MemoryBlock(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write) &&
+    acc(MemoryBlockStackDrop(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  tmp$0 := assign$0(place_option_some(_1$place()), _1$address$snapshot$0)
+  inhale _1$snapshot$1 == tmp$0 &&
+    acc(MemoryBlock(_2$address$snapshot$0, constructor$Snap$Usize$(0)), write) &&
+    acc(MemoryBlockStackDrop(_2$address$snapshot$0, constructor$Snap$Usize$(0)), write) &&
+    acc(MemoryBlock(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write) &&
+    acc(MemoryBlockStackDrop(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  exhale acc(MemoryBlock(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  inhale acc(MemoryBlock(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  into_memory_block$struct$m_test_no_drop_check_2$$NoDropCheck$(place_option_some(_1$place()),
+    _1$address$snapshot$0, snap_owned_non_aliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place_option_some(_1$place()),
+    _1$address$snapshot$0))
+  exhale acc(MemoryBlock(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  inhale acc(MemoryBlock(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  exhale acc(MemoryBlock(_2$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  inhale acc(OwnedNonAliased$Tuple$(place_option_some(_2$place()), _2$address$snapshot$0), write) &&
+    _2$snapshot$0 ==
+    snap_owned_non_aliased$Tuple$(place_option_some(_2$place()), _2$address$snapshot$0) &&
+    valid$Snap$Tuple$(_2$snapshot$0)
+  goto label_bb1
+  label label_bb1
+  inhale label_bb1$marker$snapshot$1
+  inhale basic_block_marker$label_bb1$marker()
+  exhale acc(MemoryBlock(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  exhale acc(MemoryBlockStackDrop(_3$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  into_memory_block$Tuple$(place_option_some(_2$place()), _2$address$snapshot$0,
+    snap_owned_non_aliased$Tuple$(place_option_some(_2$place()), _2$address$snapshot$0))
+  exhale acc(MemoryBlock(_2$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  exhale acc(MemoryBlockStackDrop(_2$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  write_place_constant$Tuple$(place_option_some(_0$place()), _0$address$snapshot$0,
+    constructor$Snap$Tuple$$())
+  inhale _0$snapshot$1 == constructor$Snap$Tuple$$()
+  goto label_bb2
+  label label_bb2
+  inhale label_bb2$marker$snapshot$1
+  inhale basic_block_marker$label_bb2$marker()
+  exhale acc(MemoryBlock(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  exhale acc(MemoryBlockStackDrop(_1$address$snapshot$0, constructor$Snap$Usize$(0)), write)
+  goto return_label
+  label return_label
+  inhale return_label$marker$snapshot$1
+  inhale basic_block_marker$return_label$marker()
+  exhale true
+  exhale acc(OwnedNonAliased$Tuple$(place_option_some(_0$place()), _0$address$snapshot$0), write) &&
+    _0$snapshot$1 ==
+    snap_owned_non_aliased$Tuple$(place_option_some(_0$place()), _0$address$snapshot$0) &&
+    valid$Snap$Tuple$(_0$snapshot$1)
+  goto end_label
+  label end_label
+  inhale end_label$marker$snapshot$1
+  inhale basic_block_marker$end_label$marker()
+  lft_tok_sep_return$1(lft_0$snapshot$1, bw0$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    6)
+  lft_tok_sep_return$2(lft_1$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    6)
+  exhale acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  exhale acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  goto end_of_method
+  label end_of_method
+}
+
+method assign$0(target_place: PlaceOption, target_address: Address)
+  returns (result_value: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(0)), write)
+  ensures acc(OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(target_place,
+    target_address), write) &&
+    result_value ==
+    snap_owned_non_aliased$struct$m_test_no_drop_check_2$$NoDropCheck$(target_place,
+    target_address)
+  ensures result_value ==
+    constructor$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$$()
+  ensures valid$Snap$struct$m_test_no_drop_check_2$$NoDropCheck$(result_value)
+
+
+method into_memory_block$Tuple$(place: PlaceOption, address: Address, snapshot: Snap$Tuple$)
+  requires acc(OwnedNonAliased$Tuple$(place, address), write) &&
+    snapshot == snap_owned_non_aliased$Tuple$(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+{
+  unfold acc(OwnedNonAliased$Tuple$(place, address), write)
+  memory_block_join$Tuple$(address, write)
+}
+
+method into_memory_block$struct$m_test_no_drop_check_2$$NoDropCheck$(place: PlaceOption,
+  address: Address, snapshot: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$)
+  requires acc(OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place,
+    address), write) &&
+    snapshot ==
+    snap_owned_non_aliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place,
+    address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+{
+  unfold acc(OwnedNonAliased$struct$m_test_no_drop_check_2$$NoDropCheck$(place,
+    address), write)
+  memory_block_join$struct$m_test_no_drop_check_2$$NoDropCheck$(address, write)
+}
+
+method lft_tok_sep_return$1(lft: Lifetime, lft_1: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+
+
+method lft_tok_sep_return$2(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1, lft_2))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft_2), rd_perm)
+
+
+method lft_tok_sep_take$1(lft_1: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1))
+
+
+method lft_tok_sep_take$2(lft_1: Lifetime, lft_2: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  requires acc(LifetimeToken(lft_2), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1, lft_2))
+
+
+method memory_block_join$Tuple$(address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, PaddingSize$Tuple$$()), permission_amount)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures (forall snapshot: Snap$Tuple$ ::
+      { to_bytes$Tuple$(snapshot) }
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(0)) ==
+      to_bytes$Tuple$(snapshot))
+
+
+method memory_block_join$struct$m_test_no_drop_check_2$$NoDropCheck$(address: Address,
+  permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, PaddingSize$struct$m_test_no_drop_check_2$$NoDropCheck$$()), permission_amount)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures (forall snapshot: Snap$struct$m_test_no_drop_check_2$$NoDropCheck$ ::
+      { to_bytes$struct$m_test_no_drop_check_2$$NoDropCheck$(snapshot) }
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(0)) ==
+      to_bytes$struct$m_test_no_drop_check_2$$NoDropCheck$(snapshot))
+
+
+method memory_block_split$Tuple$(address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures acc(MemoryBlock(address, PaddingSize$Tuple$$()), permission_amount)
+  ensures true
+
+
+method write_place_constant$Tuple$(target_place: PlaceOption, target_address: Address,
+  source_snapshot: Snap$Tuple$)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(0)), write)
+  requires valid$Snap$Tuple$(source_snapshot)
+  ensures acc(OwnedNonAliased$Tuple$(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Tuple$(target_place, target_address)
+{
+  memory_block_split$Tuple$(target_address, write)
+  fold acc(OwnedNonAliased$Tuple$(target_place, target_address), write)
+}

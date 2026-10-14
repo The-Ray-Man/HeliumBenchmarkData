@@ -1,0 +1,628 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u64  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u64 {
+    (forall x: s_UInt_u64 ::
+      { make_generic_s_UInt_u64(x) }
+      s_Param_typ(make_generic_s_UInt_u64(x)) == s_UInt_u64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u64, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u64_type() ==>
+      make_generic_s_UInt_u64(p.make_concrete_s_UInt_u64) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_2_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_2_Tuple {
+    (forall x: s_2_Tuple, T$0: Type, U$1: Type ::
+      { make_generic_s_2_Tuple(x, T$0, U$1) }
+      s_Param_typ(make_generic_s_2_Tuple(x, T$0, U$1)) ==
+      s_2_Tuple_type(T$0, U$1))
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_2_Tuple {
+    (forall p: s_Param ::
+      { p.make_concrete_s_2_Tuple, s_Param_typ(p) }
+      s_Param_typ(p) ==
+      s_2_Tuple_type(s_Param_typ(p).s_2_Tuple_typaram_T$0, s_Param_typ(p).s_2_Tuple_typaram_U$1) ==>
+      make_generic_s_2_Tuple(p.make_concrete_s_2_Tuple, s_Param_typ(p).s_2_Tuple_typaram_T$0, s_Param_typ(p).s_2_Tuple_typaram_U$1) ==
+      p)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_2_Tuple {
+    (forall T$0: Type, U$1: Type ::
+      { inhabited(s_2_Tuple_type(T$0, U$1)) }
+      inhabited(s_2_Tuple_type(T$0, U$1)) ==
+      (inhabited(T$0) && inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply  {
+  
+  function distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(arg0: Type,
+  arg1: Type): Type 
+  
+  function distr$col$$col$utils$col$$col$WideningMultiply_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_2_Tuple  {
+  
+  axiom s_2_Tuple_Sized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+  
+  axiom s_2_Tuple_MetaSized {
+    (forall T$0: Type, U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(U$1) ==>
+      core$col$$col$marker$col$$col$MetaSized_impl(s_2_Tuple_type(T$0, U$1)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain trait_fns_distr$col$$col$utils$col$$col$WideningMultiply_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul  {
+  
+  function distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(arg0: s_Param,
+  arg1: s_Param, arg2: Type, arg3: Type): Bool 
+  
+  function distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(arg0: s_Param,
+  arg1: s_Param, arg2: s_Param, arg3: Type, arg4: Type): Bool 
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul_base {
+    (forall _1s: s_Param, _2s: s_Param, Self$0: Type, RHS$1: Type ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_1s,
+      _2s, Self$0, RHS$1) }
+      true ==>
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_1s,
+      _2s, Self$0, RHS$1))
+  }
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul_base {
+    (forall _0s: s_Param, _1s: s_Param, _2s: s_Param, Self$0: Type, RHS$1: Type ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_0s,
+      _1s, _2s, Self$0, RHS$1) }
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_0s,
+      _1s, _2s, Self$0, RHS$1) ==>
+      true ==> true)
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_condition  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_condition {
+    distr$col$$col$utils$col$$col$WideningMultiply_impl(s_UInt_usize_type(),
+    s_UInt_usize_type())
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_condition  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_condition {
+    distr$col$$col$utils$col$$col$WideningMultiply_impl(s_UInt_u64_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_$lt$u64$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$Output  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_assoc_type_$lt$u64$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$Output {
+    distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(s_UInt_u64_type(),
+    s_UInt_u64_type()) ==
+    s_2_Tuple_type(s_UInt_u64_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$Output  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_assoc_type_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$Output {
+    distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(s_UInt_usize_type(),
+    s_UInt_usize_type()) ==
+    s_2_Tuple_type(s_UInt_usize_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_$lt$u64$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_fn_pre_$lt$u64$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul {
+    (forall _1s: s_UInt_u64, _2s: s_UInt_u64 ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_UInt_u64(_1s),
+      make_generic_s_UInt_u64(_2s), s_UInt_u64_type(), s_UInt_u64_type()) }
+      true ==>
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_UInt_u64(_1s),
+      make_generic_s_UInt_u64(_2s), s_UInt_u64_type(), s_UInt_u64_type()))
+  }
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_u64_91_fn_post_$lt$u64$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul {
+    (forall _0s: s_2_Tuple, _1s: s_UInt_u64, _2s: s_UInt_u64 ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_2_Tuple(_0s, s_UInt_u64_type(), s_UInt_u64_type()),
+      make_generic_s_UInt_u64(_1s), make_generic_s_UInt_u64(_2s), s_UInt_u64_type(),
+      s_UInt_u64_type()) }
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_2_Tuple(_0s, s_UInt_u64_type(), s_UInt_u64_type()),
+      make_generic_s_UInt_u64(_1s), make_generic_s_UInt_u64(_2s), s_UInt_u64_type(),
+      s_UInt_u64_type()) ==>
+      true)
+  }
+}
+
+domain trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul  {
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_fn_pre_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul {
+    (forall _1s: s_UInt_usize, _2s: s_UInt_usize ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_UInt_usize(_1s),
+      make_generic_s_UInt_usize(_2s), s_UInt_usize_type(), s_UInt_usize_type()) }
+      true ==>
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_UInt_usize(_1s),
+      make_generic_s_UInt_usize(_2s), s_UInt_usize_type(), s_UInt_usize_type()))
+  }
+  
+  axiom distr$col$$col$utils$col$$col$WideningMultiply_impl_rand_UInt_usize_93_fn_post_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul {
+    (forall _0s: s_2_Tuple, _1s: s_UInt_usize, _2s: s_UInt_usize ::
+      { distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_2_Tuple(_0s, s_UInt_usize_type(), s_UInt_usize_type()),
+      make_generic_s_UInt_usize(_1s), make_generic_s_UInt_usize(_2s), s_UInt_usize_type(),
+      s_UInt_usize_type()) }
+      distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(make_generic_s_2_Tuple(_0s, s_UInt_usize_type(), s_UInt_usize_type()),
+      make_generic_s_UInt_usize(_1s), make_generic_s_UInt_usize(_2s), s_UInt_usize_type(),
+      s_UInt_usize_type()) ==>
+      true)
+  }
+}
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_UInt_u64_val: s_UInt_u64
+
+function mir_cast_i2i_UInt_usize_to_UInt_u64(arg: s_UInt_usize): s_UInt_u64
+{
+  s_UInt_u64_cons(s_UInt_usize_value(arg))
+}
+
+function mir_cast_i2i_UInt_u64_to_UInt_usize(arg: s_UInt_u64): s_UInt_usize
+{
+  s_UInt_usize_cons(s_UInt_u64_value(arg))
+}
+
+function s_2_Tuple_unreachable(T$0: Type, U$1: Type): s_2_Tuple
+  ensures false
+
+
+function s_2_Tuple_field_0(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_2_Tuple_field_1(self: Ref, T$0: Type, U$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function p_2_Tuple_snap(self: Ref, T$0: Type, U$1: Type): s_2_Tuple
+  requires acc(p_2_Tuple(self, T$0, U$1), write)
+{
+  (unfolding acc(p_2_Tuple(self, T$0, U$1), write) in
+    s_2_Tuple_cons(p_Param_snap(s_2_Tuple_field_0(self, T$0, U$1), T$0), p_Param_snap(s_2_Tuple_field_1(self,
+    T$0, U$1), U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+predicate p_2_Tuple(self: Ref, T$0: Type, U$1: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_2_Tuple_field_0(self, T$0, U$1), T$0), write) &&
+  (inhabited(U$1) &&
+  acc(p_Param(s_2_Tuple_field_1(self, T$0, U$1), U$1), write))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+method m_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  ensures inhabited(s_2_Tuple_type(s_UInt_usize_type(), s_UInt_usize_type())) &&
+    acc(p_2_Tuple(_0p, s_UInt_usize_type(), s_UInt_usize_type()), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _7p: Ref
+  var _8p: Ref
+  var _9p: Ref
+  var _10p: Ref
+  var _11p: Ref
+  var _12p: Ref
+  var _13p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_UInt_usize
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_UInt_usize
+  var _tmp3: s_UInt_usize
+  var _tmp4: s_UInt_u64
+  var _tmp5: s_UInt_u64
+  var _tmp6: s_UInt_u64
+  var _tmp7: s_UInt_u64
+  var _tmp8: s_UInt_u64
+  var _tmp9: s_UInt_u64
+  var _tmp10: s_UInt_usize
+  var _tmp11: s_UInt_usize
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  label _before_0_3
+  _tmp0 := p_UInt_usize_snap(_1p)
+  p_UInt_usize_assign(_7p, _tmp0)
+  label _before_0_4
+  _tmp1 := p_UInt_usize_snap(_7p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_7p), write)
+  p_UInt_u64_assign(_6p, mir_cast_i2i_UInt_usize_to_UInt_u64(_tmp1))
+  label _before_0_5
+  label _before_0_6
+  label _before_0_7
+  label _before_0_8
+  _tmp2 := p_UInt_usize_snap(_2p)
+  p_UInt_usize_assign(_9p, _tmp2)
+  label _before_0_9
+  _tmp3 := p_UInt_usize_snap(_9p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_9p), write)
+  p_UInt_u64_assign(_8p, mir_cast_i2i_UInt_usize_to_UInt_u64(_tmp3))
+  label _before_0_10
+  label _before_0_11
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  make_generic_UInt_u64(_6p)
+  make_generic_UInt_u64(_8p)
+  distr$col$$col$utils$col$$col$WideningMultiply_fn_stub_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_5p,
+    _6p, _8p, s_UInt_u64_type(), s_UInt_u64_type())
+  make_concrete_2_Tuple(_5p, s_UInt_u64_type(), s_UInt_u64_type())
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label _before_1_4
+  unfold acc(p_2_Tuple(_5p, s_UInt_u64_type(), s_UInt_u64_type()), write)
+  make_concrete_UInt_u64(s_2_Tuple_field_0(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  make_concrete_UInt_u64(s_2_Tuple_field_1(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  _tmp4 := p_UInt_u64_snap(s_2_Tuple_field_0(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  p_UInt_u64_assign(_3p, _tmp4)
+  label _before_1_5
+  make_generic_UInt_u64(s_2_Tuple_field_0(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  make_generic_UInt_u64(s_2_Tuple_field_1(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  fold acc(p_2_Tuple(_5p, s_UInt_u64_type(), s_UInt_u64_type()), write)
+  label _before_1_6
+  unfold acc(p_2_Tuple(_5p, s_UInt_u64_type(), s_UInt_u64_type()), write)
+  make_concrete_UInt_u64(s_2_Tuple_field_0(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  make_concrete_UInt_u64(s_2_Tuple_field_1(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  _tmp5 := p_UInt_u64_snap(s_2_Tuple_field_1(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  p_UInt_u64_assign(_4p, _tmp5)
+  label _before_1_7
+  make_generic_UInt_u64(s_2_Tuple_field_0(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  make_generic_UInt_u64(s_2_Tuple_field_1(_5p, s_UInt_u64_type(), s_UInt_u64_type()))
+  fold acc(p_2_Tuple(_5p, s_UInt_u64_type(), s_UInt_u64_type()), write)
+  label _before_1_8
+  label _before_1_9
+  label _before_1_10
+  _tmp6 := p_UInt_u64_snap(_3p)
+  p_UInt_u64_assign(_11p, _tmp6)
+  label _before_1_11
+  _tmp7 := p_UInt_u64_snap(_11p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_11p), write)
+  p_UInt_usize_assign(_10p, mir_cast_i2i_UInt_u64_to_UInt_usize(_tmp7))
+  label _before_1_12
+  label _before_1_13
+  label _before_1_14
+  label _before_1_15
+  _tmp8 := p_UInt_u64_snap(_4p)
+  p_UInt_u64_assign(_13p, _tmp8)
+  label _before_1_16
+  _tmp9 := p_UInt_u64_snap(_13p)
+  exhale inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_13p), write)
+  p_UInt_usize_assign(_12p, mir_cast_i2i_UInt_u64_to_UInt_usize(_tmp9))
+  label _before_1_17
+  label _before_1_18
+  _tmp10 := p_UInt_usize_snap(_10p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_10p), write)
+  _tmp11 := p_UInt_usize_snap(_12p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_12p), write)
+  p_2_Tuple_assign(_0p, s_UInt_usize_type(), s_UInt_usize_type(), s_2_Tuple_cons(make_generic_s_UInt_usize(_tmp10), make_generic_s_UInt_usize(_tmp11)))
+  label _before_1_19
+  label _before_1_20
+  label _before_1_21
+  label _before_1_22
+  label _before_1_23
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_UInt_usize(self: Ref)
+  requires acc(p_UInt_usize(self), write)
+  ensures acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures old(make_generic_s_UInt_usize(p_UInt_usize_snap(self))) ==
+    p_Param_snap(self, s_UInt_usize_type())
+
+
+method make_concrete_UInt_usize(self: Ref)
+  requires acc(p_Param(self, s_UInt_usize_type()), write)
+  ensures acc(p_UInt_usize(self), write)
+  ensures old(p_Param_snap(self, s_UInt_usize_type())) ==
+    make_generic_s_UInt_usize(p_UInt_usize_snap(self))
+
+
+method make_generic_UInt_u64(self: Ref)
+  requires acc(p_UInt_u64(self), write)
+  ensures acc(p_Param(self, s_UInt_u64_type()), write)
+  ensures old(make_generic_s_UInt_u64(p_UInt_u64_snap(self))) ==
+    p_Param_snap(self, s_UInt_u64_type())
+
+
+method make_concrete_UInt_u64(self: Ref)
+  requires acc(p_Param(self, s_UInt_u64_type()), write)
+  ensures acc(p_UInt_u64(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u64_type())) ==
+    make_generic_s_UInt_u64(p_UInt_u64_snap(self))
+
+
+method make_generic_2_Tuple(self: Ref, T$0: Type, U$1: Type)
+  requires acc(p_2_Tuple(self, T$0, U$1), write)
+  ensures acc(p_Param(self, s_2_Tuple_type(T$0, U$1)), write)
+  ensures old(make_generic_s_2_Tuple(p_2_Tuple_snap(self, T$0, U$1), T$0, U$1)) ==
+    p_Param_snap(self, s_2_Tuple_type(T$0, U$1))
+
+
+method make_concrete_2_Tuple(self: Ref, T$0: Type, U$1: Type)
+  requires acc(p_Param(self, s_2_Tuple_type(T$0, U$1)), write)
+  ensures acc(p_2_Tuple(self, T$0, U$1), write)
+  ensures old(p_Param_snap(self, s_2_Tuple_type(T$0, U$1))) ==
+    make_generic_s_2_Tuple(p_2_Tuple_snap(self, T$0, U$1), T$0, U$1)
+
+
+method p_2_Tuple_assign(self: Ref, T$0: Type, U$1: Type, value: s_2_Tuple)
+  ensures acc(p_2_Tuple(self, T$0, U$1), write)
+  ensures p_2_Tuple_snap(self, T$0, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+method distr$col$$col$utils$col$$col$WideningMultiply_fn_stub_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(_0p: Ref,
+  _1p: Ref, _2p: Ref, Self$0: Type, RHS$1: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(RHS$1) && acc(p_Param(_2p, RHS$1), write)
+  requires distr$col$$col$utils$col$$col$WideningMultiply_fn_pre_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(p_Param_snap(_1p,
+    Self$0), p_Param_snap(_2p, RHS$1), Self$0, RHS$1)
+  ensures inhabited(distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(Self$0,
+    RHS$1)) &&
+    acc(p_Param(_0p, distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(Self$0,
+    RHS$1)), write)
+  ensures distr$col$$col$utils$col$$col$WideningMultiply_fn_post_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$wmul(p_Param_snap(_0p,
+    distr$col$$col$utils$col$$col$WideningMultiply_assoc_type_distr$col$$col$utils$col$$col$WideningMultiply$col$$col$Output(Self$0,
+    RHS$1)), old(p_Param_snap(_1p, Self$0)), old(p_Param_snap(_2p, RHS$1)),
+    Self$0, RHS$1)
+
+
+method trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_UInt_usize_93_fn_pre_weaken_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+{
+  label start
+}
+
+method trait_distr$col$$col$utils$col$$col$WideningMultiply_impl_UInt_usize_93_fn_post_strengthen_$lt$usize$sp$as$sp$distr$col$$col$utils$col$$col$WideningMultiply$gt$$col$$col$wmul(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_1p), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  requires inhabited(s_2_Tuple_type(s_UInt_usize_type(), s_UInt_usize_type())) &&
+    acc(p_2_Tuple(_0p, s_UInt_usize_type(), s_UInt_usize_type()), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_UInt_u64(make_concrete_s_UInt_u64: s_UInt_u64)
+  make_generic_s_2_Tuple(make_concrete_s_2_Tuple: s_2_Tuple, make_generic_s_2_Tuple_typaram_T$0: Type,
+  make_generic_s_2_Tuple_typaram_U$1: Type)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_2_Tuple {
+  s_2_Tuple_cons(s_2_Tuple_0: s_Param, s_2_Tuple_1: s_Param)
+}
+
+adt Type {
+  s_2_Tuple_type(s_2_Tuple_typaram_T$0: Type, s_2_Tuple_typaram_U$1: Type)
+  s_UInt_usize_type()
+  s_UInt_u64_type()
+  Unknown_type(id: Int)
+}

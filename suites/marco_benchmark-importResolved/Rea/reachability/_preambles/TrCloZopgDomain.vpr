@@ -1,0 +1,40 @@
+domain ZeroOnePathGraphTCs {
+
+    function exists_DEP(EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref): Bool
+    function exists_DEP_alias(EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref): Bool
+
+    function depskolem_U(EG:Set[Edge], x0:Ref, y0:Ref): Ref
+    function depskolem_V(EG:Set[Edge], x0:Ref, y0:Ref): Ref
+
+    axiom ax_DEP_alias {
+        forall EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref ::
+            { exists_DEP(EG,x0,y0,u0,v0) }
+                exists_DEP(EG,x0,y0,u0,v0) <==> exists_DEP_alias(EG,x0,y0,u0,v0)
+    }
+
+    axiom ax_DepToTc {
+        forall EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref :: 
+            { exists_DEP(EG, x0, y0, u0, v0) }
+                exists_DEP(EG, x0, y0, u0, v0) ==> 
+                    exists_path(EG, x0, y0) && 
+                    edge(EG, u0, v0) && 
+                    (u0 != v0)
+    }
+
+    axiom ax_TcToDep {
+        forall EG:Set[Edge], x0:Ref, y0:Ref :: 
+            { exists_path(EG, x0, y0) }
+                exists_path(EG, x0, y0) && x0 != y0 ==> 
+                    (depskolem_U(EG, x0, y0) != depskolem_V(EG, x0, y0)) && 
+                    edge(EG, depskolem_U(EG, x0, y0), depskolem_V(EG, x0, y0)) && 
+                    exists_DEP(EG, x0, y0, depskolem_U(EG, x0, y0), 
+                                           depskolem_V(EG, x0, y0))
+    }
+
+    axiom ax_NoTrivialDep {
+        forall EG:Set[Edge], x0:Ref, u0:Ref, v0:Ref :: 
+            { exists_DEP(EG, x0, x0, u0, v0) }
+                !exists_DEP(EG, x0, x0, u0, v0)
+    }
+}
+

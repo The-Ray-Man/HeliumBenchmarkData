@@ -1,0 +1,1257 @@
+// Generated on 2024-01-05 at 15:48:42
+domain TYPE {
+  
+  unique function class_Ref(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Object(): TYPE
+  
+  unique function class_EncodedGlobalVariables(): TYPE
+  
+  function directSuperclass(t: TYPE): TYPE
+  
+  function type_of(val: Ref): TYPE
+  
+  axiom Ref_directSuperclass {
+    directSuperclass(class_Ref()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom EncodedGlobalVariables_directSuperclass {
+    directSuperclass(class_EncodedGlobalVariables()) == class_java_DOT_lang_DOT_Object()
+  }
+}
+
+domain frac {
+  
+  function frac_val(a: frac): Perm
+  
+  axiom frac_eq {
+    (forall a: frac, b: frac :: { frac_val(a),frac_val(b) } (frac_val(a) == frac_val(b)) == (a == b))
+  }
+  
+  axiom frac_bound {
+    (forall a: frac :: { frac_val(a) } 0 / 1 < frac_val(a) && frac_val(a) <= 1 / 1)
+  }
+}
+
+domain zfrac {
+  
+  function zfrac_val(a: zfrac): Perm
+  
+  axiom zfrac_eq {
+    (forall a: zfrac, b: zfrac :: { zfrac_val(a),zfrac_val(b) } (zfrac_val(a) == zfrac_val(b)) == (a == b))
+  }
+  
+  axiom zfrac_bound {
+    (forall a: zfrac :: { zfrac_val(a) } 0 / 1 <= zfrac_val(a) && zfrac_val(a) <= 1 / 1)
+  }
+}
+
+domain VCTArray[CT] {
+  
+  function loc(a: VCTArray[CT], i: Int): CT
+  
+  function alen(a: VCTArray[CT]): Int
+  
+  function second(r: CT): Int
+  
+  axiom good_name_here {
+    (forall a: VCTArray[CT], i: Int :: { (loc(a, i): CT) } (second((loc(a, i): CT)): Int) == (second((loc(a, 0): CT)): Int) + i)
+  }
+  
+  axiom second_injectivity {
+    (forall a: VCTArray[CT], b: VCTArray[CT], i: Int, j: Int :: { (loc(a, i): CT),(loc(b, j): CT) } (second((loc(a, i): CT)): Int) == (second((loc(b, j): CT)): Int) ==> (loc(a, i): CT) == (loc(b, j): CT))
+  }
+  
+  axiom len_nonneg {
+    (forall a: VCTArray[CT] :: { (alen(a): Int) } (alen(a): Int) >= 0)
+  }
+}
+
+domain VCTOption[T] {
+  
+  function VCTNone(): VCTOption[T]
+  
+  function VCTSome(t: T): VCTOption[T]
+  
+  function getVCTOption(o: VCTOption[T]): T
+  
+  axiom not_equal_vct {
+    (forall x: T :: { (VCTSome(x): VCTOption[T]) } (VCTNone(): VCTOption[T]) != (VCTSome(x): VCTOption[T]))
+  }
+  
+  axiom get_axiom_vct {
+    (forall x: T :: { (getVCTOption((VCTSome(x): VCTOption[T])): T) } (getVCTOption((VCTSome(x): VCTOption[T])): T) == x)
+  }
+  
+  axiom get_axiom_vct_2 {
+    (forall x: VCTOption[T] :: { (VCTSome((getVCTOption(x): T)): VCTOption[T]) } (VCTSome((getVCTOption(x): T)): VCTOption[T]) == x)
+  }
+}
+
+//  a field 
+field Integer__item: Int
+
+//  a field 
+field Char__item: Int
+
+//  a field 
+field VCTOption_VCTArray_Ref____item: VCTOption[VCTArray[Ref]]
+
+function Ref_inf(diz: Ref): Int
+  requires diz != null
+{
+  -1
+}
+
+function Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int]): Bool
+  requires diz != null
+{
+  0 < V && 0 < A && |start| == A && |end| == A && |weight| == A && ((forall i: Int :: { start[i] } 0 <= i && i < A ==> 0 <= start[i] && start[i] < V) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> 0 <= end[i]) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> end[i] < V) && (forall i: Int :: { start[i] } { end[i] } 0 <= i && i < A ==> start[i] != end[i]) && (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && start[i] == start[j]) ==> end[i] != end[j]) && (forall i: Int :: { weight[i] } 0 <= i && i < A ==> 0 < weight[i]))
+}
+
+function Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, start[i], end[i], Seq(i)))
+{
+  0 <= x && x < V && 0 <= y && y < V && (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A) && (0 == |P| ==> x == y) && (0 < |P| ==> start[P[0]] == x && end[P[|P| - 1]] == y) && (forall i: Int :: 0 <= i && i < |P| - 1 ==> end[P[i]] == start[P[i + 1]])
+}
+
+function Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, start[i], end[i], Seq(i)))
+{
+  Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) && (forall i: Int, j: Int :: 0 <= i && i < |P| - 1 && (i < j && j < |P|) ==> start[P[i]] != end[P[j]])
+}
+
+function Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+{
+  (exists P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) && |P| <= len)
+}
+
+function Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, start[i], end[i], weight[i]))
+  ensures Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, x, x, 0)
+{
+  (exists P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) == len)
+}
+
+function Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], P: Seq[Int]): Int
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A)
+  ensures 0 <= result
+  ensures 0 == |P| ==> result == 0
+  ensures P != Seq[Int]() ==> 0 < result
+  ensures result == 0 ==> P == Seq[Int]()
+  ensures result != 0 ==> P != Seq[Int]()
+  ensures 1 == |P| ==> result == weight[P[0]]
+{
+  (0 < |P| ? weight[P[0]] + Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P[1..]) : 0)
+}
+
+function Ref_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, xs: Seq[Int], ys: Seq[Int], zs: Seq[Int]): Bool
+  requires diz != null
+  ensures xs ++ ys ++ zs == xs ++ (ys ++ zs)
+{
+  true
+}
+
+function Ref_lemma_path_append_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int], a: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  requires 0 <= a && a < A
+  requires end[a] == x
+  ensures result && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, start[a], y, Seq(a) ++ P)
+
+
+function Ref_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, P: Seq[Int], Q: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, s, t, P)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, t, u, Q)
+  ensures result && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, s, u, P ++ Q)
+{
+  0 < |P| ==> Ref_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, end[P[0]], t, u, P[1..], Q) && Ref_lemma_path_append_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$_Integer(diz, V, A, start, end, weight, end[P[0]], u, P[1..] ++ Q, P[0]) && Ref_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, Seq(P[0]), P[1..], Q) && Seq(P[0]) ++ P[1..] == P
+}
+
+function Ref_lemma_app_nonempty_Sequence$Integer$_Sequence$Integer$(diz: Ref, xs: Seq[Int], ys: Seq[Int]): Bool
+  requires diz != null
+  requires 0 < |xs|
+  ensures (xs ++ ys)[0] == xs[0]
+  ensures (xs ++ ys)[1..] == xs[1..] ++ ys
+  ensures result
+{
+  true
+}
+
+function Ref_lemma_app_append_right_Sequence$Integer$_Sequence$Integer$(diz: Ref, xs: Seq[Int], ys: Seq[Int]): Bool
+  requires diz != null
+  requires 0 < |ys|
+  ensures result && xs ++ Seq(ys[0]) ++ ys[1..] == xs ++ ys
+{
+  Ref_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, xs, Seq(ys[0]), ys[1..])
+}
+
+function Ref_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], P: Seq[Int], Q: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A)
+  requires (forall i: Int :: { Q[i] } 0 <= i && i < |Q| ==> 0 <= Q[i] && Q[i] < A)
+  ensures result && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P ++ Q) == Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) + Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, Q)
+{
+  0 < |P| ==> Ref_lemma_app_nonempty_Sequence$Integer$_Sequence$Integer$(diz, P, Q) && Ref_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P[1..], Q)
+}
+
+function Ref_lemma_cost_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, P: Seq[Int], Q: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, s, t, P)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, t, u, Q)
+  ensures result && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, s, u, P ++ Q)
+  ensures result && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P ++ Q) == Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) + Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, Q)
+{
+  Ref_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, s, t, u, P, Q) && Ref_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P, Q)
+}
+
+function Ref_assertSeq_Sequence$Integer$_Boolean(diz: Ref, xs: Seq[Int], b: Bool): Seq[Int]
+  requires diz != null
+  requires b
+  ensures result == xs
+{
+  xs
+}
+
+function Ref_lemma_one_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures result && (forall i: Int :: 0 <= i && i < A ==> Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, start[i], end[i], Seq(i)))
+  ensures result && (forall i: Int :: 0 <= i && i < A ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, start[i], end[i], weight[i]))
+{
+  true
+}
+
+function Ref_lemma_expath_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], s: Int, t: Int, u: Int, len1: Int, len2: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, s, t, len1)
+  requires Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, t, u, len2)
+  ensures result && Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, s, u, len1 + len2)
+{
+  (forall P: Seq[Int], Q: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, s, t, P) && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, t, u, Q) ==> Ref_lemma_cost_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, s, t, u, P, Q))
+}
+
+function Ref_subseq_Sequence$Integer$_Integer(diz: Ref, xs: Seq[Int], i: Int): Seq[Int]
+  requires diz != null
+  requires 0 <= i && i <= |xs| - 1
+  ensures |result| == |xs| - 1 - i
+  ensures (forall k: Int :: { result[k] } 0 <= k && k < |result| ==> result[k] == xs[i + k])
+  ensures i == 0 ==> (forall k: Int :: { result[k] } { xs[k] } 0 <= k && k < |xs| - 1 ==> result[k] == xs[k])
+{
+  (i != |xs| - 1 ? Seq(xs[i]) ++ Ref_subseq_Sequence$Integer$_Integer(diz, xs, i + 1) : Seq[Int]())
+}
+
+function Ref_lemma_inv12_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == Ref_inf(diz)
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) ==> cost[end[a]] != Ref_inf(diz))
+  ensures false
+{
+  vertex != src && 0 < |P| && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, start[P[|P| - 1]], Ref_subseq_Sequence$Integer$_Integer(diz, P, 0))
+}
+
+function Ref_lemma_inv12_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == Ref_inf(diz)
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) ==> cost[end[a]] != Ref_inf(diz))
+  ensures (forall P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 ==> false)
+{
+  (forall P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 ==> Ref_lemma_inv12_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, oldcost, cost, src, i, vertex, P))
+}
+
+function Ref_lemma_inv12_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) ==> cost[end[a]] != Ref_inf(diz))
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1) ==> vertex != Ref_inf(diz))
+{
+  (forall vertex: Int :: 0 <= vertex && vertex < V && cost[vertex] == Ref_inf(diz) ==> Ref_lemma_inv12_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, oldcost, cost, src, i, vertex))
+}
+
+function Ref_lemma_inv12_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) ==> cost[end[a]] != Ref_inf(diz))
+  ensures (forall v: Int :: { cost[v] } 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i + 1) ==> cost[v] != Ref_inf(diz))
+{
+  Ref_lemma_inv12_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, V, A, start, end, weight, oldcost, cost, src, i)
+}
+
+function Ref_lemma_inv11_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != Ref_inf(diz)
+  requires Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) < cost[vertex]
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) && (oldcost[end[a]] == Ref_inf(diz) || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures false
+{
+  0 < |P| && P == Ref_subseq_Sequence$Integer$_Integer(diz, P, 0) ++ Seq(P[|P| - 1]) && Ref_lemma_cost_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, src, start[P[|P| - 1]], vertex, Ref_subseq_Sequence$Integer$_Integer(diz, P, 0), Seq(P[|P| - 1]))
+}
+
+function Ref_lemma_inv11_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != Ref_inf(diz)
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) && (oldcost[end[a]] == Ref_inf(diz) || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) < cost[vertex] ==> false)
+{
+  (forall P: Seq[Int] :: Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) < cost[vertex] ==> Ref_lemma_inv11_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, oldcost, cost, src, i, vertex, P))
+}
+
+function Ref_lemma_inv11_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) && (oldcost[end[a]] == Ref_inf(diz) || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1 && Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) < cost[vertex]) ==> vertex != Ref_inf(diz))
+{
+  (forall vertex: Int :: 0 <= vertex && vertex < V && cost[vertex] != Ref_inf(diz) ==> Ref_lemma_inv11_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, oldcost, cost, src, i, vertex))
+}
+
+function Ref_lemma_inv11_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == Ref_inf(diz) ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == Ref_inf(diz) ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != Ref_inf(diz) ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == Ref_inf(diz) || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, v, t) && |t| <= i) ==> oldcost[v] <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, t))
+  requires (forall v: Int :: 0 <= v && v < V && Ref_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, i) ==> oldcost[v] != Ref_inf(diz))
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != Ref_inf(diz) ==> Ref_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(diz, V, A, start, end, weight, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != Ref_inf(diz) && (oldcost[end[a]] == Ref_inf(diz) || oldcost[start[a]] + weight[a] <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + weight[a])
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != Ref_inf(diz) && (Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, src, vertex, P) && |P| <= i + 1) ==> cost[vertex] <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P))
+{
+  Ref_lemma_inv11_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, V, A, start, end, weight, oldcost, cost, src, i)
+}
+
+function Ref_inbounds_Sequence$Integer$_Integer(diz: Ref, xs: Seq[Int], bound: Int): Bool
+  requires diz != null
+  requires 0 <= bound
+{
+  (forall i: Int :: { xs[i] } 0 <= i && i < |xs| ==> xs[i] < bound)
+}
+
+function Ref_nodupl_Sequence$Integer$(diz: Ref, xs: Seq[Int]): Bool
+  requires diz != null
+{
+  (forall i: Int, j: Int :: { xs[j],xs[i] } 0 <= i && i < |xs| && (i < j && j < |xs|) ==> xs[i] != xs[j])
+}
+
+function Ref_rangeset_Integer(diz: Ref, max: Int): Set[Int]
+  requires diz != null
+  requires 0 <= max
+  ensures (forall v: Int :: { (v in result) } 0 <= v && v <= max ==> (v in result))
+  ensures (forall v: Int :: { (v in result) } (v in result) ==> 0 <= v) && (forall v: Int :: { (v in result) } (v in result) ==> v <= max)
+  ensures |result| == max + 1
+{
+  (0 < max ? (Set(max) union Ref_rangeset_Integer(diz, max - 1)) : Set(0))
+}
+
+function Ref_seq2set_Sequence$Integer$(diz: Ref, xs: Seq[Int]): Set[Int]
+  requires diz != null
+  ensures (forall v: Int :: (v in result) ==> (v in xs))
+  ensures (forall v: Int :: (v in xs) ==> (v in result))
+{
+  (0 < |xs| ? (Set(xs[0]) union Ref_seq2set_Sequence$Integer$(diz, xs[1..])) : Set[Int]())
+}
+
+function Ref_seq2set_nodupl_Sequence$Integer$(diz: Ref, xs: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_nodupl_Sequence$Integer$(diz, xs)
+  ensures result && |xs| == |Ref_seq2set_Sequence$Integer$(diz, xs)|
+{
+  0 < |xs| ==> Ref_seq2set_nodupl_Sequence$Integer$(diz, xs[1..])
+}
+
+function Ref_seq_bounded_size_Sequence$Integer$_Integer(diz: Ref, xs: Seq[Int], bound: Int): Bool
+  requires diz != null
+  requires 0 < bound
+  requires Ref_inbounds_Sequence$Integer$_Integer(diz, xs, bound)
+  requires Ref_nodupl_Sequence$Integer$(diz, xs)
+  ensures result
+{
+  |(Ref_seq2set_Sequence$Integer$(diz, xs) setminus Ref_rangeset_Integer(diz, bound - 1))| == |Ref_seq2set_Sequence$Integer$(diz, xs)| - |(Ref_seq2set_Sequence$Integer$(diz, xs) intersection Ref_rangeset_Integer(diz, bound - 1))| && Ref_seq2set_nodupl_Sequence$Integer$(diz, xs)
+}
+
+function Ref_collect_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Seq[Int]
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  ensures |result| == |P| + 1
+  ensures result[0] == x
+  ensures (forall i: Int :: { result[i] } 0 < i && i < |result| ==> result[i] == end[P[i - 1]])
+  ensures Ref_inbounds_Sequence$Integer$_Integer(diz, result, V)
+  ensures Ref_nodupl_Sequence$Integer$(diz, result)
+{
+  Seq(x) ++ Ref_collect_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+}
+
+function Ref_collect_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Seq[Int]
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  ensures |result| == |P|
+  ensures (forall i: Int :: { result[i] } 0 <= i && i < |result| ==> result[i] == end[P[i]])
+  ensures Ref_inbounds_Sequence$Integer$_Integer(diz, result, V)
+  ensures Ref_nodupl_Sequence$Integer$(diz, result)
+{
+  (0 < |P| ? Seq(end[P[0]]) ++ Ref_collect_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, end[P[0]], y, P[1..]) : Seq[Int]())
+}
+
+function Ref_simple_path_lemma1_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  ensures result && |P| < V
+{
+  Ref_seq_bounded_size_Sequence$Integer$_Integer(diz, Ref_collect_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P), V)
+}
+
+function Ref_simple_path_lemma1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures (forall P: Seq[Int] :: Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) ==> |P| < V)
+{
+  (forall P: Seq[Int] :: Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) ==> Ref_simple_path_lemma1_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P))
+}
+
+function Ref_simple_path_lemma1_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures result && (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> |P| < V)
+{
+  (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> Ref_simple_path_lemma1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, V, A, start, end, weight, x, v))
+}
+
+function Ref_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, z: Int, P: Seq[Int], Q: Seq[Int]): Seq[Int]
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, y, z, Q)
+  requires (forall i: Int, j: Int :: 0 < i && i < |P| && (0 <= j && j < |Q|) ==> start[P[i]] != end[Q[j]])
+  requires (forall i: Int :: 0 <= i && i < |P| ==> end[P[i]] != x)
+  ensures Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, z, result)
+  ensures |result| <= |P| + |Q|
+  ensures Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, result) <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P) + Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, Q)
+{
+  (0 < |Q| ? (end[Q[0]] == x ? Ref_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, x, x, z, Seq[Int](), Q[1..]) : Ref_assertSeq_Sequence$Integer$_Boolean(diz, Ref_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, x, end[Q[0]], z, P ++ Seq(Q[0]), Q[1..]), Ref_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P ++ Seq(Q[0]), Q[1..]) && Ref_lemma_app_append_right_Sequence$Integer$_Sequence$Integer$(diz, P, Q) && Ref_lemma_cost_app_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P, Q))) : P)
+}
+
+function Ref_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, z: Int, a: Int, P: Seq[Int]): Seq[Int]
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, y, z, P)
+  requires 0 <= a && a < A && start[a] == x && end[a] == y
+  ensures Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, z, result)
+  ensures |result| <= |P| + 1
+  ensures Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, result) <= weight[a] + Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P)
+{
+  Ref_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, x, y, z, Seq(a), P)
+}
+
+function Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Seq[Int]
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  ensures Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, result)
+  ensures |result| <= |P|
+  ensures Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, result) <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P)
+{
+  (0 < |P| ? Ref_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, end[P[0]], y, P[0], Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, end[P[0]], y, P[1..])) : P)
+}
+
+function Ref_simple_path_Part_1_lemma2_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  requires Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+  ensures result && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P)
+{
+  true
+}
+
+function Ref_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int, y: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures (forall P: Seq[Int] :: Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) ==> Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P))
+{
+  (forall P: Seq[Int] :: Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P) ==> Ref_simple_path_Part_1_lemma2_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, y, P))
+}
+
+function Ref_simple_path_Part_1_lemma2_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures result && (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P))
+{
+  (forall v: Int :: { Ref_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, V, A, start, end, weight, x, v) } 0 <= v && v < V ==> Ref_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, V, A, start, end, weight, x, v))
+}
+
+function Ref_simple_path_Part_2_lemma2_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P)))
+  ensures result && (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> Ref_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P)))
+{
+  true
+}
+
+function Ref_simple_path_lemma3_preserved_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures result && (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> |Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P)| <= |P|)
+{
+  true
+}
+
+function Ref_simple_path_cost_lemma4_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], weight: Seq[Int], x: Int): Bool
+  requires diz != null
+  requires Ref_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight)
+  ensures result && (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && Ref_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P) ==> Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, Ref_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(diz, V, A, start, end, weight, x, v, P)) <= Ref_cost_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(diz, V, A, start, end, weight, P))
+{
+  true
+}
+
+function Ref_ArrayToSeq_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Integer_Integer(diz: Ref, globals: Ref, array: VCTOption[VCTArray[Ref]], i: Int, len: Int): Seq[Int]
+  requires diz != null
+  requires array != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires len <= (alen(getVCTOption1(array)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(array), __i): Ref).Integer__item } 0 <= __i && __i < len ==> acc((loc(getVCTOption1(array), __i): Ref).Integer__item, 1 / 2))
+  requires 0 <= i && i <= len
+  ensures |result| == len - i
+  ensures (forall j: Int :: { result[j] } 0 <= j && j < len - i ==> result[j] == (loc(getVCTOption1(array), j + i): Ref).Integer__item)
+{
+  (i < len ? Seq((loc(getVCTOption1(array), i): Ref).Integer__item) ++ Ref_ArrayToSeq_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, array, i + 1, len) : Seq[Int]())
+}
+
+function Ref_compare_Integer_Integer_Integer(diz: Ref, start_cost: Int, weight: Int, end_cost: Int): Bool
+  requires diz != null
+  requires start_cost == Ref_inf(diz) || 0 <= start_cost
+  requires end_cost == Ref_inf(diz) || 0 <= end_cost
+  requires 0 < weight
+  ensures start_cost != Ref_inf(diz) && (end_cost == Ref_inf(diz) || start_cost + weight <= end_cost) ==> result
+  ensures result ==> start_cost != Ref_inf(diz) && (end_cost == Ref_inf(diz) || start_cost + weight <= end_cost)
+  ensures start_cost == Ref_inf(diz) || end_cost != Ref_inf(diz) && end_cost < start_cost + weight ==> !result
+  ensures (!result ==> start_cost == Ref_inf(diz)) || end_cost != Ref_inf(diz) && end_cost < start_cost + weight
+  ensures result && end_cost != Ref_inf(diz) ==> start_cost + weight <= end_cost
+{
+  (start_cost != Ref_inf(diz) && (end_cost == Ref_inf(diz) || start_cost + weight <= end_cost) ? true : false)
+}
+
+function sub_array_Option_Array_Cell_Integer____Option$Array$Cell$Integer$$$_Integer_Integer(array: VCTOption[VCTArray[Ref]], from: Int, to: Int): VCTOption[VCTArray[Ref]]
+  requires array != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 <= from && from <= to && to <= (alen(getVCTOption1(array)): Int)
+  ensures result != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(result)): Int) == to - from
+  ensures (forall i: Int :: { (loc(getVCTOption1(result), i): Ref) } 0 <= i && i < to - from ==> (loc(getVCTOption1(array), i + from): Ref) == (loc(getVCTOption1(result), i): Ref))
+  ensures from == 0 && to == (alen(getVCTOption1(array)): Int) ==> getVCTOption1(result) == getVCTOption1(array)
+
+
+function instanceof_TYPE_TYPE(t: TYPE, u: TYPE): Bool
+  ensures result == (t == u || directSuperclass(t) == u)
+
+
+function new_frac(x: Perm): frac
+  requires 0 / 1 < x && x <= 1 / 1
+  ensures frac_val(result) == x
+
+
+function new_zfrac(x: Perm): zfrac
+  requires 0 / 1 <= x && x <= 1 / 1
+  ensures zfrac_val(result) == x
+
+
+function getVCTOption1(x: VCTOption[VCTArray[Ref]]): VCTArray[Ref]
+  requires x != (VCTNone(): VCTOption[VCTArray[Ref]])
+{
+  (getVCTOption(x): VCTArray[Ref])
+}
+
+method Ref_cudaEventCreate_EncodedGlobalVariables(diz: Ref, globals: Ref) returns (sys__result: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_cudaEventDestroy_EncodedGlobalVariables_Integer(diz: Ref, globals: Ref, e: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_cudaEventRecord_EncodedGlobalVariables_Integer_Integer(diz: Ref, globals: Ref, e: Int, i: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_cudaEventSynchronize_EncodedGlobalVariables_Integer(diz: Ref, globals: Ref, e: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_cudaEventElapsedTime_EncodedGlobalVariables_Integer_Integer(diz: Ref, globals: Ref, begin: Int, end: Int) returns (sys__result: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref___contract_unsatisfiable__CUDAKernel_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer_Integer_Integer_Integer_Integer(diz: Ref, globals: Ref, g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]], g_contrib: VCTOption[VCTArray[Ref]], V: Int, A: Int, counter: Int, source: Int, opencl_gcount: Int, opencl_gsize: Int)
+  requires diz != null
+{
+  inhale V == 1024 && A == 10 * V && opencl_gsize == V && 10 == opencl_gcount && (0 <= source && source < V) && (0 <= counter && counter < V - 1) && (g_start != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_start)): Int) && (forall __i__1: Int :: { (loc(getVCTOption1(g_start), __i__1): Ref).Integer__item } 0 <= __i__1 && __i__1 < A ==> acc((loc(getVCTOption1(g_start), __i__1): Ref).Integer__item, 1 / 2)) && (g_end != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_end)): Int) && (forall __i__2: Int :: { (loc(getVCTOption1(g_end), __i__2): Ref).Integer__item } 0 <= __i__2 && __i__2 < A ==> acc((loc(getVCTOption1(g_end), __i__2): Ref).Integer__item, 1 / 2))) && ((forall i__3: Int :: { (loc(getVCTOption1(g_start), i__3): Ref) } 0 <= i__3 && i__3 < A ==> 0 <= (loc(getVCTOption1(g_start), i__3): Ref).Integer__item && (loc(getVCTOption1(g_start), i__3): Ref).Integer__item < V) && (forall i__4: Int :: { (loc(getVCTOption1(g_end), i__4): Ref) } 0 <= i__4 && i__4 < A ==> 0 <= (loc(getVCTOption1(g_end), i__4): Ref).Integer__item) && (forall i__5: Int :: { (loc(getVCTOption1(g_end), i__5): Ref) } 0 <= i__5 && i__5 < A ==> (loc(getVCTOption1(g_end), i__5): Ref).Integer__item < V)) && (forall i__6: Int :: { (loc(getVCTOption1(g_start), i__6): Ref) } { (loc(getVCTOption1(g_end), i__6): Ref) } 0 <= i__6 && i__6 < A ==> (loc(getVCTOption1(g_start), i__6): Ref).Integer__item != (loc(getVCTOption1(g_end), i__6): Ref).Integer__item) && (forall i__7: Int, j__8: Int :: 0 <= i__7 && i__7 < A && (0 <= j__8 && j__8 < A && i__7 != j__8 && (loc(getVCTOption1(g_start), i__7): Ref).Integer__item == (loc(getVCTOption1(g_start), j__8): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i__7): Ref).Integer__item != (loc(getVCTOption1(g_end), j__8): Ref).Integer__item) && (g_weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_weight)): Int) && (forall __i__9: Int :: { (loc(getVCTOption1(g_weight), __i__9): Ref).Integer__item } 0 <= __i__9 && __i__9 < A ==> acc((loc(getVCTOption1(g_weight), __i__9): Ref).Integer__item, 1 / 2))) && (forall i__10: Int :: { (loc(getVCTOption1(g_weight), i__10): Ref) } 0 <= i__10 && i__10 < A ==> 0 < (loc(getVCTOption1(g_weight), i__10): Ref).Integer__item) && (g_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_cost)): Int) && (forall __i__11: Int :: { (loc(getVCTOption1(g_cost), __i__11): Ref).Integer__item } 0 <= __i__11 && __i__11 < V ==> acc((loc(getVCTOption1(g_cost), __i__11): Ref).Integer__item, write))) && (forall i__12: Int :: { (loc(getVCTOption1(g_cost), i__12): Ref) } 0 <= i__12 && i__12 < V && i__12 != source ==> (loc(getVCTOption1(g_cost), i__12): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i__12): Ref).Integer__item) && (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0 && (g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_old_cost)): Int) && (forall __i__13: Int :: { (loc(getVCTOption1(g_old_cost), __i__13): Ref).Integer__item } 0 <= __i__13 && __i__13 < V ==> acc((loc(getVCTOption1(g_old_cost), __i__13): Ref).Integer__item, write))) && (g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_contrib)): Int) && (forall __i__14: Int :: { (loc(getVCTOption1(g_contrib), __i__14): Ref).Integer__item } 0 <= __i__14 && __i__14 < A ==> acc((loc(getVCTOption1(g_contrib), __i__14): Ref).Integer__item, 1 / 2))) && ((0 < opencl_gcount && 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])) && (0 <= opencl_gsize - 1 && 0 <= opencl_gcount - 1 ==> ((opencl_gcount - 1) * opencl_gsize > 0 * opencl_gsize ? (opencl_gcount - 1) * opencl_gsize : 0 * opencl_gsize) + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)) && (0 < opencl_gsize ==> (forall opencl_lid__15: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid__15): Ref) } 0 <= opencl_lid__15 && opencl_lid__15 < opencl_gcount * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid__15): Ref).Integer__item, 1 / 2)))) && (0 < opencl_gsize ==> (forall opencl_lid__16: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid__16): Ref) } 0 <= opencl_lid__16 && opencl_lid__16 < opencl_gcount * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid__16): Ref).Integer__item == 0)))
+  // assert
+  assert false
+  inhale false
+}
+
+method Ref_loop_body_5_Integer_Integer_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, opencl_gid: Int, V: Int, opencl_lid: Int, opencl_gsize: Int, A: Int, opencl_gcount: Int, source: Int, counter: Int, g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]], g_contrib: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= opencl_lid && opencl_lid < opencl_gsize)
+  requires g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires opencl_gid * opencl_gsize + opencl_lid < (alen(getVCTOption1(g_contrib)): Int)
+  requires acc((loc(getVCTOption1(g_contrib), opencl_gid * opencl_gsize + opencl_lid): Ref).Integer__item, 1 / 2)
+  requires (loc(getVCTOption1(g_contrib), opencl_gid * opencl_gsize + opencl_lid): Ref).Integer__item == 0
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= opencl_lid && opencl_lid < opencl_gsize)
+  ensures g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures opencl_gid * opencl_gsize + opencl_lid < (alen(getVCTOption1(g_contrib)): Int)
+  ensures acc((loc(getVCTOption1(g_contrib), opencl_gid * opencl_gsize + opencl_lid): Ref).Integer__item, 1 / 2)
+  ensures (loc(getVCTOption1(g_contrib), opencl_gid * opencl_gsize + opencl_lid): Ref).Integer__item == 1
+{
+  var tid__17: Int
+  var __flatten_1__32: Ref
+  var __flatten_2__33: Ref
+  var __flatten_3__34: VCTOption[VCTArray[Ref]]
+  var __flatten_4__35: Int
+  var __flatten_5__36: Ref
+  var __flatten_6__37: Ref
+  var __flatten_7__38: Ref
+  var __flatten_8__39: Ref
+  var __flatten_9__40: VCTOption[VCTArray[Ref]]
+  var __flatten_10__41: Ref
+  var __flatten_11__42: Ref
+  var __flatten_12__43: Ref
+  var __flatten_13__44: Ref
+  var __flatten_14__45: Ref
+  var __flatten_15__46: VCTOption[VCTArray[Ref]]
+  var __flatten_16__47: Ref
+  var __flatten_17__48: Ref
+  var __flatten_18__49: Ref
+  var __flatten_19__50: Ref
+  var __flatten_20__51: Ref
+  var __flatten_21__52: VCTOption[VCTArray[Ref]]
+  var __flatten_22__67: Ref
+  tid__17 := opencl_gid * V + opencl_lid
+  // assert
+  assert tid__17 == opencl_gid * opencl_gsize + opencl_lid
+  inhale V == 1024 && A == 10 * V && opencl_gsize == V && 10 == opencl_gcount && (0 <= source && source < V) && (0 <= counter && counter < V - 1) && (g_start != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_start)): Int) && (forall __i__18: Int :: { (loc(getVCTOption1(g_start), __i__18): Ref).Integer__item } 0 <= __i__18 && __i__18 < A ==> acc((loc(getVCTOption1(g_start), __i__18): Ref).Integer__item, 1 / 2)) && (g_end != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_end)): Int) && (forall __i__19: Int :: { (loc(getVCTOption1(g_end), __i__19): Ref).Integer__item } 0 <= __i__19 && __i__19 < A ==> acc((loc(getVCTOption1(g_end), __i__19): Ref).Integer__item, 1 / 2))) && ((forall i__20: Int :: { (loc(getVCTOption1(g_start), i__20): Ref) } 0 <= i__20 && i__20 < A ==> 0 <= (loc(getVCTOption1(g_start), i__20): Ref).Integer__item && (loc(getVCTOption1(g_start), i__20): Ref).Integer__item < V) && (forall i__21: Int :: { (loc(getVCTOption1(g_end), i__21): Ref) } 0 <= i__21 && i__21 < A ==> 0 <= (loc(getVCTOption1(g_end), i__21): Ref).Integer__item) && (forall i__22: Int :: { (loc(getVCTOption1(g_end), i__22): Ref) } 0 <= i__22 && i__22 < A ==> (loc(getVCTOption1(g_end), i__22): Ref).Integer__item < V)) && (forall i__23: Int :: { (loc(getVCTOption1(g_start), i__23): Ref) } { (loc(getVCTOption1(g_end), i__23): Ref) } 0 <= i__23 && i__23 < A ==> (loc(getVCTOption1(g_start), i__23): Ref).Integer__item != (loc(getVCTOption1(g_end), i__23): Ref).Integer__item) && (forall i__24: Int, j__25: Int :: 0 <= i__24 && i__24 < A && (0 <= j__25 && j__25 < A && i__24 != j__25 && (loc(getVCTOption1(g_start), i__24): Ref).Integer__item == (loc(getVCTOption1(g_start), j__25): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i__24): Ref).Integer__item != (loc(getVCTOption1(g_end), j__25): Ref).Integer__item) && (g_weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_weight)): Int) && (forall __i__26: Int :: { (loc(getVCTOption1(g_weight), __i__26): Ref).Integer__item } 0 <= __i__26 && __i__26 < A ==> acc((loc(getVCTOption1(g_weight), __i__26): Ref).Integer__item, 1 / 2))) && (forall i__27: Int :: { (loc(getVCTOption1(g_weight), i__27): Ref) } 0 <= i__27 && i__27 < A ==> 0 < (loc(getVCTOption1(g_weight), i__27): Ref).Integer__item) && (g_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_cost)): Int) && (forall __i__28: Int :: { (loc(getVCTOption1(g_cost), __i__28): Ref).Integer__item } 0 <= __i__28 && __i__28 < V ==> acc((loc(getVCTOption1(g_cost), __i__28): Ref).Integer__item, write))) && (forall i__29: Int :: { (loc(getVCTOption1(g_cost), i__29): Ref) } 0 <= i__29 && i__29 < V && i__29 != source ==> (loc(getVCTOption1(g_cost), i__29): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i__29): Ref).Integer__item) && (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0 && (g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_old_cost)): Int) && (forall __i__30: Int :: { (loc(getVCTOption1(g_old_cost), __i__30): Ref).Integer__item } 0 <= __i__30 && __i__30 < V ==> acc((loc(getVCTOption1(g_old_cost), __i__30): Ref).Integer__item, write))) && (g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_contrib)): Int) && (forall __i__31: Int :: { (loc(getVCTOption1(g_contrib), __i__31): Ref).Integer__item } 0 <= __i__31 && __i__31 < A ==> acc((loc(getVCTOption1(g_contrib), __i__31): Ref).Integer__item, 1 / 2))))
+  __flatten_2__33 := (loc(getVCTOption1(g_end), tid__17): Ref)
+  __flatten_3__34 := sub_array_Option_Array_Cell_Integer____Option$Array$Cell$Integer$$$_Integer_Integer(g_cost, __flatten_2__33.Integer__item, (alen(getVCTOption1(g_cost)): Int))
+  __flatten_1__32 := (loc(getVCTOption1(__flatten_3__34), 0): Ref)
+  __flatten_6__37 := (loc(getVCTOption1(g_start), tid__17): Ref)
+  __flatten_5__36 := (loc(getVCTOption1(g_cost), __flatten_6__37.Integer__item): Ref)
+  __flatten_8__39 := (loc(getVCTOption1(g_end), tid__17): Ref)
+  __flatten_9__40 := sub_array_Option_Array_Cell_Integer____Option$Array$Cell$Integer$$$_Integer_Integer(g_cost, __flatten_8__39.Integer__item, (alen(getVCTOption1(g_cost)): Int))
+  __flatten_7__38 := (loc(getVCTOption1(__flatten_9__40), 0): Ref)
+  __flatten_11__42 := (loc(getVCTOption1(g_start), tid__17): Ref)
+  __flatten_10__41 := (loc(getVCTOption1(g_cost), __flatten_11__42.Integer__item): Ref)
+  __flatten_12__43 := (loc(getVCTOption1(g_weight), tid__17): Ref)
+  __flatten_14__45 := (loc(getVCTOption1(g_end), tid__17): Ref)
+  __flatten_15__46 := sub_array_Option_Array_Cell_Integer____Option$Array$Cell$Integer$$$_Integer_Integer(g_cost, __flatten_14__45.Integer__item, (alen(getVCTOption1(g_cost)): Int))
+  __flatten_13__44 := (loc(getVCTOption1(__flatten_15__46), 0): Ref)
+  if (__flatten_5__36.Integer__item != -1 && (__flatten_7__38.Integer__item == -1 || __flatten_10__41.Integer__item + __flatten_12__43.Integer__item <= __flatten_13__44.Integer__item)) {
+    __flatten_17__48 := (loc(getVCTOption1(g_start), tid__17): Ref)
+    __flatten_16__47 := (loc(getVCTOption1(g_cost), __flatten_17__48.Integer__item): Ref)
+    __flatten_18__49 := (loc(getVCTOption1(g_weight), tid__17): Ref)
+    __flatten_4__35 := __flatten_16__47.Integer__item + __flatten_18__49.Integer__item
+  } else {
+    __flatten_20__51 := (loc(getVCTOption1(g_end), tid__17): Ref)
+    __flatten_21__52 := sub_array_Option_Array_Cell_Integer____Option$Array$Cell$Integer$$$_Integer_Integer(g_cost, __flatten_20__51.Integer__item, (alen(getVCTOption1(g_cost)): Int))
+    __flatten_19__50 := (loc(getVCTOption1(__flatten_21__52), 0): Ref)
+    __flatten_4__35 := __flatten_19__50.Integer__item
+  }
+  __flatten_1__32.Integer__item := __flatten_4__35
+  exhale V == 1024 && A == 10 * V && opencl_gsize == V && 10 == opencl_gcount && (0 <= source && source < V) && (0 <= counter && counter < V - 1) && (g_start != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_start)): Int) && (forall __i__53: Int :: { (loc(getVCTOption1(g_start), __i__53): Ref).Integer__item } 0 <= __i__53 && __i__53 < A ==> acc((loc(getVCTOption1(g_start), __i__53): Ref).Integer__item, 1 / 2)) && (g_end != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_end)): Int) && (forall __i__54: Int :: { (loc(getVCTOption1(g_end), __i__54): Ref).Integer__item } 0 <= __i__54 && __i__54 < A ==> acc((loc(getVCTOption1(g_end), __i__54): Ref).Integer__item, 1 / 2))) && ((forall i__55: Int :: { (loc(getVCTOption1(g_start), i__55): Ref) } 0 <= i__55 && i__55 < A ==> 0 <= (loc(getVCTOption1(g_start), i__55): Ref).Integer__item && (loc(getVCTOption1(g_start), i__55): Ref).Integer__item < V) && (forall i__56: Int :: { (loc(getVCTOption1(g_end), i__56): Ref) } 0 <= i__56 && i__56 < A ==> 0 <= (loc(getVCTOption1(g_end), i__56): Ref).Integer__item) && (forall i__57: Int :: { (loc(getVCTOption1(g_end), i__57): Ref) } 0 <= i__57 && i__57 < A ==> (loc(getVCTOption1(g_end), i__57): Ref).Integer__item < V)) && (forall i__58: Int :: { (loc(getVCTOption1(g_start), i__58): Ref) } { (loc(getVCTOption1(g_end), i__58): Ref) } 0 <= i__58 && i__58 < A ==> (loc(getVCTOption1(g_start), i__58): Ref).Integer__item != (loc(getVCTOption1(g_end), i__58): Ref).Integer__item) && (forall i__59: Int, j__60: Int :: 0 <= i__59 && i__59 < A && (0 <= j__60 && j__60 < A && i__59 != j__60 && (loc(getVCTOption1(g_start), i__59): Ref).Integer__item == (loc(getVCTOption1(g_start), j__60): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i__59): Ref).Integer__item != (loc(getVCTOption1(g_end), j__60): Ref).Integer__item) && (g_weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_weight)): Int) && (forall __i__61: Int :: { (loc(getVCTOption1(g_weight), __i__61): Ref).Integer__item } 0 <= __i__61 && __i__61 < A ==> acc((loc(getVCTOption1(g_weight), __i__61): Ref).Integer__item, 1 / 2))) && (forall i__62: Int :: { (loc(getVCTOption1(g_weight), i__62): Ref) } 0 <= i__62 && i__62 < A ==> 0 < (loc(getVCTOption1(g_weight), i__62): Ref).Integer__item) && (g_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_cost)): Int) && (forall __i__63: Int :: { (loc(getVCTOption1(g_cost), __i__63): Ref).Integer__item } 0 <= __i__63 && __i__63 < V ==> acc((loc(getVCTOption1(g_cost), __i__63): Ref).Integer__item, write))) && (forall i__64: Int :: { (loc(getVCTOption1(g_cost), i__64): Ref) } 0 <= i__64 && i__64 < V && i__64 != source ==> (loc(getVCTOption1(g_cost), i__64): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i__64): Ref).Integer__item) && (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0 && (g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_old_cost)): Int) && (forall __i__65: Int :: { (loc(getVCTOption1(g_old_cost), __i__65): Ref).Integer__item } 0 <= __i__65 && __i__65 < V ==> acc((loc(getVCTOption1(g_old_cost), __i__65): Ref).Integer__item, write))) && (g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_contrib)): Int) && (forall __i__66: Int :: { (loc(getVCTOption1(g_contrib), __i__66): Ref).Integer__item } 0 <= __i__66 && __i__66 < A ==> acc((loc(getVCTOption1(g_contrib), __i__66): Ref).Integer__item, 1 / 2))))
+  __flatten_22__67 := (loc(getVCTOption1(g_contrib), tid__17): Ref)
+  __flatten_22__67.Integer__item := 1
+}
+
+method Ref_parrallel_region_main_2_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, opencl_gsize: Int, V: Int, A: Int, opencl_gcount: Int, source: Int, counter: Int, g_contrib: VCTOption[VCTArray[Ref]], opencl_gid: Int, g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 <= opencl_gsize - 1 ==> opencl_gid * opencl_gsize + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item, 1 / 2))
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item == 0)
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures 0 <= opencl_gsize - 1 ==> opencl_gid * opencl_gsize + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)
+  ensures (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item, 1 / 2))
+  ensures (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item == 1)
+{
+  inhale false
+}
+
+method Ref_loop_body_4_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, opencl_gsize: Int, V: Int, A: Int, opencl_gcount: Int, source: Int, counter: Int, g_contrib: VCTOption[VCTArray[Ref]], opencl_gid: Int, g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires 0 <= opencl_gid && opencl_gid < opencl_gcount
+  requires 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 <= opencl_gsize - 1 ==> opencl_gid * opencl_gsize + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item, 1 / 2))
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } opencl_gid * opencl_gsize <= opencl_lid && opencl_lid < (opencl_gid + 1) * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item == 0)
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures 0 <= opencl_gid && opencl_gid < opencl_gcount
+{
+  Ref_parrallel_region_main_2_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz, opencl_gsize, V, A, opencl_gcount, source, counter, g_contrib, opencl_gid, g_start, g_end, g_weight, g_cost, g_old_cost)
+}
+
+method Ref_parrallel_region_main_1_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, opencl_gcount: Int, V: Int, A: Int, opencl_gsize: Int, source: Int, counter: Int, g_contrib: VCTOption[VCTArray[Ref]], g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires 0 < opencl_gcount && 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 <= opencl_gsize - 1 && 0 <= opencl_gcount - 1 ==> ((opencl_gcount - 1) * opencl_gsize > 0 * opencl_gsize ? (opencl_gcount - 1) * opencl_gsize : 0 * opencl_gsize) + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)
+  requires 0 < opencl_gsize ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gcount * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gsize ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gcount * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item == 0)
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+{
+  inhale false
+}
+
+method Ref_CUDAKernel_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer_Integer_Integer_Integer_Integer(diz: Ref, globals: Ref, g_start: VCTOption[VCTArray[Ref]], g_end: VCTOption[VCTArray[Ref]], g_weight: VCTOption[VCTArray[Ref]], g_cost: VCTOption[VCTArray[Ref]], g_old_cost: VCTOption[VCTArray[Ref]], g_contrib: VCTOption[VCTArray[Ref]], V: Int, A: Int, counter: Int, source: Int, opencl_gcount: Int, opencl_gsize: Int)
+  requires diz != null
+  requires V == 1024 && A == 10 * V
+  requires opencl_gsize == V
+  requires 10 == opencl_gcount
+  requires 0 <= source && source < V
+  requires 0 <= counter && counter < V - 1
+  requires g_start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires A <= (alen(getVCTOption1(g_start)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_start), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_start), __i): Ref).Integer__item, 1 / 2))
+  requires g_end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires A <= (alen(getVCTOption1(g_end)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_end), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_end), __i): Ref).Integer__item, 1 / 2))
+  requires (forall i: Int :: { (loc(getVCTOption1(g_start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(g_start), i): Ref).Integer__item && (loc(getVCTOption1(g_start), i): Ref).Integer__item < V) && (forall i: Int :: { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(g_end), i): Ref).Integer__item) && (forall i: Int :: { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(g_end), i): Ref).Integer__item < V)
+  requires (forall i: Int :: { (loc(getVCTOption1(g_start), i): Ref) } { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(g_start), i): Ref).Integer__item != (loc(getVCTOption1(g_end), i): Ref).Integer__item)
+  requires (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(g_start), i): Ref).Integer__item == (loc(getVCTOption1(g_start), j): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i): Ref).Integer__item != (loc(getVCTOption1(g_end), j): Ref).Integer__item)
+  requires g_weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires A <= (alen(getVCTOption1(g_weight)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_weight), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_weight), __i): Ref).Integer__item, 1 / 2))
+  requires (forall i: Int :: { (loc(getVCTOption1(g_weight), i): Ref) } 0 <= i && i < A ==> 0 < (loc(getVCTOption1(g_weight), i): Ref).Integer__item)
+  requires g_cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires V <= (alen(getVCTOption1(g_cost)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_cost), __i): Ref).Integer__item } 0 <= __i && __i < V ==> acc((loc(getVCTOption1(g_cost), __i): Ref).Integer__item, write))
+  requires (forall i: Int :: { (loc(getVCTOption1(g_cost), i): Ref) } 0 <= i && i < V && i != source ==> (loc(getVCTOption1(g_cost), i): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i): Ref).Integer__item)
+  requires (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0
+  requires g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires V <= (alen(getVCTOption1(g_old_cost)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_old_cost), __i): Ref).Integer__item } 0 <= __i && __i < V ==> acc((loc(getVCTOption1(g_old_cost), __i): Ref).Integer__item, write))
+  requires g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires A <= (alen(getVCTOption1(g_contrib)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(g_contrib), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_contrib), __i): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gcount && 0 < opencl_gsize ==> g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 <= opencl_gsize - 1 && 0 <= opencl_gcount - 1 ==> ((opencl_gcount - 1) * opencl_gsize > 0 * opencl_gsize ? (opencl_gcount - 1) * opencl_gsize : 0 * opencl_gsize) + (opencl_gsize - 1) < (alen(getVCTOption1(g_contrib)): Int)
+  requires 0 < opencl_gsize ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gcount * opencl_gsize ==> acc((loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gsize ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(g_contrib), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gcount * opencl_gsize ==> (loc(getVCTOption1(g_contrib), opencl_lid): Ref).Integer__item == 0)
+  ensures V == 1024 && A == 10 * V
+  ensures opencl_gsize == V
+  ensures 10 == opencl_gcount
+  ensures 0 <= source && source < V
+  ensures 0 <= counter && counter < V - 1
+  ensures g_start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures A <= (alen(getVCTOption1(g_start)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_start), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_start), __i): Ref).Integer__item, 1 / 2))
+  ensures g_end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures A <= (alen(getVCTOption1(g_end)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_end), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_end), __i): Ref).Integer__item, 1 / 2))
+  ensures (forall i: Int :: { (loc(getVCTOption1(g_start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(g_start), i): Ref).Integer__item && (loc(getVCTOption1(g_start), i): Ref).Integer__item < V) && (forall i: Int :: { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(g_end), i): Ref).Integer__item) && (forall i: Int :: { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(g_end), i): Ref).Integer__item < V)
+  ensures (forall i: Int :: { (loc(getVCTOption1(g_start), i): Ref) } { (loc(getVCTOption1(g_end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(g_start), i): Ref).Integer__item != (loc(getVCTOption1(g_end), i): Ref).Integer__item)
+  ensures (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(g_start), i): Ref).Integer__item == (loc(getVCTOption1(g_start), j): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i): Ref).Integer__item != (loc(getVCTOption1(g_end), j): Ref).Integer__item)
+  ensures g_weight != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures A <= (alen(getVCTOption1(g_weight)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_weight), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_weight), __i): Ref).Integer__item, 1 / 2))
+  ensures (forall i: Int :: { (loc(getVCTOption1(g_weight), i): Ref) } 0 <= i && i < A ==> 0 < (loc(getVCTOption1(g_weight), i): Ref).Integer__item)
+  ensures g_cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures V <= (alen(getVCTOption1(g_cost)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_cost), __i): Ref).Integer__item } 0 <= __i && __i < V ==> acc((loc(getVCTOption1(g_cost), __i): Ref).Integer__item, write))
+  ensures (forall i: Int :: { (loc(getVCTOption1(g_cost), i): Ref) } 0 <= i && i < V && i != source ==> (loc(getVCTOption1(g_cost), i): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i): Ref).Integer__item)
+  ensures (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0
+  ensures g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures V <= (alen(getVCTOption1(g_old_cost)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_old_cost), __i): Ref).Integer__item } 0 <= __i && __i < V ==> acc((loc(getVCTOption1(g_old_cost), __i): Ref).Integer__item, write))
+  ensures g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures A <= (alen(getVCTOption1(g_contrib)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(g_contrib), __i): Ref).Integer__item } 0 <= __i && __i < A ==> acc((loc(getVCTOption1(g_contrib), __i): Ref).Integer__item, 1 / 2))
+{
+  exhale V == 1024 && A == 10 * V && opencl_gsize == V && 10 == opencl_gcount && (0 <= source && source < V) && (0 <= counter && counter < V - 1) && (g_start != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_start)): Int) && (forall __i__68: Int :: { (loc(getVCTOption1(g_start), __i__68): Ref).Integer__item } 0 <= __i__68 && __i__68 < A ==> acc((loc(getVCTOption1(g_start), __i__68): Ref).Integer__item, 1 / 2)) && (g_end != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_end)): Int) && (forall __i__69: Int :: { (loc(getVCTOption1(g_end), __i__69): Ref).Integer__item } 0 <= __i__69 && __i__69 < A ==> acc((loc(getVCTOption1(g_end), __i__69): Ref).Integer__item, 1 / 2))) && ((forall i__70: Int :: { (loc(getVCTOption1(g_start), i__70): Ref) } 0 <= i__70 && i__70 < A ==> 0 <= (loc(getVCTOption1(g_start), i__70): Ref).Integer__item && (loc(getVCTOption1(g_start), i__70): Ref).Integer__item < V) && (forall i__71: Int :: { (loc(getVCTOption1(g_end), i__71): Ref) } 0 <= i__71 && i__71 < A ==> 0 <= (loc(getVCTOption1(g_end), i__71): Ref).Integer__item) && (forall i__72: Int :: { (loc(getVCTOption1(g_end), i__72): Ref) } 0 <= i__72 && i__72 < A ==> (loc(getVCTOption1(g_end), i__72): Ref).Integer__item < V)) && (forall i__73: Int :: { (loc(getVCTOption1(g_start), i__73): Ref) } { (loc(getVCTOption1(g_end), i__73): Ref) } 0 <= i__73 && i__73 < A ==> (loc(getVCTOption1(g_start), i__73): Ref).Integer__item != (loc(getVCTOption1(g_end), i__73): Ref).Integer__item) && (forall i__74: Int, j__75: Int :: 0 <= i__74 && i__74 < A && (0 <= j__75 && j__75 < A && i__74 != j__75 && (loc(getVCTOption1(g_start), i__74): Ref).Integer__item == (loc(getVCTOption1(g_start), j__75): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i__74): Ref).Integer__item != (loc(getVCTOption1(g_end), j__75): Ref).Integer__item) && (g_weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_weight)): Int) && (forall __i__76: Int :: { (loc(getVCTOption1(g_weight), __i__76): Ref).Integer__item } 0 <= __i__76 && __i__76 < A ==> acc((loc(getVCTOption1(g_weight), __i__76): Ref).Integer__item, 1 / 2))) && (forall i__77: Int :: { (loc(getVCTOption1(g_weight), i__77): Ref) } 0 <= i__77 && i__77 < A ==> 0 < (loc(getVCTOption1(g_weight), i__77): Ref).Integer__item) && (g_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_cost)): Int) && (forall __i__78: Int :: { (loc(getVCTOption1(g_cost), __i__78): Ref).Integer__item } 0 <= __i__78 && __i__78 < V ==> acc((loc(getVCTOption1(g_cost), __i__78): Ref).Integer__item, write))) && (forall i__79: Int :: { (loc(getVCTOption1(g_cost), i__79): Ref) } 0 <= i__79 && i__79 < V && i__79 != source ==> (loc(getVCTOption1(g_cost), i__79): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i__79): Ref).Integer__item) && (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0 && (g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_old_cost)): Int) && (forall __i__80: Int :: { (loc(getVCTOption1(g_old_cost), __i__80): Ref).Integer__item } 0 <= __i__80 && __i__80 < V ==> acc((loc(getVCTOption1(g_old_cost), __i__80): Ref).Integer__item, write))) && (g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_contrib)): Int) && (forall __i__81: Int :: { (loc(getVCTOption1(g_contrib), __i__81): Ref).Integer__item } 0 <= __i__81 && __i__81 < A ==> acc((loc(getVCTOption1(g_contrib), __i__81): Ref).Integer__item, 1 / 2))))
+  Ref_parrallel_region_main_1_Integer_Integer_Integer_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz, opencl_gcount, V, A, opencl_gsize, source, counter, g_contrib, g_start, g_end, g_weight, g_cost, g_old_cost)
+  inhale V == 1024 && A == 10 * V && opencl_gsize == V && 10 == opencl_gcount && (0 <= source && source < V) && (0 <= counter && counter < V - 1) && (g_start != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_start)): Int) && (forall __i__82: Int :: { (loc(getVCTOption1(g_start), __i__82): Ref).Integer__item } 0 <= __i__82 && __i__82 < A ==> acc((loc(getVCTOption1(g_start), __i__82): Ref).Integer__item, 1 / 2)) && (g_end != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_end)): Int) && (forall __i__83: Int :: { (loc(getVCTOption1(g_end), __i__83): Ref).Integer__item } 0 <= __i__83 && __i__83 < A ==> acc((loc(getVCTOption1(g_end), __i__83): Ref).Integer__item, 1 / 2))) && ((forall i__84: Int :: { (loc(getVCTOption1(g_start), i__84): Ref) } 0 <= i__84 && i__84 < A ==> 0 <= (loc(getVCTOption1(g_start), i__84): Ref).Integer__item && (loc(getVCTOption1(g_start), i__84): Ref).Integer__item < V) && (forall i__85: Int :: { (loc(getVCTOption1(g_end), i__85): Ref) } 0 <= i__85 && i__85 < A ==> 0 <= (loc(getVCTOption1(g_end), i__85): Ref).Integer__item) && (forall i__86: Int :: { (loc(getVCTOption1(g_end), i__86): Ref) } 0 <= i__86 && i__86 < A ==> (loc(getVCTOption1(g_end), i__86): Ref).Integer__item < V)) && (forall i__87: Int :: { (loc(getVCTOption1(g_start), i__87): Ref) } { (loc(getVCTOption1(g_end), i__87): Ref) } 0 <= i__87 && i__87 < A ==> (loc(getVCTOption1(g_start), i__87): Ref).Integer__item != (loc(getVCTOption1(g_end), i__87): Ref).Integer__item) && (forall i__88: Int, j__89: Int :: 0 <= i__88 && i__88 < A && (0 <= j__89 && j__89 < A && i__88 != j__89 && (loc(getVCTOption1(g_start), i__88): Ref).Integer__item == (loc(getVCTOption1(g_start), j__89): Ref).Integer__item) ==> (loc(getVCTOption1(g_end), i__88): Ref).Integer__item != (loc(getVCTOption1(g_end), j__89): Ref).Integer__item) && (g_weight != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_weight)): Int) && (forall __i__90: Int :: { (loc(getVCTOption1(g_weight), __i__90): Ref).Integer__item } 0 <= __i__90 && __i__90 < A ==> acc((loc(getVCTOption1(g_weight), __i__90): Ref).Integer__item, 1 / 2))) && (forall i__91: Int :: { (loc(getVCTOption1(g_weight), i__91): Ref) } 0 <= i__91 && i__91 < A ==> 0 < (loc(getVCTOption1(g_weight), i__91): Ref).Integer__item) && (g_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_cost)): Int) && (forall __i__92: Int :: { (loc(getVCTOption1(g_cost), __i__92): Ref).Integer__item } 0 <= __i__92 && __i__92 < V ==> acc((loc(getVCTOption1(g_cost), __i__92): Ref).Integer__item, write))) && (forall i__93: Int :: { (loc(getVCTOption1(g_cost), i__93): Ref) } 0 <= i__93 && i__93 < V && i__93 != source ==> (loc(getVCTOption1(g_cost), i__93): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(g_cost), i__93): Ref).Integer__item) && (loc(getVCTOption1(g_cost), source): Ref).Integer__item == 0 && (g_old_cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && V <= (alen(getVCTOption1(g_old_cost)): Int) && (forall __i__94: Int :: { (loc(getVCTOption1(g_old_cost), __i__94): Ref).Integer__item } 0 <= __i__94 && __i__94 < V ==> acc((loc(getVCTOption1(g_old_cost), __i__94): Ref).Integer__item, write))) && (g_contrib != (VCTNone(): VCTOption[VCTArray[Ref]]) && A <= (alen(getVCTOption1(g_contrib)): Int) && (forall __i__95: Int :: { (loc(getVCTOption1(g_contrib), __i__95): Ref).Integer__item } 0 <= __i__95 && __i__95 < A ==> acc((loc(getVCTOption1(g_contrib), __i__95): Ref).Integer__item, 1 / 2))))
+}
+
+method Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz: Ref, globals: Ref, N: Int) returns (sys__result: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  ensures sys__result != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(sys__result)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(sys__result), __i): Ref).Integer__item } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(sys__result), __i): Ref).Integer__item, write))
+{
+  inhale false
+}
+
+method Ref_vercorsFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, ar: VCTOption[VCTArray[Ref]])
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz: Ref, globals: Ref, N: Int) returns (sys__result: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  ensures sys__result != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(sys__result)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(sys__result), __i): Ref).Integer__item } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(sys__result), __i): Ref).Integer__item, write))
+{
+  inhale false
+}
+
+method Ref_vercorsCudaFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, addr: VCTOption[VCTArray[Ref]])
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz: Ref, globals: Ref, tgt: VCTOption[VCTArray[Ref]], src: VCTOption[VCTArray[Ref]], N: Int, direction: Int)
+  requires diz != null
+{
+  inhale false
+}
+
+method Ref___contract_unsatisfiable__main_EncodedGlobalVariables_Integer_Option$Array$Cell$Option$Array$Cell$Char$$$$$$(diz: Ref, globals: Ref, argc: Int, argv: VCTOption[VCTArray[Ref]]) returns (sys__result: Int)
+  requires diz != null
+{
+  inhale true && true
+  // assert
+  assert false
+  inhale false
+}
+
+method Ref_main_EncodedGlobalVariables_Integer_Option$Array$Cell$Option$Array$Cell$Char$$$$$$(diz: Ref, globals: Ref, argc: Int, argv: VCTOption[VCTArray[Ref]]) returns (sys__result: Int)
+  requires diz != null
+{
+  var h__190: Int
+  var n__185: Int
+  var V__96: Int
+  var A__97: Int
+  var host_start__98: VCTOption[VCTArray[Ref]]
+  var host_end__99: VCTOption[VCTArray[Ref]]
+  var host_weight__100: VCTOption[VCTArray[Ref]]
+  var host_cost__101: VCTOption[VCTArray[Ref]]
+  var host_old_cost__102: VCTOption[VCTArray[Ref]]
+  var host_contrib__103: VCTOption[VCTArray[Ref]]
+  var source__104: Int
+  var i__111: Int
+  var __flatten_31__112: Ref
+  var __flatten_32__113: Int
+  var __flatten_33__116: Ref
+  var g__117: Int
+  var __flatten_34__118: Ref
+  var __flatten_35__119: Ref
+  var __flatten_36__120: Int
+  var r__126: Int
+  var __flatten_37__127: Ref
+  var __flatten_38__128: Int
+  var device_start__131: VCTOption[VCTArray[Ref]]
+  var __flatten_39__132: VCTOption[VCTArray[Ref]]
+  var device_end__134: VCTOption[VCTArray[Ref]]
+  var __flatten_41__135: VCTOption[VCTArray[Ref]]
+  var device_weight__137: VCTOption[VCTArray[Ref]]
+  var __flatten_43__138: VCTOption[VCTArray[Ref]]
+  var device_cost__140: VCTOption[VCTArray[Ref]]
+  var __flatten_45__141: VCTOption[VCTArray[Ref]]
+  var device_old_cost__143: VCTOption[VCTArray[Ref]]
+  var __flatten_47__144: VCTOption[VCTArray[Ref]]
+  var m__145: Int
+  var __flatten_48__146: Ref
+  var __flatten_49__147: Ref
+  var __flatten_50__148: Int
+  var device_contrib__153: VCTOption[VCTArray[Ref]]
+  var __flatten_52__154: VCTOption[VCTArray[Ref]]
+  var q__155: Int
+  var __flatten_53__156: Ref
+  var __flatten_54__157: Int
+  var num_of_blocks__161: Int
+  var num_of_threads_per_block__162: Int
+  var counter__163: Int
+  var __flatten_57__164: Ref
+  var __flatten_58__165: Ref
+  var __flatten_59__166: Int
+  var __flatten_60__167: Ref
+  var __flatten_61__168: Int
+  V__96 := 1024
+  A__97 := 10 * V__96
+  host_start__98 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  host_end__99 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  host_weight__100 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  host_cost__101 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, V__96)
+  host_old_cost__102 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, V__96)
+  host_contrib__103 := Ref_vercorsMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  source__104 := V__96 / 2
+  inhale (forall i__105: Int :: { (loc(getVCTOption1(host_start__98), i__105): Ref) } 0 <= i__105 && i__105 < A__97 ==> 0 <= (loc(getVCTOption1(host_start__98), i__105): Ref).Integer__item && (loc(getVCTOption1(host_start__98), i__105): Ref).Integer__item < V__96)
+  inhale (forall i__106: Int :: { (loc(getVCTOption1(host_end__99), i__106): Ref) } 0 <= i__106 && i__106 < A__97 ==> 0 <= (loc(getVCTOption1(host_end__99), i__106): Ref).Integer__item && (loc(getVCTOption1(host_end__99), i__106): Ref).Integer__item < V__96)
+  inhale (forall i__107: Int :: { (loc(getVCTOption1(host_start__98), i__107): Ref) } { (loc(getVCTOption1(host_end__99), i__107): Ref) } 0 <= i__107 && i__107 < A__97 ==> (loc(getVCTOption1(host_start__98), i__107): Ref).Integer__item != (loc(getVCTOption1(host_end__99), i__107): Ref).Integer__item)
+  inhale (forall i__108: Int :: { (loc(getVCTOption1(host_weight__100), i__108): Ref) } 0 <= i__108 && i__108 < A__97 ==> 0 < (loc(getVCTOption1(host_weight__100), i__108): Ref).Integer__item)
+  inhale (forall i__109: Int, j__110: Int :: 0 <= i__109 && i__109 < A__97 && (0 <= j__110 && j__110 < A__97 && i__109 != j__110 && (loc(getVCTOption1(host_start__98), i__109): Ref).Integer__item == (loc(getVCTOption1(host_start__98), j__110): Ref).Integer__item) ==> (loc(getVCTOption1(host_end__99), i__109): Ref).Integer__item != (loc(getVCTOption1(host_end__99), j__110): Ref).Integer__item)
+  i__111 := 0
+  while (i__111 < V__96)
+    invariant 0 <= i__111 && i__111 <= V__96
+    invariant (forall k__114: Int :: { (loc(getVCTOption1(host_cost__101), k__114): Ref) } 0 <= k__114 && k__114 < V__96 ==> acc((loc(getVCTOption1(host_cost__101), k__114): Ref).Integer__item, write))
+    invariant (forall k__115: Int :: { (loc(getVCTOption1(host_cost__101), k__115): Ref) } 0 <= k__115 && k__115 < i__111 ==> (loc(getVCTOption1(host_cost__101), k__115): Ref).Integer__item == -1) 
+  {
+    __flatten_31__112 := (loc(getVCTOption1(host_cost__101), i__111): Ref)
+    __flatten_31__112.Integer__item := -1
+    __flatten_32__113 := i__111
+    i__111 := i__111 + 1
+  }
+  __flatten_33__116 := (loc(getVCTOption1(host_cost__101), source__104): Ref)
+  __flatten_33__116.Integer__item := 0
+  g__117 := 0
+  while (g__117 < V__96)
+    invariant 0 <= g__117 && g__117 <= V__96
+    invariant (forall k__121: Int :: { (loc(getVCTOption1(host_cost__101), k__121): Ref) } 0 <= k__121 && k__121 < V__96 ==> acc((loc(getVCTOption1(host_cost__101), k__121): Ref).Integer__item, write))
+    invariant (forall k__122: Int :: { (loc(getVCTOption1(host_old_cost__102), k__122): Ref) } 0 <= k__122 && k__122 < V__96 ==> acc((loc(getVCTOption1(host_old_cost__102), k__122): Ref).Integer__item, write))
+    invariant (forall k__123: Int :: { (loc(getVCTOption1(host_cost__101), k__123): Ref) } { (loc(getVCTOption1(host_old_cost__102), k__123): Ref) } 0 <= k__123 && k__123 < g__117 ==> (loc(getVCTOption1(host_cost__101), k__123): Ref).Integer__item == (loc(getVCTOption1(host_old_cost__102), k__123): Ref).Integer__item) 
+  {
+    __flatten_34__118 := (loc(getVCTOption1(host_cost__101), g__117): Ref)
+    __flatten_35__119 := (loc(getVCTOption1(host_old_cost__102), g__117): Ref)
+    __flatten_34__118.Integer__item := __flatten_35__119.Integer__item
+    __flatten_36__120 := g__117
+    g__117 := g__117 + 1
+  }
+  // assert
+  assert (forall i__124: Int :: { (loc(getVCTOption1(host_old_cost__102), i__124): Ref) } { (loc(getVCTOption1(host_cost__101), i__124): Ref) } 0 <= i__124 && i__124 < V__96 ==> (loc(getVCTOption1(host_old_cost__102), i__124): Ref).Integer__item == (loc(getVCTOption1(host_cost__101), i__124): Ref).Integer__item)
+  // assert
+  assert (forall i__125: Int :: { (loc(getVCTOption1(host_cost__101), i__125): Ref) } 0 <= i__125 && i__125 < V__96 && i__125 != source__104 ==> (loc(getVCTOption1(host_cost__101), i__125): Ref).Integer__item == Ref_inf(diz))
+  // assert
+  assert (loc(getVCTOption1(host_cost__101), source__104): Ref).Integer__item == 0
+  r__126 := 0
+  while (r__126 < A__97)
+    invariant 0 <= r__126 && r__126 <= A__97
+    invariant host_contrib__103 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(host_contrib__103)): Int)
+    invariant (forall __i__129: Int :: { (loc(getVCTOption1(host_contrib__103), __i__129): Ref).Integer__item } 0 <= __i__129 && __i__129 < A__97 ==> acc((loc(getVCTOption1(host_contrib__103), __i__129): Ref).Integer__item, write))
+    invariant (forall k__130: Int :: { (loc(getVCTOption1(host_contrib__103), k__130): Ref) } 0 <= k__130 && k__130 < r__126 ==> (loc(getVCTOption1(host_contrib__103), k__130): Ref).Integer__item == 0) 
+  {
+    __flatten_37__127 := (loc(getVCTOption1(host_contrib__103), r__126): Ref)
+    __flatten_37__127.Integer__item := 0
+    __flatten_38__128 := r__126
+    r__126 := r__126 + 1
+  }
+  __flatten_39__132 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  device_start__131 := __flatten_39__132
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_start__131, host_start__98, A__97, 0)
+  inhale (forall i__133: Int :: { (loc(getVCTOption1(host_start__98), i__133): Ref) } { (loc(getVCTOption1(device_start__131), i__133): Ref) } 0 <= i__133 && i__133 < A__97 ==> (loc(getVCTOption1(host_start__98), i__133): Ref).Integer__item == (loc(getVCTOption1(device_start__131), i__133): Ref).Integer__item)
+  __flatten_41__135 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  device_end__134 := __flatten_41__135
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_end__134, host_end__99, A__97, 0)
+  inhale (forall i__136: Int :: { (loc(getVCTOption1(host_end__99), i__136): Ref) } { (loc(getVCTOption1(device_end__134), i__136): Ref) } 0 <= i__136 && i__136 < A__97 ==> (loc(getVCTOption1(host_end__99), i__136): Ref).Integer__item == (loc(getVCTOption1(device_end__134), i__136): Ref).Integer__item)
+  __flatten_43__138 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  device_weight__137 := __flatten_43__138
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_weight__137, host_weight__100, A__97, 0)
+  inhale (forall i__139: Int :: { (loc(getVCTOption1(host_weight__100), i__139): Ref) } { (loc(getVCTOption1(device_weight__137), i__139): Ref) } 0 <= i__139 && i__139 < A__97 ==> (loc(getVCTOption1(host_weight__100), i__139): Ref).Integer__item == (loc(getVCTOption1(device_weight__137), i__139): Ref).Integer__item)
+  __flatten_45__141 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, V__96)
+  device_cost__140 := __flatten_45__141
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_cost__140, host_cost__101, V__96, 0)
+  inhale (forall i__142: Int :: { (loc(getVCTOption1(host_cost__101), i__142): Ref) } { (loc(getVCTOption1(device_cost__140), i__142): Ref) } 0 <= i__142 && i__142 < V__96 ==> (loc(getVCTOption1(host_cost__101), i__142): Ref).Integer__item == (loc(getVCTOption1(device_cost__140), i__142): Ref).Integer__item)
+  __flatten_47__144 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, V__96)
+  device_old_cost__143 := __flatten_47__144
+  m__145 := 0
+  while (m__145 < V__96)
+    invariant 0 <= m__145 && m__145 <= V__96
+    invariant device_old_cost__143 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant V__96 <= (alen(getVCTOption1(device_old_cost__143)): Int)
+    invariant (forall __i__149: Int :: { (loc(getVCTOption1(device_old_cost__143), __i__149): Ref).Integer__item } 0 <= __i__149 && __i__149 < V__96 ==> acc((loc(getVCTOption1(device_old_cost__143), __i__149): Ref).Integer__item, write))
+    invariant device_cost__140 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant V__96 <= (alen(getVCTOption1(device_cost__140)): Int)
+    invariant (forall __i__150: Int :: { (loc(getVCTOption1(device_cost__140), __i__150): Ref).Integer__item } 0 <= __i__150 && __i__150 < V__96 ==> acc((loc(getVCTOption1(device_cost__140), __i__150): Ref).Integer__item, write))
+    invariant (forall k__151: Int :: { (loc(getVCTOption1(device_old_cost__143), k__151): Ref) } { (loc(getVCTOption1(device_cost__140), k__151): Ref) } 0 <= k__151 && k__151 < m__145 ==> (loc(getVCTOption1(device_old_cost__143), k__151): Ref).Integer__item == (loc(getVCTOption1(device_cost__140), k__151): Ref).Integer__item) 
+  {
+    __flatten_48__146 := (loc(getVCTOption1(device_old_cost__143), m__145): Ref)
+    __flatten_49__147 := (loc(getVCTOption1(device_cost__140), m__145): Ref)
+    __flatten_48__146.Integer__item := __flatten_49__147.Integer__item
+    __flatten_50__148 := m__145
+    m__145 := m__145 + 1
+  }
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_old_cost__143, host_old_cost__102, V__96, 0)
+  inhale (forall i__152: Int :: { (loc(getVCTOption1(host_old_cost__102), i__152): Ref) } { (loc(getVCTOption1(device_old_cost__143), i__152): Ref) } 0 <= i__152 && i__152 < V__96 ==> (loc(getVCTOption1(host_old_cost__102), i__152): Ref).Integer__item == (loc(getVCTOption1(device_old_cost__143), i__152): Ref).Integer__item)
+  __flatten_52__154 := Ref_vercorsCudaMallocInt_EncodedGlobalVariables_Integer(diz, globals, A__97)
+  device_contrib__153 := __flatten_52__154
+  q__155 := 0
+  while (q__155 < A__97)
+    invariant 0 <= q__155 && q__155 <= A__97
+    invariant device_contrib__153 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(device_contrib__153)): Int)
+    invariant (forall __i__158: Int :: { (loc(getVCTOption1(device_contrib__153), __i__158): Ref).Integer__item } 0 <= __i__158 && __i__158 < A__97 ==> acc((loc(getVCTOption1(device_contrib__153), __i__158): Ref).Integer__item, write))
+    invariant (forall k__159: Int :: { (loc(getVCTOption1(device_contrib__153), k__159): Ref) } 0 <= k__159 && k__159 < q__155 ==> (loc(getVCTOption1(device_contrib__153), k__159): Ref).Integer__item == 0) 
+  {
+    __flatten_53__156 := (loc(getVCTOption1(device_contrib__153), q__155): Ref)
+    __flatten_53__156.Integer__item := 0
+    __flatten_54__157 := q__155
+    q__155 := q__155 + 1
+  }
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, device_contrib__153, host_contrib__103, A__97, 0)
+  // assert
+  assert (forall i__160: Int :: { (loc(getVCTOption1(device_contrib__153), i__160): Ref) } 0 <= i__160 && i__160 < A__97 ==> (loc(getVCTOption1(device_contrib__153), i__160): Ref).Integer__item == 0)
+  num_of_blocks__161 := 10
+  num_of_threads_per_block__162 := V__96
+  counter__163 := 0
+  while (counter__163 < V__96 - 1)
+    invariant V__96 == 1024 && A__97 == 10 * V__96
+    invariant 0 <= source__104 && source__104 < V__96
+    invariant 0 <= counter__163 && counter__163 <= V__96 - 1
+    invariant device_start__131 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(device_start__131)): Int)
+    invariant (forall __i__169: Int :: { (loc(getVCTOption1(device_start__131), __i__169): Ref).Integer__item } 0 <= __i__169 && __i__169 < A__97 ==> acc((loc(getVCTOption1(device_start__131), __i__169): Ref).Integer__item, 1 / 2))
+    invariant (forall i__170: Int :: { (loc(getVCTOption1(device_start__131), i__170): Ref) } 0 <= i__170 && i__170 < A__97 ==> 0 <= (loc(getVCTOption1(device_start__131), i__170): Ref).Integer__item && (loc(getVCTOption1(device_start__131), i__170): Ref).Integer__item < V__96)
+    invariant device_end__134 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(device_end__134)): Int)
+    invariant (forall __i__171: Int :: { (loc(getVCTOption1(device_end__134), __i__171): Ref).Integer__item } 0 <= __i__171 && __i__171 < A__97 ==> acc((loc(getVCTOption1(device_end__134), __i__171): Ref).Integer__item, 1 / 2))
+    invariant (forall i__172: Int :: { (loc(getVCTOption1(device_end__134), i__172): Ref) } 0 <= i__172 && i__172 < A__97 ==> 0 <= (loc(getVCTOption1(device_end__134), i__172): Ref).Integer__item && (loc(getVCTOption1(device_end__134), i__172): Ref).Integer__item < V__96)
+    invariant (forall i__173: Int :: { (loc(getVCTOption1(device_start__131), i__173): Ref) } { (loc(getVCTOption1(device_end__134), i__173): Ref) } 0 <= i__173 && i__173 < A__97 ==> (loc(getVCTOption1(device_start__131), i__173): Ref).Integer__item != (loc(getVCTOption1(device_end__134), i__173): Ref).Integer__item)
+    invariant (forall i__174: Int, j__175: Int :: 0 <= i__174 && i__174 < A__97 && (0 <= j__175 && j__175 < A__97 && i__174 != j__175 && (loc(getVCTOption1(device_start__131), i__174): Ref).Integer__item == (loc(getVCTOption1(device_start__131), j__175): Ref).Integer__item) ==> (loc(getVCTOption1(device_end__134), i__174): Ref).Integer__item != (loc(getVCTOption1(device_end__134), j__175): Ref).Integer__item)
+    invariant device_weight__137 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(device_weight__137)): Int)
+    invariant (forall __i__176: Int :: { (loc(getVCTOption1(device_weight__137), __i__176): Ref).Integer__item } 0 <= __i__176 && __i__176 < A__97 ==> acc((loc(getVCTOption1(device_weight__137), __i__176): Ref).Integer__item, 1 / 2))
+    invariant (forall i__177: Int :: { (loc(getVCTOption1(device_weight__137), i__177): Ref) } 0 <= i__177 && i__177 < A__97 ==> 0 < (loc(getVCTOption1(device_weight__137), i__177): Ref).Integer__item)
+    invariant device_old_cost__143 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant V__96 <= (alen(getVCTOption1(device_old_cost__143)): Int)
+    invariant (forall __i__178: Int :: { (loc(getVCTOption1(device_old_cost__143), __i__178): Ref).Integer__item } 0 <= __i__178 && __i__178 < V__96 ==> acc((loc(getVCTOption1(device_old_cost__143), __i__178): Ref).Integer__item, write))
+    invariant device_cost__140 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant V__96 <= (alen(getVCTOption1(device_cost__140)): Int)
+    invariant (forall __i__179: Int :: { (loc(getVCTOption1(device_cost__140), __i__179): Ref).Integer__item } 0 <= __i__179 && __i__179 < V__96 ==> acc((loc(getVCTOption1(device_cost__140), __i__179): Ref).Integer__item, write))
+    invariant (forall i__180: Int :: { (loc(getVCTOption1(device_cost__140), i__180): Ref) } 0 <= i__180 && i__180 < V__96 && i__180 != source__104 ==> (loc(getVCTOption1(device_cost__140), i__180): Ref).Integer__item == Ref_inf(diz) || 0 < (loc(getVCTOption1(device_cost__140), i__180): Ref).Integer__item)
+    invariant (loc(getVCTOption1(device_cost__140), source__104): Ref).Integer__item == 0
+    invariant (forall i__181: Int :: { (loc(getVCTOption1(device_old_cost__143), i__181): Ref) } { (loc(getVCTOption1(device_cost__140), i__181): Ref) } 0 <= i__181 && i__181 < V__96 ==> (loc(getVCTOption1(device_old_cost__143), i__181): Ref).Integer__item == (loc(getVCTOption1(device_cost__140), i__181): Ref).Integer__item)
+    invariant device_contrib__153 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant A__97 <= (alen(getVCTOption1(device_contrib__153)): Int)
+    invariant (forall __i__182: Int :: { (loc(getVCTOption1(device_contrib__153), __i__182): Ref).Integer__item } 0 <= __i__182 && __i__182 < A__97 ==> acc((loc(getVCTOption1(device_contrib__153), __i__182): Ref).Integer__item, write))
+    invariant (forall i__183: Int :: { (loc(getVCTOption1(device_contrib__153), i__183): Ref) } 0 <= i__183 && i__183 < A__97 ==> (loc(getVCTOption1(device_contrib__153), i__183): Ref).Integer__item == 0) 
+  {
+    // assert
+    assert device_old_cost__143 != (VCTNone(): VCTOption[VCTArray[Ref]]) && V__96 <= (alen(getVCTOption1(device_old_cost__143)): Int) && (forall __i__184: Int :: { (loc(getVCTOption1(device_old_cost__143), __i__184): Ref).Integer__item } 0 <= __i__184 && __i__184 < V__96 ==> acc((loc(getVCTOption1(device_old_cost__143), __i__184): Ref).Integer__item, write))
+    Ref_CUDAKernel_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer_Integer_Integer_Integer_Integer(diz, globals, device_start__131, device_end__134, device_weight__137, device_cost__140, device_old_cost__143, device_contrib__153, V__96, A__97, counter__163, source__104, num_of_blocks__161, num_of_threads_per_block__162)
+    n__185 := 0
+    while (n__185 < V__96)
+      invariant 0 <= n__185 && n__185 <= V__96
+      invariant device_old_cost__143 != (VCTNone(): VCTOption[VCTArray[Ref]])
+      invariant V__96 <= (alen(getVCTOption1(device_old_cost__143)): Int)
+      invariant (forall __i__186: Int :: { (loc(getVCTOption1(device_old_cost__143), __i__186): Ref).Integer__item } 0 <= __i__186 && __i__186 < V__96 ==> acc((loc(getVCTOption1(device_old_cost__143), __i__186): Ref).Integer__item, write))
+      invariant device_cost__140 != (VCTNone(): VCTOption[VCTArray[Ref]])
+      invariant V__96 <= (alen(getVCTOption1(device_cost__140)): Int)
+      invariant (forall __i__187: Int :: { (loc(getVCTOption1(device_cost__140), __i__187): Ref).Integer__item } 0 <= __i__187 && __i__187 < V__96 ==> acc((loc(getVCTOption1(device_cost__140), __i__187): Ref).Integer__item, write))
+      invariant (forall k__188: Int :: { (loc(getVCTOption1(device_old_cost__143), k__188): Ref) } { (loc(getVCTOption1(device_cost__140), k__188): Ref) } 0 <= k__188 && k__188 < n__185 ==> (loc(getVCTOption1(device_old_cost__143), k__188): Ref).Integer__item == (loc(getVCTOption1(device_cost__140), k__188): Ref).Integer__item) 
+    {
+      __flatten_57__164 := (loc(getVCTOption1(device_old_cost__143), n__185): Ref)
+      __flatten_58__165 := (loc(getVCTOption1(device_cost__140), n__185): Ref)
+      __flatten_57__164.Integer__item := __flatten_58__165.Integer__item
+      __flatten_59__166 := n__185
+      n__185 := n__185 + 1
+    }
+    // assert
+    assert (forall i__189: Int :: { (loc(getVCTOption1(device_old_cost__143), i__189): Ref) } { (loc(getVCTOption1(device_cost__140), i__189): Ref) } 0 <= i__189 && i__189 < V__96 ==> (loc(getVCTOption1(device_old_cost__143), i__189): Ref).Integer__item == (loc(getVCTOption1(device_cost__140), i__189): Ref).Integer__item)
+    h__190 := 0
+    while (h__190 < A__97)
+      invariant 0 <= h__190 && h__190 <= A__97
+      invariant device_contrib__153 != (VCTNone(): VCTOption[VCTArray[Ref]])
+      invariant A__97 <= (alen(getVCTOption1(device_contrib__153)): Int)
+      invariant (forall __i__191: Int :: { (loc(getVCTOption1(device_contrib__153), __i__191): Ref).Integer__item } 0 <= __i__191 && __i__191 < A__97 ==> acc((loc(getVCTOption1(device_contrib__153), __i__191): Ref).Integer__item, write))
+      invariant (forall k__192: Int :: { (loc(getVCTOption1(device_contrib__153), k__192): Ref) } 0 <= k__192 && k__192 < h__190 ==> (loc(getVCTOption1(device_contrib__153), k__192): Ref).Integer__item == 0) 
+    {
+      __flatten_60__167 := (loc(getVCTOption1(device_contrib__153), h__190): Ref)
+      __flatten_60__167.Integer__item := 0
+      __flatten_61__168 := h__190
+      h__190 := h__190 + 1
+    }
+    counter__163 := counter__163 + 1
+  }
+  Ref_vercorsCudaMemcpyInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Integer(diz, globals, host_cost__101, device_cost__140, V__96, 1)
+  Ref_vercorsFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, host_start__98)
+  Ref_vercorsFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, host_end__99)
+  Ref_vercorsFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, host_weight__100)
+  Ref_vercorsFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, host_cost__101)
+  Ref_vercorsCudaFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, device_start__131)
+  Ref_vercorsCudaFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, device_end__134)
+  Ref_vercorsCudaFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, device_weight__137)
+  Ref_vercorsCudaFreeInt_EncodedGlobalVariables_Option$Array$Cell$Integer$$$(diz, globals, device_cost__140)
+  sys__result := 0
+  // assert
+  assert true
+  inhale false
+}

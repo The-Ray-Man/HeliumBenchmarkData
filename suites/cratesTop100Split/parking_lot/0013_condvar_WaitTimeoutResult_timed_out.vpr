@@ -1,0 +1,125 @@
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_condvar$col$$col$WaitTimeoutResult {
+    inhabited(s_condvar$col$$col$WaitTimeoutResult_type()) ==
+    inhabited(s_Bool_type())
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_condvar$col$$col$WaitTimeoutResult  {
+  
+  axiom s_condvar$col$$col$WaitTimeoutResult_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_condvar$col$$col$WaitTimeoutResult_type())
+  }
+  
+  axiom s_condvar$col$$col$WaitTimeoutResult_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_condvar$col$$col$WaitTimeoutResult_type())
+  }
+}
+
+field p_Bool_val: Bool
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_condvar$col$$col$WaitTimeoutResult_unreachable(): s_condvar$col$$col$WaitTimeoutResult
+  ensures false
+
+
+function s_condvar$col$$col$WaitTimeoutResult_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_condvar$col$$col$WaitTimeoutResult_snap(self: Ref): s_condvar$col$$col$WaitTimeoutResult
+  requires acc(p_condvar$col$$col$WaitTimeoutResult(self), write)
+{
+  (unfolding acc(p_condvar$col$$col$WaitTimeoutResult(self), write) in
+    s_condvar$col$$col$WaitTimeoutResult_cons(p_Bool_snap(s_condvar$col$$col$WaitTimeoutResult_field_0(self))))
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_condvar$col$$col$WaitTimeoutResult(self: Ref) {
+  inhabited(s_Bool_type()) &&
+  acc(p_Bool(s_condvar$col$$col$WaitTimeoutResult_field_0(self)), write)
+}
+
+method m_condvar$col$$col$WaitTimeoutResult$col$$col$timed_out(_0p: Ref, _1p: Ref)
+  requires inhabited(s_condvar$col$$col$WaitTimeoutResult_type()) &&
+    acc(p_condvar$col$$col$WaitTimeoutResult(_1p), write)
+  ensures inhabited(s_Bool_type()) && acc(p_Bool(_0p), write)
+{
+  var _tmp0: Bool
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_condvar$col$$col$WaitTimeoutResult(_1p), write)
+  _tmp0 := p_Bool_snap(s_condvar$col$$col$WaitTimeoutResult_field_0(_1p))
+  p_Bool_assign(_0p, _tmp0)
+  label _before_0_1
+  fold acc(p_condvar$col$$col$WaitTimeoutResult(_1p), write)
+  label package_post0
+  goto end
+  label end
+}
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_condvar$col$$col$WaitTimeoutResult_assign(self: Ref, value: s_condvar$col$$col$WaitTimeoutResult)
+  ensures acc(p_condvar$col$$col$WaitTimeoutResult(self), write)
+  ensures p_condvar$col$$col$WaitTimeoutResult_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_condvar$col$$col$WaitTimeoutResult {
+  s_condvar$col$$col$WaitTimeoutResult_cons(s_condvar$col$$col$WaitTimeoutResult_0: Bool)
+}
+
+adt Type {
+  s_Bool_type()
+  s_condvar$col$$col$WaitTimeoutResult_type()
+  Unknown_type(id: Int)
+}

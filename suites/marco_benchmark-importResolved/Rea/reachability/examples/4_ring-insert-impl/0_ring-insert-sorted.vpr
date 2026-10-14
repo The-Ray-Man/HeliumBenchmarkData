@@ -1,0 +1,1412 @@
+// ===== begin import: Rea/reachability/_preambles/TrCloDomain.vpr =====
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+domain TriggerWisdoms {
+    function __learn_trigger__($b$: Bool): Bool
+    function __trigger_ref__($r$: Ref): Bool
+    function __learn_edge__($e$: Edge): Bool
+    function __trigger_path($p$: Ref): Bool
+
+    axiom ax_Dummy {
+        forall $b$:Bool :: 
+            { __learn_trigger__($b$) } 
+                __learn_trigger__($b$)
+    }
+}
+
+domain Edge {
+    function edge_pred(e0: Edge): Ref
+    function edge_succ(e0: Edge): Ref
+
+    function create_edge(x0:Ref, y0:Ref): Edge
+    function create_edge_(x0:Ref, y0:Ref): Edge
+
+    axiom edge_injectivity {
+        forall x0:Ref, y0:Ref ::
+            { create_edge(x0,y0) }
+                edge_pred( create_edge(x0,y0) ) == x0 &&
+                edge_succ( create_edge(x0,y0) ) == y0
+    }
+}
+
+domain TrClo {
+
+    function exists_path(EG:Set[Edge], from:Ref, to:Ref): Bool
+    function exists_path_(EG:Set[Edge], from:Ref, to:Ref): Bool
+    function exists_spath(EG:Set[Edge], from:Set[Ref], to:Ref): Bool
+    function exists_paths(EG:Set[Edge], from:Ref, to:Set[Ref]): Bool
+
+    /** axiomatization of the set for instantiating color axioms with unary reachability */
+    function inst_uReach(EG:Set[Edge], x0:Ref): Set[Ref]
+    function inst_uReach_rev(EG:Set[Edge], x0:Ref): Set[Ref]
+
+    /** The properties of the edge relation. */
+    function acyclic_graph(EG:Set[Edge]): Bool
+    function unshared_graph(EG:Set[Edge]): Bool
+    function func_graph(EG:Set[Edge]): Bool
+
+
+    function edge(EG:Set[Edge], p0:Ref, s0:Ref): Bool
+    function edge_(EG:Set[Edge], p0:Ref, s0:Ref): Bool
+
+    function succs(EG:Set[Edge], pred:Ref): Set[Ref]
+
+    axiom ax_Succs {
+        forall EG:Set[Edge], pred:Ref, succ:Ref ::
+            { succ in succs(EG,pred) }
+                succ in succs(EG,pred) <==> edge_(EG,pred,succ)
+    }
+
+    axiom ax_EdgeSynonim {
+        forall EG:Set[Edge], p0:Ref, s0:Ref ::
+            { edge(EG,p0,s0) }
+                edge(EG,p0,s0) <==> edge_(EG,p0,s0)
+    }
+    
+    axiom ax_Edge {
+        forall EG:Set[Edge], p0:Ref, s0:Ref ::
+            { create_edge(p0,s0) in EG }
+            { edge(EG,p0,s0) }
+                edge_(EG,p0,s0) <==> create_edge(p0,s0) in EG
+    }
+
+    axiom ax_instantiation_uReach {
+        forall EG:Set[Edge], x0:Ref, v0: Ref ::
+            { v0 in inst_uReach(EG,x0) }
+            { exists_path(EG,x0,v0) }
+                v0 in inst_uReach(EG,x0) <==> exists_path(EG,x0,v0)
+    }
+
+    axiom ax_instantiation_uReach_rev {
+        forall EG:Set[Edge], u0: Ref, y0:Ref ::
+            { u0 in inst_uReach_rev(EG,y0) }
+            { exists_path(EG,u0,y0) }
+                u0 in inst_uReach_rev(EG,y0) <==> exists_path(EG,u0,y0)
+    }
+
+    axiom ax_Alias {
+        forall EG:Set[Edge], from:Ref, to:Ref ::
+            { exists_path(EG,from,to) }
+                exists_path(EG,from,to) <==> exists_path_(EG,from,to)
+    }
+
+    axiom ax_EdgeMeansPath {
+        forall EG:Set[Edge], from:Ref, to:Ref ::
+            { exists_path(EG, from, to) }
+                edge(EG, from, to) ==> exists_path(EG, from, to)
+    }
+
+    /** T1 -- Ref-oriented encoding */
+    axiom ax_ExistsPath {
+        (forall EG: Set[Edge], from: Ref, to: Ref ::
+            { exists_path(EG, from, to) }
+            //{ edge(EG, from, to) } -- using ax_EdgeMeansPath instead
+                exists_path_(EG, from, to) ==> (from == to || (edge(EG, from, skolem_w(EG,from,to)) && exists_path_(EG, skolem_w(EG,from,to), to))))
+        &&
+        (forall EG: Set[Edge], from: Ref, middle: Ref, to: Ref ::
+            { edge(EG, from, middle), exists_path(EG, middle, to) }
+            { edge(EG, from, middle), exists_path(EG, from, to) }
+            { exists_path(EG, middle, to), exists_path(EG, from, to) }
+                (from == to || (edge(EG, from, middle) && exists_path_(EG, middle, to))) ==> exists_path_(EG, from, to) )
+    }
+
+    /** Follows from T1 && IND */
+    axiom ax_ExistsPathTrans {
+        forall EG:Set[Edge], u0:Ref, v0:Ref, w0:Ref ::
+            { exists_path(EG,u0,w0), exists_path(EG,w0,v0) } //TODO multipattern
+            { exists_path_(EG,u0,w0), exists_path(EG,w0,v0) }
+            { exists_path(EG,u0,w0), exists_path_(EG,w0,v0) }
+                exists_path_(EG,u0,w0) && exists_path_(EG,w0,v0) ==> exists_path_(EG,u0,v0)
+    }
+
+    axiom ax_AcyclicGraph {
+        forall EG:Set[Edge] ::
+            { acyclic_graph(EG) }
+                acyclic_graph(EG) <==>
+                    forall v1:Ref, v2:Ref ::
+                        { edge(EG,v1,v2) }
+                        { exists_path(EG,v2,v1) }
+                            !edge(EG,v1,v2) || !exists_path(EG,v2,v1)
+    }
+
+    axiom ax_UnsharedGraph {
+        forall EG:Set[Edge] ::
+            { unshared_graph(EG) }
+                unshared_graph(EG) <==>
+                    forall v1:Ref, v2:Ref, v0:Ref ::
+                        { edge(EG,v1,v0), edge(EG,v2,v0) } //TODO multipattern
+                            edge(EG,v1,v0) && edge(EG,v2,v0) ==> v1 == v2
+    }
+
+    axiom ax_FuncGraph {
+        forall EG:Set[Edge] ::
+            { func_graph(EG) }
+                func_graph(EG) <==>
+                    forall v1:Ref, v2:Ref, v0:Ref ::
+                        { edge(EG,v0,v1), edge(EG,v0,v2) }
+                            edge(EG,v0,v1) && edge(EG,v0,v2) ==> v1 == v2
+    }
+
+    axiom ax_ExistsSetPath {
+        forall EG:Set[Edge], from:Set[Ref], to:Ref ::
+            { exists_spath(EG,from,to) }
+                exists_spath(EG,from,to) <==>
+                    !(forall f0:Ref ::
+                        { f0 in from }
+                        { exists_path(EG, f0, to) }
+                            !(f0 in from && exists_path(EG,f0,to)))
+    }
+
+    axiom ax_ExistsPathSet {
+        forall EG:Set[Edge], from:Ref, to:Set[Ref] ::
+            { exists_paths(EG,from,to) }
+                exists_paths(EG,from,to) <==>
+                    !(forall t0:Ref ::
+                        { t0 in to }
+                        { exists_path(EG, from, t0) }
+                            !(t0 in to && exists_path(EG,from,t0)))
+    }
+}
+// ===== end import: Rea/reachability/_preambles/TrCloDomain.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/TrCloZopgDomain.vpr =====
+domain ZeroOnePathGraphTCs {
+
+    function exists_DEP(EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref): Bool
+    function exists_DEP_alias(EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref): Bool
+
+    function depskolem_U(EG:Set[Edge], x0:Ref, y0:Ref): Ref
+    function depskolem_V(EG:Set[Edge], x0:Ref, y0:Ref): Ref
+
+    axiom ax_DEP_alias {
+        forall EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref ::
+            { exists_DEP(EG,x0,y0,u0,v0) }
+                exists_DEP(EG,x0,y0,u0,v0) <==> exists_DEP_alias(EG,x0,y0,u0,v0)
+    }
+
+    axiom ax_DepToTc {
+        forall EG:Set[Edge], x0:Ref, y0:Ref, u0:Ref, v0:Ref :: 
+            { exists_DEP(EG, x0, y0, u0, v0) }
+                exists_DEP(EG, x0, y0, u0, v0) ==> 
+                    exists_path(EG, x0, y0) && 
+                    edge(EG, u0, v0) && 
+                    (u0 != v0)
+    }
+
+    axiom ax_TcToDep {
+        forall EG:Set[Edge], x0:Ref, y0:Ref :: 
+            { exists_path(EG, x0, y0) }
+                exists_path(EG, x0, y0) && x0 != y0 ==> 
+                    (depskolem_U(EG, x0, y0) != depskolem_V(EG, x0, y0)) && 
+                    edge(EG, depskolem_U(EG, x0, y0), depskolem_V(EG, x0, y0)) && 
+                    exists_DEP(EG, x0, y0, depskolem_U(EG, x0, y0), 
+                                           depskolem_V(EG, x0, y0))
+    }
+
+    axiom ax_NoTrivialDep {
+        forall EG:Set[Edge], x0:Ref, u0:Ref, v0:Ref :: 
+            { exists_DEP(EG, x0, x0, u0, v0) }
+                !exists_DEP(EG, x0, x0, u0, v0)
+    }
+}
+// ===== end import: Rea/reachability/_preambles/TrCloZopgDomain.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/skolems.vpr =====
+domain $SkolemFunctions$ {
+
+    /** Used in _preambles/TrCloDomain.vpr */
+    function skolem_w(EG: Set[Edge], from: Ref, to: Ref): Ref
+
+    /** USed in _preambles/legoFraming.vpr */
+    function skolem_alpha(x0: Ref, y0: Ref): Ref
+    function skolem_alpha1(x0: Ref, y0: Ref): Ref
+    function skolem_alpha2(x0: Ref, y0: Ref): Ref
+    function skolem_alpha3(x0: Ref, y0: Ref): Ref
+    function skolem_alpha4(x0: Ref, y0: Ref): Ref
+    function skolem_alpha5(x0: Ref, y0: Ref): Ref
+    function skolem_alpha6(x0: Ref, y0: Ref): Ref
+    function skolem_alpha7(x0: Ref, y0: Ref): Ref
+    function skolem_alpha8(x0: Ref, y0: Ref): Ref
+    function skolem_alpha9(x0: Ref, y0: Ref): Ref
+    function skolem_alpha10(x0: Ref, y0: Ref): Ref
+    function skolem_alpha11(x0: Ref, y0: Ref): Ref
+    function skolem_alpha12(x0: Ref, y0: Ref): Ref
+
+    function skolem_beta9(x0: Ref, y0: Ref): Ref
+    function skolem_beta10(x0: Ref, y0: Ref): Ref
+    function skolem_beta11(x0: Ref, y0: Ref): Ref
+    function skolem_beta12(x0: Ref, y0: Ref): Ref
+
+    /** Unused */
+    function skolem_tran(EG: Set[Edge], x0: Ref, y0: Ref): Ref
+}
+// ===== end import: Rea/reachability/_preambles/skolems.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/legoFraming.vpr =====
+// Overlapping Purification: 
+//  only the beginning of the edges and paths is in the set; 
+//  the ends may or may not be in the set. 
+//  This may be useful for framing. 
+function $$(nodes0: Set[Ref]): Set[Edge]
+    requires READONLY_NODES(nodes0)
+    ensures (forall v001: Ref, v002: Ref :: 
+        { create_edge(v001, v002) } 
+            ((v001 in nodes0) && (v002 != null) && (HEAP_PARTIAL_ORDER(v001,v002))) <==> (create_edge(v001, v002) in result))
+    ensures (forall v001: Ref, v002:Ref :: 
+        { create_edge(v001, v002) }
+            (create_edge(v001, v002) in result) && CLOSED(nodes0) ==> v002 in nodes0)
+    ensures (forall smaller_EG: Set[Edge], v001:Ref, v002:Ref :: 
+        { exists_path(smaller_EG, v001, v002), exists_path(result, v001, v002) }
+            (smaller_EG subset result) &&  
+                exists_path(smaller_EG, v001, v002) ==> exists_path(result, v001, v002))
+
+// TODO: Check triggers
+define CONVEX(state, local_nodes, global_nodes)
+    (local_nodes subset global_nodes) && 
+    (forall v001:Ref, v002:Ref, u000:Ref :: 
+
+        // { __convex_trigger__(local_nodes, global_nodes, v001, v002, u000) }
+        { P(state, global_nodes, v001, u000), P(state, global_nodes, u000, v002) }
+
+            __convex_trigger__(local_nodes, global_nodes, v001, v002, u000) &&
+            v001 in local_nodes && v002 in local_nodes && !(u000 in local_nodes) && u000 in global_nodes ==> 
+                !(P(state, global_nodes, v001, u000) && P(state, global_nodes, u000, v002)))
+
+// TODO: Check triggers
+define CONVEX_(local_nodes, global_nodes)
+    (local_nodes subset global_nodes) && 
+    (forall v001:Ref, v002:Ref, u000:Ref :: 
+
+        // { __convex_trigger__(local_nodes, global_nodes, v001, v002, u000) }
+        { P_(global_nodes, v001, u000), P_(global_nodes, u000, v002) }
+
+            __convex_trigger__(local_nodes, global_nodes, v001, v002, u000) &&
+            v001 in local_nodes && v002 in local_nodes && !(u000 in local_nodes) && u000 in global_nodes ==> 
+                !(P_(global_nodes, v001, u000) && P_(global_nodes, u000, v002)))
+
+// Local definiton for convexity
+define LCONVEX_(local_nodes, frame_nodes)
+    (DISJOINT(local_nodes, frame_nodes)) &&
+    (forall v001:Ref, v002:Ref, u000:Ref :: 
+        
+        // { __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) }
+        { P_(local_nodes, v001, u000), P_(frame_nodes, u000, v002) }
+
+            __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) && 
+            v001 in local_nodes && v002 in local_nodes && u000 in frame_nodes ==> 
+                !P_(local_nodes, v001, u000) || !P_(frame_nodes, u000, v002))
+
+// Local definiton for convexity
+define LCONVEX(state, local_nodes, frame_nodes)
+    (DISJOINT(local_nodes, frame_nodes)) &&
+    (forall v001:Ref, v002:Ref, u000:Ref :: 
+        
+        // { __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) }
+        { P(state, local_nodes, v001, u000), P(state, frame_nodes, u000, v002) }
+
+            __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) && 
+            v001 in local_nodes && v002 in local_nodes && u000 in frame_nodes ==> 
+                !P(state, local_nodes, v001, u000) || !P(state, frame_nodes, u000, v002))
+
+define CHECK_CONVEXITY_CONDITION(local_nodes, global_nodes) 
+    (CLOSED(local_nodes) || 
+    CLOSED(global_nodes setminus local_nodes) || 
+    CLOSED_IN(local_nodes, global_nodes) || 
+    CONVEX_(local_nodes, global_nodes) || 
+    LCONVEX_(local_nodes, global_nodes setminus local_nodes))
+
+define CHECK_CONVEXITY_CONDITION_IN_STATE(state_label, local_nodes, global_nodes) 
+    (old[state_label](CLOSED(local_nodes)) || 
+    old[state_label](CLOSED(global_nodes setminus local_nodes)) || 
+    old[state_label](CLOSED_IN(local_nodes, global_nodes)) || 
+    CONVEX(state_label, local_nodes, global_nodes) || 
+    LCONVEX(state_label, local_nodes, global_nodes setminus local_nodes))
+
+define CHECK_CONVEXITY(local_nodes, global_nodes) {
+
+    if (__CONVEXITY_CHECKES) { 
+        assert CHECK_CONVEXITY_CONDITION(local_nodes, global_nodes)
+        // assume 
+        //     CONVEX_(local_nodes, global_nodes) && 
+        //     LCONVEX_(local_nodes, global_nodes setminus local_nodes)
+    }
+}
+
+define CHECK_CONVEXITY_IN_STATE(state_label, local_nodes, global_nodes) {
+
+    if (__CONVEXITY_CHECKES) { 
+        assert CHECK_CONVEXITY_CONDITION_IN_STATE(state_label, local_nodes, global_nodes)
+        // assume 
+        //     CONVEX(state_label, local_nodes, global_nodes) && 
+        //     LCONVEX(state_label, local_nodes, global_nodes setminus local_nodes)
+    }
+}
+
+
+
+// Some auxiliary functions that are used exclusively for triggering. 
+
+function __impossible_to_trigger__(a000:Ref, a001:Ref, a002:Ref): Bool
+
+/** 
+ * Some checks (e.g., convexity cehcks) result in interemediate lemmas that we would do not need afterwards. 
+ * However, if a quantified formula has an "impossible" trigger (i.e., a term that never appears), then such a formula 
+ *  cannot be asserted after it has was assumed. 
+ * One solution here is to introduce a trigger that would be unique for a given list of quantified variables and 
+ *  the quantified formula under consideration. For example, for LCONVEX_, we will use the following trigger: 
+ *  { __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) }, where the term 
+ *    __lconvex_trigger__(local_nodes, frame_nodes, v001, v002, u000) must be conjoined to the LHS of the quantifier's body. 
+ */
+function __lconvex_trigger__(local_nodes: Set[Ref], frame_nodes: Set[Ref], v001: Ref, v002: Ref, u000: Ref): Bool
+    ensures result == true
+function __convex_trigger__(local_nodes: Set[Ref], global_nodes: Set[Ref], v001: Ref, v002: Ref, u000: Ref): Bool
+    ensures result == true
+
+function __register_frame__(f003:Set[Edge], ctx003:Set[Edge]): Bool
+
+function __trigger_conv_framing_Entries__(bla_1:Ref, bla_2:Ref, bla_3:Ref): Bool
+    ensures true
+
+function __trigger_conv_framing_eXits__(bla_1:Ref, bla_2:Ref, bla_3:Ref): Bool
+    ensures true
+
+function dummy(v001:Ref, v002:Ref): Bool
+
+function subIn(footprint: Set[Ref], t: Set[Ref], sub_root: Ref): Set[Ref]
+    requires GRAPH(footprint)
+    requires sub_root in t    
+    requires t subset footprint
+    ensures result subset t
+    ensures CLOSED_IN(result, t)
+    ensures sub_root in result
+    ensures forall n:Ref :: 
+        { n in result, P_(footprint, sub_root, n) }
+            n in result ==> P_(footprint, sub_root, n)
+    ensures forall n:Ref :: 
+        { P_(footprint, sub_root, n) }
+           P_(footprint, sub_root, n) ==> n in result 
+
+define EnableFocusOnConvexSubHeap(GLOB, MOD) {
+
+    // Soundness Checks
+    assert MOD subset GLOB
+    CHECK_CONVEXITY(MOD, GLOB)
+
+    if ( MOD != GLOB ) {
+
+    // Focus for closed partitions
+    assume (forall v001:Ref, v002:Ref :: 
+        { P_(GLOB, v001, v002) }
+        { P_(MOD, v001, v002) } 
+            (v001 in MOD) && (v002 in MOD) ==> 
+                (P_(GLOB, v001, v002) <==> P_(MOD, v001, v002)))
+
+    // Outgoing local paths
+    assume (forall v001:Ref, v002:Ref :: 
+        { P_(MOD, v001, v002) } 
+            (v001 in MOD) && !(v002 in MOD) && 
+            P_(MOD, v001, v002) ==> P_(GLOB, v001, v002))
+
+    assume (forall v001:Ref, v002:Ref :: 
+        { E_(MOD, v001, v002) }
+        { E_(GLOB, v001, v002) }
+            (v001 in MOD) ==> 
+                (E_(GLOB, v001, v002) <==> E_(MOD, v001, v002)))
+
+    assume (forall u0:Ref, v0:Ref :: 
+        { P_(GLOB, u0, v0) }
+            u0 in MOD && !(v0 in MOD) && CLOSED(MOD)
+                ==> !P_(GLOB, u0, v0))
+
+    } // end if ( MOD != GLOB ) 
+}
+
+define EnableFocusForConvexSubHeap(GLOB, HEAP) {
+    // Soundness Checks
+    assert HEAP subset GLOB
+    CHECK_CONVEXITY(HEAP, GLOB)
+
+    if ( HEAP != GLOB ) {
+    
+    assume (forall v001:Ref, v002:Ref :: 
+        { P_(GLOB, v001, v002) }
+        { P_(HEAP, v001, v002) } 
+            (v001 in HEAP) && (v002 in HEAP) && P_(GLOB, v001, v002) ==> P_(HEAP, v001, v002))
+    }
+}
+
+define EnableFocus(GLOB, HEAP) {
+    
+    // Soundness Checks
+    assert HEAP subset GLOB
+
+    if ( HEAP != GLOB ) {
+
+    assume (forall v001:Ref, v002:Ref :: 
+        // { P_(GLOB, v001, v002) }
+        { P_(HEAP, v001, v002) } 
+            (v001 in HEAP) /*&& (v002 in HEAP)*/ && P_(HEAP, v001, v002) ==> P_(GLOB, v001, v002))
+
+    // Seems to be more efficient to assume this property only for footprints; the frame might also be 
+    //  convex, but we do not need to duplicate this fact here. 
+    // assume (CHECK_CONVEXITY_CONDITION(HEAP, GLOB)) ==> (forall v001:Ref, v002:Ref :: 
+    //     { P_(GLOB, v001, v002) }
+    //     { P_(HEAP, v001, v002) } 
+    //         (v001 in HEAP) && (v002 in HEAP) && P_(GLOB, v001, v002) ==> P_(HEAP, v001, v002))
+
+    assume (forall v001:Ref, v002:Ref :: 
+        { E_(HEAP, v001, v002) }
+        { E_(GLOB, v001, v002) }
+            (v001 in HEAP) ==> 
+                (E_(GLOB, v001, v002) <==> E_(HEAP, v001, v002)))
+
+    assume (forall u0:Ref, v0:Ref :: 
+        { P_(GLOB, u0, v0) }
+            u0 in HEAP && !(v0 in HEAP) && CLOSED(HEAP)
+                ==> !P_(GLOB, u0, v0))
+
+    } // end if ( HEAP != GLOB ) 
+}
+
+define PARTITION_PATHS_BEFORE_METHOD_CALL(MOD, GLOB, FRAME) {
+    // Soundness Checks
+    assert GLOB == MOD union FRAME
+    assert DISJOINT(MOD, FRAME)
+    CHECK_CONVEXITY(MOD, GLOB)
+
+    if ( MOD != GLOB ) {
+        EnableFocusOnConvexSubHeap(GLOB, MOD)
+        if ( CHECK_CONVEXITY_CONDITION(MOD, GLOB) ) {
+            EnableFocusOnConvexSubHeap(GLOB, FRAME)
+        } else {
+            EnableFocus(GLOB, FRAME)
+            assume (forall v001:Ref, v002:Ref :: 
+        
+                { P_(FRAME, v001, v002) }
+                { P_(GLOB, v001, v002) } 
+
+                    v001 in FRAME && v002 in FRAME && 
+                    (forall z:Ref :: 
+                        { P_(GLOB, v001, z), P_(GLOB, z, v002) } 
+                            z in MOD ==> !P_(GLOB, v001, z) || !P_(GLOB, z, v002))
+                    ==> (P_(FRAME, v001, v002) == P_(GLOB, v001, v002))
+                )
+            assume (forall v001:Ref, v002:Ref :: 
+        
+                { P_(FRAME, v001, v002) }
+
+                    v001 in FRAME && v002 in FRAME && 
+                    !(forall z:Ref :: 
+                        { P_(GLOB, v001, z), P_(GLOB, z, v002) } 
+                            z in MOD ==> !P_(GLOB, v001, z) || !P_(GLOB, z, v002))
+                    ==> (P_(FRAME, v001, v002) ==> (
+
+                        !(forall sigma:Ref, tau:Ref :: 
+                            { P_(GLOB, v001, sigma), E_(GLOB, sigma, tau), P_(GLOB, tau, v002) } 
+                                !( sigma in FRAME && !(forall z: Ref :: { P_(GLOB, sigma, z) } z in MOD ==> !P_(GLOB, sigma, z)) && 
+                                     tau in FRAME &&  (forall z: Ref :: { P_(GLOB, tau, z)   } z in MOD ==> !P_(GLOB, tau,   z)) && 
+                                P_(GLOB, v001, sigma) && E_(GLOB, sigma, tau) && P_(GLOB, tau, v002)))
+                    )))
+        }
+    }
+}
+
+define ApplyConvexTCFraming(s_old, s_new, MOD, GLOB, FRAME) {
+
+    // Soundness Checks
+    assert GLOB == MOD union FRAME
+    assert DISJOINT(MOD, FRAME)
+    CHECK_CONVEXITY(MOD, GLOB)
+
+    if ( MOD != GLOB ) {
+
+    // -------- O. Frame=const --------
+    assume old[s_old]( $$(FRAME) ) == old[s_new]( $$(FRAME) )
+
+    // Help triggering
+    assert (forall v001:Ref, v002:Ref :: 
+        { P(s_old, GLOB, v001, v002) }
+        { P(s_new, GLOB, v001, v002) }
+            v001 in FRAME ==> __learn_trigger__( P(s_old, FRAME, v001, v002) ))
+
+    // ----------------------------- // ----------------------------- // -----------------------------
+    // -------- II. Out-In --------- // ----------------------------- // -----------------------------
+    // ----------------------------- // ----------------------------- // -----------------------------
+
+    // Out-In-split in pre-state
+    assume (forall v001:Ref, v002:Ref :: 
+
+        { P(s_old, GLOB, v001, v002) }
+           
+            // v001 in FRAME && v002 in MOD &&
+            v001 in FRAME && /*v002 in MOD &&*/ !(v002 in FRAME) && 
+            P(s_old, GLOB, v001, v002) ==> 
+                (skolem_alpha1(v001,v002) in MOD) &&
+                P(s_old, FRAME, v001, skolem_alpha1(v001,v002)) && 
+                P(s_old, MOD, skolem_alpha1(v001,v002), v002))
+
+    // Out-In-merge in pre-state
+    assume (forall v001:Ref, v002:Ref, alpha:Ref :: 
+
+            { P(s_old, FRAME, v001, alpha), P(s_old, MOD, alpha, v002) } 
+
+                // (v001 in FRAME) && (v002 in MOD) &&
+                (v001 in FRAME) && /*(v002 in MOD) &&*/ !(v002 in FRAME) && 
+                (alpha in MOD) &&
+                    P(s_old, FRAME, v001, alpha) && P(s_old, MOD, alpha, v002) ==>
+                        P(s_old, GLOB, v001, v002))
+
+    // Out-In-frame-split 
+    assume (forall v001:Ref, v002:Ref :: 
+            
+            { P(s_new, GLOB, v001, v002) }
+
+                // (v001 in FRAME) && (v002 in MOD) &&
+                (v001 in FRAME) && /*(v002 in MOD) &&*/ !(v002 in FRAME) && 
+                P(s_new, GLOB, v001, v002) ==> 
+                    (skolem_alpha3(v001,v002) in MOD) &&
+                    P(s_old, FRAME, v001, skolem_alpha3(v001,v002)) && 
+                    P(s_new, MOD, skolem_alpha3(v001,v002), v002))
+
+    // Out-In-frame-merge
+    assume (forall v001:Ref, v002:Ref, alpha:Ref :: 
+
+            { P(s_old, FRAME, v001, alpha), P(s_new, MOD, alpha, v002) }
+
+                // (v001 in FRAME) && (v002 in MOD) &&
+                (v001 in FRAME) && /*(v002 in MOD) &&*/ !(v002 in FRAME) &&
+                (alpha in MOD) &&
+                    P(s_old, FRAME, v001, alpha) && P(s_new, MOD, alpha, v002) ==> 
+                        P(s_new, GLOB, v001, v002))
+
+
+    // ----------------------------- // ----------------------------- // -----------------------------
+    // -------- III. In-Out -------- // ----------------------------- // -----------------------------
+    // ----------------------------- // ----------------------------- // -----------------------------
+
+    // In-Out-split in pre-state
+    assume (forall v001:Ref, v002:Ref :: 
+
+        { P(s_old, GLOB, v001, v002) }
+           
+            // v001 in MOD && v002 in FRAME &&
+            v001 in MOD && /*v002 in FRAME &&*/ !(v002 in MOD) && 
+            P(s_old, GLOB, v001, v002) ==> 
+                (skolem_beta9(v001,v002) in FRAME) &&
+                P(s_old, MOD, v001, skolem_beta9(v001,v002)) && 
+                P(s_old, FRAME, skolem_beta9(v001,v002), v002))
+
+    // In-Out-merge in pre-state
+    assume (forall v001:Ref, v002:Ref, beta:Ref :: 
+
+            { P(s_old, MOD, v001, beta), P(s_old, FRAME, beta, v002) } 
+
+                // (v001 in MOD) && (v002 in FRAME) &&
+                (v001 in MOD) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                (beta in FRAME) &&
+                    P(s_old, MOD, v001, beta) && P(s_old, FRAME, beta, v002) ==>
+                        P(s_old, GLOB, v001, v002))
+
+    // In-Out-frame-split 
+    assume (forall v001:Ref, v002:Ref :: 
+
+        { P(s_new, GLOB, v001, v002) }
+           
+            // v001 in MOD && v002 in FRAME &&
+            v001 in MOD && /*v002 in FRAME &&*/ !(v002 in MOD) && 
+            P(s_new, GLOB, v001, v002) ==> 
+                (skolem_beta10(v001,v002) in FRAME) &&
+                P(s_new, MOD, v001, skolem_beta10(v001,v002)) && 
+                P(s_old, FRAME, skolem_beta10(v001,v002), v002))
+
+    // In-Out-frame-merge 
+    assume (forall v001:Ref, v002:Ref, beta:Ref :: 
+
+            { P(s_new, MOD, v001, beta), P(s_old, FRAME, beta, v002) } 
+
+                // (v001 in MOD) && (v002 in FRAME) &&
+                (v001 in MOD) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                (beta in FRAME) &&
+                    P(s_new, MOD, v001, beta) && P(s_old, FRAME, beta, v002) ==>
+                        P(s_new, GLOB, v001, v002))
+
+
+    // ----------------------------- // ----------------------------- // -----------------------------
+    // -------- IV. Out-Out -------- // ----------------------------- // ----------------------------- 
+    // ----------------------------- // ----------------------------- // -----------------------------
+
+    // Out-Out-split in pre-state 
+    assume (forall v001:Ref, v002:Ref :: 
+
+        { P(s_old, GLOB, v001, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) &&
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                P(s_old, GLOB, v001, v002) ==> 
+                    P(s_old, FRAME, v001, v002) || 
+                    ((skolem_alpha11(v001,v002) in MOD) && 
+                     (skolem_beta11(v001,v002) in FRAME) && 
+                     P(s_old, FRAME, v001, skolem_alpha11(v001,v002)) && P(s_old, MOD, skolem_alpha11(v001,v002), skolem_beta11(v001,v002)) && P(s_old, FRAME, skolem_beta11(v001,v002), v002)))
+                    
+
+    // Out-Out-merge-1 in pre-state
+    assume (forall v001:Ref, v002:Ref, alpha:Ref, beta:Ref :: 
+        
+        { P(s_old, FRAME, v001, alpha), P(s_old, MOD, alpha, beta), P(s_old, FRAME, beta, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) &&
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                (alpha in MOD) && (beta in FRAME) &&
+                P(s_old, FRAME, v001, alpha) && P(s_old, MOD, alpha, beta) && P(s_old, FRAME, beta, v002) ==> 
+                    P(s_old, GLOB, v001, v002))
+
+    // Out-Out-merge-2 in pre-state
+    assume (forall v001:Ref, v002:Ref :: 
+        
+        { P(s_old, FRAME, v001, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) &&
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                P(s_old, FRAME, v001, v002) ==> 
+                    P(s_old, GLOB, v001, v002))
+
+    // Out-Out-frame-split 
+    assume (forall v001:Ref, v002:Ref :: 
+
+        { P(s_new, GLOB, v001, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) && 
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                P(s_new, GLOB, v001, v002) ==> 
+                    P(s_old, FRAME, v001, v002) || 
+                    ((skolem_alpha12(v001,v002) in MOD) && 
+                     (skolem_beta12(v001,v002) in FRAME) && 
+                     P(s_old, FRAME, v001, skolem_alpha12(v001,v002)) && P(s_new, MOD, skolem_alpha12(v001,v002), skolem_beta12(v001,v002)) && P(s_old, FRAME, skolem_beta12(v001,v002), v002)))
+                    
+    // Out-Out-frame-merge-1  
+    assume (forall v001:Ref, v002:Ref, alpha:Ref, beta:Ref :: 
+        
+        { P(s_old, FRAME, v001, alpha), P(s_new, MOD, alpha, beta), P(s_old, FRAME, beta, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) && 
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                (alpha in MOD) && (beta in FRAME) &&
+                P(s_old, FRAME, v001, alpha) && P(s_new, MOD, alpha, beta) && P(s_old, FRAME, beta, v002) ==> 
+                    P(s_new, GLOB, v001, v002))
+                
+    // Out-Out-frame-merge-2 
+    assume (forall v001:Ref, v002:Ref :: 
+        
+        { P(s_old, FRAME, v001, v002) }
+
+                // (v001 in FRAME) && (v002 in FRAME) &&
+                (v001 in FRAME) && /*(v002 in FRAME) &&*/ !(v002 in MOD) && 
+                P(s_old, FRAME, v001, v002) ==> 
+                    P(s_new, GLOB, v001, v002))
+
+
+    } // end if ( MOD != GLOB )
+}
+
+
+define DeduceRelationshipBetweenSubHeaps(SUBHEAP001, HEAP001) {
+    assert SUBHEAP001 subset HEAP001
+    if ( CLOSED(HEAP001) && CLOSED_IN(HEAP001, SUBHEAP001) ) { 
+        assume CLOSED(SUBHEAP001)
+    }
+}
+
+define EnableFocusOnFrame(MOD, GLOB, FRAME) {
+    
+    // Soundness Checks
+    assert GLOB == MOD union FRAME
+    assert DISJOINT(MOD, FRAME)
+    CHECK_CONVEXITY(MOD, GLOB)
+
+    if (CHECK_CONVEXITY_CONDITION(FRAME, GLOB)) {
+        EnableFocusOnConvexSubHeap(GLOB, FRAME)
+    } else {
+        assume forall v1:Ref, v2:Ref :: 
+            
+            { P_(FRAME, v1, v2) } 
+
+                v1 in FRAME && v2 in FRAME && 
+                (forall z:Ref :: 
+                    { P_(GLOB, v1, z) }
+                    { P_(GLOB, z, v2) } 
+                        z in MOD ==> !P_(GLOB, v1, z) || !P_(GLOB, z, v2))
+                ==> (P_(GLOB, v1, v2) == P_(FRAME, v1, v2))
+
+        assume forall v1:Ref, v2:Ref :: 
+            
+            { P_(FRAME, v1, v2) }
+
+                v1 in FRAME && v2 in FRAME && 
+                !(forall z:Ref :: 
+                    { P_(GLOB, v1, z) }
+                    { P_(GLOB, z, v2) } 
+                        z in MOD ==> !P_(GLOB, v1, z) || !P_(GLOB, z, v2))
+                ==> (P_(FRAME, v1, v2) <==> (
+
+                    !(forall sigma:Ref, tau:Ref :: 
+
+                        { P_(GLOB, v1, sigma), P_(GLOB, tau, v2) } 
+                        { E_(GLOB, sigma, tau) }
+
+                            !(  sigma in FRAME && !(forall z: Ref :: { P_(GLOB, sigma, z) } z in MOD ==> !P_(GLOB, sigma, z)) && 
+                                tau in FRAME &&  (forall z: Ref :: { P_(GLOB, tau, z)   } z in MOD ==> !P_(GLOB, tau,   z)) && 
+                                P_(GLOB, v1, sigma) && E_(GLOB, sigma, tau) && P_(GLOB, tau, v2)))
+                ))
+    }  
+}
+
+define Enclose(HEAP, SUPERHEAP) {
+    assert HEAP subset SUPERHEAP
+
+    assume forall v1:Ref, v2:Ref :: 
+        { P_(HEAP, v1, v2) }
+            v1 in HEAP && !(v2 in HEAP) && P_(HEAP, v1, v2) ==> 
+                !(forall z:Ref :: 
+                    { E_(HEAP, z, v2) } 
+                        !(z in HEAP && P_(HEAP, v1, z) && E_(HEAP, z, v2)))
+    
+    assume forall v1:Ref, v2:Ref, z:Ref :: 
+        { P_(SUPERHEAP, v1, z), E_(SUPERHEAP, z, v2) }
+            v1 in HEAP && !(v2 in HEAP) &&  
+            z in HEAP && P_(HEAP, v1, z) && E_(HEAP, z, v2) ==> P_(HEAP, v1, v2)
+}
+// ===== end import: Rea/reachability/_preambles/legoFraming.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/framing.vpr =====
+// Used for memory allocation
+
+/**
+ * This function is supposed to be assumed right after atomic memory allocation. 
+ */
+function apply_AtomicTCFraming(graph_A:Set[Ref], node_B:Ref): Bool
+    requires READONLY_NODES(graph_A)
+    requires CLOSED_NODE(node_B, 1/2)
+    requires !(node_B in graph_A)
+    requires (forall u0:Ref :: 
+        { E_(graph_A, u0, node_B) }
+            u0 in graph_A ==> !E_(graph_A, u0, node_B))
+
+    // Needed for triggering
+    requires graph_A union Set(node_B) == Set(node_B) union graph_A
+
+    ensures (forall u0:Ref, v0:Ref :: 
+        { P_(graph_A, u0, v0) }
+        { P_(graph_A union Set(node_B), u0, v0) } 
+            u0 in graph_A && v0 in graph_A ==>
+                (P_(graph_A, u0, v0) <==> P_(graph_A union Set(node_B), u0, v0)))
+    
+    // A version of NoExit
+    ensures (forall u0:Ref :: 
+        { P_(graph_A union Set(node_B), u0, node_B) }
+            u0 in graph_A ==> !P_(graph_A union Set(node_B), u0, node_B))
+
+    ensures (forall v0:Ref :: 
+        { P_(graph_A union Set(node_B), node_B, v0) }
+            (v0 != node_B) ==> !P_(graph_A union Set(node_B), node_B, v0))
+
+    ensures (forall x:Ref, y:Ref :: 
+        { E_(graph_A, x, y) }
+        { E_(graph_A union Set(node_B), x, y) }
+            (x in graph_A) ==> 
+                (E_(graph_A union Set(node_B), x, y) <==> E_(graph_A, x, y)))
+// ===== end import: Rea/reachability/_preambles/framing.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/macros.vpr =====
+/**
+ * This file contains the macro definitions that are used for convenience. 
+ */
+
+define TREE(tr000) 
+    GRAPH(tr000) && TREE_IMPL(tr000)
+
+define TREE_IMPL(t001)
+    CLOSED(t001) && ACYCLIC(t001) && UNSHARED(t001)
+
+define DAG(dg000)
+    GRAPH(dg000) && DAG_IMPL(dg000)
+
+define DAG_IMPL(dg000)
+    CLOSED(dg000) && ACYCLIC(dg000)
+
+define DISJOINT(graph_A, graph_B)
+    (forall r0:Ref :: 
+        { r0 in graph_A, r0 in graph_B } 
+            (r0 in graph_A) ==> !(r0 in graph_B)) 
+
+define DISJOINT3(graph_A, graph_B, graph_C)
+    (forall r0:Ref :: 
+        { r0 in graph_A, r0 in graph_B } 
+        { r0 in graph_B, r0 in graph_C } 
+        { r0 in graph_C, r0 in graph_A } 
+            !(r0 in graph_A) && !(r0 in graph_B) && !(r0 in graph_C) ||
+             (r0 in graph_A) && !(r0 in graph_B) && !(r0 in graph_C) ||
+            !(r0 in graph_A) &&  (r0 in graph_B) && !(r0 in graph_C) ||
+            !(r0 in graph_A) && !(r0 in graph_B) &&  (r0 in graph_C))
+
+
+define DISJOINT_EDGES(EG_A, EG_B)
+    (forall e0:Edge :: 
+        { e0 in EG_A, e0 in EG_B }
+            (e0 in EG_A) ==> !(e0 in EG_B)) 
+
+define GLOBAL_ROOT(graph_A,root)
+    (forall n0:Ref :: 
+        { P_(graph_A, root, n0) } 
+            (P_(graph_A, root, n0) ==> n0 in graph_A))
+    && (forall n0:Ref :: 
+        { P_(graph_A, root, n0), n0 in graph_A } 
+            (n0 in graph_A) ==> P_(graph_A, root, n0))
+
+define GLOBAL_SROOT(graph_A, roots)
+    (forall n0:Ref :: 
+        { SP_(graph_A, roots, n0) } 
+            (n0 in graph_A) ==> SP_(graph_A, roots, n0))
+
+define GLOBAL_SINK(graph_A,sink)
+    (forall n0:Ref :: 
+        { P_(graph_A, n0, sink) } 
+            (n0 in graph_A) ==> P_(graph_A, n0, sink))
+    
+define UNSHARED(graph_A)
+    unshared_graph($$(graph_A))
+
+define FUNCTIONAL(graph_A)
+    func_graph($$(graph_A))
+
+define ACYCLIC(graph_A)
+    acyclic_graph($$(graph_A))
+
+define ACYCLIC_LIST_SEGMENT(graph_A)
+    ACYCLIC(graph_A) 
+    && FUNCTIONAL(graph_A) 
+    && UNSHARED(graph_A)
+
+define COALIGNED_INTEREDGES(graph_A, graph_B)
+    (CLOSED(graph_A) || CLOSED(graph_B)) && DISJOINT(graph_A, graph_B)
+
+define CONST_EDGES(graph0)
+    ($$(graph0) == old($$(graph0)))
+
+define E(state_label, graph_A, x0, y0)
+    edge(old[state_label]($$(graph_A)), x0, y0)
+
+define E_(graph_A, x0, y0)
+    edge($$(graph_A), x0, y0)
+
+define E0(graph_A, x0, y0)
+    edge(old($$(graph_A)), x0, y0)
+
+define E1(graph_A, x0, y0)
+    edge(old[l1]($$(graph_A)), x0, y0)
+
+define E2(graph_A, x0, y0)
+    edge(old[l2]($$(graph_A)), x0, y0)
+
+define E3(graph_A, x0, y0)
+    edge(old[l3]($$(graph_A)), x0, y0)
+
+define E4(graph_A, x0, y0)
+    edge(old[l4]($$(graph_A)), x0, y0)
+
+define E5(graph_A, x0, y0)
+    edge(old[l5]($$(graph_A)), x0, y0)
+
+define E6(graph_A, x0, y0)
+    edge(old[l6]($$(graph_A)), x0, y0)
+
+define E7(graph_A, x0, y0)
+    edge(old[l7]($$(graph_A)), x0, y0)
+
+define E8(graph_A, x0, y0)
+    edge(old[l8]($$(graph_A)), x0, y0)
+
+
+define P(state_label, graph_A, x0, y0)
+    exists_path(old[state_label]($$(graph_A)), x0, y0)
+
+define P_(graph_A, x0, y0)
+    exists_path($$(graph_A), x0, y0)
+
+define P0(graph_A, x0, y0)
+    exists_path(old($$(graph_A)), x0, y0)
+
+define P1(graph_A, x0, y0)
+    exists_path(old[l1]($$(graph_A)), x0, y0)
+
+define P2(graph_A, x0, y0)
+    exists_path(old[l2]($$(graph_A)), x0, y0)
+
+define P3(graph_A, x0, y0)
+    exists_path(old[l3]($$(graph_A)), x0, y0)
+
+define P4(graph_A, x0, y0)
+    exists_path(old[l4]($$(graph_A)), x0, y0)
+
+define P5(graph_A, x0, y0)
+    exists_path(old[l5]($$(graph_A)), x0, y0)
+
+define P6(graph_A, x0, y0)
+    exists_path(old[l6]($$(graph_A)), x0, y0)
+
+define P7(graph_A, x0, y0)
+    exists_path(old[l7]($$(graph_A)), x0, y0)
+
+define P8(graph_A, x0, y0)
+    exists_path(old[l8]($$(graph_A)), x0, y0)
+
+
+define SP(state_label, graph_A, X0, y0)
+    exists_spath(old[state_label]($$(graph_A)), X0, y0)
+
+define SP_(graph_A, X0, y0)
+    exists_spath($$(graph_A), X0, y0)
+
+define SP0(graph_A, X0, y0)
+    exists_spath(old($$(graph_A)), X0, y0)
+
+define SP1(graph_A, X0, y0)
+    exists_spath(old[l1]($$(graph_A)), X0, y0)
+
+define SP2(graph_A, X0, y0)
+    exists_spath(old[l2]($$(graph_A)), X0, y0)
+
+define SP3(graph_A, X0, y0)
+    exists_spath(old[l3]($$(graph_A)), X0, y0)
+
+define SP4(graph_A, X0, y0)
+    exists_spath(old[l4]($$(graph_A)), X0, y0)
+
+define SP5(graph_A, X0, y0)
+    exists_spath(old[l5]($$(graph_A)), X0, y0)
+
+define SP6(graph_A, X0, y0)
+    exists_spath(old[l6]($$(graph_A)), X0, y0)
+
+define SP7(graph_A, X0, y0)
+    exists_spath(old[l7]($$(graph_A)), X0, y0)
+
+define SP8(graph_A, X0, y0)
+    exists_spath(old[l8]($$(graph_A)), X0, y0)
+
+
+define PS_(graph_A, x0, Y0)
+    exists_paths($$(graph_A), x0, Y0)
+
+define PS0(graph_A, x0, Y0)
+    exists_paths(old($$(graph_A)), x0, Y0)
+
+define PS1(graph_A, x0, Y0)
+    exists_paths(old[l1]($$(graph_A)), x0, Y0)
+
+define PS2(graph_A, x0, Y0)
+    exists_paths(old[l2]($$(graph_A)), x0, Y0)
+
+define PS3(graph_A, x0, Y0)
+    exists_paths(old[l3]($$(graph_A)), x0, Y0)
+
+define PS4(graph_A, x0, Y0)
+    exists_paths(old[l4]($$(graph_A)), x0, Y0)
+
+define PS5(graph_A, x0, Y0)
+    exists_paths(old[l5]($$(graph_A)), x0, Y0)
+
+define PS6(graph_A, x0, Y0)
+    exists_paths(old[l6]($$(graph_A)), x0, Y0)
+
+define PS7(graph_A, x0, Y0)
+    exists_paths(old[l7]($$(graph_A)), x0, Y0)
+
+define PS8(graph_A, x0, Y0)
+    exists_paths(old[l8]($$(graph_A)), x0, Y0)
+
+
+define DEP(state_label, graph_A, x0, y0, u0, v0)
+    exists_DEP(old[state_label]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP_(graph_A, x0, y0, u0, v0)
+    exists_DEP($$(graph_A), x0, y0, u0, v0)
+
+define DEP0(graph_A, x0, y0, u0, v0)
+    exists_DEP(old($$(graph_A)), x0, y0, u0, v0)
+
+define DEP1(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l1]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP2(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l2]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP3(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l3]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP4(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l4]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP5(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l5]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP6(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l6]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP7(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l7]($$(graph_A)), x0, y0, u0, v0)
+
+define DEP8(graph_A, x0, y0, u0, v0)
+    exists_DEP(old[l8]($$(graph_A)), x0, y0, u0, v0)
+
+
+// Synonyms
+define synP_(graph_A, x0, y0)
+    exists_path_($$(graph_A), x0, y0)
+// ===== end import: Rea/reachability/_preambles/macros.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/memspecs.vpr =====
+/**
+ * This file contains the macro definitions that mimic Graph type annotations. 
+ * 
+ * The arity-specific parts are defined in the local versions of this file 
+ * (e.g., binary/_preambles/memspecs.vpr). 
+ */
+
+define READONLY_NODES(nodes)
+    NODES(nodes, 1/2)
+
+define GRAPH(nodes)
+    !(null in nodes)
+    && NODES(nodes, write)
+
+define READONLY_GRAPH(nodes)
+    !(null in nodes)
+    && READONLY_NODES(nodes)
+
+define NODE_for($field$, node, p)
+    (acc(node.$field$, p))
+
+define NODES_for($field$, nodes, p)
+    (forall n:Ref :: 
+        { n.$field$ } 
+            n in nodes ==> acc(n.$field$, p))
+
+define PROTECTED_NODES_for($field$, nodes, mutable_node, p)
+    ((mutable_node in nodes)
+    && acc(mutable_node.$field$, write)
+    && (forall n:Ref :: 
+        { n.$field$ } 
+            n in nodes && n != mutable_node ==> acc(n.$field$, p)))
+
+define CLOSED_for($field$, nodes)
+    (forall n:Ref :: 
+        { n.$field$ in nodes }
+        { n in nodes, n.$field$ }
+            // __trigger_path(n) && 
+            // bla(P_(nodes, n, n.$field$)) && 
+            // __learn_edge__(create_edge(n, n.$field$)) &&
+            n in nodes && n.$field$ != null ==> n.$field$ in nodes)
+
+define CLOSED_IN_for($field$, nodes, against_nodes)
+    (forall n:Ref :: 
+        { n.$field$ in against_nodes }
+        { n in nodes, n.$field$ }
+            n in nodes 
+            // __learn_trigger__( fdsa ) && 
+            ==> !(n.$field$ in against_nodes setminus nodes))
+
+define COMPLETE_for($field$, nodes)
+    (forall n:Ref :: 
+        { n.$field$ in nodes }
+        { n in nodes, n.$field$ }
+            n in nodes ==> n.$field$ in nodes)
+// ===== end import: Rea/reachability/_preambles/memspecs.vpr =====
+
+// ===== begin import: Rea/reachability/_unary/_preambles/memspecs.vpr =====
+/**
+ * This file contains the macro definitions that mimic Graph type annotations (for unary graphs). 
+ * 
+ * The arity-independent part is defined in the global version of this file: 
+ * _preambles/memspecs.vpr 
+ */
+
+field next: Ref
+
+define HEAP_PARTIAL_ORDER(p, s)
+    (p.next == s)
+
+define NODE(the_node, p)
+    NODE_for(next, the_node, p)
+
+define CLOSED_NODE(the_node, p)
+    NODE(the_node, p) 
+    && (the_node.next == null)
+
+define NODES(nodes, p)
+    NODES_for(next, nodes, p)
+
+define COMPLETE(nodes)
+    COMPLETE_for(next, nodes)
+
+define CLOSED(nodes)
+    CLOSED_for(next, nodes)
+
+define CLOSED_IN(nodes, against_nodes) 
+    CLOSED_IN_for(next, nodes, against_nodes)
+
+define PROTECTED_GRAPH_next(nodes, mutable_node)
+    !(null in nodes)
+    && PROTECTED_NODES_for(next, nodes, mutable_node, 1/2)
+// ===== end import: Rea/reachability/_unary/_preambles/memspecs.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/common/graph.vpr =====
+define LINK__PRECISE_EDGE_UPDATE_FORMULA(g033, alpha, beta)
+    (forall x0:Ref, y0:Ref ::
+        { edge($$(g033),x0,y0) }
+            edge($$(g033),x0,y0) <==> edge(old($$(g033)),x0,y0) || (x0==alpha && y0==beta))
+
+define UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g033, alpha, beta)
+    (forall x0:Ref, y0:Ref ::
+        { edge($$(g033),x0,y0) }
+            edge($$(g033),x0,y0) <==> edge(old($$(g033)),x0,y0) && !(x0==alpha && y0==beta))
+// ===== end import: Rea/reachability/_preambles/common/graph.vpr =====
+
+// ===== begin import: Rea/reachability/_preambles/common/zopg.vpr =====
+// --- This file contains the common parts of the encoding of Update Formulas for 0-1-path graphs. --- 
+
+define __psi__(EG, alpha,beta, x0,y0,u0,v0,w0,z0)  
+    ((forall u_:Ref, v_:Ref :: 
+        { exists_DEP(EG,x0,y0,u_,v_) } 
+            !exists_DEP(EG,x0,y0,u_,v_)) 
+    && ( exists_DEP(EG,x0,alpha,u0,v0) && (x0 != alpha) || ((x0 == u0)   && (u0 == alpha) && (v0 == beta)) ) 
+    && ( exists_DEP(EG,beta,y0,w0,z0)    && (beta != y0)  || ((alpha == w0) && (beta == z0)   && (z0 == y0))    ))
+
+define DEP_G_MINUS_DELTA(smaller_EG, larger_EG, from, to) 
+    (forall x0:Ref, y0:Ref, u0:Ref, v0:Ref ::
+        { exists_DEP(smaller_EG, x0, y0, u0, v0) }
+        { exists_DEP(larger_EG, x0, y0, u0, v0) }
+            exists_DEP(larger_EG, x0, y0, u0, v0) && !exists_DEP(larger_EG, x0, y0, from, to) <==> exists_DEP(smaller_EG, x0, y0, u0, v0))
+
+define DEP_G_PLUS_DELTA(smaller_EG, larger_EG, from, to)
+    ((from == to) ==> exists_path(smaller_EG, from, to) && exists_path(larger_EG, from, to)) &&
+    ((from != to) ==> 
+        (forall x0:Ref, y0:Ref, u0:Ref, v0:Ref ::
+            { exists_DEP(larger_EG, x0, y0, u0, v0) }
+            { exists_DEP(smaller_EG, x0, y0, u0, v0) }
+                (u0 != v0 && x0 != y0) ==> (
+                    (exists_DEP(smaller_EG, x0, y0, u0, v0)
+                    || (x0==from && u0==from && y0==to && v0==to)
+                    
+                    || ( exists w0:Ref, z0:Ref :: 
+                            __psi__(smaller_EG, from,to, x0,y0, u0,v0, w0,z0) )
+                            
+                    || ( exists U0:Ref, V0:Ref :: 
+                            __psi__(smaller_EG, from,to, x0,y0, U0,V0, u0,v0) )
+
+                    || (u0==from) && (v0==to) && ( exists U0:Ref, V0:Ref, w0:Ref, z0:Ref :: 
+                            __psi__(smaller_EG, from,to, x0,y0, U0,V0, w0,z0) ))
+                    <==> 
+                        exists_DEP(larger_EG, x0, y0, u0, v0) )))
+
+define ZOPG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)
+    DEP_G_PLUS_DELTA(old($$(g)), $$(g), from, to) 
+    && DEP_G_MINUS_DELTA(old($$(g)), $$(g), from, to)
+
+define ZOPG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)
+    DEP_G_PLUS_DELTA($$(g), old($$(g)), from, to)
+    && DEP_G_MINUS_DELTA($$(g), old($$(g)), from, to)
+// ===== end import: Rea/reachability/_preambles/common/zopg.vpr =====
+
+// ===== begin import: Rea/reachability/_unary/_preambles/zopg.vpr =====
+// Should be applied together with framing
+function apply_DepToTcWisdom(g0:Set[Ref], g1:Set[Ref]): Bool
+    requires NODES(g0, 1/2)
+    requires NODES(g1, 1/2)
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g0 union g1, u0, v0, u0, u0.next) }
+        { DEP_(g0 union g1, u0, v0.next, v0, v0.next) } 
+            u0 in g0 && v0 in g0 ==> __learn_trigger__( P_(g0 union g1,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g1 union g0, u0, v0, u0, u0.next) }
+        { DEP_(g1 union g0, u0, v0.next, v0, v0.next) } 
+            u0 in g1 && v0 in g1 ==> __learn_trigger__( P_(g1 union g0,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g0 union g1, u0, v0, u0, u0.next) }
+        { DEP_(g0 union g1, u0, v0.next, v0, v0.next) } 
+            u0 in g0 && v0 in g0 ==> __learn_trigger__( P_(g0 union g1,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g1 union g0, u0, v0, u0, u0.next) }
+        { DEP_(g1 union g0, u0, v0.next, v0, v0.next) } 
+            u0 in g1 && v0 in g1 ==> __learn_trigger__( P_(g1 union g0,u0,v0) )
+
+method unlink_ZOPG_next(g:Set[Ref], node:Ref)
+    requires PROTECTED_GRAPH_next(g,node)
+    requires node in g
+    ensures PROTECTED_GRAPH_next(g,node)
+    ensures node.next == null
+    ensures old(node.next) == null ==> $$(g) == old($$(g))
+    ensures old(node.next) != null ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.next))
+    ensures old(node.next) != null ==> ZOPG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.next))
+
+method link_ZOPG_next(g:Set[Ref], from:Ref, to:Ref)
+    requires PROTECTED_GRAPH_next(g,from) 
+    requires from in g && from.next == null
+    requires (to != null) ==> to in g
+    ensures PROTECTED_GRAPH_next(g,from)
+    ensures from.next == to
+    ensures (to == null) ==> $$(g) == old($$(g))
+    ensures (to != null) ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures (to != null) ==> ZOPG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)      
+
+    // Automatic reasoning support
+    // a. Arity-independent
+    ensures forall n:Ref, m:Ref :: 
+        { P_(g, n, m) } 
+            n in g && m in g ==> 
+                __learn_trigger__( P_(g, n, from) ) && 
+                __learn_trigger__( P_(g, from, m) )
+    ensures (to != null) ==> forall n:Ref, m:Ref :: 
+        { P_(g, n, m) } 
+            n in g && m in g ==> 
+                __learn_trigger__( P_(g, n, to) ) && 
+                __learn_trigger__( P_(g, to, m) )
+
+    // b. Arity-dependent
+    ensures forall n0:Ref :: 
+        { P_(g, to, n0) }
+        { P_(g, from, n0) } 
+            n0 in g && n0 != from ==> __learn_trigger__(DEP_(g, from, n0, from, from.next))
+    ensures (to != null) ==> forall n0:Ref :: 
+        { P_(g, to, n0) }
+        { P_(g, from, n0) } 
+            n0 in g && n0 != to ==> __learn_trigger__(DEP_(g, to, n0, to, to.next))
+    ensures forall n0: Ref :: 
+        { P_(g, n0, to) }
+        { P_(g, n0, from) } 
+            n0 in g && n0 != from ==> __learn_trigger__(DEP_(g, n0, from, n0, n0.next))
+    ensures (to != null) ==> forall n0:Ref :: 
+        { P_(g, n0, to) }
+        { P_(g, n0, from) } 
+            n0 in g && n0 != to ==> __learn_trigger__(DEP_(g, n0, to, n0, n0.next)) // never helped so far
+
+    ensures (to != null) ==> forall n0:Ref :: 
+        { DEP_(g, to, n0, to, to.next) }
+        { DEP_(g, from, n0, from, from.next) } 
+            n0 in g ==> 
+                __learn_trigger__( P_(g, from, n0) ) && 
+                __learn_trigger__( P0(g, from, n0) ) 
+
+    ensures (to != null) ==> forall n0:Ref :: 
+        { DEP_(g, to, n0, to, to.next) }
+        { DEP_(g, from, n0, from, from.next) } 
+            n0 in g ==> 
+                __learn_trigger__( P_(g, to, n0) ) && 
+                __learn_trigger__( P0(g, to, n0) )
+// ===== end import: Rea/reachability/_unary/_preambles/zopg.vpr =====
+
+// resolved: import "../../_preambles/TrCloDomain.vpr"
+// resolved: import "../../_preambles/TrCloZopgDomain.vpr"
+// resolved: import "../../_preambles/skolems.vpr"
+
+// resolved: import "../../_preambles/legoFraming.vpr"
+// resolved: import "../../_preambles/framing.vpr"
+
+// resolved: import "../../_preambles/macros.vpr"
+// resolved: import "../../_preambles/memspecs.vpr"
+// resolved: import "../../_unary/_preambles/memspecs.vpr"
+
+// resolved: import "../../_preambles/common/graph.vpr"
+
+// resolved: import "../../_preambles/common/graph.vpr"
+// resolved: import "../../_preambles/common/zopg.vpr"
+// resolved: import "../../_unary/_preambles/zopg.vpr"
+
+field val: Int 
+
+define UNSHARED_CONNECTED(g)
+    ( forall v1:Ref, v2:Ref, v:Ref :: { v in g, v1.next, v2.next } v1 in g && v2 in g && v in g ==> ( v1.next == v && v2.next == v ==> v1 == v2 ) )
+    && ( forall v:Ref :: { v.next } v in g ==> ( v == v.next <==> g == Set(v) ) )
+
+define RING(g)
+    ( GRAPH(g) && COMPLETE(g) )
+
+method create_node(graph: Set[Ref], init_val: Int) returns (new_graph: Set[Ref], new_node: Ref)
+    ensures !( new_node in graph )
+    ensures new_graph == graph union Set(new_node)
+    ensures acc(new_node.next) && acc(new_node.val)
+    ensures new_node.next == null
+    ensures new_node.val == init_val
+
+
+method ringInsert(g:Set[Ref], start:Ref, x:Int)
+    returns (new_g:Set[Ref], new_node:Ref, new_start:Ref)
+
+    requires RING(g) 
+    requires UNSHARED_CONNECTED(g)
+    requires start in g
+    requires forall n:Ref, m:Ref ::
+        { exists_path($$(g),n,m) }
+            n in g && m in g ==> exists_path($$(g),n,m) && exists_path($$(g),m,n)
+    requires forall n:Ref :: { n.val } n in g ==> acc(n.val)
+    requires forall n:Ref :: { n.next.val } n in g && n.next != start ==> n.val <= n.next.val
+    requires forall n:Ref :: { n.next.val } n in g && n.next == start ==> n.next.val <= n.val
+
+    ensures RING(new_g)
+    ensures UNSHARED_CONNECTED(new_g)
+    ensures new_start in new_g
+    ensures forall n:Ref :: { n.val } n in new_g ==> acc(n.val)
+    ensures !(new_node in g) && new_node in new_g
+    ensures new_node.val == x
+    ensures forall n:Ref :: { n.next.val } n in new_g && n.next != new_start ==> n.val <= n.next.val
+    ensures forall n:Ref :: { n.next.val } n in new_g && n.next == new_start ==> n.next.val <= n.val
+    ensures forall n:Ref, m:Ref ::
+        { exists_path($$(new_g),n,m) }
+            n in new_g && m in new_g
+                ==> exists_path($$(new_g),n,m) && exists_path($$(new_g),m,n)
+{
+    new_g, new_node := create_node(g, x)
+    var node:Ref := start
+    while ( !( node.val <= x && x < node.next.val
+               || node.next == start && ( node.val <= x || x < start.val ) ) )
+        invariant RING(g) 
+        invariant UNSHARED_CONNECTED(g)
+        invariant node in g
+        invariant forall n:Ref, m:Ref ::
+            { exists_path($$(g),n,m) }
+                n in g && m in g ==> exists_path($$(g),n,m) && exists_path($$(g),m,n)
+        invariant forall n:Ref :: { n.val } n in g ==> acc(n.val)
+        invariant forall n:Ref :: { n.next.val } n in g && n.next != start ==> n.val <= n.next.val
+        invariant forall n:Ref :: { n.next.val } n in g && n.next == start ==> n.next.val <= n.val
+    {
+        node := node.next
+    }
+
+    if ( node.next == start && x < start.val ) {
+        new_start := new_node
+    } else {
+        new_start := start
+    }
+
+    /// An example similar to memory allocation. 
+    /// Precise reachability framing is easy here, because we allocate one node at a time. 
+    ///  1. Framing: 
+    assume apply_AtomicTCFraming(g, new_node)
+    ///  2. Synchronization of triggers from DEP and TC. 
+    assume apply_DepToTcWisdom(g, Set(new_node))
+
+    // Encoding new_node.next := node.next ...
+    if ( new_node.next != null ) {
+        unlink_ZOPG_next(new_g, new_node) // redundant in this example
+    }   
+    link_ZOPG_next(new_g, new_node, node.next)
+
+    // Encoding node.next := new_node ...
+    if ( node.next != null ) {
+        unlink_ZOPG_next(new_g, node)
+    }
+    link_ZOPG_next(new_g, node, new_node)
+}

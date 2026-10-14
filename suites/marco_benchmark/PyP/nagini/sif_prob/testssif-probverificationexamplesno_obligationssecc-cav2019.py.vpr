@@ -1,0 +1,1858 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function Record(): PyType 
+  
+  unique function Mutex(): PyType 
+  
+  unique function Lock_basic(): PyType 
+  
+  function Lock(arg0: PyType): PyType 
+  
+  function Lock_arg(typ: PyType, index: Int): PyType 
+  
+  unique function BaseLock(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_Record {
+    extends_(Record(), object()) && get_basic(Record()) == Record()
+  }
+  
+  axiom subtype_Mutex {
+    extends_(Mutex(), Lock(Record())) && get_basic(Mutex()) == Mutex()
+  }
+  
+  axiom subtype_Lock {
+    (forall T: PyType ::
+      { Lock(T) }
+      extends_(Lock(T), BaseLock()) && get_basic(Lock(T)) == Lock_basic())
+  }
+  
+  axiom Lock_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Lock(arg0), Lock_arg(Z, 0) }
+      issubtype(Z, Lock(arg0)) ==> Lock_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_BaseLock {
+    extends_(BaseLock(), object()) && get_basic(BaseLock()) == BaseLock()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field dict_accp: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field Record_is_classified: Ref
+
+field Record_is_classifiedp: Ref
+
+field Record_data: Ref
+
+field Record_datap: Ref
+
+function Lock_get_locked(self_1: Ref): Ref
+  requires issubtype(typeof(self_1), Lock(Lock_arg(typeof(self_1), 0)))
+  requires issubtype(Lock_arg(typeof(self_1), 0), object())
+  requires self_1 != null
+  ensures issubtype(typeof(result), Lock_arg(typeof(self_1), 0))
+
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function __file___0(): Ref
+
+
+function __name___0(): Ref
+
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+function Lock_invariant_low(self_5: Ref, self_5_0: Ref): Bool
+  requires acc(Lock_invariant(self_5), wildcard) &&
+    acc(Lock_invariant_0(self_5_0), wildcard)
+{
+  (unfolding acc(Lock_invariant(self_5), wildcard) in
+    (unfolding acc(Lock_invariant_0(self_5_0), wildcard) in
+      issubtype(typeof(self_5), Mutex()) &&
+      issubtype(typeof(self_5_0), Mutex()) ==>
+      Lock_get_locked(self_5).Record_is_classified ==
+      Lock_get_locked(self_5_0).Record_is_classifiedp &&
+      (!bool___unbox__(Lock_get_locked(self_5).Record_is_classified) &&
+      !bool___unbox__(Lock_get_locked(self_5_0).Record_is_classifiedp) ==>
+      Lock_get_locked(self_5).Record_data ==
+      Lock_get_locked(self_5_0).Record_datap)))
+}
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+predicate Lock_invariant(self_5: Ref) {
+  issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0))) &&
+  (issubtype(typeof(self_5), Mutex()) ==>
+  acc(Lock_get_locked(self_5).Record_is_classified, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).Record_is_classified), bool()) &&
+  (acc(Lock_get_locked(self_5).Record_data, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).Record_data), int())))
+}
+
+predicate Lock_invariant_0(self_5: Ref) {
+  issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0))) &&
+  (issubtype(typeof(self_5), Mutex()) ==>
+  acc(Lock_get_locked(self_5).Record_is_classifiedp, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).Record_is_classifiedp), bool()) &&
+  (acc(Lock_get_locked(self_5).Record_datap, write) &&
+  issubtype(typeof(Lock_get_locked(self_5).Record_datap), int())))
+}
+
+method output(p1: Bool, p2: Bool, i: Ref, i_1: Ref)
+  requires (p1 ==> issubtype(typeof(i), int())) &&
+    (p2 ==> issubtype(typeof(i_1), int()))
+  requires p1 && p2 ==> i == i_1
+{
+  inhale p1
+  {
+    var _err: Ref
+    var _err_0: Ref
+    var i_0: Ref
+    var i_0_0: Ref
+    if (p1) {
+      _err := null
+      i_0 := i
+    }
+    if (p2) {
+      _err_0 := null
+      i_0_0 := i_1
+    }
+    exhale true
+  }
+}
+
+method thread1(p1_0: Bool, p2_0: Bool, r: Ref, r_7: Ref, m_0: Ref, m_0_0: Ref)
+  requires (p1_0 ==> issubtype(typeof(r), Record())) &&
+    (p2_0 ==> issubtype(typeof(r_7), Record()))
+  requires (p1_0 ==> issubtype(typeof(m_0), Mutex())) &&
+    (p2_0 ==> issubtype(typeof(m_0_0), Mutex()))
+  requires (p1_0 ==> Lock_get_locked(m_0) == r) &&
+    (p2_0 ==> Lock_get_locked(m_0_0) == r_7) &&
+    (p1_0 && p2_0 ==> m_0 == m_0_0)
+{
+  inhale p1_0
+  {
+    var _err: Ref
+    var _err_1: Ref
+    var r_3: Ref
+    var r_3_0: Ref
+    var m_4: Ref
+    var m_4_0: Ref
+    var _loop_check_before: Bool
+    var _loop_check_before_1: Bool
+    var _loop_termination_flag: Bool
+    var _loop_termination_flag_1: Bool
+    var _loop_original_must_terminate: Perm
+    var _loop_original_must_terminate_1: Perm
+    var _residue_167: Perm
+    var _residue_167_0: Perm
+    if (p1_0) {
+      _err := null
+      r_3 := r
+      m_4 := m_0
+    }
+    if (p2_0) {
+      _err_1 := null
+      r_3_0 := r_7
+      m_4_0 := m_0_0
+    }
+    assert p1_0 && p2_0 ==> true == true
+    {
+      var bypass1: Bool
+      var bypass2: Bool
+      var p1_1: Bool
+      var p2_1: Bool
+      bypass1 := !p1_0
+      bypass2 := !p2_0
+      while (p1_0 && !bypass1 && true || p2_0 && !bypass2 && true) {
+        p1_1 := p1_0 && true
+        p2_1 := p2_0 && true
+        assert p1_1 && p2_1 ==> typeof(m_4) == typeof(m_4_0)
+        // Method call: Lock_acquire
+  
+        if (p1_1 || p2_1) {
+          var tmp1: Ref
+          var tmp2: Ref
+          if (p1_1) {
+            tmp1 := m_4
+          }
+          if (p2_1) {
+            tmp2 := m_4_0
+          }
+          Lock_acquire(p1_1, p2_1, tmp1, tmp2)
+        }
+        assert p1_1 && p2_1 ==>
+          perm(Lock_invariant(m_4)) >= write &&
+          perm(Lock_invariant_0(m_4_0)) >= write ==>
+          Lock_invariant_low(m_4, m_4_0)
+        if (p1_1) {
+          unfold acc(Lock_invariant(m_4), write)
+        }
+        if (p2_1) {
+          unfold acc(Lock_invariant_0(m_4_0), write)
+        }
+        assert p1_1 && p2_1 ==>
+          !bool___unbox__(r_3.Record_is_classified) ==
+          !bool___unbox__(r_3_0.Record_is_classifiedp)
+        {
+          var p1_2: Bool
+          var p2_2: Bool
+          var p3: Bool
+          var p4: Bool
+          p1_2 := p1_1 && !bool___unbox__(r_3.Record_is_classified)
+          p2_2 := p2_1 && !bool___unbox__(r_3_0.Record_is_classifiedp)
+          p3 := p1_1 && !!bool___unbox__(r_3.Record_is_classified)
+          p4 := p2_1 && !!bool___unbox__(r_3_0.Record_is_classifiedp)
+          // Method call: output
+  
+          if (p1_2 || p2_2) {
+            var tmp1_0: Ref
+            var tmp2_0: Ref
+            if (p1_2) {
+              tmp1_0 := r_3.Record_data
+            }
+            if (p2_2) {
+              tmp2_0 := r_3_0.Record_datap
+            }
+            output(p1_2, p2_2, tmp1_0, tmp2_0)
+          }
+        }
+        assert p1_1 && p2_1 ==> typeof(m_4) == typeof(m_4_0)
+        if (p1_1) {
+          fold acc(Lock_invariant(m_4), write)
+        }
+        if (p2_1) {
+          fold acc(Lock_invariant_0(m_4_0), write)
+        }
+        assert p1_1 && p2_1 ==> Lock_invariant_low(m_4, m_4_0)
+        // Method call: Lock_release
+  
+        if (p1_1 || p2_1) {
+          var tmp1_1: Ref
+          var tmp2_1: Ref
+          if (p1_1) {
+            tmp1_1 := m_4
+          }
+          if (p2_1) {
+            tmp2_1 := m_4_0
+          }
+          Lock_release(p1_1, p2_1, tmp1_1, tmp2_1)
+        }
+      }
+    }
+    exhale true
+  }
+}
+
+method thread2(p1_3: Bool, p2_3: Bool, r_0: Ref, r_0_0: Ref, m_1: Ref, m_1_0: Ref)
+  requires (p1_3 ==> issubtype(typeof(r_0), Record())) &&
+    (p2_3 ==> issubtype(typeof(r_0_0), Record()))
+  requires (p1_3 ==> issubtype(typeof(m_1), Mutex())) &&
+    (p2_3 ==> issubtype(typeof(m_1_0), Mutex()))
+  requires (p1_3 ==> Lock_get_locked(m_1) == r_0) &&
+    (p2_3 ==> Lock_get_locked(m_1_0) == r_0_0) &&
+    (p1_3 && p2_3 ==> m_1 == m_1_0)
+{
+  inhale p1_3
+  {
+    var _err: Ref
+    var _err_2: Ref
+    var r_4: Ref
+    var r_4_0: Ref
+    var m_5: Ref
+    var m_5_0: Ref
+    if (p1_3) {
+      _err := null
+      r_4 := r_0
+      m_5 := m_1
+    }
+    if (p2_3) {
+      _err_2 := null
+      r_4_0 := r_0_0
+      m_5_0 := m_1_0
+    }
+    assert p1_3 && p2_3 ==> typeof(m_5) == typeof(m_5_0)
+    // Method call: Lock_acquire
+  
+    if (p1_3 || p2_3) {
+      var tmp1_2: Ref
+      var tmp2_2: Ref
+      if (p1_3) {
+        tmp1_2 := m_5
+      }
+      if (p2_3) {
+        tmp2_2 := m_5_0
+      }
+      Lock_acquire(p1_3, p2_3, tmp1_2, tmp2_2)
+    }
+    assert p1_3 && p2_3 ==>
+      perm(Lock_invariant(m_5)) >= write &&
+      perm(Lock_invariant_0(m_5_0)) >= write ==>
+      Lock_invariant_low(m_5, m_5_0)
+    if (p1_3) {
+      unfold acc(Lock_invariant(m_5), write)
+    }
+    if (p2_3) {
+      unfold acc(Lock_invariant_0(m_5_0), write)
+    }
+    {
+      var p1_4: Bool
+      var p2_4: Bool
+      var p3_0: Bool
+      var p4_0: Bool
+      p1_4 := p1_3 &&
+        perm(_MaySet(r_4, 573160633986428200014159035227544966692935525714)) >
+        none
+      p2_4 := p2_3 &&
+        perm(_MaySet_0(r_4_0, 573160633986428200014159035227544966692935525714)) >
+        none
+      p3_0 := p1_3 &&
+        !(perm(_MaySet(r_4, 573160633986428200014159035227544966692935525714)) >
+        none)
+      p4_0 := p2_3 &&
+        !(perm(_MaySet_0(r_4_0, 573160633986428200014159035227544966692935525714)) >
+        none)
+      if (p1_4) {
+        exhale acc(_MaySet(r_4, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(r_4.Record_is_classified, write)
+      }
+      if (p2_4) {
+        exhale acc(_MaySet_0(r_4_0, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(r_4_0.Record_is_classifiedp, write)
+      }
+    }
+    if (p1_3) {
+      r_4.Record_is_classified := __prim__bool___box__(false)
+    }
+    if (p2_3) {
+      r_4_0.Record_is_classifiedp := __prim__bool___box__(false)
+    }
+    {
+      var p1_5: Bool
+      var p2_5: Bool
+      var p3_1: Bool
+      var p4_1: Bool
+      p1_5 := p1_3 &&
+        perm(_MaySet(r_4, 117815395581417027855934802)) > none
+      p2_5 := p2_3 &&
+        perm(_MaySet_0(r_4_0, 117815395581417027855934802)) > none
+      p3_1 := p1_3 &&
+        !(perm(_MaySet(r_4, 117815395581417027855934802)) > none)
+      p4_1 := p2_3 &&
+        !(perm(_MaySet_0(r_4_0, 117815395581417027855934802)) > none)
+      if (p1_5) {
+        exhale acc(_MaySet(r_4, 117815395581417027855934802), write)
+        inhale acc(r_4.Record_data, write)
+      }
+      if (p2_5) {
+        exhale acc(_MaySet_0(r_4_0, 117815395581417027855934802), write)
+        inhale acc(r_4_0.Record_datap, write)
+      }
+    }
+    if (p1_3) {
+      r_4.Record_data := __prim__int___box__(0)
+    }
+    if (p2_3) {
+      r_4_0.Record_datap := __prim__int___box__(0)
+    }
+    assert p1_3 && p2_3 ==> typeof(m_5) == typeof(m_5_0)
+    if (p1_3) {
+      fold acc(Lock_invariant(m_5), write)
+    }
+    if (p2_3) {
+      fold acc(Lock_invariant_0(m_5_0), write)
+    }
+    assert p1_3 && p2_3 ==> Lock_invariant_low(m_5, m_5_0)
+    // Method call: Lock_release
+  
+    if (p1_3 || p2_3) {
+      var tmp1_3: Ref
+      var tmp2_3: Ref
+      if (p1_3) {
+        tmp1_3 := m_5
+      }
+      if (p2_3) {
+        tmp2_3 := m_5_0
+      }
+      Lock_release(p1_3, p2_3, tmp1_3, tmp2_3)
+    }
+    exhale true
+  }
+}
+
+method thread1_insecure(p1_6: Bool, p2_6: Bool, r_1: Ref, r_1_0: Ref, m_2: Ref,
+  m_2_0: Ref)
+  requires (p1_6 ==> issubtype(typeof(r_1), Record())) &&
+    (p2_6 ==> issubtype(typeof(r_1_0), Record()))
+  requires (p1_6 ==> issubtype(typeof(m_2), Mutex())) &&
+    (p2_6 ==> issubtype(typeof(m_2_0), Mutex()))
+  requires (p1_6 ==> Lock_get_locked(m_2) == r_1) &&
+    (p2_6 ==> Lock_get_locked(m_2_0) == r_1_0) &&
+    (p1_6 && p2_6 ==> m_2 == m_2_0)
+{
+  inhale p1_6
+  {
+    var _err: Ref
+    var _err_3: Ref
+    var r_5: Ref
+    var r_5_0: Ref
+    var m_6: Ref
+    var m_6_0: Ref
+    var _loop_check_before_0: Bool
+    var _loop_check_before_0_0: Bool
+    var _loop_termination_flag_0: Bool
+    var _loop_termination_flag_0_0: Bool
+    var _loop_original_must_terminate_0: Perm
+    var _loop_original_must_terminate_0_0: Perm
+    var _residue_168: Perm
+    var _residue_168_0: Perm
+    if (p1_6) {
+      _err := null
+      r_5 := r_1
+      m_6 := m_2
+    }
+    if (p2_6) {
+      _err_3 := null
+      r_5_0 := r_1_0
+      m_6_0 := m_2_0
+    }
+    assert p1_6 && p2_6 ==> true == true
+    {
+      var bypass1_0: Bool
+      var bypass2_0: Bool
+      var p1_7: Bool
+      var p2_7: Bool
+      bypass1_0 := !p1_6
+      bypass2_0 := !p2_6
+      while (p1_6 && !bypass1_0 && true || p2_6 && !bypass2_0 && true) {
+        p1_7 := p1_6 && true
+        p2_7 := p2_6 && true
+        assert p1_7 && p2_7 ==> typeof(m_6) == typeof(m_6_0)
+        // Method call: Lock_acquire
+  
+        if (p1_7 || p2_7) {
+          var tmp1_4: Ref
+          var tmp2_4: Ref
+          if (p1_7) {
+            tmp1_4 := m_6
+          }
+          if (p2_7) {
+            tmp2_4 := m_6_0
+          }
+          Lock_acquire(p1_7, p2_7, tmp1_4, tmp2_4)
+        }
+        assert p1_7 && p2_7 ==>
+          perm(Lock_invariant(m_6)) >= write &&
+          perm(Lock_invariant_0(m_6_0)) >= write ==>
+          Lock_invariant_low(m_6, m_6_0)
+        if (p1_7) {
+          unfold acc(Lock_invariant(m_6), write)
+        }
+        if (p2_7) {
+          unfold acc(Lock_invariant_0(m_6_0), write)
+        }
+        assert p1_7 && p2_7 ==>
+          bool___unbox__(r_5.Record_is_classified) ==
+          bool___unbox__(r_5_0.Record_is_classifiedp)
+        {
+          var p1_8: Bool
+          var p2_8: Bool
+          var p3_2: Bool
+          var p4_2: Bool
+          p1_8 := p1_7 && bool___unbox__(r_5.Record_is_classified)
+          p2_8 := p2_7 && bool___unbox__(r_5_0.Record_is_classifiedp)
+          p3_2 := p1_7 && !bool___unbox__(r_5.Record_is_classified)
+          p4_2 := p2_7 && !bool___unbox__(r_5_0.Record_is_classifiedp)
+          // Method call: output
+  
+          if (p1_8 || p2_8) {
+            var tmp1_5: Ref
+            var tmp2_5: Ref
+            if (p1_8) {
+              tmp1_5 := r_5.Record_data
+            }
+            if (p2_8) {
+              tmp2_5 := r_5_0.Record_datap
+            }
+            output(p1_8, p2_8, tmp1_5, tmp2_5)
+          }
+        }
+        assert p1_7 && p2_7 ==> typeof(m_6) == typeof(m_6_0)
+        if (p1_7) {
+          fold acc(Lock_invariant(m_6), write)
+        }
+        if (p2_7) {
+          fold acc(Lock_invariant_0(m_6_0), write)
+        }
+        assert p1_7 && p2_7 ==> Lock_invariant_low(m_6, m_6_0)
+        // Method call: Lock_release
+  
+        if (p1_7 || p2_7) {
+          var tmp1_6: Ref
+          var tmp2_6: Ref
+          if (p1_7) {
+            tmp1_6 := m_6
+          }
+          if (p2_7) {
+            tmp2_6 := m_6_0
+          }
+          Lock_release(p1_7, p2_7, tmp1_6, tmp2_6)
+        }
+      }
+    }
+    exhale true
+  }
+}
+
+method thread2_insecure(p1_9: Bool, p2_9: Bool, r_2: Ref, r_2_0: Ref, m_3: Ref,
+  m_3_0: Ref)
+  requires (p1_9 ==> issubtype(typeof(r_2), Record())) &&
+    (p2_9 ==> issubtype(typeof(r_2_0), Record()))
+  requires (p1_9 ==> issubtype(typeof(m_3), Mutex())) &&
+    (p2_9 ==> issubtype(typeof(m_3_0), Mutex()))
+  requires (p1_9 ==> Lock_get_locked(m_3) == r_2) &&
+    (p2_9 ==> Lock_get_locked(m_3_0) == r_2_0) &&
+    (p1_9 && p2_9 ==> m_3 == m_3_0)
+{
+  inhale p1_9
+  {
+    var _err: Ref
+    var _err_4: Ref
+    var r_6: Ref
+    var r_6_0: Ref
+    var m_7: Ref
+    var m_7_0: Ref
+    if (p1_9) {
+      _err := null
+      r_6 := r_2
+      m_7 := m_3
+    }
+    if (p2_9) {
+      _err_4 := null
+      r_6_0 := r_2_0
+      m_7_0 := m_3_0
+    }
+    assert p1_9 && p2_9 ==> typeof(m_7) == typeof(m_7_0)
+    // Method call: Lock_acquire
+  
+    if (p1_9 || p2_9) {
+      var tmp1_7: Ref
+      var tmp2_7: Ref
+      if (p1_9) {
+        tmp1_7 := m_7
+      }
+      if (p2_9) {
+        tmp2_7 := m_7_0
+      }
+      Lock_acquire(p1_9, p2_9, tmp1_7, tmp2_7)
+    }
+    assert p1_9 && p2_9 ==>
+      perm(Lock_invariant(m_7)) >= write &&
+      perm(Lock_invariant_0(m_7_0)) >= write ==>
+      Lock_invariant_low(m_7, m_7_0)
+    if (p1_9) {
+      unfold acc(Lock_invariant(m_7), write)
+    }
+    if (p2_9) {
+      unfold acc(Lock_invariant_0(m_7_0), write)
+    }
+    {
+      var p1_10: Bool
+      var p2_10: Bool
+      var p3_3: Bool
+      var p4_3: Bool
+      p1_10 := p1_9 &&
+        perm(_MaySet(r_6, 573160633986428200014159035227544966692935525714)) >
+        none
+      p2_10 := p2_9 &&
+        perm(_MaySet_0(r_6_0, 573160633986428200014159035227544966692935525714)) >
+        none
+      p3_3 := p1_9 &&
+        !(perm(_MaySet(r_6, 573160633986428200014159035227544966692935525714)) >
+        none)
+      p4_3 := p2_9 &&
+        !(perm(_MaySet_0(r_6_0, 573160633986428200014159035227544966692935525714)) >
+        none)
+      if (p1_10) {
+        exhale acc(_MaySet(r_6, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(r_6.Record_is_classified, write)
+      }
+      if (p2_10) {
+        exhale acc(_MaySet_0(r_6_0, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(r_6_0.Record_is_classifiedp, write)
+      }
+    }
+    if (p1_9) {
+      r_6.Record_is_classified := __prim__bool___box__(false)
+    }
+    if (p2_9) {
+      r_6_0.Record_is_classifiedp := __prim__bool___box__(false)
+    }
+    assert p1_9 && p2_9 ==> typeof(m_7) == typeof(m_7_0)
+    if (p1_9) {
+      fold acc(Lock_invariant(m_7), write)
+    }
+    if (p2_9) {
+      fold acc(Lock_invariant_0(m_7_0), write)
+    }
+    assert p1_9 && p2_9 ==> Lock_invariant_low(m_7, m_7_0)
+    // Method call: Lock_release
+  
+    if (p1_9 || p2_9) {
+      var tmp1_8: Ref
+      var tmp2_8: Ref
+      if (p1_9) {
+        tmp1_8 := m_7
+      }
+      if (p2_9) {
+        tmp2_8 := m_7_0
+      }
+      Lock_release(p1_9, p2_9, tmp1_8, tmp2_8)
+    }
+    exhale true
+  }
+}
+
+method Record___init__(p1_11: Bool, p2_11: Bool, self: Ref, self_0: Ref, ic: Ref,
+  ic_1: Ref, data: Ref, data_1: Ref)
+  requires (p1_11 ==> self != null) && (p2_11 ==> self_0 != null)
+  requires (p1_11 ==>
+    acc(_MaySet(self, 573160633986428200014159035227544966692935525714), write)) &&
+    (p2_11 ==>
+    acc(_MaySet_0(self_0, 573160633986428200014159035227544966692935525714), write))
+  requires (p1_11 ==>
+    acc(_MaySet(self, 117815395581417027855934802), write)) &&
+    (p2_11 ==> acc(_MaySet_0(self_0, 117815395581417027855934802), write))
+  requires (p1_11 ==> issubtype(typeof(self), Record())) &&
+    (p2_11 ==> issubtype(typeof(self_0), Record()))
+  requires (p1_11 ==> issubtype(typeof(ic), bool())) &&
+    (p2_11 ==> issubtype(typeof(ic_1), bool()))
+  requires (p1_11 ==> issubtype(typeof(data), int())) &&
+    (p2_11 ==> issubtype(typeof(data_1), int()))
+  requires (p1_11 ==> self != null) && (p2_11 ==> self_0 != null)
+{
+  inhale p1_11
+  {
+    var _err: Ref
+    var _err_5: Ref
+    var self_6: Ref
+    var self_6_0: Ref
+    var ic_0: Ref
+    var ic_0_0: Ref
+    var data_0: Ref
+    var data_0_0: Ref
+    if (p1_11) {
+      inhale typeof(self) == Record()
+      _err := null
+      self_6 := self
+      ic_0 := ic
+      data_0 := data
+    }
+    if (p2_11) {
+      inhale typeof(self_0) == Record()
+      _err_5 := null
+      self_6_0 := self_0
+      ic_0_0 := ic_1
+      data_0_0 := data_1
+    }
+    {
+      var p1_12: Bool
+      var p2_12: Bool
+      var p3_4: Bool
+      var p4_4: Bool
+      p1_12 := p1_11 &&
+        perm(_MaySet(self_6, 573160633986428200014159035227544966692935525714)) >
+        none
+      p2_12 := p2_11 &&
+        perm(_MaySet_0(self_6_0, 573160633986428200014159035227544966692935525714)) >
+        none
+      p3_4 := p1_11 &&
+        !(perm(_MaySet(self_6, 573160633986428200014159035227544966692935525714)) >
+        none)
+      p4_4 := p2_11 &&
+        !(perm(_MaySet_0(self_6_0, 573160633986428200014159035227544966692935525714)) >
+        none)
+      if (p1_12) {
+        exhale acc(_MaySet(self_6, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(self_6.Record_is_classified, write)
+      }
+      if (p2_12) {
+        exhale acc(_MaySet_0(self_6_0, 573160633986428200014159035227544966692935525714), write)
+        inhale acc(self_6_0.Record_is_classifiedp, write)
+      }
+    }
+    if (p1_11) {
+      self_6.Record_is_classified := ic_0
+    }
+    if (p2_11) {
+      self_6_0.Record_is_classifiedp := ic_0_0
+    }
+    {
+      var p1_13: Bool
+      var p2_13: Bool
+      var p3_5: Bool
+      var p4_5: Bool
+      p1_13 := p1_11 &&
+        perm(_MaySet(self_6, 117815395581417027855934802)) > none
+      p2_13 := p2_11 &&
+        perm(_MaySet_0(self_6_0, 117815395581417027855934802)) > none
+      p3_5 := p1_11 &&
+        !(perm(_MaySet(self_6, 117815395581417027855934802)) > none)
+      p4_5 := p2_11 &&
+        !(perm(_MaySet_0(self_6_0, 117815395581417027855934802)) > none)
+      if (p1_13) {
+        exhale acc(_MaySet(self_6, 117815395581417027855934802), write)
+        inhale acc(self_6.Record_data, write)
+      }
+      if (p2_13) {
+        exhale acc(_MaySet_0(self_6_0, 117815395581417027855934802), write)
+        inhale acc(self_6_0.Record_datap, write)
+      }
+    }
+    if (p1_11) {
+      self_6.Record_data := data_0
+    }
+    if (p2_11) {
+      self_6_0.Record_datap := data_0_0
+    }
+    exhale true
+  }
+}
+
+method Lock___init__(p1_14: Bool, p2_14: Bool, self_2: Ref, self_2_0: Ref, locked_object: Ref,
+  locked_object_0: Ref, above: Ref, above_0: Ref, below: Ref, below_0: Ref)
+  requires (p1_14 ==> self_2 != null) && (p2_14 ==> self_2_0 != null)
+  requires (p1_14 ==>
+    issubtype(typeof(self_2), Lock(Lock_arg(typeof(self_2), 0)))) &&
+    (p2_14 ==>
+    issubtype(typeof(self_2_0), Lock(Lock_arg(typeof(self_2_0), 0))))
+  requires (p1_14 ==>
+    issubtype(typeof(locked_object), Lock_arg(typeof(self_2), 0))) &&
+    (p2_14 ==>
+    issubtype(typeof(locked_object_0), Lock_arg(typeof(self_2_0), 0)))
+  requires (p1_14 ==> above == null || issubtype(typeof(above), BaseLock())) &&
+    (p2_14 ==> above_0 == null || issubtype(typeof(above_0), BaseLock()))
+  requires (p1_14 ==> below == null || issubtype(typeof(below), BaseLock())) &&
+    (p2_14 ==> below_0 == null || issubtype(typeof(below_0), BaseLock()))
+  requires (p1_14 ==> issubtype(Lock_arg(typeof(self_2), 0), object())) &&
+    (p2_14 ==> issubtype(Lock_arg(typeof(self_2_0), 0), object()))
+  requires (p1_14 ==> self_2 != null) && (p2_14 ==> self_2_0 != null)
+  requires (p1_14 ==> [true, true]) && (p2_14 ==> [true, true])
+  requires (p1_14 ==> above == null && below != null ==> true) &&
+    (p2_14 ==> above_0 == null && below_0 != null ==> true)
+  requires (p1_14 ==>
+    above != null && below != null ==> Level(above) < Level(below)) &&
+    (p2_14 ==>
+    above_0 != null && below_0 != null ==> Level(above_0) < Level(below_0))
+  requires (p1_14 ==> acc(Lock_invariant(self_2), write)) &&
+    (p2_14 ==> acc(Lock_invariant_0(self_2_0), write)) &&
+    (p1_14 && p2_14 ==> Lock_invariant_low(self_2, self_2_0))
+  ensures (p1_14 ==> above == null ==> true) &&
+    (p2_14 ==> above_0 == null ==> true)
+  ensures (p1_14 ==> above != null ==> Level(above) < Level(self_2)) &&
+    (p2_14 ==> above_0 != null ==> Level(above_0) < Level(self_2_0))
+  ensures (p1_14 ==> below != null ==> Level(self_2) < Level(below)) &&
+    (p2_14 ==> below_0 != null ==> Level(self_2_0) < Level(below_0))
+{
+  inhale p1_14
+  if (p1_14) {
+    inhale typeof(self_2) == Lock(Lock_arg(typeof(self_2), 0))
+    inhale false
+  }
+  if (p2_14) {
+    inhale typeof(self_2_0) == Lock(Lock_arg(typeof(self_2_0), 0))
+    inhale false
+  }
+}
+
+method Lock_acquire(p1_15: Bool, p2_15: Bool, self_3: Ref, self_3_0: Ref)
+  requires (p1_15 ==>
+    issubtype(typeof(self_3), Lock(Lock_arg(typeof(self_3), 0)))) &&
+    (p2_15 ==>
+    issubtype(typeof(self_3_0), Lock(Lock_arg(typeof(self_3_0), 0))))
+  requires (p1_15 ==> issubtype(Lock_arg(typeof(self_3), 0), object())) &&
+    (p2_15 ==> issubtype(Lock_arg(typeof(self_3_0), 0), object()))
+  requires (p1_15 ==> self_3 != null) && (p2_15 ==> self_3_0 != null)
+  requires (p1_15 ==> [true, true]) && (p2_15 ==> [true, true])
+  requires (p1_15 ==> true) && (p2_15 ==> true)
+  requires p1_15 && p2_15 ==> self_3 == self_3_0
+  requires (p1_15 ==> true) && (p2_15 ==> true)
+  ensures (p1_15 ==> acc(Lock_invariant(self_3), write)) &&
+    (p2_15 ==> acc(Lock_invariant_0(self_3_0), write)) &&
+    [typeof(self_3) == typeof(self_3_0) ==>
+    p1_15 && p2_15 ==> Lock_invariant_low(self_3, self_3_0),
+    p1_15 && p2_15 ==> Lock_invariant_low(self_3, self_3_0)]
+  ensures (p1_15 ==>
+    [acc(self_3.MustReleaseUnbounded, write),
+    acc(self_3.MustReleaseUnbounded, write)]) &&
+    (p2_15 ==>
+    [acc(self_3_0.MustReleaseUnboundedp, write),
+    acc(self_3_0.MustReleaseUnboundedp, write)])
+{
+  inhale p1_15
+  if (p1_15) {
+    inhale typeof(self_3) == Lock(Lock_arg(typeof(self_3), 0))
+    inhale false
+  }
+  if (p2_15) {
+    inhale typeof(self_3_0) == Lock(Lock_arg(typeof(self_3_0), 0))
+    inhale false
+  }
+}
+
+method Lock_release(p1_16: Bool, p2_16: Bool, self_4: Ref, self_4_0: Ref)
+  requires (p1_16 ==>
+    issubtype(typeof(self_4), Lock(Lock_arg(typeof(self_4), 0)))) &&
+    (p2_16 ==>
+    issubtype(typeof(self_4_0), Lock(Lock_arg(typeof(self_4_0), 0))))
+  requires (p1_16 ==> issubtype(Lock_arg(typeof(self_4), 0), object())) &&
+    (p2_16 ==> issubtype(Lock_arg(typeof(self_4_0), 0), object()))
+  requires (p1_16 ==> self_4 != null) && (p2_16 ==> self_4_0 != null)
+  requires (p1_16 ==> [true, true]) && (p2_16 ==> [true, true])
+  requires (p1_16 ==>
+    [acc(self_4.MustReleaseBounded, write),
+    (perm(self_4.MustReleaseBounded) > none ?
+      acc(self_4.MustReleaseBounded, write) :
+      acc(self_4.MustReleaseUnbounded, write))]) &&
+    (p2_16 ==>
+    [acc(self_4_0.MustReleaseBoundedp, write),
+    (perm(self_4_0.MustReleaseBoundedp) > none ?
+      acc(self_4_0.MustReleaseBoundedp, write) :
+      acc(self_4_0.MustReleaseUnboundedp, write))])
+  requires (p1_16 ==> acc(Lock_invariant(self_4), write)) &&
+    (p2_16 ==> acc(Lock_invariant_0(self_4_0), write)) &&
+    (p1_16 && p2_16 ==> Lock_invariant_low(self_4, self_4_0))
+  requires p1_16 && p2_16 ==> self_4 == self_4_0
+  requires (p1_16 ==> true) && (p2_16 ==> true)
+{
+  inhale p1_16
+  if (p1_16) {
+    inhale typeof(self_4) == Lock(Lock_arg(typeof(self_4), 0))
+    inhale false
+  }
+  if (p2_16) {
+    inhale typeof(self_4_0) == Lock(Lock_arg(typeof(self_4_0), 0))
+    inhale false
+  }
+}
+
+method main(p1_17: Bool, p2_17: Bool)
+{
+  inhale p1_17
+  {
+    var module_defined_0: Bool
+    var module_defined_0_0: Bool
+    var module_names_0: Set[_Name]
+    var module_names_0_0: Set[_Name]
+    var module_defined_1: Bool
+    var module_defined_1_0: Bool
+    var module_names_1: Set[_Name]
+    var module_names_1_0: Set[_Name]
+    var _err: Ref
+    var _err_6: Ref
+    if (p1_17) {
+      module_defined_0 := true
+      module_names_0 := Set[_Name]()
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._val, 99 / 100) &&
+        issubtype(typeof(__file__()._val), str()) &&
+        issubtype(typeof(__file__()._val), str())
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._val, 99 / 100) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+      module_defined_1 := false
+      module_names_1 := Set[_Name]()
+      module_names_1 := (module_names_1 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file___0()._val, 99 / 100) &&
+        issubtype(typeof(__file___0()._val), str()) &&
+        issubtype(typeof(__file___0()._val), str())
+      module_names_1 := (module_names_1 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name___0()._val, 99 / 100) &&
+        issubtype(typeof(__name___0()._val), str()) &&
+        issubtype(typeof(__name___0()._val), str()) &&
+        !str___eq__(str___create__(8, 6872332955275845471), __name___0()._val)
+      _err := null
+    }
+    if (p2_17) {
+      module_defined_0_0 := true
+      module_names_0_0 := Set[_Name]()
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._valp, 99 / 100) &&
+        issubtype(typeof(__file__()._valp), str()) &&
+        issubtype(typeof(__file__()._valp), str())
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._valp, 99 / 100) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._valp)
+      module_defined_1_0 := false
+      module_names_1_0 := Set[_Name]()
+      module_names_1_0 := (module_names_1_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file___0()._valp, 99 / 100) &&
+        issubtype(typeof(__file___0()._valp), str()) &&
+        issubtype(typeof(__file___0()._valp), str())
+      module_names_1_0 := (module_names_1_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name___0()._valp, 99 / 100) &&
+        issubtype(typeof(__name___0()._valp), str()) &&
+        issubtype(typeof(__name___0()._valp), str()) &&
+        !str___eq__(str___create__(8, 6872332955275845471), __name___0()._valp)
+      _err_6 := null
+    }
+    {
+      var p1_18: Bool
+      var p2_18: Bool
+      var p3_6: Bool
+      var p4_6: Bool
+      p1_18 := p1_17 && !module_defined_1
+      p2_18 := p2_17 && !module_defined_1_0
+      p3_6 := p1_17 && !!module_defined_1
+      p4_6 := p2_17 && !!module_defined_1_0
+      if (p1_18) {
+        module_defined_1 := true
+        module_names_1 := (module_names_1 union
+          Set(_single(27981962743276871)))
+        module_names_1 := (module_names_1 union
+          Set(_single(7809644653626814543)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32195171041966420)))
+        module_names_1 := (module_names_1 union
+          Set(_single(37578771102893684825896415043)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32481164592901701)))
+        module_names_1 := (module_names_1 union
+          Set(_single(32481125787004233)))
+        module_names_1 := (module_names_1 union Set(_single(7827276)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8389754714483814220)))
+        module_names_1 := (module_names_1 union
+          Set(_single(1871507244730112373328)))
+        module_names_1 := (module_names_1 union Set(_single(1701999952)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8315178084276987218)))
+        module_names_1 := (module_names_1 union
+          Set(_single(7738150958662902082)))
+        module_names_1 := (module_names_1 union Set(_single(465558725964)))
+        module_names_1 := (module_names_1 union
+          Set(_single(122646376569110405802325325)))
+        module_names_1 := (module_names_1 union
+          Set(_single(8038062462289584464661321053517)))
+        module_names_1 := (module_names_1 union
+          Set(_single(1999559502384759136599)))
+      }
+      if (p2_18) {
+        module_defined_1_0 := true
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(27981962743276871)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(7809644653626814543)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32195171041966420)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(37578771102893684825896415043)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32481164592901701)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(32481125787004233)))
+        module_names_1_0 := (module_names_1_0 union Set(_single(7827276)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8389754714483814220)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1871507244730112373328)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1701999952)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8315178084276987218)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(7738150958662902082)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(465558725964)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(122646376569110405802325325)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(8038062462289584464661321053517)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1999559502384759136599)))
+      }
+      assert (p1_18 ==> true) && (p2_18 ==> true) &&
+        ((p1_18 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_18 ==> (_single(7738150958662902082) in module_names_1_0))) &&
+        ((p1_18 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_18 ==> (_single(7738150958662902082) in module_names_1_0)))
+      assert (p1_18 ==> true) && (p2_18 ==> true) &&
+        ((p1_18 ==> (_single(7738150958662902082) in module_names_1)) &&
+        (p2_18 ==> (_single(7738150958662902082) in module_names_1_0)))
+      if (p1_18) {
+        module_names_1 := (module_names_1 union
+          Set(_single(6872339552563453791)))
+        module_names_1 := (module_names_1 union
+          Set(_single(474107507589505187341671)))
+        module_names_1 := (module_names_1 union
+          Set(_single(28554769915274081)))
+        module_names_1 := (module_names_1 union
+          Set(_single(28555834798400882)))
+        module_names_1 := (module_names_1 union Set(_single(1801678668)))
+      }
+      if (p2_18) {
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(6872339552563453791)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(474107507589505187341671)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(28554769915274081)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(28555834798400882)))
+        module_names_1_0 := (module_names_1_0 union
+          Set(_single(1801678668)))
+      }
+    }
+    assert (p1_17 ==> (_single(1801678668) in module_names_1)) &&
+      (p2_17 ==> (_single(1801678668) in module_names_1_0))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union Set(_single(1801678668)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union
+        Set(_single(110442657834322)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union Set(_single(1801678668)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(110442657834322)))
+    }
+    assert (p1_17 ==> true) && (p2_17 ==> true) &&
+      ((p1_17 ==> (_single(1801678668) in module_names_0)) &&
+      (p2_17 ==> (_single(1801678668) in module_names_0_0)))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union Set(_single(517098206541)))
+      module_names_0 := (module_names_0 union
+        Set(_single(128047746676079)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(517098206541)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(128047746676079)))
+    }
+    assert (p1_17 ==> true) && (p2_17 ==> true) &&
+      ((p1_17 ==> (_single(517098206541) in module_names_0)) &&
+      (p2_17 ==> (_single(517098206541) in module_names_0_0))) &&
+      ((p1_17 ==> (_single(110442657834322) in module_names_0)) &&
+      (p2_17 ==> (_single(110442657834322) in module_names_0_0)))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union
+        Set(_single(13902643335424116)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(13902643335424116)))
+    }
+    assert (p1_17 ==> true) && (p2_17 ==> true) &&
+      ((p1_17 ==> (_single(110442657834322) in module_names_0)) &&
+      (p2_17 ==> (_single(110442657834322) in module_names_0_0))) &&
+      ((p1_17 ==> (_single(517098206541) in module_names_0)) &&
+      (p2_17 ==> (_single(517098206541) in module_names_0_0)))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union
+        Set(_single(14184118312134772)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(14184118312134772)))
+    }
+    assert (p1_17 ==> true) && (p2_17 ==> true) &&
+      ((p1_17 ==> (_single(110442657834322) in module_names_0)) &&
+      (p2_17 ==> (_single(110442657834322) in module_names_0_0))) &&
+      ((p1_17 ==> (_single(517098206541) in module_names_0)) &&
+      (p2_17 ==> (_single(517098206541) in module_names_0_0)))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union
+        Set(_single(134846330333058723535838165032806541428)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(134846330333058723535838165032806541428)))
+    }
+    assert (p1_17 ==> true) && (p2_17 ==> true) &&
+      ((p1_17 ==> (_single(517098206541) in module_names_0)) &&
+      (p2_17 ==> (_single(517098206541) in module_names_0_0))) &&
+      ((p1_17 ==> (_single(110442657834322) in module_names_0)) &&
+      (p2_17 ==> (_single(110442657834322) in module_names_0_0)))
+    if (p1_17) {
+      module_names_0 := (module_names_0 union
+        Set(_single(134846330333058723535838446507783252084)))
+    }
+    if (p2_17) {
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(134846330333058723535838446507783252084)))
+    }
+    exhale true
+  }
+}
+
+method invariant_invariantframe_check(p1_19: Bool, p2_19: Bool, self_5: Ref,
+  self_5_1: Ref)
+  requires (p1_19 ==> true) && (p2_19 ==> true) &&
+    ((p1_19 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_19 ==>
+    issubtype(typeof(self_5_1), Lock(Lock_arg(typeof(self_5_1), 0)))))
+  requires (p1_19 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_19 ==>
+    issubtype(typeof(self_5_1), Lock(Lock_arg(typeof(self_5_1), 0))))
+  requires (p1_19 ==> true) && (p2_19 ==> true) &&
+    ((p1_19 ==> true) && (p2_19 ==> true))
+
+
+method invariant_invariantframe_check_0(p1_20: Bool, p2_20: Bool, self_5: Ref,
+  self_5_2: Ref)
+  requires (p1_20 ==> true) && (p2_20 ==> true) &&
+    ((p1_20 ==>
+    issubtype(typeof(self_5), Lock(Lock_arg(typeof(self_5), 0)))) &&
+    (p2_20 ==>
+    issubtype(typeof(self_5_2), Lock(Lock_arg(typeof(self_5_2), 0)))))
+  requires (p1_20 ==> issubtype(typeof(self_5), Mutex())) &&
+    (p2_20 ==> issubtype(typeof(self_5_2), Mutex()))
+  requires (p1_20 ==> true) && (p2_20 ==> true) &&
+    ((p1_20 ==> acc(Lock_get_locked(self_5).Record_is_classified, write)) &&
+    (p2_20 ==> acc(Lock_get_locked(self_5_2).Record_is_classifiedp, write)) &&
+    ((p1_20 ==>
+    issubtype(typeof(Lock_get_locked(self_5).Record_is_classified), bool())) &&
+    (p2_20 ==>
+    issubtype(typeof(Lock_get_locked(self_5_2).Record_is_classifiedp), bool()))) &&
+    ((p1_20 ==> acc(Lock_get_locked(self_5).Record_data, write)) &&
+    (p2_20 ==> acc(Lock_get_locked(self_5_2).Record_datap, write)) &&
+    ((p1_20 ==>
+    issubtype(typeof(Lock_get_locked(self_5).Record_data), int())) &&
+    (p2_20 ==>
+    issubtype(typeof(Lock_get_locked(self_5_2).Record_datap), int()))) &&
+    ((p1_20 && p2_20 ==>
+    Lock_get_locked(self_5).Record_is_classified ==
+    Lock_get_locked(self_5_2).Record_is_classifiedp) &&
+    ((p1_20 ==>
+    !bool___unbox__(Lock_get_locked(self_5).Record_is_classified)) &&
+    (p2_20 ==>
+    !bool___unbox__(Lock_get_locked(self_5_2).Record_is_classifiedp)) ==>
+    p1_20 && p2_20 ==>
+    Lock_get_locked(self_5).Record_data ==
+    Lock_get_locked(self_5_2).Record_datap))))

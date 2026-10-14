@@ -1,0 +1,152 @@
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_vector$col$$col$SensibleMoveMask {
+    inhabited(s_vector$col$$col$SensibleMoveMask_type()) ==
+    inhabited(s_UInt_u32_type())
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_vector$col$$col$SensibleMoveMask  {
+  
+  axiom s_vector$col$$col$SensibleMoveMask_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_vector$col$$col$SensibleMoveMask_type())
+  }
+  
+  axiom s_vector$col$$col$SensibleMoveMask_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_vector$col$$col$SensibleMoveMask_type())
+  }
+}
+
+field p_UInt_u32_val: s_UInt_u32
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_vector$col$$col$SensibleMoveMask_unreachable(): s_vector$col$$col$SensibleMoveMask
+  ensures false
+
+
+function s_vector$col$$col$SensibleMoveMask_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+function p_vector$col$$col$SensibleMoveMask_snap(self: Ref): s_vector$col$$col$SensibleMoveMask
+  requires acc(p_vector$col$$col$SensibleMoveMask(self), write)
+{
+  (unfolding acc(p_vector$col$$col$SensibleMoveMask(self), write) in
+    s_vector$col$$col$SensibleMoveMask_cons(p_UInt_u32_snap(s_vector$col$$col$SensibleMoveMask_field_0(self))))
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+predicate p_vector$col$$col$SensibleMoveMask(self: Ref) {
+  inhabited(s_UInt_u32_type()) &&
+  acc(p_UInt_u32(s_vector$col$$col$SensibleMoveMask_field_0(self)), write)
+}
+
+method m_vector$col$$col$SensibleMoveMask$col$$col$get_for_offset(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_vector$col$$col$SensibleMoveMask_type()) &&
+    acc(p_vector$col$$col$SensibleMoveMask(_1p), write)
+  ensures inhabited(s_UInt_u32_type()) && acc(p_UInt_u32(_0p), write)
+{
+  var _tmp0: s_UInt_u32
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_vector$col$$col$SensibleMoveMask(_1p), write)
+  _tmp0 := p_UInt_u32_snap(s_vector$col$$col$SensibleMoveMask_field_0(_1p))
+  p_UInt_u32_assign(_0p, _tmp0)
+  label _before_0_1
+  fold acc(p_vector$col$$col$SensibleMoveMask(_1p), write)
+  label package_post0
+  goto end
+  label end
+}
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+method p_vector$col$$col$SensibleMoveMask_assign(self: Ref, value: s_vector$col$$col$SensibleMoveMask)
+  ensures acc(p_vector$col$$col$SensibleMoveMask(self), write)
+  ensures p_vector$col$$col$SensibleMoveMask_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_vector$col$$col$SensibleMoveMask {
+  s_vector$col$$col$SensibleMoveMask_cons(s_vector$col$$col$SensibleMoveMask_0: s_UInt_u32)
+}
+
+adt Type {
+  s_UInt_u32_type()
+  s_vector$col$$col$SensibleMoveMask_type()
+  Unknown_type(id: Int)
+}

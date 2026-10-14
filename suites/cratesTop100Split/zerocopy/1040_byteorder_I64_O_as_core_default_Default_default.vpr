@@ -1,0 +1,808 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_byteorder$col$$col$I64 {
+    (forall O$0: Type ::
+      { inhabited(s_byteorder$col$$col$I64_type(O$0)) }
+      inhabited(s_byteorder$col$$col$I64_type(O$0)) ==
+      (inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(8))) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(O$0))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$default$col$$col$Default  {
+  
+  function core$col$$col$default$col$$col$Default_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_byteorder$col$$col$I64  {
+  
+  axiom s_byteorder$col$$col$I64_Sized {
+    (forall O$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_byteorder$col$$col$I64_type(O$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_byteorder$col$$col$I64_type(O$0)))
+  }
+  
+  axiom s_byteorder$col$$col$I64_MetaSized {
+    (forall O$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_byteorder$col$$col$I64_type(O$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_byteorder$col$$col$I64_type(O$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_zerocopy_byteorder$col$$col$I64_813_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_zerocopy_byteorder$col$$col$I64_813_condition {
+    (forall O$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_byteorder$col$$col$I64_type(O$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(O$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_byteorder$col$$col$I64_type(O$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition {
+    core$col$$col$default$col$$col$Default_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_core$col$$col$marker$col$$col$PhantomData_1988_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$default$col$$col$Default_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1993_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1993_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(32))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(32))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1994_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1994_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(31))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(31))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1995_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1995_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(30))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(30))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1996_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1996_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(29))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(29))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1997_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1997_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(28))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(28))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1998_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1998_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(27))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(27))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_1999_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_1999_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(26))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(26))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2000_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2000_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(25))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(25))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2001_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2001_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(24))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(24))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2002_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2002_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(23))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(23))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2003_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2003_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(22))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(22))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2004_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2004_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(21))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(21))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2005_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2005_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(20))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(20))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2006_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2006_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(19))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(19))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2007_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2007_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(18))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(18))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2008_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2008_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(17))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(17))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2009_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2009_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(16))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(16))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2010_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2010_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(15))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(15))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2011_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2011_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(14))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(14))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2012_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2012_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(13))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(13))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2013_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2013_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(12))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(12))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2014_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2014_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(11))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(11))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2015_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2015_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(10))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(10))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2016_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2016_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(9))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(9))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2017_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2017_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(8))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(8))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2018_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2018_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(7))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(7))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2019_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2019_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(6))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(6))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2020_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2020_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(5))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(5))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2021_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2021_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(4))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(4))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2022_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2022_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(3))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(3))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2023_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2023_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(2))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(2))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2024_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2024_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(1))) }
+      core$col$$col$default$col$$col$Default_impl(T$0) &&
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(1))))
+  }
+}
+
+domain trait_core$col$$col$default$col$$col$Default_impl_core_Array_2025_condition  {
+  
+  axiom core$col$$col$default$col$$col$Default_impl_core_Array_2025_condition {
+    (forall T$0: Type ::
+      { core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(0))) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$default$col$$col$Default_impl(s_Array_type(T$0, s_UInt_usize_cons(0))))
+  }
+}
+
+field p_UInt_u8_val: s_UInt_u8
+
+function s_byteorder$col$$col$I64_unreachable(O$0: Type): s_byteorder$col$$col$I64
+  ensures false
+
+
+function s_byteorder$col$$col$I64_field_0(self: Ref, O$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_byteorder$col$$col$I64_field_1(self: Ref, O$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_byteorder$col$$col$I64_snap(self: Ref, O$0: Type): s_byteorder$col$$col$I64
+  requires acc(p_byteorder$col$$col$I64(self, O$0), write)
+{
+  (unfolding acc(p_byteorder$col$$col$I64(self, O$0), write) in
+    s_byteorder$col$$col$I64_cons(p_Array_snap(s_byteorder$col$$col$I64_field_0(self,
+    O$0), s_UInt_u8_type(), s_UInt_usize_cons(8)), p_core$col$$col$marker$col$$col$PhantomData_snap(s_byteorder$col$$col$I64_field_1(self,
+    O$0), O$0)))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+function const_865_0_0(): s_Array
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 0).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 1).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 2).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 3).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 4).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 5).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 6).make_concrete_s_UInt_u8
+  ensures s_UInt_u8_cons(0) ==
+    s_Array_index(result, 7).make_concrete_s_UInt_u8
+
+
+predicate p_byteorder$col$$col$I64(self: Ref, O$0: Type) {
+  inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(8))) &&
+  acc(p_Array(s_byteorder$col$$col$I64_field_0(self, O$0), s_UInt_u8_type(),
+  s_UInt_usize_cons(8)), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(O$0)) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_byteorder$col$$col$I64_field_1(self,
+  O$0), O$0), write))
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+method m_$lt$byteorder$col$$col$I64$lt$O$gt$$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref,
+  O$0: Type)
+  ensures inhabited(s_byteorder$col$$col$I64_type(O$0)) &&
+    acc(p_byteorder$col$$col$I64(_0p, O$0), write)
+{
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(O$0)
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  p_byteorder$col$$col$I64_assign(_0p, O$0, s_byteorder$col$$col$I64_cons(const_865_0_0(), s_core$col$$col$marker$col$$col$PhantomData_cons()))
+  label _before_0_1
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method p_byteorder$col$$col$I64_assign(self: Ref, O$0: Type, value: s_byteorder$col$$col$I64)
+  ensures acc(p_byteorder$col$$col$I64(self, O$0), write)
+  ensures p_byteorder$col$$col$I64_snap(self, O$0) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method trait_core$col$$col$default$col$$col$Default_impl_byteorder$col$$col$I64_813_fn_pre_weaken_$lt$byteorder$col$$col$I64$lt$O$gt$$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref,
+  O$0: Type)
+{
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(O$0)
+}
+
+method trait_core$col$$col$default$col$$col$Default_impl_byteorder$col$$col$I64_813_fn_post_strengthen_$lt$byteorder$col$$col$I64$lt$O$gt$$sp$as$sp$core$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref,
+  O$0: Type)
+  requires inhabited(s_byteorder$col$$col$I64_type(O$0)) &&
+    acc(p_byteorder$col$$col$I64(_0p, O$0), write)
+{
+  label start
+  inhale core$col$$col$marker$col$$col$Sized_impl(O$0)
+}
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_byteorder$col$$col$I64 {
+  s_byteorder$col$$col$I64_cons(s_byteorder$col$$col$I64_0: s_Array, s_byteorder$col$$col$I64_1: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt Type {
+  s_UInt_u8_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_byteorder$col$$col$I64_type(s_byteorder$col$$col$I64_typaram_O$0: Type)
+  Unknown_type(id: Int)
+}

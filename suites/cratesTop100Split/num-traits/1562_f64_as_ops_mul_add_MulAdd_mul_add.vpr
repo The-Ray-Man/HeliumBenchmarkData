@@ -1,0 +1,346 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f64  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f64 {
+    (forall x: s_Float_f64 ::
+      { make_generic_s_Float_f64(x) }
+      s_Param_typ(make_generic_s_Float_f64(x)) == s_Float_f64_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f64 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f64, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f64_type() ==>
+      make_generic_s_Float_f64(p.make_concrete_s_Float_f64) == p)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_float$col$$col$Float  {
+  
+  function float$col$$col$Float_impl(arg0: Type): Bool 
+}
+
+domain trait_ops$col$$col$mul_add$col$$col$MulAdd  {
+  
+  function ops$col$$col$mul_add$col$$col$MulAdd_assoc_type_ops$col$$col$mul_add$col$$col$MulAdd$col$$col$Output(arg0: Type,
+  arg1: Type, arg2: Type): Type 
+  
+  function ops$col$$col$mul_add$col$$col$MulAdd_impl(arg0: Type, arg1: Type,
+  arg2: Type): Bool 
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain trait_fns_float$col$$col$Float_float$col$$col$Float$col$$col$mul_add  {
+  
+  function float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(arg0: s_Param,
+  arg1: s_Param, arg2: s_Param, arg3: Type): Bool 
+  
+  function float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(arg0: s_Param,
+  arg1: s_Param, arg2: s_Param, arg3: s_Param, arg4: Type): Bool 
+  
+  axiom float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add_base {
+    (forall _1s: s_Param, _2s: s_Param, _3s: s_Param, Self$0: Type ::
+      { float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(_1s,
+      _2s, _3s, Self$0) }
+      true ==>
+      float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(_1s,
+      _2s, _3s, Self$0))
+  }
+  
+  axiom float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add_base {
+    (forall _0s: s_Param, _1s: s_Param, _2s: s_Param, _3s: s_Param, Self$0: Type ::
+      { float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(_0s,
+      _1s, _2s, _3s, Self$0) }
+      float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(_0s,
+      _1s, _2s, _3s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_ops$col$$col$mul_add$col$$col$MulAdd_impl_num_traits_Float_f64_541_condition  {
+  
+  axiom ops$col$$col$mul_add$col$$col$MulAdd_impl_num_traits_Float_f64_541_condition {
+    ops$col$$col$mul_add$col$$col$MulAdd_impl(s_Float_f64_type(), s_Float_f64_type(),
+    s_Float_f64_type())
+  }
+}
+
+domain trait_float$col$$col$Float_impl_num_traits_Float_f64_308_condition  {
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f64_308_condition {
+    float$col$$col$Float_impl(s_Float_f64_type())
+  }
+}
+
+domain trait_float$col$$col$Float_impl_num_traits_Float_f64_308_$lt$f64$sp$as$sp$float$col$$col$Float$gt$$col$$col$mul_add  {
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f64_308_fn_pre_$lt$f64$sp$as$sp$float$col$$col$Float$gt$$col$$col$mul_add {
+    (forall _1s: s_Float_f64, _2s: s_Float_f64, _3s: s_Float_f64 ::
+      { float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(make_generic_s_Float_f64(_1s),
+      make_generic_s_Float_f64(_2s), make_generic_s_Float_f64(_3s), s_Float_f64_type()) }
+      true ==>
+      float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(make_generic_s_Float_f64(_1s),
+      make_generic_s_Float_f64(_2s), make_generic_s_Float_f64(_3s), s_Float_f64_type()))
+  }
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f64_308_fn_post_$lt$f64$sp$as$sp$float$col$$col$Float$gt$$col$$col$mul_add {
+    (forall _0s: s_Float_f64, _1s: s_Float_f64, _2s: s_Float_f64, _3s: s_Float_f64 ::
+      { float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(make_generic_s_Float_f64(_0s),
+      make_generic_s_Float_f64(_1s), make_generic_s_Float_f64(_2s), make_generic_s_Float_f64(_3s),
+      s_Float_f64_type()) }
+      float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(make_generic_s_Float_f64(_0s),
+      make_generic_s_Float_f64(_1s), make_generic_s_Float_f64(_2s), make_generic_s_Float_f64(_3s),
+      s_Float_f64_type()) ==>
+      true)
+  }
+}
+
+domain trait_ops$col$$col$mul_add$col$$col$MulAdd_impl_num_traits_Float_f64_541_$lt$f64$sp$as$sp$ops$col$$col$mul_add$col$$col$MulAdd$gt$$col$$col$Output  {
+  
+  axiom ops$col$$col$mul_add$col$$col$MulAdd_impl_num_traits_Float_f64_541_assoc_type_$lt$f64$sp$as$sp$ops$col$$col$mul_add$col$$col$MulAdd$gt$$col$$col$Output {
+    ops$col$$col$mul_add$col$$col$MulAdd_assoc_type_ops$col$$col$mul_add$col$$col$MulAdd$col$$col$Output(s_Float_f64_type(),
+    s_Float_f64_type(), s_Float_f64_type()) ==
+    s_Float_f64_type()
+  }
+}
+
+field p_Float_f64_val: s_Float_f64
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+method m_$lt$f64$sp$as$sp$ops$col$$col$mul_add$col$$col$MulAdd$gt$$col$$col$mul_add(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_2p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_3p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  var _4p: Ref
+  var _5p: Ref
+  var _6p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Float_f64
+  var _tmp1: s_Float_f64
+  var _tmp2: s_Float_f64
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Float_f64_snap(_1p)
+  p_Float_f64_assign(_4p, _tmp0)
+  label _before_0_2
+  label _before_0_3
+  _tmp1 := p_Float_f64_snap(_2p)
+  p_Float_f64_assign(_5p, _tmp1)
+  label _before_0_4
+  label _before_0_5
+  _tmp2 := p_Float_f64_snap(_3p)
+  p_Float_f64_assign(_6p, _tmp2)
+  label _before_0_6
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  make_generic_Float_f64(_4p)
+  make_generic_Float_f64(_5p)
+  make_generic_Float_f64(_6p)
+  float$col$$col$Float_fn_stub_float$col$$col$Float$col$$col$mul_add(_0p, _4p,
+    _5p, _6p, s_Float_f64_type())
+  make_concrete_Float_f64(_0p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_Float_f64(self: Ref)
+  requires acc(p_Float_f64(self), write)
+  ensures acc(p_Param(self, s_Float_f64_type()), write)
+  ensures old(make_generic_s_Float_f64(p_Float_f64_snap(self))) ==
+    p_Param_snap(self, s_Float_f64_type())
+
+
+method make_concrete_Float_f64(self: Ref)
+  requires acc(p_Param(self, s_Float_f64_type()), write)
+  ensures acc(p_Float_f64(self), write)
+  ensures old(p_Param_snap(self, s_Float_f64_type())) ==
+    make_generic_s_Float_f64(p_Float_f64_snap(self))
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method float$col$$col$Float_fn_stub_float$col$$col$Float$col$$col$mul_add(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref, Self$0: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(Self$0) && acc(p_Param(_2p, Self$0), write)
+  requires inhabited(Self$0) && acc(p_Param(_3p, Self$0), write)
+  requires float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$mul_add(p_Param_snap(_1p,
+    Self$0), p_Param_snap(_2p, Self$0), p_Param_snap(_3p, Self$0), Self$0)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+  ensures float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$mul_add(p_Param_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, Self$0)), old(p_Param_snap(_2p, Self$0)),
+    old(p_Param_snap(_3p, Self$0)), Self$0)
+
+
+method trait_ops$col$$col$mul_add$col$$col$MulAdd_impl_Float_f64_541_fn_pre_weaken_$lt$f64$sp$as$sp$ops$col$$col$mul_add$col$$col$MulAdd$gt$$col$$col$mul_add(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_2p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_3p), write)
+{
+  label start
+}
+
+method trait_ops$col$$col$mul_add$col$$col$MulAdd_impl_Float_f64_541_fn_post_strengthen_$lt$f64$sp$as$sp$ops$col$$col$mul_add$col$$col$MulAdd$gt$$col$$col$mul_add(_0p: Ref,
+  _1p: Ref, _2p: Ref, _3p: Ref)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_1p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_2p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_3p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Float_f64(make_concrete_s_Float_f64: s_Float_f64)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Float_f64_type()
+  Unknown_type(id: Int)
+}

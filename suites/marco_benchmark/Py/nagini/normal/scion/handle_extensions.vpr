@@ -1,0 +1,1709 @@
+domain PyType {
+  
+  function extends_(sub: PyType, super: PyType): Bool
+  
+  function issubtype(sub: PyType, super: PyType): Bool
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool
+  
+  function tuple_args(t: PyType): Seq[PyType]
+  
+  function typeof(obj: Ref): PyType
+  
+  function get_basic(t: PyType): PyType
+  
+  function union_type_1(arg_1: PyType): PyType
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType
+  
+  unique function object(): PyType
+  
+  unique function list_basic(): PyType
+  
+  function list(arg0: PyType): PyType
+  
+  function list_arg(typ: PyType, index: Int): PyType
+  
+  unique function set_basic(): PyType
+  
+  function set(arg0: PyType): PyType
+  
+  function set_arg(typ: PyType, index: Int): PyType
+  
+  unique function dict_basic(): PyType
+  
+  function dict(arg0: PyType, arg1: PyType): PyType
+  
+  function dict_arg(typ: PyType, index: Int): PyType
+  
+  unique function int(): PyType
+  
+  unique function float(): PyType
+  
+  unique function bool(): PyType
+  
+  unique function NoneType(): PyType
+  
+  unique function Exception(): PyType
+  
+  unique function str(): PyType
+  
+  unique function bytes(): PyType
+  
+  unique function tuple_basic(): PyType
+  
+  function tuple(args: Seq[PyType]): PyType
+  
+  function tuple_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSeq_basic(): PyType
+  
+  function PSeq(arg0: PyType): PyType
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType
+  
+  unique function PSet_basic(): PyType
+  
+  function PSet(arg0: PyType): PyType
+  
+  function PSet_arg(typ: PyType, index: Int): PyType
+  
+  unique function Iterator_basic(): PyType
+  
+  function Iterator(arg0: PyType): PyType
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType
+  
+  unique function Thread_0(): PyType
+  
+  unique function Place(): PyType
+  
+  unique function Router(): PyType
+  
+  unique function InterfaceState(): PyType
+  
+  unique function Serializable(): PyType
+  
+  unique function PacketBase(): PyType
+  
+  unique function L4HeaderBase(): PyType
+  
+  unique function SCIONBaseException(): PyType
+  
+  unique function SCIONBaseError(): PyType
+  
+  unique function SCIONIOError(): PyType
+  
+  unique function SCIONIndexError(): PyType
+  
+  unique function SCIONKeyError(): PyType
+  
+  unique function SCIONJSONError(): PyType
+  
+  unique function SCIONYAMLError(): PyType
+  
+  unique function SCIONParseError(): PyType
+  
+  unique function SCIONTypeError(): PyType
+  
+  unique function SCIONServiceLookupError(): PyType
+  
+  unique function SCIONChecksumFailed(): PyType
+  
+  unique function SCIONTCPError(): PyType
+  
+  unique function SCIONTCPTimeout(): PyType
+  
+  unique function SCIONElement(): PyType
+  
+  unique function ExtensionHeader(): PyType
+  
+  unique function HopByHopExtension(): PyType
+  
+  unique function HostAddrBase(): PyType
+  
+  unique function TypeBase(): PyType
+  
+  unique function ExtensionClass(): PyType
+  
+  unique function ExtHopByHopType(): PyType
+  
+  unique function SCIONPath(): PyType
+  
+  unique function ISD_AS(): PyType
+  
+  unique function SCIONAddr(): PyType
+  
+  unique function SCIONL4Packet(): PyType
+  
+  unique function SCIONCommonHdr(): PyType
+  
+  unique function SCIONAddrHdr(): PyType
+  
+  unique function SCIONBasePacket(): PyType
+  
+  unique function SCIONExtPacket(): PyType
+  
+  unique function SCMPError(): PyType
+  
+  unique function SCMPExtError(): PyType
+  
+  unique function SCMPTooManyHopByHop(): PyType
+  
+  unique function SCMPBadExtOrder(): PyType
+  
+  unique function SCMPBadHopByHop(): PyType
+  
+  unique function SCMPExt(): PyType
+  
+  unique function SibraExtBase(): PyType
+  
+  unique function Socket(): PyType
+  
+  unique function UDPSocket(): PyType
+  
+  unique function Element(): PyType
+  
+  unique function Topology(): PyType
+  
+  unique function RouterElement(): PyType
+  
+  unique function InterfaceElement(): PyType
+  
+  unique function TracerouteExt(): PyType
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),issubtype(middle, super) } issubtype(sub, middle) && issubtype(middle, super) ==> issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType :: { issubtype(type_, type_) } issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType :: { extends_(sub, sub2) } extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref :: { typeof(r) } issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType :: { issubtype(type_, object()) } issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType :: { extends_(sub, super),extends_(sub2, super) } extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==> isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType :: { issubtype(sub, super) } { issubtype(super, sub) } issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType :: { issubtype(sub, middle),isnotsubtype(middle, super) } issubtype(sub, middle) && isnotsubtype(middle, super) ==> !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType :: { tuple(seq),tuple_arg(Z, i) } issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType :: { issubtype(Z, tuple(seq)) } issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] :: seq1 != seq2 && |seq1| == |seq2| && (forall i: Int :: i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==> issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(X, union_type_1(arg_1)) } issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(X, union_type_2(arg_1, arg_2)) } issubtype(X, union_type_2(arg_1, arg_2)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) } issubtype(X, union_type_3(arg_1, arg_2, arg_3)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) } issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) == (false || issubtype(X, arg_1) || issubtype(X, arg_2) || issubtype(X, arg_3) || issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType :: { issubtype(union_type_1(arg_1), X) } issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType :: { issubtype(union_type_2(arg_1, arg_2), X) } issubtype(union_type_2(arg_1, arg_2), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType :: { issubtype(union_type_3(arg_1, arg_2, arg_3), X) } issubtype(union_type_3(arg_1, arg_2, arg_3), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType :: { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) } issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) == (true && issubtype(arg_1, X) && issubtype(arg_2, X) && issubtype(arg_3, X) && issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType :: { list(var0) } extends_(list(var0), object()) && get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType :: { list(arg0),list_arg(Z, 0) } issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType :: { set(var0) } extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType :: { set(arg0),set_arg(Z, 0) } issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType :: { dict(var0, var1) } extends_(dict(var0, var1), object()) && get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: { dict(arg0, arg1),dict_arg(Z, 0) } issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType :: { dict(arg0, arg1),dict_arg(Z, 1) } issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) && get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] :: { tuple(args) } ((forall e: PyType :: (e in args) ==> e == object()) ==> extends_(tuple(args), object())) && get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType :: { PSeq(var0) } extends_(PSeq(var0), object()) && get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType :: { PSeq(arg0),PSeq_arg(Z, 0) } issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType :: { PSet(var0) } extends_(PSet(var0), object()) && get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType :: { PSet(arg0),PSet_arg(Z, 0) } issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType :: { Iterator(var0) } extends_(Iterator(var0), object()) && get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType :: { Iterator(arg0),Iterator_arg(Z, 0) } issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype_Router {
+    extends_(Router(), SCIONElement()) && get_basic(Router()) == Router()
+  }
+  
+  axiom subtype_InterfaceState {
+    extends_(InterfaceState(), object()) && get_basic(InterfaceState()) == InterfaceState()
+  }
+  
+  axiom subtype_Serializable {
+    extends_(Serializable(), object()) && get_basic(Serializable()) == Serializable()
+  }
+  
+  axiom subtype_PacketBase {
+    extends_(PacketBase(), Serializable()) && get_basic(PacketBase()) == PacketBase()
+  }
+  
+  axiom subtype_L4HeaderBase {
+    extends_(L4HeaderBase(), Serializable()) && get_basic(L4HeaderBase()) == L4HeaderBase()
+  }
+  
+  axiom subtype_SCIONBaseException {
+    extends_(SCIONBaseException(), Exception()) && get_basic(SCIONBaseException()) == SCIONBaseException()
+  }
+  
+  axiom subtype_SCIONBaseError {
+    extends_(SCIONBaseError(), SCIONBaseException()) && get_basic(SCIONBaseError()) == SCIONBaseError()
+  }
+  
+  axiom subtype_SCIONIOError {
+    extends_(SCIONIOError(), SCIONBaseError()) && get_basic(SCIONIOError()) == SCIONIOError()
+  }
+  
+  axiom subtype_SCIONIndexError {
+    extends_(SCIONIndexError(), SCIONBaseError()) && get_basic(SCIONIndexError()) == SCIONIndexError()
+  }
+  
+  axiom subtype_SCIONKeyError {
+    extends_(SCIONKeyError(), SCIONBaseError()) && get_basic(SCIONKeyError()) == SCIONKeyError()
+  }
+  
+  axiom subtype_SCIONJSONError {
+    extends_(SCIONJSONError(), SCIONBaseError()) && get_basic(SCIONJSONError()) == SCIONJSONError()
+  }
+  
+  axiom subtype_SCIONYAMLError {
+    extends_(SCIONYAMLError(), SCIONBaseError()) && get_basic(SCIONYAMLError()) == SCIONYAMLError()
+  }
+  
+  axiom subtype_SCIONParseError {
+    extends_(SCIONParseError(), SCIONBaseError()) && get_basic(SCIONParseError()) == SCIONParseError()
+  }
+  
+  axiom subtype_SCIONTypeError {
+    extends_(SCIONTypeError(), SCIONBaseError()) && get_basic(SCIONTypeError()) == SCIONTypeError()
+  }
+  
+  axiom subtype_SCIONServiceLookupError {
+    extends_(SCIONServiceLookupError(), SCIONBaseError()) && get_basic(SCIONServiceLookupError()) == SCIONServiceLookupError()
+  }
+  
+  axiom subtype_SCIONChecksumFailed {
+    extends_(SCIONChecksumFailed(), SCIONBaseError()) && get_basic(SCIONChecksumFailed()) == SCIONChecksumFailed()
+  }
+  
+  axiom subtype_SCIONTCPError {
+    extends_(SCIONTCPError(), SCIONBaseError()) && get_basic(SCIONTCPError()) == SCIONTCPError()
+  }
+  
+  axiom subtype_SCIONTCPTimeout {
+    extends_(SCIONTCPTimeout(), SCIONBaseError()) && get_basic(SCIONTCPTimeout()) == SCIONTCPTimeout()
+  }
+  
+  axiom subtype_SCIONElement {
+    extends_(SCIONElement(), object()) && get_basic(SCIONElement()) == SCIONElement()
+  }
+  
+  axiom subtype_ExtensionHeader {
+    extends_(ExtensionHeader(), Serializable()) && get_basic(ExtensionHeader()) == ExtensionHeader()
+  }
+  
+  axiom subtype_HopByHopExtension {
+    extends_(HopByHopExtension(), ExtensionHeader()) && get_basic(HopByHopExtension()) == HopByHopExtension()
+  }
+  
+  axiom subtype_HostAddrBase {
+    extends_(HostAddrBase(), Serializable()) && get_basic(HostAddrBase()) == HostAddrBase()
+  }
+  
+  axiom subtype_TypeBase {
+    extends_(TypeBase(), object()) && get_basic(TypeBase()) == TypeBase()
+  }
+  
+  axiom subtype_ExtensionClass {
+    extends_(ExtensionClass(), TypeBase()) && get_basic(ExtensionClass()) == ExtensionClass()
+  }
+  
+  axiom subtype_ExtHopByHopType {
+    extends_(ExtHopByHopType(), TypeBase()) && get_basic(ExtHopByHopType()) == ExtHopByHopType()
+  }
+  
+  axiom subtype_SCIONPath {
+    extends_(SCIONPath(), Serializable()) && get_basic(SCIONPath()) == SCIONPath()
+  }
+  
+  axiom subtype_ISD_AS {
+    extends_(ISD_AS(), Serializable()) && get_basic(ISD_AS()) == ISD_AS()
+  }
+  
+  axiom subtype_SCIONAddr {
+    extends_(SCIONAddr(), object()) && get_basic(SCIONAddr()) == SCIONAddr()
+  }
+  
+  axiom subtype_SCIONL4Packet {
+    extends_(SCIONL4Packet(), SCIONExtPacket()) && get_basic(SCIONL4Packet()) == SCIONL4Packet()
+  }
+  
+  axiom subtype_SCIONCommonHdr {
+    extends_(SCIONCommonHdr(), Serializable()) && get_basic(SCIONCommonHdr()) == SCIONCommonHdr()
+  }
+  
+  axiom subtype_SCIONAddrHdr {
+    extends_(SCIONAddrHdr(), Serializable()) && get_basic(SCIONAddrHdr()) == SCIONAddrHdr()
+  }
+  
+  axiom subtype_SCIONBasePacket {
+    extends_(SCIONBasePacket(), PacketBase()) && get_basic(SCIONBasePacket()) == SCIONBasePacket()
+  }
+  
+  axiom subtype_SCIONExtPacket {
+    extends_(SCIONExtPacket(), SCIONBasePacket()) && get_basic(SCIONExtPacket()) == SCIONExtPacket()
+  }
+  
+  axiom subtype_SCMPError {
+    extends_(SCMPError(), SCIONBaseError()) && get_basic(SCMPError()) == SCMPError()
+  }
+  
+  axiom subtype_SCMPExtError {
+    extends_(SCMPExtError(), SCMPError()) && get_basic(SCMPExtError()) == SCMPExtError()
+  }
+  
+  axiom subtype_SCMPTooManyHopByHop {
+    extends_(SCMPTooManyHopByHop(), SCMPExtError()) && get_basic(SCMPTooManyHopByHop()) == SCMPTooManyHopByHop()
+  }
+  
+  axiom subtype_SCMPBadExtOrder {
+    extends_(SCMPBadExtOrder(), SCMPExtError()) && get_basic(SCMPBadExtOrder()) == SCMPBadExtOrder()
+  }
+  
+  axiom subtype_SCMPBadHopByHop {
+    extends_(SCMPBadHopByHop(), SCMPExtError()) && get_basic(SCMPBadHopByHop()) == SCMPBadHopByHop()
+  }
+  
+  axiom subtype_SCMPExt {
+    extends_(SCMPExt(), HopByHopExtension()) && get_basic(SCMPExt()) == SCMPExt()
+  }
+  
+  axiom subtype_SibraExtBase {
+    extends_(SibraExtBase(), HopByHopExtension()) && get_basic(SibraExtBase()) == SibraExtBase()
+  }
+  
+  axiom subtype_Socket {
+    extends_(Socket(), object()) && get_basic(Socket()) == Socket()
+  }
+  
+  axiom subtype_UDPSocket {
+    extends_(UDPSocket(), Socket()) && get_basic(UDPSocket()) == UDPSocket()
+  }
+  
+  axiom subtype_Element {
+    extends_(Element(), object()) && get_basic(Element()) == Element()
+  }
+  
+  axiom subtype_Topology {
+    extends_(Topology(), object()) && get_basic(Topology()) == Topology()
+  }
+  
+  axiom subtype_RouterElement {
+    extends_(RouterElement(), Element()) && get_basic(RouterElement()) == RouterElement()
+  }
+  
+  axiom subtype_InterfaceElement {
+    extends_(InterfaceElement(), Element()) && get_basic(InterfaceElement()) == InterfaceElement()
+  }
+  
+  axiom subtype_TracerouteExt {
+    extends_(TracerouteExt(), HopByHopExtension()) && get_basic(TracerouteExt()) == TracerouteExt()
+  }
+}
+
+domain Function {
+  
+  
+}
+
+domain SIFDomain[T] {
+  
+  function Low(x: T): Bool
+  
+  axiom low_true {
+    (forall x: T :: { (Low(x): Bool) } (Low(x): Bool))
+  }
+}
+
+domain _list_ce_helper {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int :: { ___s[___i] } ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$ {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$
+  
+  function Measure$guard(m: Measure$): Bool
+  
+  function Measure$key(m: Measure$): Ref
+  
+  function Measure$value(m: Measure$): Int
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$guard(Measure$create(g, k, v)) } Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$key(Measure$create(g, k, v)) } Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int :: { Measure$value(Measure$create(g, k, v)) } Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$] {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$]
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ :: { (__toMS(Seq(__t)): Multiset[T$]) } (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] :: { (__toMS(__ss1 ++ __ss2): Multiset[T$]) } (__toMS(__ss1 ++ __ss2): Multiset[T$]) == ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] :: { (__toMS(__ss1): Multiset[T$]) } |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _dict_ce_helper {
+  
+  function dict_get_helper(___s: Set[Ref], ___s2: Ref, ___s3: Ref): Ref
+}
+
+field _val: Ref
+
+field __container: Ref
+
+field __iter_index: Int
+
+field __previous: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field dict_acc: Set[Ref]
+
+field dict_acc2: Ref
+
+field Measure$acc: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseUnbounded: Int
+
+field Router__udp_sock: Ref
+
+field Router_interface: Ref
+
+field Router_is_core_router: Ref
+
+field Router_of_gen_key: Ref
+
+field Router_sibra_key: Ref
+
+field Router_if_states: Ref
+
+field Router_revocations: Ref
+
+field Router_pre_ext_handlers: Ref
+
+field Router_post_ext_handlers: Ref
+
+field Router_sibra_state: Ref
+
+field Router__remote_sock: Ref
+
+field InterfaceState_is_active: Ref
+
+field InterfaceState_rev_info: Ref
+
+field SCIONInterfaceDownException_if_id: Ref
+
+field SCIONBaseException_args_: Ref
+
+field SCIONElement_id: Ref
+
+field SCIONElement_conf_dir: Ref
+
+field SCIONElement_ifid2br: Ref
+
+field SCIONElement__port: Ref
+
+field SCIONElement_topology: Ref
+
+field SCIONElement_config: Ref
+
+field SCIONElement_addr: Ref
+
+field SCIONElement_trust_store: Ref
+
+field SCIONElement_total_dropped: Ref
+
+field SCIONElement__core_ases: Ref
+
+field SCIONElement_run_flag: Ref
+
+field SCIONElement_stopped_flag: Ref
+
+field SCIONElement__in_buf: Ref
+
+field SCIONElement__socks: Ref
+
+field SCIONElement__startup: Ref
+
+field SCIONElement_DefaultMeta: PyType
+
+field Config_master_as_key: Ref
+
+field Config_propagation_time: Ref
+
+field Config_registration_time: Ref
+
+field Config_registers_paths: Ref
+
+field Config_cert_ver: Ref
+
+field ExtensionHeader__hdr_len: Ref
+
+field HostAddrBase_addr: Ref
+
+field OpaqueFieldList__order: Ref
+
+field OpaqueFieldList__labels: Ref
+
+field HopOpaqueField_xover: Ref
+
+field HopOpaqueField_verify_only: Ref
+
+field HopOpaqueField_forward_only: Ref
+
+field HopOpaqueField_recurse: Ref
+
+field HopOpaqueField_exp_time: Ref
+
+field HopOpaqueField_ingress_if: Ref
+
+field HopOpaqueField_egress_if: Ref
+
+field HopOpaqueField_mac: Ref
+
+field InfoOpaqueField_up_flag: Ref
+
+field InfoOpaqueField_shortcut: Ref
+
+field InfoOpaqueField_peer: Ref
+
+field InfoOpaqueField_timestamp: Ref
+
+field InfoOpaqueField_isd: Ref
+
+field InfoOpaqueField_hops: Ref
+
+field Raw__data: Ref
+
+field Raw__desc: Ref
+
+field Raw__len: Ref
+
+field Raw__min: Ref
+
+field Raw__offset: Ref
+
+field SCIONPath__ofs: Ref
+
+field SCIONPath__iof_idx: Ref
+
+field SCIONPath__hof_idx: Ref
+
+field SCIONPath_interfaces: Ref
+
+field SCIONPath_mtu: Ref
+
+field PCBMarking_p: Ref
+
+field PPCBMarking_inIA: Ref
+
+field PPCBMarking_inIF: Ref
+
+field PPCBMarking_inMTU: Ref
+
+field PPCBMarking_outIA: Ref
+
+field PPCBMarking_outIF: Ref
+
+field ISD_AS__isd: Ref
+
+field ISD_AS__as: Ref
+
+field SCIONAddr_isd_as: Ref
+
+field SCIONAddr_host: Ref
+
+field SCIONL4Packet_l4_hdr: Ref
+
+field SCIONCommonHdr_version: Ref
+
+field SCIONCommonHdr_src_addr_type: Ref
+
+field SCIONCommonHdr_dst_addr_type: Ref
+
+field SCIONCommonHdr_addrs_len: Ref
+
+field SCIONCommonHdr_total_len: Ref
+
+field SCIONCommonHdr__iof_idx: Ref
+
+field SCIONCommonHdr__hof_idx: Ref
+
+field SCIONCommonHdr_next_hdr: Ref
+
+field SCIONCommonHdr_hdr_len: Ref
+
+field SCIONAddrHdr_src: Ref
+
+field SCIONAddrHdr_dst: Ref
+
+field SCIONAddrHdr__pad_len: Ref
+
+field SCIONAddrHdr__total_len: Ref
+
+field SCIONBasePacket_cmn_hdr: Ref
+
+field SCIONBasePacket_addrs: Ref
+
+field SCIONBasePacket_path: Ref
+
+field SCIONBasePacket__l4_proto: Ref
+
+field SCIONBasePacket__payload: Ref
+
+field SCIONExtPacket_ext_hdrs: Ref
+
+field SCMPPayload__cmn_hdr: Ref
+
+field SCMPPayload__addrs: Ref
+
+field SCMPPayload__path: Ref
+
+field SCMPPayload__exts: Ref
+
+field SCMPPayload__l4_hdr: Ref
+
+field SCMPExt_error: Ref
+
+field SCMPExt_hopbyhop: Ref
+
+field SibraExtBase_accepted: Ref
+
+field SibraExtBase_error: Ref
+
+field Element_addr: Ref
+
+field Element_port: Ref
+
+field Element_name: Ref
+
+field Topology_is_core_as: Ref
+
+field Topology_mtu: Ref
+
+field Topology_isd_as: Ref
+
+field Topology_beacon_servers: Ref
+
+field Topology_certificate_servers: Ref
+
+field Topology_path_servers: Ref
+
+field Topology_sibra_servers: Ref
+
+field Topology_parent_border_routers: Ref
+
+field Topology_child_border_routers: Ref
+
+field Topology_peer_border_routers: Ref
+
+field Topology_routing_border_routers: Ref
+
+field RouterElement_interface: Ref
+
+field InterfaceElement_isd_as: Ref
+
+field InterfaceElement_if_id: Ref
+
+field InterfaceElement_udp_port: Ref
+
+field InterfaceElement_bandwidth: Ref
+
+field InterfaceElement_to_addr: Ref
+
+field InterfaceElement_link_type: Ref
+
+field InterfaceElement_to_udp_port: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function ExtensionHeader_EXT_TYPE(receiver: PyType): Ref
+  ensures result == null || issubtype(typeof(result), int())
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+
+
+function ExtensionHeader_EXT_CLASS(receiver: PyType): Ref
+  ensures result == null || issubtype(typeof(result), int())
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+  ensures receiver == ExtensionHeader() ==> result == null
+
+
+function ExtensionClass_HOP_BY_HOP(receiver: PyType): Ref
+  ensures issubtype(typeof(result), int())
+  ensures receiver == ExtensionClass() ==> result == __prim__int___box__(0)
+
+
+function ExtHopByHopType_SCMP(receiver: PyType): Ref
+  ensures issubtype(typeof(result), int())
+  ensures receiver == ExtHopByHopType() ==> result == __prim__int___box__(2)
+
+
+function Router_get_pre_ext_handlers(self_14: Ref): Ref
+  requires issubtype(typeof(self_14), Router())
+  requires self_14 != null
+  requires acc(SCIONElement_State(self_14), 1 / 10)
+  ensures issubtype(typeof(result), dict(union_type_2(NoneType(), int()), bool()))
+{
+  (unfolding acc(SCIONElement_State(self_14), 1 / 10) in self_14.Router_pre_ext_handlers)
+}
+
+function Router_get_post_ext_handlers(self_15: Ref): Ref
+  requires issubtype(typeof(self_15), Router())
+  requires self_15 != null
+  requires acc(SCIONElement_State(self_15), 1 / 10)
+  ensures issubtype(typeof(result), dict(union_type_2(NoneType(), int()), bool()))
+{
+  (unfolding acc(SCIONElement_State(self_15), 1 / 10) in self_15.Router_post_ext_handlers)
+}
+
+function SCIONExtPacket_get_ext_hdrs_len(self_326: Ref): Ref
+  requires issubtype(typeof(self_326), SCIONExtPacket())
+  requires self_326 != null
+  requires acc(SCIONBasePacket_State(self_326), 1 / 10)
+  ensures issubtype(typeof(result), int())
+{
+  __prim__int___box__((unfolding acc(SCIONBasePacket_State(self_326), 1 / 100) in list___len__(self_326.SCIONExtPacket_ext_hdrs)))
+}
+
+function SCIONExtPacket_get_ext_hdrs(self_327: Ref): Ref
+  requires issubtype(typeof(self_327), SCIONExtPacket())
+  requires self_327 != null
+  requires acc(SCIONBasePacket_State(self_327), 1 / 10)
+  ensures issubtype(typeof(result), list(ExtensionHeader()))
+{
+  (unfolding acc(SCIONBasePacket_State(self_327), 1 / 100) in self_327.SCIONExtPacket_ext_hdrs)
+}
+
+function Element_get_addr(self_338: Ref): Ref
+  requires issubtype(typeof(self_338), Element())
+  requires self_338 != null
+  requires acc(Element_State(self_338), 1 / 10)
+  ensures result == null || issubtype(typeof(result), HostAddrBase())
+{
+  (unfolding acc(Element_State(self_338), 1 / 10) in self_338.Element_addr)
+}
+
+function Element_get_port(self_339: Ref): Ref
+  requires issubtype(typeof(self_339), Element())
+  requires self_339 != null
+  requires acc(Element_State(self_339), 1 / 10)
+  ensures result == null || issubtype(typeof(result), int())
+{
+  (unfolding acc(Element_State(self_339), 1 / 10) in self_339.Element_port)
+}
+
+function Topology_border_routers(self_342: Ref): Ref
+  requires issubtype(typeof(self_342), Topology())
+  requires self_342 != null
+  requires acc(self_342.Topology_parent_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_parent_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_child_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_child_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_peer_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_peer_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_routing_border_routers, 1 / 20) && issubtype(typeof(self_342.Topology_routing_border_routers), list(RouterElement()))
+  requires acc(self_342.Topology_parent_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_child_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_peer_border_routers.list_acc, 1 / 20)
+  requires acc(self_342.Topology_routing_border_routers.list_acc, 1 / 20)
+  ensures issubtype(typeof(result), PSeq(RouterElement()))
+  ensures int___eq__(__prim__int___box__(PSeq___len__(result)), __prim__int___box__(int___add__(int___add__(int___add__(list___len__(self_342.Topology_parent_border_routers), list___len__(self_342.Topology_child_border_routers)), list___len__(self_342.Topology_peer_border_routers)), list___len__(self_342.Topology_routing_border_routers))))
+
+
+function Topology_get_border_routers(self_343: Ref): Ref
+  requires issubtype(typeof(self_343), Topology())
+  requires self_343 != null
+  requires acc(Topology_State(self_343), 1 / 20)
+  ensures issubtype(typeof(result), PSeq(RouterElement()))
+{
+  (unfolding acc(Topology_State(self_343), 1 / 20) in Topology_border_routers(self_343))
+}
+
+function MAX_HOPBYHOP_EXT(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(3)
+{
+  __prim__int___box__(3)
+}
+
+function __prim__int___box__(prim: Int): Ref
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==> __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==> __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___gt__(self: Int, other: Int): Bool
+{
+  self > other
+}
+
+function int___add__(self: Int, other: Int): Int
+{
+  self + other
+}
+
+function object___cast__(typ: PyType, obj: Ref): Ref
+  requires issubtype(typeof(obj), typ)
+  ensures result == obj
+  ensures issubtype(typeof(obj), typ)
+
+
+function list___len__(self: Ref): Int
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+{
+  |self.list_acc|
+}
+
+function Level(r: Ref): Perm
+
+
+function Measure$check(map: Seq[Measure$], key: Ref, value: Int): Bool
+{
+  (forall m: Measure$ :: { (m in map) } (m in map) ==> Measure$guard(m) && Measure$key(m) == key ==> Measure$value(m) > value)
+}
+
+function PSeq___sil_seq__(box: Ref): Seq[Ref]
+  requires issubtype(typeof(box), PSeq(PSeq_arg(typeof(box), 0)))
+
+
+function PSeq___contains__(self: Ref, item: Ref): Bool
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == (item in PSeq___sil_seq__(self))
+  ensures result ==> issubtype(typeof(item), PSeq_arg(typeof(self), 0))
+
+
+function PSeq___len__(self: Ref): Int
+  requires issubtype(typeof(self), PSeq(PSeq_arg(typeof(self), 0)))
+  ensures result == |PSeq___sil_seq__(self)|
+
+
+function dict___contains__(self: Ref, item: Ref): Bool
+  requires issubtype(typeof(self), dict(dict_arg(typeof(self), 0), dict_arg(typeof(self), 1)))
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  ensures result == (item in self.dict_acc)
+
+
+function dict___getitem__(self: Ref, key: Ref): Ref
+  requires issubtype(typeof(self), dict(dict_arg(typeof(self), 0), dict_arg(typeof(self), 1)))
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  requires dict___contains__(self, key)
+  ensures issubtype(typeof(result), dict_arg(typeof(self), 1))
+  ensures (result in dict___values__(self))
+  ensures dict_get_helper(self.dict_acc, self.dict_acc2, key) == result
+
+
+function dict___values__(self: Ref): Seq[Ref]
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  ensures |result| == |self.dict_acc|
+
+
+function dict_get(self: Ref, key: Ref): Ref
+  requires issubtype(typeof(self), dict(dict_arg(typeof(self), 0), dict_arg(typeof(self), 1)))
+  requires acc(self.dict_acc, wildcard) && acc(self.dict_acc2, wildcard)
+  ensures result == (dict___contains__(self, key) ? dict___getitem__(self, key) : null)
+
+
+function str___len__(self: Ref): Int
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+
+
+function str___create__(len: Int, value: Int): Ref
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function tuple___val__(self: Ref): Seq[Ref]
+
+
+function tuple___create0__(): Ref
+  ensures result != null
+  ensures typeof(result) == tuple(Seq[PyType]())
+  ensures tuple___len__(result) == 0
+  ensures tuple_args(typeof(result)) == Seq[PyType]()
+  ensures tuple___val__(result) == Seq[Ref]()
+
+
+function tuple___create1__(arg0: Ref, t0: PyType, ctr: Int): Ref
+  requires issubtype(typeof(arg0), t0)
+  ensures typeof(result) == tuple(Seq(t0))
+  ensures tuple_args(typeof(result)) == Seq(t0)
+  ensures tuple___val__(result) == Seq(arg0)
+  ensures tuple___len__(result) == 1 && tuple___getitem__(result, 0) == arg0
+
+
+function tuple___create2__(arg0: Ref, arg1: Ref, t0: PyType, t1: PyType, ctr: Int): Ref
+  requires issubtype(typeof(arg0), t0)
+  requires issubtype(typeof(arg1), t1)
+  ensures result != null
+  ensures typeof(result) == tuple(Seq(t0, t1))
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple___val__(result) == Seq(arg0, arg1)
+  ensures tuple___len__(result) == 2 && (tuple___getitem__(result, 0) == arg0 && tuple___getitem__(result, 1) == arg1)
+
+
+function tuple___len__(self: Ref): Int
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)|
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  requires (let ln == (tuple___len__(self)) in (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==> issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) + key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==> result == tuple___val__(self)[tuple___len__(self) + key]
+
+
+predicate MustTerminate(r: Ref) 
+
+predicate MustInvokeBounded(r: Ref) 
+
+predicate MustInvokeUnbounded(r: Ref) 
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate State_abstract_rest(self_97: Ref) 
+
+predicate SCIONElement_State(self_97: Ref) {
+  true && issubtype(typeof(self_97), SCIONElement()) && ((issubtype(typeof(self_97), SCIONElement()) ==> acc(self_97.SCIONElement_addr, write) && issubtype(typeof(self_97.SCIONElement_addr), SCIONAddr()) && (acc(SCIONAddr_State(self_97.SCIONElement_addr), write) && (acc(self_97.SCIONElement_topology, write) && issubtype(typeof(self_97.SCIONElement_topology), Topology()) && (acc(Topology_State(self_97.SCIONElement_topology), write) && (acc(self_97.SCIONElement_ifid2br, write) && issubtype(typeof(self_97.SCIONElement_ifid2br), dict(int(), RouterElement())) && (acc(self_97.SCIONElement_ifid2br.dict_acc, write) && acc(self_97.SCIONElement_ifid2br.dict_acc2, write) && (forall lambda857_37$x: Ref :: { (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) } { (dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x) in PSeq___sil_seq__(Topology_get_border_routers(self_97.SCIONElement_topology))) } issubtype(typeof(lambda857_37$x), int()) ==> (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) ==> PSeq___contains__(Topology_get_border_routers(self_97.SCIONElement_topology), dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x))))))))) && (issubtype(typeof(self_97), Router()) ==> acc(self_97.Router_interface, write) && issubtype(typeof(self_97.Router_interface), InterfaceElement()) && (acc(Element_State(self_97.Router_interface), write) && (acc(self_97.Router__remote_sock, write) && issubtype(typeof(self_97.Router__remote_sock), UDPSocket()) && (acc(self_97.Router__udp_sock, write) && issubtype(typeof(self_97.Router__udp_sock), UDPSocket()) && (acc(self_97.Router_of_gen_key, write) && issubtype(typeof(self_97.Router_of_gen_key), bytes()) && (acc(self_97.Router_if_states, write) && issubtype(typeof(self_97.Router_if_states), dict(int(), InterfaceState())) && (acc(self_97.Router_if_states.dict_acc, write) && acc(self_97.Router_if_states.dict_acc2, write) && (true && (forall lambda183_39$x: Ref :: { (lambda183_39$x in self_97.Router_if_states.dict_acc) } issubtype(typeof(lambda183_39$x), int()) && (lambda183_39$x in self_97.Router_if_states.dict_acc) ==> acc(InterfaceState_State(object___cast__(InterfaceState(), dict___getitem__(self_97.Router_if_states, lambda183_39$x))), write)) && (acc(self_97.Router_pre_ext_handlers, write) && issubtype(typeof(self_97.Router_pre_ext_handlers), dict(union_type_2(NoneType(), int()), bool())) && (acc(self_97.Router_post_ext_handlers, write) && issubtype(typeof(self_97.Router_post_ext_handlers), dict(union_type_2(NoneType(), int()), bool())))))))))))) && (true && typeof(self_97) != SCIONElement() && typeof(self_97) != Router() ==> acc(State_abstract_rest(self_97), write)))
+}
+
+predicate InterfaceState_State(self_80: Ref) 
+
+predicate L4HeaderBase_State(self_84: Ref) 
+
+predicate ExtensionHeader_State(self_101: Ref) 
+
+predicate SCIONPath_State(self_197: Ref) 
+
+predicate SCIONAddr_State(self_224: Ref) 
+
+predicate State_abstract_rest_13(self_325: Ref) 
+
+predicate SCIONBasePacket_State(self_325: Ref) {
+  true && issubtype(typeof(self_325), SCIONBasePacket()) && ((issubtype(typeof(self_325), SCIONBasePacket()) ==> acc(self_325.SCIONBasePacket_cmn_hdr, write) && (self_325.SCIONBasePacket_cmn_hdr == null || issubtype(typeof(self_325.SCIONBasePacket_cmn_hdr), SCIONCommonHdr())) && ((self_325.SCIONBasePacket_cmn_hdr != null ==> acc(SCIONCommonHdr_State(self_325.SCIONBasePacket_cmn_hdr), write)) && (acc(self_325.SCIONBasePacket_addrs, write) && (self_325.SCIONBasePacket_addrs == null || issubtype(typeof(self_325.SCIONBasePacket_addrs), SCIONAddrHdr())) && ((self_325.SCIONBasePacket_addrs != null ==> acc(SCIONAddrHdr_State(self_325.SCIONBasePacket_addrs), write)) && (acc(self_325.SCIONBasePacket_path, write) && (self_325.SCIONBasePacket_path == null || issubtype(typeof(self_325.SCIONBasePacket_path), SCIONPath())) && (self_325.SCIONBasePacket_path != null ==> acc(SCIONPath_State(self_325.SCIONBasePacket_path), write))))))) && (issubtype(typeof(self_325), SCIONExtPacket()) ==> acc(self_325.SCIONExtPacket_ext_hdrs, write) && issubtype(typeof(self_325.SCIONExtPacket_ext_hdrs), list(ExtensionHeader())) && (acc(self_325.SCIONExtPacket_ext_hdrs.list_acc, write) && (true && (forall lambda826_38$e: Ref :: { (lambda826_38$e in self_325.SCIONExtPacket_ext_hdrs.list_acc) } issubtype(typeof(lambda826_38$e), ExtensionHeader()) && (lambda826_38$e in self_325.SCIONExtPacket_ext_hdrs.list_acc) ==> acc(ExtensionHeader_State(lambda826_38$e), write))))) && (issubtype(typeof(self_325), SCIONL4Packet()) ==> acc(self_325.SCIONL4Packet_l4_hdr, write) && (self_325.SCIONL4Packet_l4_hdr == null || issubtype(typeof(self_325.SCIONL4Packet_l4_hdr), L4HeaderBase())) && (self_325.SCIONL4Packet_l4_hdr != null ==> acc(L4HeaderBase_State(self_325.SCIONL4Packet_l4_hdr), write))) && (true && typeof(self_325) != SCIONBasePacket() && typeof(self_325) != SCIONExtPacket() && typeof(self_325) != SCIONL4Packet() ==> acc(State_abstract_rest_13(self_325), write)))
+}
+
+predicate SCIONCommonHdr_State(self_236: Ref) 
+
+predicate SCIONAddrHdr_State(self_242: Ref) 
+
+predicate State_abstract_rest_16(self_341: Ref) 
+
+predicate Element_State(self_341: Ref) {
+  true && issubtype(typeof(self_341), Element()) && ((issubtype(typeof(self_341), Element()) ==> acc(self_341.Element_addr, write) && (self_341.Element_addr == null || issubtype(typeof(self_341.Element_addr), HostAddrBase())) && (acc(self_341.Element_port, write) && (self_341.Element_port == null || issubtype(typeof(self_341.Element_port), int())) && (acc(self_341.Element_name, write) && (self_341.Element_name == null || issubtype(typeof(self_341.Element_name), str()))))) && (issubtype(typeof(self_341), RouterElement()) ==> acc(self_341.RouterElement_interface, write) && issubtype(typeof(self_341.RouterElement_interface), InterfaceElement()) && acc(Element_State(self_341.RouterElement_interface), write)) && (issubtype(typeof(self_341), InterfaceElement()) ==> acc(self_341.InterfaceElement_isd_as, write) && issubtype(typeof(self_341.InterfaceElement_isd_as), int()) && (acc(self_341.InterfaceElement_if_id, write) && issubtype(typeof(self_341.InterfaceElement_if_id), int()) && (acc(self_341.InterfaceElement_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_udp_port), int()) && (acc(self_341.InterfaceElement_bandwidth, write) && issubtype(typeof(self_341.InterfaceElement_bandwidth), int()) && (acc(self_341.InterfaceElement_to_addr, write) && (self_341.InterfaceElement_to_addr == null || issubtype(typeof(self_341.InterfaceElement_to_addr), HostAddrBase())) && (acc(self_341.InterfaceElement_link_type, write) && (self_341.InterfaceElement_link_type == null || issubtype(typeof(self_341.InterfaceElement_link_type), str())) && (acc(self_341.InterfaceElement_to_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_to_udp_port), int())))))))) && (true && typeof(self_341) != Element() && typeof(self_341) != RouterElement() && typeof(self_341) != InterfaceElement() ==> acc(State_abstract_rest_16(self_341), write)))
+}
+
+predicate State_abstract_rest_17(self_351: Ref) 
+
+predicate Topology_State(self_351: Ref) {
+  true && issubtype(typeof(self_351), Topology()) && ((issubtype(typeof(self_351), Topology()) ==> acc(self_351.Topology_is_core_as, write) && issubtype(typeof(self_351.Topology_is_core_as), bool()) && (acc(self_351.Topology_mtu, write) && (self_351.Topology_mtu == null || issubtype(typeof(self_351.Topology_mtu), int())) && (acc(self_351.Topology_isd_as, write) && (self_351.Topology_isd_as == null || issubtype(typeof(self_351.Topology_isd_as), ISD_AS())) && (acc(self_351.Topology_beacon_servers, write) && issubtype(typeof(self_351.Topology_beacon_servers), list(RouterElement())) && (acc(self_351.Topology_beacon_servers.list_acc, write) && (acc(self_351.Topology_certificate_servers, write) && issubtype(typeof(self_351.Topology_certificate_servers), list(RouterElement())) && (acc(self_351.Topology_certificate_servers.list_acc, write) && (acc(self_351.Topology_path_servers, write) && issubtype(typeof(self_351.Topology_path_servers), list(RouterElement())) && (acc(self_351.Topology_path_servers.list_acc, write) && (acc(self_351.Topology_sibra_servers, write) && issubtype(typeof(self_351.Topology_sibra_servers), list(RouterElement())) && (acc(self_351.Topology_sibra_servers.list_acc, write) && (acc(self_351.Topology_parent_border_routers, write) && issubtype(typeof(self_351.Topology_parent_border_routers), list(RouterElement())) && (acc(self_351.Topology_parent_border_routers.list_acc, write) && (acc(self_351.Topology_child_border_routers, write) && issubtype(typeof(self_351.Topology_child_border_routers), list(RouterElement())) && (acc(self_351.Topology_child_border_routers.list_acc, write) && (acc(self_351.Topology_peer_border_routers, write) && issubtype(typeof(self_351.Topology_peer_border_routers), list(RouterElement())) && (acc(self_351.Topology_peer_border_routers.list_acc, write) && (acc(self_351.Topology_routing_border_routers, write) && issubtype(typeof(self_351.Topology_routing_border_routers), list(RouterElement())) && (acc(self_351.Topology_routing_border_routers.list_acc, write) && ((forall lambda60_51$x: Ref :: { (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) } issubtype(typeof(lambda60_51$x), RouterElement()) ==> (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda60_51$x)) && ((forall lambda61_50$x: Ref :: { (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) } issubtype(typeof(lambda61_50$x), RouterElement()) ==> (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda61_50$x)) && ((forall lambda62_49$x: Ref :: { (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) } issubtype(typeof(lambda62_49$x), RouterElement()) ==> (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda62_49$x)) && ((forall lambda63_52$x: Ref :: { (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) } issubtype(typeof(lambda63_52$x), RouterElement()) ==> (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda63_52$x)) && (true && (forall lambda64_46$e: Ref :: { (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda64_46$e), RouterElement()) && (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> acc(Element_State(lambda64_46$e), write)) && ((forall lambda65_46$e: Ref :: { (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda65_46$e), RouterElement()) ==> (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_addr(lambda65_46$e) != null) && (forall lambda66_46$e: Ref :: { (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda66_46$e), RouterElement()) ==> (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_port(lambda66_46$e) != null)))))))))))))))))))))))))) && (true && typeof(self_351) != Topology() ==> acc(State_abstract_rest_17(self_351), write)))
+}
+
+method Router_handle_extensions(_cthread_209: Ref, _caller_measures_209: Seq[Measure$], _residue_209: Perm, self_52: Ref, spkt_8: Ref, pre_routing_phase: Ref, from_local_as_0: Ref) returns (_current_wait_level_209: Perm, _res: Ref)
+  requires _cthread_209 != null
+  requires issubtype(typeof(_cthread_209), Thread_0())
+  requires issubtype(typeof(self_52), Router())
+  requires issubtype(typeof(spkt_8), SCIONL4Packet())
+  requires issubtype(typeof(pre_routing_phase), bool())
+  requires issubtype(typeof(from_local_as_0), bool())
+  requires self_52 != null
+  requires acc(SCIONBasePacket_State(spkt_8), 1 / 9)
+  requires acc(SCIONElement_State(self_52), 1 / 10)
+  requires int___eq__(SCIONExtPacket_get_ext_hdrs_len(spkt_8), __prim__int___box__(0))
+  requires [acc(MustTerminate(_cthread_209), write), true]
+  requires [true, Measure$check(_caller_measures_209, _cthread_209, 2) || perm(MustTerminate(_cthread_209)) == none && ((forperm _r_14: Ref [MustInvokeBounded(_r_14)] :: false) && ((forperm _r_14: Ref [MustInvokeUnbounded(_r_14)] :: false) && ((forperm _r_14: Ref [_r_14.MustReleaseBounded] :: false) && (forperm _r_14: Ref [_r_14.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_12: Ref [_r_12.MustReleaseBounded] :: Level(_r_12) <= _current_wait_level_209) && ((forperm _r_12: Ref [_r_12.MustReleaseUnbounded] :: Level(_r_12) <= _current_wait_level_209) && _residue_209 <= _current_wait_level_209), true]
+  ensures issubtype(typeof(_res), list(tuple(Seq(int()))))
+  ensures acc(_res.list_acc, write)
+  ensures acc(SCIONBasePacket_State(spkt_8), 1 / 9)
+  ensures acc(SCIONElement_State(self_52), 1 / 10)
+  ensures int___eq__(__prim__int___box__(list___len__(_res)), __prim__int___box__(0))
+  ensures [true, (forperm _r_13: Ref [MustInvokeBounded(_r_13)] :: false) && ((forperm _r_13: Ref [MustInvokeUnbounded(_r_13)] :: false) && ((forperm _r_13: Ref [_r_13.MustReleaseBounded] :: false) && (forperm _r_13: Ref [_r_13.MustReleaseUnbounded] :: false)))]
+{
+  var _err: Ref
+  var prefix: Ref
+  var handlers: Ref
+  var flags: Ref
+  var count: Ref
+  var ext_hdrs: Ref
+  var ext_hdrs_enum: Ref
+  var i: Ref
+  var ext_hdr: Ref
+  var handler: Ref
+  var self_360: Ref
+  var spkt_23: Ref
+  var pre_routing_phase_0: Ref
+  var from_local_as_7: Ref
+  var list_0: Ref
+  var enumerate_res: Ref
+  var iterable: Ref
+  var iter: Ref
+  var loop_target: Ref
+  var iter_err: Ref
+  var seqtmp: Seq[Ref]
+  var _loop_measures: Seq[Measure$]
+  var _loop_check_before: Bool
+  var _loop_termination_flag: Bool
+  var _loop_original_must_terminate: Perm
+  var _residue_590: Perm
+  var error_8: Ref
+  var SCMPBadExtOrder_res: Ref
+  var error_9: Ref
+  var SCMPTooManyHopByHop_res: Ref
+  var error_10: Ref
+  var SCMPBadHopByHop_res: Ref
+  var handle_scmp_res: Ref
+  var handle_traceroute_res: Ref
+  var handle_sibra_res: Ref
+  var handle_one_hop_path_res: Ref
+  var _cwl_209: Perm
+  var _method_measures_209: Seq[Measure$]
+  _method_measures_209 := Seq(Measure$create(true, _cthread_209, 2))
+  inhale typeof(self_52) == Router()
+  _res := null
+  _err := null
+  self_360 := self_52
+  spkt_23 := spkt_8
+  pre_routing_phase_0 := pre_routing_phase
+  from_local_as_7 := from_local_as_0
+  if (bool___unbox__(pre_routing_phase_0)) {
+    prefix := str___create__(3, 6648432)
+    inhale _isDefined(132394084823664)
+    handlers := Router_get_pre_ext_handlers(self_360)
+    inhale _isDefined(8318822977922556264)
+  } else {
+    prefix := str___create__(4, 1953722224)
+    inhale _isDefined(132394084823664)
+    handlers := Router_get_post_ext_handlers(self_360)
+    inhale _isDefined(8318822977922556264)
+  }
+  _cwl_209, list_0 := list___init__(_cthread_209, _method_measures_209, _residue_209)
+  inhale issubtype(typeof(list_0), list(tuple(Seq(int()))))
+  flags := list_0
+  inhale _isDefined(495655677030)
+  count := __prim__int___box__(0)
+  inhale _isDefined(500069396323)
+  ext_hdrs := SCIONExtPacket_get_ext_hdrs(spkt_23)
+  inhale _isDefined(8318821861147572325)
+  unfold acc(SCIONBasePacket_State(spkt_23), 1 / 9)
+  enumerate_res := new(list_acc)
+  inhale issubtype(typeof(enumerate_res), list(tuple(Seq(int(), ExtensionHeader())))) && |enumerate_res.list_acc| == |_checkDefined(ext_hdrs, 8318821861147572325).list_acc|
+  inhale (forall i_1: Int :: { enumerate_res.list_acc[i_1] } i_1 >= 0 && i_1 < |enumerate_res.list_acc| ==> issubtype(typeof(_checkDefined(ext_hdrs, 8318821861147572325).list_acc[i_1]), ExtensionHeader()) && enumerate_res.list_acc[i_1] == tuple___create2__(__prim__int___box__(i_1), _checkDefined(ext_hdrs, 8318821861147572325).list_acc[i_1], int(), ExtensionHeader(), 4))
+  ext_hdrs_enum := enumerate_res
+  inhale _isDefined(8672212920763842058644029208677)
+  fold acc(SCIONBasePacket_State(spkt_23), 1 / 9)
+  iterable := _checkDefined(ext_hdrs_enum, 8672212920763842058644029208677)
+  _cwl_209, iter := list___iter__(_cthread_209, _method_measures_209, _residue_209, iterable)
+  _cwl_209, loop_target, iter_err := Iterator___next__(_cthread_209, _method_measures_209, _residue_209, iter)
+  if (iter_err == null) {
+    assert 2 == tuple___len__(loop_target)
+    i := tuple___getitem__(loop_target, 0)
+    inhale _isDefined(105)
+    ext_hdr := tuple___getitem__(loop_target, 1)
+    inhale _isDefined(32198546785859685)
+  }
+  seqtmp := iterable.list_acc
+  // Save current MustTerminate amount.
+  _loop_original_must_terminate := perm(MustTerminate(_cthread_209))
+  // Save loop termination promise.
+  _loop_termination_flag := true
+  // We are before loop.
+  _loop_check_before := true
+  while (iter_err == null)
+    invariant [(forperm _r_10: Ref [_r_10.MustReleaseBounded] :: Level(_r_10) <= _residue_590) && ((forperm _r_10: Ref [_r_10.MustReleaseUnbounded] :: Level(_r_10) <= _residue_590) && _residue_209 <= _residue_590), true]
+    invariant acc(iterable.list_acc, 1 / 20)
+    invariant acc(iter.list_acc, 1 / 20)
+    invariant iter.list_acc == iterable.list_acc
+    invariant seqtmp == iterable.list_acc
+    invariant acc(iter.__iter_index, write)
+    invariant acc(iter.__previous, write)
+    invariant iter_err == null ==> iter.__iter_index - 1 == |iter.__previous|
+    invariant iter_err != null ==> iter.__iter_index == |iter.__previous|
+    invariant iter_err == null ==> |iter.list_acc| > 0
+    invariant iter.__iter_index >= 0 && iter.__iter_index <= |iter.list_acc|
+    invariant |iter.list_acc| > 0 ==> iter.__iter_index > 0
+    invariant |iter.list_acc| > 0 ==> loop_target == iter.list_acc[iter.__iter_index - 1]
+    invariant |iter.list_acc| > 0 ==> (loop_target in iter.list_acc)
+    invariant iter_err == null ==> iter.__previous == iter.list_acc[..iter.__iter_index - 1]
+    invariant |iter.list_acc| > 0 ==> issubtype(typeof(loop_target), tuple(Seq(int(), ExtensionHeader())))
+    invariant |iter.list_acc| > 0 ==> i == tuple___getitem__(loop_target, 0) && _isDefined(105)
+    invariant |iter.list_acc| > 0 ==> ext_hdr == tuple___getitem__(loop_target, 1) && _isDefined(32198546785859685)
+    invariant iter_err != null ==> iter.__previous == iter.list_acc
+    invariant |iter.list_acc| == 0 ==> iter_err != null
+    invariant true
+    invariant issubtype(typeof(count), int())
+    invariant acc(SCIONBasePacket_State(spkt_23), 1 / 9)
+    invariant int___eq__(SCIONExtPacket_get_ext_hdrs_len(spkt_23), __prim__int___box__(0))
+    invariant [acc(MustTerminate(_cthread_209), write), true]
+    invariant [true, _loop_check_before ==> _loop_termination_flag || (!(iter_err == null) || perm(MustTerminate(_cthread_209)) == none && ((forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) && ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) && ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) && (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false)))))]
+    invariant [true, !_loop_check_before ==> (forperm _r_11: Ref [MustInvokeBounded(_r_11)] :: false) && ((forperm _r_11: Ref [MustInvokeUnbounded(_r_11)] :: false) && ((forperm _r_11: Ref [_r_11.MustReleaseBounded] :: false) && (forperm _r_11: Ref [_r_11.MustReleaseUnbounded] :: false)))] 
+  {
+    _loop_measures := Seq(Measure$create(true, _cthread_209, 1))
+    if (!int___eq__(ExtensionHeader_EXT_CLASS(typeof(_checkDefined(ext_hdr, 32198546785859685))), ExtensionClass_HOP_BY_HOP(ExtensionClass()))) {
+      goto post_loop
+    }
+    if (int___eq__(ExtensionHeader_EXT_TYPE(typeof(_checkDefined(ext_hdr, 32198546785859685))), ExtHopByHopType_SCMP(ExtHopByHopType()))) {
+      if (!int___eq__(_checkDefined(i, 105), __prim__int___box__(0))) {
+        _cwl_209 := error_6(_cthread_209, _method_measures_209, _residue_590, str___create__(26, 74650124587478752011253172841987851998132097334637392472916819), tuple___create0__())
+        SCMPBadExtOrder_res := new()
+        inhale typeof(SCMPBadExtOrder_res) == SCMPBadExtOrder()
+        inhale acc(_MaySet(SCMPBadExtOrder_res, 2340446737858384733671959561063924865783486336333871924051), write)
+        _cwl_209 := SCIONBaseException___init__(_cthread_209, _method_measures_209, _residue_590, SCMPBadExtOrder_res, tuple___create1__(_checkDefined(i, 105), int(), 5))
+        error_8 := SCMPBadExtOrder_res
+        if (error_8 != null) {
+          exhale false
+          goto __end
+        }
+      }
+    } else {
+      count := __prim__int___box__(int___add__(int___unbox__(count), 1))
+      inhale _isDefined(500069396323)
+    }
+    if (int___gt__(int___unbox__(_checkDefined(count, 500069396323)), int___unbox__(MAX_HOPBYHOP_EXT()))) {
+      _cwl_209 := error_6(_cthread_209, _method_measures_209, _residue_590, str___create__(31, 82071643136864341250242585659749401452651627900381290396018458253373435732), tuple___create0__())
+      SCMPTooManyHopByHop_res := new()
+      inhale typeof(SCMPTooManyHopByHop_res) == SCMPTooManyHopByHop()
+      inhale acc(_MaySet(SCMPTooManyHopByHop_res, 2340446737858384733671959561063924865783486336333871924051), write)
+      _cwl_209 := SCIONBaseException___init__(_cthread_209, _method_measures_209, _residue_590, SCMPTooManyHopByHop_res, tuple___create1__(_checkDefined(i, 105), int(), 6))
+      error_9 := SCMPTooManyHopByHop_res
+      if (error_9 != null) {
+        exhale false
+        goto __end
+      }
+    }
+    handler := dict_get(_checkDefined(handlers, 8318822977922556264), ExtensionHeader_EXT_TYPE(typeof(_checkDefined(ext_hdr, 32198546785859685))))
+    inhale _isDefined(32199663560843624)
+    if (_checkDefined(handler, 32199663560843624) == null) {
+      _cwl_209 := debug(_cthread_209, _method_measures_209, _residue_590, str___create__(35, 873783825327961004440690706178089254703951045266132700532004853711922311133275385678), tuple___create2__(_checkDefined(prefix, 132394084823664), ExtensionHeader_EXT_TYPE(typeof(_checkDefined(ext_hdr, 32198546785859685))), str(), (issubtype(typeof(ExtensionHeader_EXT_TYPE(typeof(_checkDefined(ext_hdr, 32198546785859685)))), int()) ? int() : NoneType()), 7))
+      SCMPBadHopByHop_res := new()
+      inhale typeof(SCMPBadHopByHop_res) == SCMPBadHopByHop()
+      inhale acc(_MaySet(SCMPBadHopByHop_res, 2340446737858384733671959561063924865783486336333871924051), write)
+      _cwl_209 := SCIONBaseException___init__(_cthread_209, _method_measures_209, _residue_590, SCMPBadHopByHop_res, tuple___create0__())
+      error_10 := SCMPBadHopByHop_res
+      if (error_10 != null) {
+        exhale false
+        goto __end
+      }
+    }
+    if (bool___unbox__(_checkDefined(handler, 32199663560843624))) {
+      if (issubtype(typeof(_checkDefined(ext_hdr, 32198546785859685)), SCMPExt())) {
+        _cwl_209, handle_scmp_res := Router_handle_scmp(_cthread_209, _method_measures_209, _residue_590, self_360, object___cast__(SCMPExt(), _checkDefined(ext_hdr, 32198546785859685)), spkt_23, from_local_as_7)
+        _cwl_209 := list_extend(_cthread_209, _method_measures_209, _residue_590, _checkDefined(flags, 495655677030), object___cast__(list(tuple(Seq(int()))), handle_scmp_res))
+      } elseif (issubtype(typeof(_checkDefined(ext_hdr, 32198546785859685)), TracerouteExt())) {
+        _cwl_209, handle_traceroute_res := Router_handle_traceroute(_cthread_209, _method_measures_209, _residue_590, self_360, object___cast__(TracerouteExt(), _checkDefined(ext_hdr, 32198546785859685)), spkt_23, from_local_as_7)
+        _cwl_209 := list_extend(_cthread_209, _method_measures_209, _residue_590, _checkDefined(flags, 495655677030), object___cast__(list(tuple(Seq(int(), NoneType()))), handle_traceroute_res))
+      } elseif (issubtype(typeof(_checkDefined(ext_hdr, 32198546785859685)), SibraExtBase())) {
+        _cwl_209, handle_sibra_res := Router_handle_sibra(_cthread_209, _method_measures_209, _residue_590, self_360, object___cast__(SibraExtBase(), _checkDefined(ext_hdr, 32198546785859685)), spkt_23, from_local_as_7)
+        _cwl_209 := list_extend(_cthread_209, _method_measures_209, _residue_590, _checkDefined(flags, 495655677030), object___cast__(list(tuple(Seq(int(), NoneType()))), handle_sibra_res))
+      } elseif (issubtype(typeof(_checkDefined(ext_hdr, 32198546785859685)), ExtensionHeader())) {
+        _cwl_209, handle_one_hop_path_res := Router_handle_one_hop_path(_cthread_209, _method_measures_209, _residue_590, self_360, object___cast__(ExtensionHeader(), _checkDefined(ext_hdr, 32198546785859685)), spkt_23, from_local_as_7)
+        _cwl_209 := list_extend(_cthread_209, _method_measures_209, _residue_590, _checkDefined(flags, 495655677030), object___cast__(list(tuple(Seq(int()))), handle_one_hop_path_res))
+      }
+    }
+    label loop_end
+    _cwl_209, loop_target, iter_err := Iterator___next__(_cthread_209, _method_measures_209, _residue_209, iter)
+    if (iter_err == null) {
+      assert 2 == tuple___len__(loop_target)
+      i := tuple___getitem__(loop_target, 0)
+      inhale _isDefined(105)
+      ext_hdr := tuple___getitem__(loop_target, 1)
+      inhale _isDefined(32198546785859685)
+    }
+    // We are after loop body.
+    _loop_check_before := false
+    // Check if loop continues to terminate.
+    assert _loop_termination_flag ==> !(iter_err == null) || Measure$check(_loop_measures, _cthread_209, 1)
+  }
+  // Reset MustTerminate amount to original level.
+  exhale perm(MustTerminate(_cthread_209)) > none ==> acc(MustTerminate(_cthread_209), perm(MustTerminate(_cthread_209)) - _loop_original_must_terminate)
+  _cwl_209 := Iterator___del__(_cthread_209, _method_measures_209, _residue_590, iter)
+  _res := null
+  label post_loop
+  _res := null
+  _res := _checkDefined(flags, 495655677030)
+  goto __end
+  goto __end
+  label __end
+}
+
+method Router_handle_traceroute(_cthread_210: Ref, _caller_measures_210: Seq[Measure$], _residue_210: Perm, self_53: Ref, hdr: Ref, spkt_9: Ref, _: Ref) returns (_current_wait_level_210: Perm, _res: Ref)
+  requires _cthread_210 != null
+  requires issubtype(typeof(_cthread_210), Thread_0())
+  requires issubtype(typeof(self_53), Router())
+  requires issubtype(typeof(hdr), TracerouteExt())
+  requires issubtype(typeof(spkt_9), SCIONL4Packet())
+  requires issubtype(typeof(_), bool())
+  requires self_53 != null
+  requires true
+  requires [true, perm(MustTerminate(_cthread_210)) == none && ((forperm _r_16: Ref [MustInvokeBounded(_r_16)] :: false) && ((forperm _r_16: Ref [MustInvokeUnbounded(_r_16)] :: false) && ((forperm _r_16: Ref [_r_16.MustReleaseBounded] :: false) && (forperm _r_16: Ref [_r_16.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_15: Ref [_r_15.MustReleaseBounded] :: Level(_r_15) <= _current_wait_level_210) && ((forperm _r_15: Ref [_r_15.MustReleaseUnbounded] :: Level(_r_15) <= _current_wait_level_210) && _residue_210 <= _current_wait_level_210), true]
+  ensures issubtype(typeof(_res), list(tuple(Seq(int(), str()))))
+{
+  var _cwl_210: Perm
+  inhale typeof(self_53) == Router()
+  _res := null
+  inhale false
+}
+
+method Router_handle_one_hop_path(_cthread_211: Ref, _caller_measures_211: Seq[Measure$], _residue_211: Perm, self_54: Ref, hdr_0: Ref, spkt_10: Ref, from_local_as_1: Ref) returns (_current_wait_level_211: Perm, _res: Ref)
+  requires _cthread_211 != null
+  requires issubtype(typeof(_cthread_211), Thread_0())
+  requires issubtype(typeof(self_54), Router())
+  requires issubtype(typeof(hdr_0), ExtensionHeader())
+  requires issubtype(typeof(spkt_10), SCIONL4Packet())
+  requires issubtype(typeof(from_local_as_1), bool())
+  requires self_54 != null
+  requires true
+  requires [true, perm(MustTerminate(_cthread_211)) == none && ((forperm _r_18: Ref [MustInvokeBounded(_r_18)] :: false) && ((forperm _r_18: Ref [MustInvokeUnbounded(_r_18)] :: false) && ((forperm _r_18: Ref [_r_18.MustReleaseBounded] :: false) && (forperm _r_18: Ref [_r_18.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_17: Ref [_r_17.MustReleaseBounded] :: Level(_r_17) <= _current_wait_level_211) && ((forperm _r_17: Ref [_r_17.MustReleaseUnbounded] :: Level(_r_17) <= _current_wait_level_211) && _residue_211 <= _current_wait_level_211), true]
+  ensures issubtype(typeof(_res), list(tuple(Seq(int()))))
+{
+  var _cwl_211: Perm
+  inhale typeof(self_54) == Router()
+  _res := null
+  inhale false
+}
+
+method Router_handle_sibra(_cthread_212: Ref, _caller_measures_212: Seq[Measure$], _residue_212: Perm, self_55: Ref, hdr_1: Ref, spkt_11: Ref, from_local_as_2: Ref) returns (_current_wait_level_212: Perm, _res: Ref)
+  requires _cthread_212 != null
+  requires issubtype(typeof(_cthread_212), Thread_0())
+  requires issubtype(typeof(self_55), Router())
+  requires issubtype(typeof(hdr_1), SibraExtBase())
+  requires issubtype(typeof(spkt_11), SCIONL4Packet())
+  requires issubtype(typeof(from_local_as_2), bool())
+  requires self_55 != null
+  requires true
+  requires [true, perm(MustTerminate(_cthread_212)) == none && ((forperm _r_20: Ref [MustInvokeBounded(_r_20)] :: false) && ((forperm _r_20: Ref [MustInvokeUnbounded(_r_20)] :: false) && ((forperm _r_20: Ref [_r_20.MustReleaseBounded] :: false) && (forperm _r_20: Ref [_r_20.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_19: Ref [_r_19.MustReleaseBounded] :: Level(_r_19) <= _current_wait_level_212) && ((forperm _r_19: Ref [_r_19.MustReleaseUnbounded] :: Level(_r_19) <= _current_wait_level_212) && _residue_212 <= _current_wait_level_212), true]
+  ensures issubtype(typeof(_res), list(tuple(Seq(int(), str()))))
+{
+  var _cwl_212: Perm
+  inhale typeof(self_55) == Router()
+  _res := null
+  inhale false
+}
+
+method Router_handle_scmp(_cthread_213: Ref, _caller_measures_213: Seq[Measure$], _residue_213: Perm, self_56: Ref, hdr_2: Ref, spkt_12: Ref, __0: Ref) returns (_current_wait_level_213: Perm, _res: Ref)
+  requires _cthread_213 != null
+  requires issubtype(typeof(_cthread_213), Thread_0())
+  requires issubtype(typeof(self_56), Router())
+  requires issubtype(typeof(hdr_2), SCMPExt())
+  requires issubtype(typeof(spkt_12), SCIONL4Packet())
+  requires issubtype(typeof(__0), bool())
+  requires self_56 != null
+  requires true
+  requires [true, perm(MustTerminate(_cthread_213)) == none && ((forperm _r_22: Ref [MustInvokeBounded(_r_22)] :: false) && ((forperm _r_22: Ref [MustInvokeUnbounded(_r_22)] :: false) && ((forperm _r_22: Ref [_r_22.MustReleaseBounded] :: false) && (forperm _r_22: Ref [_r_22.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_21: Ref [_r_21.MustReleaseBounded] :: Level(_r_21) <= _current_wait_level_213) && ((forperm _r_21: Ref [_r_21.MustReleaseUnbounded] :: Level(_r_21) <= _current_wait_level_213) && _residue_213 <= _current_wait_level_213), true]
+  ensures issubtype(typeof(_res), list(tuple(Seq(int()))))
+{
+  var _cwl_213: Perm
+  inhale typeof(self_56) == Router()
+  _res := null
+  inhale false
+}
+
+method error_6(_cthread_237: Ref, _caller_measures_237: Seq[Measure$], _residue_237: Perm, msg: Ref, args_0: Ref) returns (_current_wait_level_237: Perm)
+  requires _cthread_237 != null
+  requires issubtype(typeof(_cthread_237), Thread_0())
+  requires issubtype(typeof(msg), str())
+  requires (forall i: Int :: { tuple_arg(typeof(args_0), i) } i >= 0 && i < |tuple_args(typeof(args_0))| ==> issubtype(tuple_arg(typeof(args_0), i), object()))
+  requires [acc(MustTerminate(_cthread_237), write), true]
+  requires [true, Measure$check(_caller_measures_237, _cthread_237, 1) || perm(MustTerminate(_cthread_237)) == none && ((forperm _r_56: Ref [MustInvokeBounded(_r_56)] :: false) && ((forperm _r_56: Ref [MustInvokeUnbounded(_r_56)] :: false) && ((forperm _r_56: Ref [_r_56.MustReleaseBounded] :: false) && (forperm _r_56: Ref [_r_56.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_55: Ref [_r_55.MustReleaseBounded] :: Level(_r_55) <= _current_wait_level_237) && ((forperm _r_55: Ref [_r_55.MustReleaseUnbounded] :: Level(_r_55) <= _current_wait_level_237) && _residue_237 <= _current_wait_level_237), true]
+{
+  var _cwl_237: Perm
+  inhale false
+}
+
+method debug(_cthread_239: Ref, _caller_measures_239: Seq[Measure$], _residue_239: Perm, msg_1: Ref, args_2: Ref) returns (_current_wait_level_239: Perm)
+  requires _cthread_239 != null
+  requires issubtype(typeof(_cthread_239), Thread_0())
+  requires issubtype(typeof(msg_1), str())
+  requires (forall i: Int :: { tuple_arg(typeof(args_2), i) } i >= 0 && i < |tuple_args(typeof(args_2))| ==> issubtype(tuple_arg(typeof(args_2), i), object()))
+  requires [acc(MustTerminate(_cthread_239), write), true]
+  requires [true, Measure$check(_caller_measures_239, _cthread_239, 1) || perm(MustTerminate(_cthread_239)) == none && ((forperm _r_60: Ref [MustInvokeBounded(_r_60)] :: false) && ((forperm _r_60: Ref [MustInvokeUnbounded(_r_60)] :: false) && ((forperm _r_60: Ref [_r_60.MustReleaseBounded] :: false) && (forperm _r_60: Ref [_r_60.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_59: Ref [_r_59.MustReleaseBounded] :: Level(_r_59) <= _current_wait_level_239) && ((forperm _r_59: Ref [_r_59.MustReleaseUnbounded] :: Level(_r_59) <= _current_wait_level_239) && _residue_239 <= _current_wait_level_239), true]
+{
+  var _cwl_239: Perm
+  inhale false
+}
+
+method SCIONBaseException___init__(_cthread_256: Ref, _caller_measures_256: Seq[Measure$], _residue_256: Perm, self_86: Ref, args_4: Ref) returns (_current_wait_level_256: Perm)
+  requires _cthread_256 != null
+  requires issubtype(typeof(_cthread_256), Thread_0())
+  requires self_86 != null
+  requires acc(_MaySet(self_86, 2340446737858384733671959561063924865783486336333871924051), write)
+  requires issubtype(typeof(self_86), SCIONBaseException())
+  requires (forall i: Int :: { tuple_arg(typeof(args_4), i) } i >= 0 && i < |tuple_args(typeof(args_4))| ==> issubtype(tuple_arg(typeof(args_4), i), object()))
+  requires self_86 != null
+  requires [acc(MustTerminate(_cthread_256), write), true]
+  requires [true, Measure$check(_caller_measures_256, _cthread_256, 1) || perm(MustTerminate(_cthread_256)) == none && ((forperm _r_86: Ref [MustInvokeBounded(_r_86)] :: false) && ((forperm _r_86: Ref [MustInvokeUnbounded(_r_86)] :: false) && ((forperm _r_86: Ref [_r_86.MustReleaseBounded] :: false) && (forperm _r_86: Ref [_r_86.MustReleaseUnbounded] :: false))))]
+  ensures [(forperm _r_85: Ref [_r_85.MustReleaseBounded] :: Level(_r_85) <= _current_wait_level_256) && ((forperm _r_85: Ref [_r_85.MustReleaseUnbounded] :: Level(_r_85) <= _current_wait_level_256) && _residue_256 <= _current_wait_level_256), true]
+  ensures acc(self_86.SCIONBaseException_args_, write) && issubtype(typeof(self_86.SCIONBaseException_args_), tuple(Seq(object())))
+  ensures int___eq__(__prim__int___box__(tuple___len__(self_86.SCIONBaseException_args_)), __prim__int___box__(tuple___len__(args_4)))
+{
+  var _cwl_256: Perm
+  inhale typeof(self_86) == SCIONBaseException()
+  inhale false
+}
+
+method State_Stateframe_check(self_97: Ref)
+  requires true && issubtype(typeof(self_97), SCIONElement())
+  requires issubtype(typeof(self_97), SCIONElement())
+  requires true && (acc(self_97.SCIONElement_addr, write) && issubtype(typeof(self_97.SCIONElement_addr), SCIONAddr()) && (acc(SCIONAddr_State(self_97.SCIONElement_addr), write) && (acc(self_97.SCIONElement_topology, write) && issubtype(typeof(self_97.SCIONElement_topology), Topology()) && (acc(Topology_State(self_97.SCIONElement_topology), write) && (acc(self_97.SCIONElement_ifid2br, write) && issubtype(typeof(self_97.SCIONElement_ifid2br), dict(int(), RouterElement())) && (acc(self_97.SCIONElement_ifid2br.dict_acc, write) && acc(self_97.SCIONElement_ifid2br.dict_acc2, write) && (forall lambda857_37$x: Ref :: { (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) } { (dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x) in PSeq___sil_seq__(Topology_get_border_routers(self_97.SCIONElement_topology))) } issubtype(typeof(lambda857_37$x), int()) ==> (lambda857_37$x in self_97.SCIONElement_ifid2br.dict_acc) ==> PSeq___contains__(Topology_get_border_routers(self_97.SCIONElement_topology), dict___getitem__(self_97.SCIONElement_ifid2br, lambda857_37$x)))))))))
+
+
+method State_Stateframe_check_0(self_97: Ref)
+  requires true && issubtype(typeof(self_97), SCIONElement())
+  requires issubtype(typeof(self_97), Router())
+  requires true && (acc(self_97.Router_interface, write) && issubtype(typeof(self_97.Router_interface), InterfaceElement()) && (acc(Element_State(self_97.Router_interface), write) && (acc(self_97.Router__remote_sock, write) && issubtype(typeof(self_97.Router__remote_sock), UDPSocket()) && (acc(self_97.Router__udp_sock, write) && issubtype(typeof(self_97.Router__udp_sock), UDPSocket()) && (acc(self_97.Router_of_gen_key, write) && issubtype(typeof(self_97.Router_of_gen_key), bytes()) && (acc(self_97.Router_if_states, write) && issubtype(typeof(self_97.Router_if_states), dict(int(), InterfaceState())) && (acc(self_97.Router_if_states.dict_acc, write) && acc(self_97.Router_if_states.dict_acc2, write) && (true && (forall lambda183_39$x: Ref :: { (lambda183_39$x in self_97.Router_if_states.dict_acc) } issubtype(typeof(lambda183_39$x), int()) && (lambda183_39$x in self_97.Router_if_states.dict_acc) ==> acc(InterfaceState_State(object___cast__(InterfaceState(), dict___getitem__(self_97.Router_if_states, lambda183_39$x))), write)) && (acc(self_97.Router_pre_ext_handlers, write) && issubtype(typeof(self_97.Router_pre_ext_handlers), dict(union_type_2(NoneType(), int()), bool())) && (acc(self_97.Router_post_ext_handlers, write) && issubtype(typeof(self_97.Router_post_ext_handlers), dict(union_type_2(NoneType(), int()), bool()))))))))))))
+
+
+method State_Stateframe_check_16(self_325: Ref)
+  requires true && issubtype(typeof(self_325), SCIONBasePacket())
+  requires issubtype(typeof(self_325), SCIONBasePacket())
+  requires true && (acc(self_325.SCIONBasePacket_cmn_hdr, write) && (self_325.SCIONBasePacket_cmn_hdr == null || issubtype(typeof(self_325.SCIONBasePacket_cmn_hdr), SCIONCommonHdr())) && ((self_325.SCIONBasePacket_cmn_hdr != null ==> acc(SCIONCommonHdr_State(self_325.SCIONBasePacket_cmn_hdr), write)) && (acc(self_325.SCIONBasePacket_addrs, write) && (self_325.SCIONBasePacket_addrs == null || issubtype(typeof(self_325.SCIONBasePacket_addrs), SCIONAddrHdr())) && ((self_325.SCIONBasePacket_addrs != null ==> acc(SCIONAddrHdr_State(self_325.SCIONBasePacket_addrs), write)) && (acc(self_325.SCIONBasePacket_path, write) && (self_325.SCIONBasePacket_path == null || issubtype(typeof(self_325.SCIONBasePacket_path), SCIONPath())) && (self_325.SCIONBasePacket_path != null ==> acc(SCIONPath_State(self_325.SCIONBasePacket_path), write)))))))
+
+
+method State_Stateframe_check_17(self_325: Ref)
+  requires true && issubtype(typeof(self_325), SCIONBasePacket())
+  requires issubtype(typeof(self_325), SCIONExtPacket())
+  requires true && (acc(self_325.SCIONExtPacket_ext_hdrs, write) && issubtype(typeof(self_325.SCIONExtPacket_ext_hdrs), list(ExtensionHeader())) && (acc(self_325.SCIONExtPacket_ext_hdrs.list_acc, write) && (true && (forall lambda826_38$e: Ref :: { (lambda826_38$e in self_325.SCIONExtPacket_ext_hdrs.list_acc) } issubtype(typeof(lambda826_38$e), ExtensionHeader()) && (lambda826_38$e in self_325.SCIONExtPacket_ext_hdrs.list_acc) ==> acc(ExtensionHeader_State(lambda826_38$e), write)))))
+
+
+method State_Stateframe_check_18(self_325: Ref)
+  requires true && issubtype(typeof(self_325), SCIONBasePacket())
+  requires issubtype(typeof(self_325), SCIONL4Packet())
+  requires true && (acc(self_325.SCIONL4Packet_l4_hdr, write) && (self_325.SCIONL4Packet_l4_hdr == null || issubtype(typeof(self_325.SCIONL4Packet_l4_hdr), L4HeaderBase())) && (self_325.SCIONL4Packet_l4_hdr != null ==> acc(L4HeaderBase_State(self_325.SCIONL4Packet_l4_hdr), write)))
+
+
+method State_Stateframe_check_21(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), Element())
+  requires true && (acc(self_341.Element_addr, write) && (self_341.Element_addr == null || issubtype(typeof(self_341.Element_addr), HostAddrBase())) && (acc(self_341.Element_port, write) && (self_341.Element_port == null || issubtype(typeof(self_341.Element_port), int())) && (acc(self_341.Element_name, write) && (self_341.Element_name == null || issubtype(typeof(self_341.Element_name), str())))))
+
+
+method State_Stateframe_check_22(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), RouterElement())
+  requires true && (acc(self_341.RouterElement_interface, write) && issubtype(typeof(self_341.RouterElement_interface), InterfaceElement()) && acc(Element_State(self_341.RouterElement_interface), write))
+
+
+method State_Stateframe_check_23(self_341: Ref)
+  requires true && issubtype(typeof(self_341), Element())
+  requires issubtype(typeof(self_341), InterfaceElement())
+  requires true && (acc(self_341.InterfaceElement_isd_as, write) && issubtype(typeof(self_341.InterfaceElement_isd_as), int()) && (acc(self_341.InterfaceElement_if_id, write) && issubtype(typeof(self_341.InterfaceElement_if_id), int()) && (acc(self_341.InterfaceElement_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_udp_port), int()) && (acc(self_341.InterfaceElement_bandwidth, write) && issubtype(typeof(self_341.InterfaceElement_bandwidth), int()) && (acc(self_341.InterfaceElement_to_addr, write) && (self_341.InterfaceElement_to_addr == null || issubtype(typeof(self_341.InterfaceElement_to_addr), HostAddrBase())) && (acc(self_341.InterfaceElement_link_type, write) && (self_341.InterfaceElement_link_type == null || issubtype(typeof(self_341.InterfaceElement_link_type), str())) && (acc(self_341.InterfaceElement_to_udp_port, write) && issubtype(typeof(self_341.InterfaceElement_to_udp_port), int()))))))))
+
+
+method State_Stateframe_check_24(self_351: Ref)
+  requires true && issubtype(typeof(self_351), Topology())
+  requires issubtype(typeof(self_351), Topology())
+  requires true && (acc(self_351.Topology_is_core_as, write) && issubtype(typeof(self_351.Topology_is_core_as), bool()) && (acc(self_351.Topology_mtu, write) && (self_351.Topology_mtu == null || issubtype(typeof(self_351.Topology_mtu), int())) && (acc(self_351.Topology_isd_as, write) && (self_351.Topology_isd_as == null || issubtype(typeof(self_351.Topology_isd_as), ISD_AS())) && (acc(self_351.Topology_beacon_servers, write) && issubtype(typeof(self_351.Topology_beacon_servers), list(RouterElement())) && (acc(self_351.Topology_beacon_servers.list_acc, write) && (acc(self_351.Topology_certificate_servers, write) && issubtype(typeof(self_351.Topology_certificate_servers), list(RouterElement())) && (acc(self_351.Topology_certificate_servers.list_acc, write) && (acc(self_351.Topology_path_servers, write) && issubtype(typeof(self_351.Topology_path_servers), list(RouterElement())) && (acc(self_351.Topology_path_servers.list_acc, write) && (acc(self_351.Topology_sibra_servers, write) && issubtype(typeof(self_351.Topology_sibra_servers), list(RouterElement())) && (acc(self_351.Topology_sibra_servers.list_acc, write) && (acc(self_351.Topology_parent_border_routers, write) && issubtype(typeof(self_351.Topology_parent_border_routers), list(RouterElement())) && (acc(self_351.Topology_parent_border_routers.list_acc, write) && (acc(self_351.Topology_child_border_routers, write) && issubtype(typeof(self_351.Topology_child_border_routers), list(RouterElement())) && (acc(self_351.Topology_child_border_routers.list_acc, write) && (acc(self_351.Topology_peer_border_routers, write) && issubtype(typeof(self_351.Topology_peer_border_routers), list(RouterElement())) && (acc(self_351.Topology_peer_border_routers.list_acc, write) && (acc(self_351.Topology_routing_border_routers, write) && issubtype(typeof(self_351.Topology_routing_border_routers), list(RouterElement())) && (acc(self_351.Topology_routing_border_routers.list_acc, write) && ((forall lambda60_51$x: Ref :: { (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) } issubtype(typeof(lambda60_51$x), RouterElement()) ==> (lambda60_51$x in self_351.Topology_parent_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda60_51$x)) && ((forall lambda61_50$x: Ref :: { (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) } issubtype(typeof(lambda61_50$x), RouterElement()) ==> (lambda61_50$x in self_351.Topology_child_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda61_50$x)) && ((forall lambda62_49$x: Ref :: { (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) } issubtype(typeof(lambda62_49$x), RouterElement()) ==> (lambda62_49$x in self_351.Topology_peer_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda62_49$x)) && ((forall lambda63_52$x: Ref :: { (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) } issubtype(typeof(lambda63_52$x), RouterElement()) ==> (lambda63_52$x in self_351.Topology_routing_border_routers.list_acc) ==> PSeq___contains__(Topology_border_routers(self_351), lambda63_52$x)) && (true && (forall lambda64_46$e: Ref :: { (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda64_46$e), RouterElement()) && (lambda64_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> acc(Element_State(lambda64_46$e), write)) && ((forall lambda65_46$e: Ref :: { (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda65_46$e), RouterElement()) ==> (lambda65_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_addr(lambda65_46$e) != null) && (forall lambda66_46$e: Ref :: { (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) } issubtype(typeof(lambda66_46$e), RouterElement()) ==> (lambda66_46$e in PSeq___sil_seq__(Topology_border_routers(self_351))) ==> Element_get_port(lambda66_46$e) != null))))))))))))))))))))))))))
+
+
+method Iterator___next__(_cthread_149: Ref, _caller_measures_149: Seq[Measure$], _residue_149: Perm, self: Ref) returns (_current_wait_level_149: Perm, _res: Ref, _err: Ref)
+  requires _cthread_149 != null
+  requires Measure$check(_caller_measures_149, _cthread_149, 1)
+  requires issubtype(typeof(_cthread_149), Thread_0())
+  requires acc(self.list_acc, 1 / 40)
+  requires acc(self.__iter_index, write)
+  requires acc(self.__previous, write)
+  requires [true, Measure$check(_caller_measures_149, _cthread_149, 1)]
+  ensures [(forperm _r_285: Ref [_r_285.MustReleaseBounded] :: Level(_r_285) <= _current_wait_level_149) && ((forperm _r_285: Ref [_r_285.MustReleaseUnbounded] :: Level(_r_285) <= _current_wait_level_149) && _residue_149 <= _current_wait_level_149), true]
+  ensures acc(self.list_acc, 1 / 40) && self.list_acc == old(self.list_acc)
+  ensures acc(self.__iter_index, write)
+  ensures self.__iter_index <= |self.list_acc| + 1
+  ensures old(self.__iter_index == |self.list_acc|) == (_err != null)
+  ensures acc(self.__previous, write)
+  ensures _err == null ==> self.__iter_index == old(self.__iter_index) + 1
+  ensures _err == null ==> self.__iter_index > 0
+  ensures _err == null ==> self.__previous == self.list_acc[..self.__iter_index - 1]
+  ensures |self.list_acc| > 0 ==> self.__iter_index > 0
+  ensures _err != null ==> self.__previous == self.list_acc
+  ensures _err != null ==> self.__iter_index == |self.list_acc|
+  ensures |self.list_acc| > 0 ==> _res == self.list_acc[self.__iter_index - 1] && (_res in self.list_acc)
+  ensures |self.list_acc| > 0 ==> issubtype(typeof(_res), Iterator_arg(typeof(self), 0))
+  ensures (forall r: Ref :: { (r in self.__previous) } (r in self.__previous) == ((r in old(self.__previous)) || (self.__iter_index > 1 && (r == self.list_acc[self.__iter_index - 2] && _err == null) || self.__iter_index > 0 && (_err != null && r == self.list_acc[self.__iter_index - 1]))))
+{
+  var _cwl_149: Perm
+  inhale false
+}
+
+method Iterator___del__(_cthread_150: Ref, _caller_measures_150: Seq[Measure$], _residue_150: Perm, self: Ref) returns (_current_wait_level_150: Perm)
+  requires _cthread_150 != null
+  requires Measure$check(_caller_measures_150, _cthread_150, 1)
+  requires issubtype(typeof(_cthread_150), Thread_0())
+  requires acc(self.list_acc, 1 / 20)
+  requires acc(self.__container, 1 / 20)
+  requires [true, Measure$check(_caller_measures_150, _cthread_150, 1)]
+  ensures [(forperm _r_287: Ref [_r_287.MustReleaseBounded] :: Level(_r_287) <= _current_wait_level_150) && ((forperm _r_287: Ref [_r_287.MustReleaseUnbounded] :: Level(_r_287) <= _current_wait_level_150) && _residue_150 <= _current_wait_level_150), true]
+  ensures acc(self.__container, 1 / 20)
+  ensures issubtype(typeof(self.__container), list(list_arg(typeof(self.__container), 0))) ==> acc(self.__container.list_acc, 1 / 20)
+  ensures issubtype(typeof(self.__container), dict(dict_arg(typeof(self.__container), 0), dict_arg(typeof(self.__container), 1))) ==> acc(self.__container.dict_acc, 1 / 20) && acc(self.__container.dict_acc2, 1 / 20)
+  ensures issubtype(typeof(self.__container), set(set_arg(typeof(self.__container), 0))) ==> acc(self.__container.set_acc, 1 / 20)
+{
+  var _cwl_150: Perm
+  inhale false
+}
+
+method list___init__(_cthread_8: Ref, _caller_measures_8: Seq[Measure$], _residue_8: Perm) returns (_current_wait_level_8: Perm, res: Ref)
+  requires _cthread_8 != null
+  requires Measure$check(_caller_measures_8, _cthread_8, 1)
+  requires issubtype(typeof(_cthread_8), Thread_0())
+  requires [true, Measure$check(_caller_measures_8, _cthread_8, 1)]
+  ensures [(forperm _r_289: Ref [_r_289.MustReleaseBounded] :: Level(_r_289) <= _current_wait_level_8) && ((forperm _r_289: Ref [_r_289.MustReleaseUnbounded] :: Level(_r_289) <= _current_wait_level_8) && _residue_8 <= _current_wait_level_8), true]
+  ensures acc(res.list_acc, write)
+  ensures res.list_acc == Seq[Ref]()
+  ensures typeof(res) == list(list_arg(typeof(res), 0))
+  ensures (Low(res): Bool)
+{
+  var _cwl_8: Perm
+  inhale false
+}
+
+method list_extend(_cthread_10: Ref, _caller_measures_10: Seq[Measure$], _residue_10: Perm, self: Ref, other: Ref) returns (_current_wait_level_10: Perm)
+  requires _cthread_10 != null
+  requires Measure$check(_caller_measures_10, _cthread_10, 1)
+  requires issubtype(typeof(_cthread_10), Thread_0())
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(other), list(list_arg(typeof(other), 0)))
+  requires issubtype(list_arg(typeof(other), 0), list_arg(typeof(self), 0))
+  requires acc(self.list_acc, write)
+  requires acc(other.list_acc, 1 / 100)
+  requires [true, Measure$check(_caller_measures_10, _cthread_10, 1)]
+  ensures [(forperm _r_291: Ref [_r_291.MustReleaseBounded] :: Level(_r_291) <= _current_wait_level_10) && ((forperm _r_291: Ref [_r_291.MustReleaseUnbounded] :: Level(_r_291) <= _current_wait_level_10) && _residue_10 <= _current_wait_level_10), true]
+  ensures acc(self.list_acc, write)
+  ensures acc(other.list_acc, 1 / 100)
+  ensures self.list_acc == old(self.list_acc) ++ other.list_acc
+
+
+method list___iter__(_cthread_13: Ref, _caller_measures_13: Seq[Measure$], _residue_13: Perm, self: Ref) returns (_current_wait_level_13: Perm, _res: Ref)
+  requires _cthread_13 != null
+  requires Measure$check(_caller_measures_13, _cthread_13, 1)
+  requires issubtype(typeof(_cthread_13), Thread_0())
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, 1 / 10)
+  requires [true, Measure$check(_caller_measures_13, _cthread_13, 1)]
+  ensures [(forperm _r_293: Ref [_r_293.MustReleaseBounded] :: Level(_r_293) <= _current_wait_level_13) && ((forperm _r_293: Ref [_r_293.MustReleaseUnbounded] :: Level(_r_293) <= _current_wait_level_13) && _residue_13 <= _current_wait_level_13), true]
+  ensures _res != self
+  ensures acc(_res.list_acc, 1 / 20)
+  ensures acc(self.list_acc, 1 / 20)
+  ensures _res.list_acc == self.list_acc
+  ensures acc(_res.__container, write) && _res.__container == self
+  ensures acc(_res.__iter_index, write) && _res.__iter_index == 0
+  ensures acc(_res.__previous, write) && _res.__previous == Seq[Ref]()
+  ensures issubtype(typeof(_res), Iterator(list_arg(typeof(self), 0)))
+{
+  var _cwl_13: Perm
+  inhale false
+}

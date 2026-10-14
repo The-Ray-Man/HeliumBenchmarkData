@@ -1,0 +1,248 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Product of two natural numbers
+domain FlowDom {
+  function pc1(f : FlowDom) : Int
+  function pc2(f : FlowDom) : Int
+  axiom positive {
+    forall p: FlowDom :: pc1(p) >= 0 && pc2(p) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) == (pc1(p1) == pc1(p2) && pc2(p1) == pc2(p2))
+  }
+  axiom fdEqDef2 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) ==> p1 == p2
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      pc1(fdPlus(p1,p2)) == pc1(p1) + pc1(p2)
+      && pc2(fdPlus(p1,p2)) == pc2(p1) + pc2(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    pc1(fdZero()) == 0 && pc2(fdZero()) == 0
+  }
+
+  // Some useful flow domain elements
+  function fdOneZero() : FlowDom
+  axiom fdOneZeroDef {
+    pc1(fdOneZero()) == 1 && pc2(fdOneZero()) == 0
+  }
+  function fdZeroOne() : FlowDom
+  axiom fdZeroOneDef {
+    pc1(fdZeroOne()) == 0 && pc2(fdZeroOne()) == 1
+  }
+  function fdOneOne() : FlowDom
+  axiom fdOneOneDef {
+    pc1(fdOneOne()) == 1 && pc2(fdOneOne()) == 1
+  }
+
+  // Some useful flow domain endomorphisms
+  function mapIdZero() : IMap[FlowDom, FlowDom]
+  axiom mapIdZeroDef {
+    forall p: FlowDom :: {select(mapIdZero(), p)}
+      pc1(select(mapIdZero(), p)) == pc1(p) && pc2(select(mapIdZero(), p)) == 0
+  }
+  function mapZeroId() : IMap[FlowDom, FlowDom]
+  axiom mapZeroIdDef {
+    forall p: FlowDom :: {select(mapZeroId(), p)}
+      pc1(select(mapZeroId(), p)) == 0 && pc2(select(mapZeroId(), p)) == pc2(p)
+  }
+  function mapId() : IMap[FlowDom, FlowDom]
+  axiom mapIdDef {
+    forall p: FlowDom :: {select(mapId(), p)}
+      select(mapId(), p) == p
+  }
+} 
+
+
+// The fields of a node
+field next: Ref
+field left: Ref
+field right: Ref
+
+define nodeSpatial(x) acc(x.next) && acc(x.left) && acc(x.right)
+define hrepUnchanged(x) x.next == old(x.next)
+  && x.left == old(x.left)
+  && x.right == old(x.right)
+
+
+// Definition of a node and good condition:
+
+function edge_fn(x:Ref, y:Ref) : IMap[FlowDom,FlowDom]
+  requires nodeSpatial(x)
+  ensures y == null ==> result == constMap(fdZero())
+  ensures y != null && (y == x.left || y == x.right)
+    ==> (forall p: FlowDom :: {select(result, p)} pc1(select(result, p)) == pc1(p))
+  ensures y != null && !(y == x.left || y == x.right)
+    ==> (forall p: FlowDom :: {select(result, p)} pc1(select(result, p)) == 0)
+  ensures y != null && (y == x.next)
+    ==> (forall p: FlowDom :: {select(result, p)} pc2(select(result, p)) == pc2(p))
+  ensures y != null && !(y == x.next)
+    ==> (forall p: FlowDom :: {select(result, p)} pc2(select(result, p)) == 0)
+
+
+// These are the invariants that say this structure is a threaded tree
+// First component: tree rooted at r
+// Second component: list starting at h, ending at t
+define threadedInv(r, h, t, I) 
+  intValid(I) && r in dom(I) && h in dom(I)&& t in dom(I) && r != h
+  // Global inflow constraints:
+  && Iinf(I, r) == fdOneZero() && Iinf(I, h) == fdZeroOne()
+  && (forall x: Ref :: {Iinf(I, x), x in dom(I)}
+    (x in dom(I) && x != r && x != h) ==> Iinf(I, x) == fdZero())
+  // Data structure is closed
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.next)}
+    x in dom(I) && x.next != null && trig_gfe(x, x.next) ==> x.next in dom(I))
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.left)}
+    x in dom(I) && x.left != null && trig_gfe(x, x.left) ==> x.left in dom(I))
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.right)}
+    x in dom(I) && x.right != null && trig_gfe(x, x.right) ==> x.right in dom(I))
+  // All nodes are in both tree and list
+  && (forall x: Ref :: {x in dom(I)} x in dom(I)
+    ==> fdEq(Iinf(x.intf, x), fdOneOne()))
+  // t is tail of the list
+  && t.next == null
+  // No self-edges
+  && (forall x: Ref :: {x.next, x in dom(I)} x in dom(I) ==> x.next != x)
+  && (forall x: Ref :: {x.left, x in dom(I)} x in dom(I) ==> x.left != x)
+  && (forall x: Ref :: {x.right, x in dom(I)} x in dom(I) ==> x.right != x)
+
+
+/* -------------------- Actual methods -------------------- */
+
+
+// Helper function to create and initialize new node
+method alloc(i: FlowDom, X: Set[Ref]) returns (x: Ref, X1: Set[Ref])
+  requires X == Set[Ref]()
+  ensures X1 == Set(x)
+  ensures forall z: Ref :: {z in X1} z in X1 ==> node(z)
+  ensures fdEq(Iinf(x.intf, x), i)
+    && (forall y: Ref :: Iout(x.intf, y) == fdZero())
+  ensures intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+{
+  x := new(*)
+  x.next := null
+  x.left := null
+  x.right := null
+  x.intf := interface(singMap(x, i, fdZero()), constMap(fdZero()), Set(x))
+  X1 := Set(x)
+  _lemma_prove_intValid(x)
+  _lemma_prove_intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+}
+
+
+// Insert a tree at the end of both the list and the tree
+method traverse(r: Ref, h: Ref, t: Ref, X: Set[Ref]) returns (t1: Ref, X1: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires threadedInv(r, h, t, intCompSet(X))
+  ensures forall x: Ref :: {x in X1} x in X1 ==> node(x)
+  ensures threadedInv(r, h, t1, intCompSet(X1))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  var cp: Ref := r
+  var c: Ref
+
+  _field_read(cp, cp.left)
+  c := cp.left
+
+  assert c != null ==> c in X
+
+  while (c != null)
+    invariant forall x: Ref :: {x in X} x in X ==> node(x)
+    invariant threadedInv(r, h, t, intCompSet(X))
+    invariant cp in X && pc1(Iinf(cp.intf, cp)) == 1
+    invariant c == cp.left && (c != null ==> c in X && pc1(Iinf(c.intf, c)) == 1)
+  {
+    _assume_global_invs(FP)
+
+    cp := c
+
+    _field_read(cp, cp.left)
+    c := cp.left
+  }
+
+  // ---- Flows set-up:
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+  
+  var n: Ref
+  var Y: Set[Ref]
+  var Y1: Set[Ref]
+  Y := Set[Ref]()
+
+  label pre_alloc_call
+
+  n, Y1 := alloc(fdZero(), Y)
+
+  // ---- Post method call:
+
+  var FP1: Set[Ref]
+  _post_method_call(FP, FP1, Y, Y1, pre_alloc_call)
+
+  // ---- Flows set-up again after method call:
+
+  _pre_code(FP1)
+
+  // ---- Actual code:
+
+  _make_dirty(cp)
+  cp.left := n
+
+  _make_dirty(n)
+  n.next := null
+  n.left := null
+  n.right := null
+
+  _make_dirty(t)
+  t.next := n
+
+  t1 := n
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP1)
+
+  X1 := FP1
+}

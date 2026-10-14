@@ -1,0 +1,834 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_hpack$col$$col$decoder$col$$col$NeedMore {
+    inhabited(s_hpack$col$$col$decoder$col$$col$NeedMore_type()) ==
+    (true || (true || true))
+  }
+  
+  axiom inhabited_hpack$col$$col$decoder$col$$col$DecoderError {
+    inhabited(s_hpack$col$$col$decoder$col$$col$DecoderError_type()) ==
+    (true || true || (true || (true || true)) ||
+    (true || true ||
+    (true ||
+    (true || inhabited(s_hpack$col$$col$decoder$col$$col$NeedMore_type())))))
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_std$col$$col$option$col$$col$Option {
+    (forall T$0: Type ::
+      { inhabited(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      inhabited(s_std$col$$col$option$col$$col$Option_type(T$0)) ==
+      (true || inhabited(T$0)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_std$col$$col$str$col$$col$Utf8Error {
+    inhabited(s_std$col$$col$str$col$$col$Utf8Error_type()) ==
+    (inhabited(s_UInt_usize_type()) &&
+    inhabited(s_std$col$$col$option$col$$col$Option_type(s_UInt_u8_type())))
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$convert$col$$col$From  {
+  
+  function std$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_hpack$col$$col$decoder$col$$col$NeedMore  {
+  
+  axiom s_hpack$col$$col$decoder$col$$col$NeedMore_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_hpack$col$$col$decoder$col$$col$NeedMore_type())
+  }
+  
+  axiom s_hpack$col$$col$decoder$col$$col$NeedMore_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_hpack$col$$col$decoder$col$$col$NeedMore_type())
+  }
+}
+
+domain sizedness_hpack$col$$col$decoder$col$$col$DecoderError  {
+  
+  axiom s_hpack$col$$col$decoder$col$$col$DecoderError_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_hpack$col$$col$decoder$col$$col$DecoderError_type())
+  }
+  
+  axiom s_hpack$col$$col$decoder$col$$col$DecoderError_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_hpack$col$$col$decoder$col$$col$DecoderError_type())
+  }
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_std$col$$col$option$col$$col$Option  {
+  
+  axiom s_std$col$$col$option$col$$col$Option_Sized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)))
+  }
+  
+  axiom s_std$col$$col$option$col$$col$Option_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$option$col$$col$Option_type(T$0)))
+  }
+}
+
+domain sizedness_std$col$$col$str$col$$col$Utf8Error  {
+  
+  axiom s_std$col$$col$str$col$$col$Utf8Error_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$str$col$$col$Utf8Error_type())
+  }
+  
+  axiom s_std$col$$col$str$col$$col$Utf8Error_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$str$col$$col$Utf8Error_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_h2_hpack$col$$col$decoder$col$$col$DecoderError_45_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_h2_hpack$col$$col$decoder$col$$col$DecoderError_45_condition {
+    std$col$$col$convert$col$$col$From_impl(s_hpack$col$$col$decoder$col$$col$DecoderError_type(),
+    s_std$col$$col$str$col$$col$Utf8Error_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { std$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_std$col$$col$option$col$$col$Option_2396_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_std$col$$col$option$col$$col$Option_2396_condition {
+    (forall T$0: Type ::
+      { std$col$$col$convert$col$$col$From_impl(s_std$col$$col$option$col$$col$Option_type(T$0),
+      T$0) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$convert$col$$col$From_impl(s_std$col$$col$option$col$$col$Option_type(T$0),
+      T$0))
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_UInt_usize_2266_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_UInt_usize_2266_condition {
+    std$col$$col$convert$col$$col$From_impl(s_UInt_usize_type(), s_UInt_u8_type())
+  }
+}
+
+domain trait_std$col$$col$convert$col$$col$From_impl_core_Int_isize_2295_condition  {
+  
+  axiom std$col$$col$convert$col$$col$From_impl_core_Int_isize_2295_condition {
+    std$col$$col$convert$col$$col$From_impl(s_Int_isize_type(), s_UInt_u8_type())
+  }
+}
+
+field p_Int_isize_val: s_Int_isize
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_UInt_u8_val: s_UInt_u8
+
+function s_hpack$col$$col$decoder$col$$col$DecoderError_unreachable(): s_hpack$col$$col$decoder$col$$col$DecoderError
+  ensures false
+
+
+function s_hpack$col$$col$decoder$col$$col$DecoderError_9_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_hpack$col$$col$decoder$col$$col$DecoderError_discr(self: s_hpack$col$$col$decoder$col$$col$DecoderError): s_Int_isize
+{
+  (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_9_cons ?
+    s_Int_isize_cons(9) :
+    (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_8_cons ?
+      s_Int_isize_cons(8) :
+      (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_7_cons ?
+        s_Int_isize_cons(7) :
+        (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_6_cons ?
+          s_Int_isize_cons(6) :
+          (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_5_cons ?
+            s_Int_isize_cons(5) :
+            (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_4_cons ?
+              s_Int_isize_cons(4) :
+              (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_3_cons ?
+                s_Int_isize_cons(3) :
+                (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_2_cons ?
+                  s_Int_isize_cons(2) :
+                  (self.iss_hpack$col$$col$decoder$col$$col$DecoderError_1_cons ?
+                    s_Int_isize_cons(1) :
+                    s_Int_isize_cons(0))))))))))
+}
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_hpack$col$$col$decoder$col$$col$NeedMore_unreachable(): s_hpack$col$$col$decoder$col$$col$NeedMore
+  ensures false
+
+
+function s_hpack$col$$col$decoder$col$$col$NeedMore_discr(self: s_hpack$col$$col$decoder$col$$col$NeedMore): s_Int_isize
+{
+  (self.iss_hpack$col$$col$decoder$col$$col$NeedMore_2_cons ?
+    s_Int_isize_cons(2) :
+    (self.iss_hpack$col$$col$decoder$col$$col$NeedMore_1_cons ?
+      s_Int_isize_cons(1) :
+      s_Int_isize_cons(0)))
+}
+
+function s_std$col$$col$str$col$$col$Utf8Error_unreachable(): s_std$col$$col$str$col$$col$Utf8Error
+  ensures false
+
+
+function s_std$col$$col$str$col$$col$Utf8Error_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$str$col$$col$Utf8Error_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_std$col$$col$option$col$$col$Option_unreachable(T$0: Type): s_std$col$$col$option$col$$col$Option
+  ensures false
+
+
+function s_std$col$$col$option$col$$col$Option_1_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$option$col$$col$Option_discr(self: s_std$col$$col$option$col$$col$Option): s_Int_isize
+{
+  (self.iss_std$col$$col$option$col$$col$Option_1_cons ?
+    s_Int_isize_cons(1) :
+    s_Int_isize_cons(0))
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_hpack$col$$col$decoder$col$$col$DecoderError_snap(self: Ref): s_hpack$col$$col$decoder$col$$col$DecoderError
+  requires acc(p_hpack$col$$col$decoder$col$$col$DecoderError(self), write)
+{
+  (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError(self), write) in
+    (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+    s_Int_isize_cons(9) ?
+      (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_9_owned(self), write) in
+        s_hpack$col$$col$decoder$col$$col$DecoderError_9_cons(p_hpack$col$$col$decoder$col$$col$NeedMore_snap(s_hpack$col$$col$decoder$col$$col$DecoderError_9_field_0(self)))) :
+      (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+      s_Int_isize_cons(8) ?
+        (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_8_owned(self), write) in
+          s_hpack$col$$col$decoder$col$$col$DecoderError_8_cons()) :
+        (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+        s_Int_isize_cons(7) ?
+          (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_7_owned(self), write) in
+            s_hpack$col$$col$decoder$col$$col$DecoderError_7_cons()) :
+          (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+          s_Int_isize_cons(6) ?
+            (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_6_owned(self), write) in
+              s_hpack$col$$col$decoder$col$$col$DecoderError_6_cons()) :
+            (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+            s_Int_isize_cons(5) ?
+              (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_5_owned(self), write) in
+                s_hpack$col$$col$decoder$col$$col$DecoderError_5_cons()) :
+              (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+              s_Int_isize_cons(4) ?
+                (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_4_owned(self), write) in
+                  s_hpack$col$$col$decoder$col$$col$DecoderError_4_cons()) :
+                (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+                s_Int_isize_cons(3) ?
+                  (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_3_owned(self), write) in
+                    s_hpack$col$$col$decoder$col$$col$DecoderError_3_cons()) :
+                  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+                  s_Int_isize_cons(2) ?
+                    (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_2_owned(self), write) in
+                      s_hpack$col$$col$decoder$col$$col$DecoderError_2_cons()) :
+                    (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+                    s_Int_isize_cons(1) ?
+                      (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_1_owned(self), write) in
+                        s_hpack$col$$col$decoder$col$$col$DecoderError_1_cons()) :
+                      (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+                      s_Int_isize_cons(0) ?
+                        (unfolding acc(p_hpack$col$$col$decoder$col$$col$DecoderError_0_owned(self), write) in
+                          s_hpack$col$$col$decoder$col$$col$DecoderError_0_cons()) :
+                        s_hpack$col$$col$decoder$col$$col$DecoderError_unreachable())))))))))))
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_hpack$col$$col$decoder$col$$col$NeedMore_snap(self: Ref): s_hpack$col$$col$decoder$col$$col$NeedMore
+  requires acc(p_hpack$col$$col$decoder$col$$col$NeedMore(self), write)
+{
+  (unfolding acc(p_hpack$col$$col$decoder$col$$col$NeedMore(self), write) in
+    (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+    s_Int_isize_cons(2) ?
+      (unfolding acc(p_hpack$col$$col$decoder$col$$col$NeedMore_2_owned(self), write) in
+        s_hpack$col$$col$decoder$col$$col$NeedMore_2_cons()) :
+      (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+      s_Int_isize_cons(1) ?
+        (unfolding acc(p_hpack$col$$col$decoder$col$$col$NeedMore_1_owned(self), write) in
+          s_hpack$col$$col$decoder$col$$col$NeedMore_1_cons()) :
+        (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+        s_Int_isize_cons(0) ?
+          (unfolding acc(p_hpack$col$$col$decoder$col$$col$NeedMore_0_owned(self), write) in
+            s_hpack$col$$col$decoder$col$$col$NeedMore_0_cons()) :
+          s_hpack$col$$col$decoder$col$$col$NeedMore_unreachable()))))
+}
+
+function p_std$col$$col$str$col$$col$Utf8Error_snap(self: Ref): s_std$col$$col$str$col$$col$Utf8Error
+  requires acc(p_std$col$$col$str$col$$col$Utf8Error(self), write)
+{
+  (unfolding acc(p_std$col$$col$str$col$$col$Utf8Error(self), write) in
+    s_std$col$$col$str$col$$col$Utf8Error_cons(p_UInt_usize_snap(s_std$col$$col$str$col$$col$Utf8Error_field_0(self)), p_std$col$$col$option$col$$col$Option_snap(s_std$col$$col$str$col$$col$Utf8Error_field_1(self),
+    s_UInt_u8_type())))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_std$col$$col$option$col$$col$Option_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_std$col$$col$option$col$$col$Option_snap(self: Ref, T$0: Type): s_std$col$$col$option$col$$col$Option
+  requires acc(p_std$col$$col$option$col$$col$Option(self, T$0), write)
+{
+  (unfolding acc(p_std$col$$col$option$col$$col$Option(self, T$0), write) in
+    (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+    s_Int_isize_cons(1) ?
+      (unfolding acc(p_std$col$$col$option$col$$col$Option_1_owned(self, T$0), write) in
+        s_std$col$$col$option$col$$col$Option_1_cons(p_Param_snap(s_std$col$$col$option$col$$col$Option_1_field_0(self,
+        T$0), T$0))) :
+      (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+      s_Int_isize_cons(0) ?
+        (unfolding acc(p_std$col$$col$option$col$$col$Option_0_owned(self, T$0), write) in
+          s_std$col$$col$option$col$$col$Option_0_cons()) :
+        s_std$col$$col$option$col$$col$Option_unreachable(T$0))))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_0_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_1_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_2_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_3_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_4_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_5_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_6_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_7_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_8_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError_9_owned(self: Ref) {
+  inhabited(s_hpack$col$$col$decoder$col$$col$NeedMore_type()) &&
+  acc(p_hpack$col$$col$decoder$col$$col$NeedMore(s_hpack$col$$col$decoder$col$$col$DecoderError_9_field_0(self)), write)
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$DecoderError(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(2) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(3) ||
+  p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(4))) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(5) ||
+  p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(6) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(7) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(8) ||
+  p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(9))))) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_0_owned(self), write)) &&
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_1_owned(self), write)) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_2_owned(self), write)) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(3) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_3_owned(self), write)) &&
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(4) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_4_owned(self), write)))) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(5) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_5_owned(self), write)) &&
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(6) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_6_owned(self), write)) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(7) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_7_owned(self), write)) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(8) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_8_owned(self), write)) &&
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$DecoderError_field_discr(self)) ==
+  s_Int_isize_cons(9) ==>
+  inhabited(s_hpack$col$$col$decoder$col$$col$NeedMore_type()) &&
+  acc(p_hpack$col$$col$decoder$col$$col$DecoderError_9_owned(self), write)))))))
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$NeedMore_0_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$NeedMore_1_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$NeedMore_2_owned(self: Ref) {
+  true
+}
+
+predicate p_hpack$col$$col$decoder$col$$col$NeedMore(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(1) ||
+  p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(2))) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$NeedMore_0_owned(self), write)) &&
+  ((p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$NeedMore_1_owned(self), write)) &&
+  (p_Int_isize_snap(p_hpack$col$$col$decoder$col$$col$NeedMore_field_discr(self)) ==
+  s_Int_isize_cons(2) ==>
+  true &&
+  acc(p_hpack$col$$col$decoder$col$$col$NeedMore_2_owned(self), write)))))
+}
+
+predicate p_std$col$$col$str$col$$col$Utf8Error(self: Ref) {
+  inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_std$col$$col$str$col$$col$Utf8Error_field_0(self)), write) &&
+  (inhabited(s_std$col$$col$option$col$$col$Option_type(s_UInt_u8_type())) &&
+  acc(p_std$col$$col$option$col$$col$Option(s_std$col$$col$str$col$$col$Utf8Error_field_1(self),
+  s_UInt_u8_type()), write))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_std$col$$col$option$col$$col$Option_0_owned(self: Ref, T$0: Type) {
+  true
+}
+
+predicate p_std$col$$col$option$col$$col$Option_1_owned(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_std$col$$col$option$col$$col$Option_1_field_0(self, T$0), T$0), write)
+}
+
+predicate p_std$col$$col$option$col$$col$Option(self: Ref, T$0: Type) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_std$col$$col$option$col$$col$Option_field_discr(self)), write) &&
+  ((p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ||
+  p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1)) &&
+  ((p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(0) ==>
+  true &&
+  acc(p_std$col$$col$option$col$$col$Option_0_owned(self, T$0), write)) &&
+  (p_Int_isize_snap(p_std$col$$col$option$col$$col$Option_field_discr(self)) ==
+  s_Int_isize_cons(1) ==>
+  inhabited(T$0) &&
+  acc(p_std$col$$col$option$col$$col$Option_1_owned(self, T$0), write))))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+method m_$lt$hpack$col$$col$decoder$col$$col$DecoderError$sp$as$sp$std$col$$col$convert$col$$col$From$lt$std$col$$col$str$col$$col$Utf8Error$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_std$col$$col$str$col$$col$Utf8Error_type()) &&
+    acc(p_std$col$$col$str$col$$col$Utf8Error(_1p), write)
+  ensures inhabited(s_hpack$col$$col$decoder$col$$col$DecoderError_type()) &&
+    acc(p_hpack$col$$col$decoder$col$$col$DecoderError(_0p), write)
+{
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  p_hpack$col$$col$decoder$col$$col$DecoderError_assign(_0p, s_hpack$col$$col$decoder$col$$col$DecoderError_4_cons())
+  label _before_0_1
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method p_hpack$col$$col$decoder$col$$col$DecoderError_assign(self: Ref, value: s_hpack$col$$col$decoder$col$$col$DecoderError)
+  ensures acc(p_hpack$col$$col$decoder$col$$col$DecoderError(self), write)
+  ensures p_hpack$col$$col$decoder$col$$col$DecoderError_snap(self) ==
+    value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_hpack$col$$col$decoder$col$$col$NeedMore_assign(self: Ref, value: s_hpack$col$$col$decoder$col$$col$NeedMore)
+  ensures acc(p_hpack$col$$col$decoder$col$$col$NeedMore(self), write)
+  ensures p_hpack$col$$col$decoder$col$$col$NeedMore_snap(self) == value
+
+
+method p_std$col$$col$str$col$$col$Utf8Error_assign(self: Ref, value: s_std$col$$col$str$col$$col$Utf8Error)
+  ensures acc(p_std$col$$col$str$col$$col$Utf8Error(self), write)
+  ensures p_std$col$$col$str$col$$col$Utf8Error_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_std$col$$col$option$col$$col$Option_assign(self: Ref, T$0: Type, value: s_std$col$$col$option$col$$col$Option)
+  ensures acc(p_std$col$$col$option$col$$col$Option(self, T$0), write)
+  ensures p_std$col$$col$option$col$$col$Option_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method trait_std$col$$col$convert$col$$col$From_impl_hpack$col$$col$decoder$col$$col$DecoderError_45_fn_pre_weaken_$lt$hpack$col$$col$decoder$col$$col$DecoderError$sp$as$sp$std$col$$col$convert$col$$col$From$lt$std$col$$col$str$col$$col$Utf8Error$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_std$col$$col$str$col$$col$Utf8Error_type()) &&
+    acc(p_std$col$$col$str$col$$col$Utf8Error(_1p), write)
+{
+  label start
+}
+
+method trait_std$col$$col$convert$col$$col$From_impl_hpack$col$$col$decoder$col$$col$DecoderError_45_fn_post_strengthen_$lt$hpack$col$$col$decoder$col$$col$DecoderError$sp$as$sp$std$col$$col$convert$col$$col$From$lt$std$col$$col$str$col$$col$Utf8Error$gt$$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_std$col$$col$str$col$$col$Utf8Error_type()) &&
+    acc(p_std$col$$col$str$col$$col$Utf8Error(_1p), write)
+  requires inhabited(s_hpack$col$$col$decoder$col$$col$DecoderError_type()) &&
+    acc(p_hpack$col$$col$decoder$col$$col$DecoderError(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_hpack$col$$col$decoder$col$$col$DecoderError {
+  s_hpack$col$$col$decoder$col$$col$DecoderError_0_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_1_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_2_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_3_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_4_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_5_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_6_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_7_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_8_cons()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_9_cons(s_hpack$col$$col$decoder$col$$col$DecoderError_9_0: s_hpack$col$$col$decoder$col$$col$NeedMore)
+}
+
+adt s_hpack$col$$col$decoder$col$$col$NeedMore {
+  s_hpack$col$$col$decoder$col$$col$NeedMore_0_cons()
+  s_hpack$col$$col$decoder$col$$col$NeedMore_1_cons()
+  s_hpack$col$$col$decoder$col$$col$NeedMore_2_cons()
+}
+
+adt s_std$col$$col$str$col$$col$Utf8Error {
+  s_std$col$$col$str$col$$col$Utf8Error_cons(s_std$col$$col$str$col$$col$Utf8Error_0: s_UInt_usize,
+  s_std$col$$col$str$col$$col$Utf8Error_1: s_std$col$$col$option$col$$col$Option)
+}
+
+adt s_std$col$$col$option$col$$col$Option {
+  s_std$col$$col$option$col$$col$Option_0_cons()
+  s_std$col$$col$option$col$$col$Option_1_cons(s_std$col$$col$option$col$$col$Option_1_0: s_Param)
+}
+
+adt Type {
+  s_Int_isize_type()
+  s_hpack$col$$col$decoder$col$$col$NeedMore_type()
+  s_hpack$col$$col$decoder$col$$col$DecoderError_type()
+  s_UInt_u8_type()
+  s_UInt_usize_type()
+  s_std$col$$col$option$col$$col$Option_type(s_std$col$$col$option$col$$col$Option_typaram_T$0: Type)
+  s_std$col$$col$str$col$$col$Utf8Error_type()
+  Unknown_type(id: Int)
+}

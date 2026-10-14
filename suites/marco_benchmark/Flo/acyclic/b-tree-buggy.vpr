@@ -1,0 +1,343 @@
+import "../_preambles/array-util.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/Maps.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Multisets of Keys
+domain FlowDom {
+  function ks(f : FlowDom) : IMap[K,Int]
+  axiom positive {
+    forall p: FlowDom, k: K :: {select(ks(p), k)} select(ks(p), k) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqDefImplies {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) ==> p1 == p2
+  }
+  axiom fdEqDefImplied {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      MapEqual(ks(p1), ks(p2)) ==> fdEq(p1, p2)
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)}
+        select(ks(fdPlus(p1,p2)), k) == select(ks(p1), k) + select(ks(p2), k))
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    forall k: K :: {select(ks(fdZero()), k)} select(ks(fdZero()), k) == 0
+  }
+
+  // This is fixed for every flow domain! Do not modify.
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+  axiom fdLeqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdLeq(p1,p2)}
+      fdLeq(p1,p2) == (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)} select(ks(p1), k) <= select(ks(p2), k))
+  }
+}
+
+define ks_of_out(x, y, k)
+  select(ks(Iout(x.intf, y)), k)
+
+define ks_of_inf(x, k)
+  select(ks(select(inf(x.intf), x)), k)
+
+// The fields of a node
+field size: Int
+field ptrs: Array
+field keys: Array
+field next: Ref
+//field rangeLb: K
+//field rangeUb: K
+field indices: IMap[Ref,Int]
+
+define nodeSpatial(x) 
+  acc(x.ptrs) && array_Ref(x.ptrs)
+  && acc(x.size) && acc(x.keys) && array_K(x.keys)
+  && acc(x.next) //&& acc(x.rangeUb) && acc(x.rangeLb)
+  && acc(x.indices)
+  && 0 <= x.size && x.size < 2*B()
+  && length(x.keys) == 2*B() && length(x.ptrs) == 2*B()
+  
+define hrepUnchanged(x)
+  true
+  //x.rangeUb == old(x.rangeUb) && x.rangeLb == old(x.rangeLb)
+  && x.ptrs == old(x.ptrs) && unchanged_array_Ref(x.ptrs)
+  && x.size == old(x.size) && x.keys == old(x.keys) && unchanged_array_K(x.keys) && x.next == old(x.next)
+  && x.indices == old(x.indices)
+
+define unchanged(x)
+  x.intf == old(x.intf) 
+  && hrepUnchanged(x)
+
+
+// Definition of a node and good condition:
+
+function B(): Int
+  ensures result > 1
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom, FlowDom]
+  requires nodeSpatial(x)
+  ensures 0 <= select(x.indices, y) && select(x.indices, y) <= x.size
+    ==> (forall p: FlowDom, k: K :: {select(ks(select(result, p)), k)}
+      select(ks(select(result, p)), k)
+      == ((select(x.indices, y) == 0 || le(read_K(x.keys, select(x.indices, y) - 1), k))
+          && (select(x.indices, y) == x.size && x.next == null && lt(k, top())
+              || lt(k, read_K(x.keys, select(x.indices, y))))
+          ? select(ks(p), k) : 0 ))
+  ensures select(x.indices, y) == -1
+    ==> (forall p: FlowDom, k: K :: {select(ks(select(result, p)), k)}
+      select(ks(select(result, p)), k)
+      == (x.next == y && y != null && le(read_K(x.keys, x.size), k) && lt(k, top())
+          ? select(ks(p), k) : 0 ))
+
+function contents(x: Ref): Set[K]
+  requires nodeSpatial(x)
+  ensures read_Ref(x.ptrs, 0) != null ==> result == Set[K]()
+  ensures read_Ref(x.ptrs, 0) == null ==> result == set_of_array(x.keys, 0, x.size)
+
+
+define breeNode(x, I)
+  node(x)
+  // Keys are sorted
+  && sorted_Map_K_seg(map_K_of_array(x.keys), 0, x.size)
+  // Keys are in the range
+  //&& (forall j: Int :: {read_K(x.keys, j)} 0 <= j && (x.next == null && j < x.size || x.next != null && j <= x.size)
+  //     ==> le(x.rangeLb, read_K(x.keys, j)) && lt(read_K(x.keys, j), x.rangeUb))
+  // All outgoing pointers are distinct
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size
+       ==> x != read_Ref(x.ptrs, j))
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size
+       ==> read_Ref(x.ptrs, j) != x.next)
+  && (forall j1: Int, j2: Int :: {read_Ref(x.ptrs, j1), read_Ref(x.ptrs, j2)} read_Ref(x.ptrs, 0) != null && 0 <= j1 && j1 < j2 && j2 <= x.size
+       ==> read_Ref(x.ptrs, j1) != read_Ref(x.ptrs, j2))
+  // x.indices stores indices of outgoing pointers 
+  && (forall y: Ref :: {select(x.indices, y)} 0 <= select(x.indices, y) && select(x.indices, y) <= x.size 
+       ==> read_Ref(x.ptrs, select(x.indices, y)) == y)
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size 
+    ==> select(x.indices, read_Ref(x.ptrs, j)) == j)
+  && (read_Ref(x.ptrs, 0) == null ==> (forall y: Ref :: {select(x.indices, y)} select(x.indices, y) == -1))
+  && select(x.indices, x.next) == -1
+  && select(x.indices, x) == -1
+  // Internal nodes don't point to null
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size ==> read_Ref(x.ptrs, j) != null)
+  // -- The good state conditions:
+  // Contents subsetof keyset
+  && (forall k: K :: k in contents(x) ==> select(ks(Iinf(I, x)), k) >= 1)
+  && (forall k: K, y: Ref :: 
+    !(k in contents(x)) || select(ks(Iout(I, y)), k) == 0)
+  // Edgesets are disjoint
+  && (forall k: K, y: Ref, z: Ref :: y == z
+      || select(ks(Iout(I, y)), k) == 0
+      || select(ks(Iout(I, z)), k) == 0)
+
+
+/* -------------------- Actual code -------------------- */
+
+
+method keyset_implies_leaf(x: Ref, key: K, i: Int)
+  requires breeNode(x, x.intf)
+  requires i <= x.size
+  requires lt(key, top())
+  requires ks_of_inf(x, key) == 1 && (forall y: Ref :: ks_of_out(x, y, key) == 0)
+  requires (i <= 0 || le(read_K(x.keys, i - 1), key)) && 0 <= i && i <= x.size
+  ensures breeNode(x, x.intf) && unchanged(x)
+  ensures read_Ref(x.ptrs, 0) == null  // x is a leaf
+{
+  if (read_Ref(x.ptrs, 0) != null && i < x.size && !lt(key, read_K(x.keys, i))) {
+    keyset_implies_leaf(x, key, i + 1)
+  } else {
+    assert read_Ref(x.ptrs, 0) != null ==> 
+       ks_of_out(x, read_Ref(x.ptrs, i), key) == ((select(x.indices, read_Ref(x.ptrs, i)) == 0 || le(read_K(x.keys, select(x.indices, read_Ref(x.ptrs, i)) - 1), key)) &&
+        (select(x.indices, read_Ref(x.ptrs, i)) == x.size && x.next == null && lt(key, top()) || lt(key, read_K(x.keys, select(x.indices, read_Ref(x.ptrs, i))))) ? 1 : 0 )
+    assert read_Ref(x.ptrs, 0) != null ==> 
+      (select(x.indices, read_Ref(x.ptrs, i)) == 0 || le(read_K(x.keys, i - 1), key))
+    assert ks_of_out(x, x.next, key) == 0
+  }
+}
+
+
+/** member */
+method member(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(intCompSet(X), old(intCompSet(X)))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> (contents(n) == old(contents(n)) && (res == (key in contents(n))))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0);
+
+  var idx: Int;
+  res, idx := arr_find(n.keys, n.size + 1 /* bug */, key);
+
+  succ := true
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+
+/** delete */
+method delete(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) setminus Set(key) && res == (key in old(contents(n)))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0)
+
+  var m: IMap[Int, K] := map_K_of_array(n.keys)
+  var old_size: Int := n.size
+  var new_size: Int
+  var idx: Int
+
+  _make_dirty(n)
+  new_size, idx := arr_delete(n.keys, key, n.size - 1 /* bug */)
+
+  map_K_delete_content_set(m, map_K_of_array(n.keys), n.size, new_size, idx, key)
+
+  var m1: IMap[Int, K] := map_K_of_array(n.keys)
+
+  write_K(n.keys, new_size, read_K(n.keys, n.size))
+  set_of_map_K_equal(m1, map_K_of_array(n.keys), 0, 0, new_size)
+
+  _make_dirty(n)
+  n.size := new_size
+  
+  succ := true
+  res := new_size != old_size
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+/** insert */
+method insert(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) union Set(key) && res == !(key in old(contents(n)))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0)
+
+  if (n.size < 2*B() - 1) {
+    var m0: IMap[Int, K] := map_K_of_array(n.keys)
+    if (n.next != null) {
+      _make_dirty(n)
+      write_K(n.keys, n.size + 1, read_K(n.keys, n.size))
+      set_of_map_K_equal(m0, map_K_of_array(n.keys), 0, 0, n.size)
+    } else {
+      _make_dirty(n)
+      write_K(n.keys, n.size + 1, top())
+      set_of_map_K_equal(m0, map_K_of_array(n.keys), 0, 0, n.size)
+    }
+    var m: IMap[Int, K] := map_K_of_array(n.keys) 
+    var old_size: Int := n.size
+
+    label upd
+
+    var idx: Int
+    var new_size: Int 
+    _make_dirty(n)
+    idx, new_size := arr_insert(n.keys, key, n.size)
+    _make_dirty(n)
+    // bug:
+    //n.size := new_size
+
+    map_K_insert_content_set(m, map_K_of_array(n.keys), idx, key, old_size, new_size)
+
+    succ := true
+    res := old_size != new_size    
+
+  } else {
+    succ := false
+    res := false
+  }
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}

@@ -1,0 +1,132 @@
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Bool {
+    inhabited(s_Bool_type()) == true
+  }
+  
+  axiom inhabited_with_position$col$$col$Position {
+    inhabited(s_with_position$col$$col$Position_type()) ==
+    (inhabited(s_Bool_type()) && inhabited(s_Bool_type()))
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Bool  {
+  
+  axiom s_Bool_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Bool_type())
+  }
+  
+  axiom s_Bool_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Bool_type())
+  }
+}
+
+domain sizedness_with_position$col$$col$Position  {
+  
+  axiom s_with_position$col$$col$Position_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_with_position$col$$col$Position_type())
+  }
+  
+  axiom s_with_position$col$$col$Position_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_with_position$col$$col$Position_type())
+  }
+}
+
+field p_Bool_val: Bool
+
+function s_Bool_unreachable(): Bool
+  ensures false
+
+
+function s_with_position$col$$col$Position_unreachable(): s_with_position$col$$col$Position
+  ensures false
+
+
+function s_with_position$col$$col$Position_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_with_position$col$$col$Position_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Bool_snap(self: Ref): Bool
+  requires acc(p_Bool(self), write)
+{
+  (unfolding acc(p_Bool(self), write) in self.p_Bool_val)
+}
+
+function p_with_position$col$$col$Position_snap(self: Ref): s_with_position$col$$col$Position
+  requires acc(p_with_position$col$$col$Position(self), write)
+{
+  (unfolding acc(p_with_position$col$$col$Position(self), write) in
+    s_with_position$col$$col$Position_cons(p_Bool_snap(s_with_position$col$$col$Position_field_0(self)), p_Bool_snap(s_with_position$col$$col$Position_field_1(self))))
+}
+
+predicate p_Bool(self: Ref) {
+  acc(self.p_Bool_val, write)
+}
+
+predicate p_with_position$col$$col$Position(self: Ref) {
+  inhabited(s_Bool_type()) &&
+  acc(p_Bool(s_with_position$col$$col$Position_field_0(self)), write) &&
+  (inhabited(s_Bool_type()) &&
+  acc(p_Bool(s_with_position$col$$col$Position_field_1(self)), write))
+}
+
+method m_with_position$col$$col$Position$col$$col$is_first(_0p: Ref, _1p: Ref)
+  requires inhabited(s_with_position$col$$col$Position_type()) &&
+    acc(p_with_position$col$$col$Position(_1p), write)
+  ensures inhabited(s_Bool_type()) && acc(p_Bool(_0p), write)
+{
+  var _tmp0: Bool
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  unfold acc(p_with_position$col$$col$Position(_1p), write)
+  _tmp0 := p_Bool_snap(s_with_position$col$$col$Position_field_0(_1p))
+  p_Bool_assign(_0p, _tmp0)
+  label _before_0_1
+  fold acc(p_with_position$col$$col$Position(_1p), write)
+  label package_post0
+  goto end
+  label end
+}
+
+method p_Bool_assign(self: Ref, value: Bool)
+  ensures acc(p_Bool(self), write)
+  ensures p_Bool_snap(self) == value
+
+
+method p_with_position$col$$col$Position_assign(self: Ref, value: s_with_position$col$$col$Position)
+  ensures acc(p_with_position$col$$col$Position(self), write)
+  ensures p_with_position$col$$col$Position_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_with_position$col$$col$Position {
+  s_with_position$col$$col$Position_cons(s_with_position$col$$col$Position_0: Bool,
+  s_with_position$col$$col$Position_1: Bool)
+}
+
+adt Type {
+  s_Bool_type()
+  s_with_position$col$$col$Position_type()
+  Unknown_type(id: Int)
+}

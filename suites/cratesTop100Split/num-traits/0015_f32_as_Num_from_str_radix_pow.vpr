@@ -1,0 +1,428 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Float_f32  {
+  
+  axiom s_Param_typ_def_make_generic_s_Float_f32 {
+    (forall x: s_Float_f32 ::
+      { make_generic_s_Float_f32(x) }
+      s_Param_typ(make_generic_s_Float_f32(x)) == s_Float_f32_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Float_f32 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Float_f32, s_Param_typ(p) }
+      s_Param_typ(p) == s_Float_f32_type() ==>
+      make_generic_s_Float_f32(p.make_concrete_s_Float_f32) == p)
+  }
+}
+
+domain s_Float_f32 interpretation (SMTLIB: "(_ FloatingPoint 8 24)", Boogie: "float24e8") {
+  
+  function s_Float_f32_cons(arg0: Int): s_Float_f32 
+  
+  function s_Float_f32_eq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.eq"
+  
+  function s_Float_f32_add(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.add RNE"
+  
+  function s_Float_f32_sub(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.sub RNE"
+  
+  function s_Float_f32_mul(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.mul RNE"
+  
+  function s_Float_f32_div(arg0: s_Float_f32, arg1: s_Float_f32): s_Float_f32 interpretation "fp.div RNE"
+  
+  function s_Float_f32_trunc(arg0: s_Float_f32): s_Float_f32 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f32_is_nan(arg0: s_Float_f32): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f32_is_infinite(arg0: s_Float_f32): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f32_lt(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.lt"
+  
+  function s_Float_f32_leq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.leq"
+  
+  function s_Float_f32_geq(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.geq"
+  
+  function s_Float_f32_gt(arg0: s_Float_f32, arg1: s_Float_f32): Bool interpretation "fp.gt"
+  
+  function s_Float_f32_neg(arg0: s_Float_f32): s_Float_f32 interpretation "fp.neg"
+  
+  function s_Float_f32_abs(arg0: s_Float_f32): s_Float_f32 interpretation "fp.abs"
+  
+  function s_Float_f32_from_bv(arg0: s_BitVec_32): s_Float_f32 interpretation "(_ to_fp 8 24)"
+  
+  function s_Float_f32_to_real(arg0: s_Float_f32): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f32_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f32_cons(i) }
+      s_Float_f32_cons(i) == s_Float_f32_from_bv(s_BitVec_32_from_int(i)) &&
+      s_Float_f32_to_real(s_Float_f32_cons(i)) ==
+      s_Float_f32_to_real(s_Float_f32_from_bv(s_BitVec_32_from_int(i))))
+  }
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_Int_i32  {
+  
+  function s_Int_i32_cons(arg0: Int): s_Int_i32 
+  
+  function s_Int_i32_value(arg0: s_Int_i32): Int 
+  
+  axiom s_Int_i32_ax_cons {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      s_Int_i32_cons(s_Int_i32_value(s)) == s)
+  }
+  
+  axiom s_Int_i32_ax_bounds {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      -2147483648 <= s_Int_i32_value(s) && s_Int_i32_value(s) <= 2147483647)
+  }
+  
+  axiom s_Int_i32_ax_value {
+    (forall value: Int ::
+      { s_Int_i32_cons(value) }
+      -2147483648 <= value && value <= 2147483647 ==>
+      s_Int_i32_value(s_Int_i32_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_32 interpretation (SMTLIB: "(_ BitVec 32)", Boogie: "bv32") {
+  
+  function s_BitVec_32_from_int(arg0: Int): s_BitVec_32 interpretation "(_ int2bv 32)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f32 {
+    inhabited(s_Float_f32_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_Int_i32 {
+    inhabited(s_Int_i32_type()) == true
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_float$col$$col$Float  {
+  
+  function float$col$$col$Float_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Float_f32  {
+  
+  axiom s_Float_f32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f32_type())
+  }
+  
+  axiom s_Float_f32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f32_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_Int_i32  {
+  
+  axiom s_Int_i32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_i32_type())
+  }
+  
+  axiom s_Int_i32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_i32_type())
+  }
+}
+
+domain trait_fns_float$col$$col$Float_float$col$$col$Float$col$$col$powi  {
+  
+  function float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(arg0: s_Param,
+  arg1: s_Int_i32, arg2: Type): Bool 
+  
+  function float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(arg0: s_Param,
+  arg1: s_Param, arg2: s_Int_i32, arg3: Type): Bool 
+  
+  axiom float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi_base {
+    (forall _1s: s_Param, _2s: s_Int_i32, Self$0: Type ::
+      { float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(_1s,
+      _2s, Self$0) }
+      true ==>
+      float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(_1s, _2s,
+      Self$0))
+  }
+  
+  axiom float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi_base {
+    (forall _0s: s_Param, _1s: s_Param, _2s: s_Int_i32, Self$0: Type ::
+      { float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(_0s,
+      _1s, _2s, Self$0) }
+      float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(_0s, _1s,
+      _2s, Self$0) ==>
+      true ==> true)
+  }
+}
+
+domain trait_float$col$$col$Float_impl_num_traits_Float_f32_307_condition  {
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f32_307_condition {
+    float$col$$col$Float_impl(s_Float_f32_type())
+  }
+}
+
+domain trait_float$col$$col$Float_impl_num_traits_Float_f32_307_$lt$f32$sp$as$sp$float$col$$col$Float$gt$$col$$col$powi  {
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f32_307_fn_pre_$lt$f32$sp$as$sp$float$col$$col$Float$gt$$col$$col$powi {
+    (forall _1s: s_Float_f32, _2s: s_Int_i32 ::
+      { float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(make_generic_s_Float_f32(_1s),
+      _2s, s_Float_f32_type()) }
+      true ==>
+      float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(make_generic_s_Float_f32(_1s),
+      _2s, s_Float_f32_type()))
+  }
+  
+  axiom float$col$$col$Float_impl_num_traits_Float_f32_307_fn_post_$lt$f32$sp$as$sp$float$col$$col$Float$gt$$col$$col$powi {
+    (forall _0s: s_Float_f32, _1s: s_Float_f32, _2s: s_Int_i32 ::
+      { float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(make_generic_s_Float_f32(_0s),
+      make_generic_s_Float_f32(_1s), _2s, s_Float_f32_type()) }
+      float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(make_generic_s_Float_f32(_0s),
+      make_generic_s_Float_f32(_1s), _2s, s_Float_f32_type()) ==>
+      true)
+  }
+}
+
+field p_Float_f32_val: s_Float_f32
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_Int_i32_val: s_Int_i32
+
+function mir_cast_i2i_UInt_usize_to_Int_i32(arg: s_UInt_usize): s_Int_i32
+{
+  s_Int_i32_cons((s_UInt_usize_value(arg) + 2147483648) % 4294967296 -
+  2147483648)
+}
+
+function s_Float_f32_unreachable(): s_Float_f32
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_Int_i32_unreachable(): s_Int_i32
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_Float_f32_snap(self: Ref): s_Float_f32
+  requires acc(p_Float_f32(self), write)
+{
+  (unfolding acc(p_Float_f32(self), write) in self.p_Float_f32_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_Int_i32_snap(self: Ref): s_Int_i32
+  requires acc(p_Int_i32(self), write)
+{
+  (unfolding acc(p_Int_i32(self), write) in self.p_Int_i32_val)
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+predicate p_Float_f32(self: Ref) {
+  acc(self.p_Float_f32_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_Int_i32(self: Ref) {
+  acc(self.p_Int_i32_val, write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+method m_$lt$f32$sp$as$sp$Num$gt$$col$$col$from_str_radix$col$$col$pow(_0p: Ref,
+  _1p: Ref, _2p: Ref)
+  requires inhabited(s_Float_f32_type()) && acc(p_Float_f32(_1p), write)
+  requires inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_2p), write)
+  ensures inhabited(s_Float_f32_type()) && acc(p_Float_f32(_0p), write)
+{
+  var _3p: Ref
+  var _4p: Ref
+  var _5p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_Float_f32
+  var _tmp1: s_UInt_usize
+  var _tmp2: s_UInt_usize
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_Float_f32_snap(_1p)
+  p_Float_f32_assign(_3p, _tmp0)
+  label _before_0_2
+  label _before_0_3
+  label _before_0_4
+  _tmp1 := p_UInt_usize_snap(_2p)
+  p_UInt_usize_assign(_5p, _tmp1)
+  label _before_0_5
+  _tmp2 := p_UInt_usize_snap(_5p)
+  exhale inhabited(s_UInt_usize_type()) && acc(p_UInt_usize(_5p), write)
+  p_Int_i32_assign(_4p, mir_cast_i2i_UInt_usize_to_Int_i32(_tmp2))
+  label _before_0_6
+  label _before_0_7
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  make_generic_Float_f32(_3p)
+  float$col$$col$Float_fn_stub_float$col$$col$Float$col$$col$powi(_0p, _3p,
+    _4p, s_Float_f32_type())
+  make_concrete_Float_f32(_0p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label _before_1_2
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method make_generic_Float_f32(self: Ref)
+  requires acc(p_Float_f32(self), write)
+  ensures acc(p_Param(self, s_Float_f32_type()), write)
+  ensures old(make_generic_s_Float_f32(p_Float_f32_snap(self))) ==
+    p_Param_snap(self, s_Float_f32_type())
+
+
+method make_concrete_Float_f32(self: Ref)
+  requires acc(p_Param(self, s_Float_f32_type()), write)
+  ensures acc(p_Float_f32(self), write)
+  ensures old(p_Param_snap(self, s_Float_f32_type())) ==
+    make_generic_s_Float_f32(p_Float_f32_snap(self))
+
+
+method p_Float_f32_assign(self: Ref, value: s_Float_f32)
+  ensures acc(p_Float_f32(self), write)
+  ensures p_Float_f32_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_Int_i32_assign(self: Ref, value: s_Int_i32)
+  ensures acc(p_Int_i32(self), write)
+  ensures p_Int_i32_snap(self) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method float$col$$col$Float_fn_stub_float$col$$col$Float$col$$col$powi(_0p: Ref,
+  _1p: Ref, _2p: Ref, Self$0: Type)
+  requires inhabited(Self$0) && acc(p_Param(_1p, Self$0), write)
+  requires inhabited(s_Int_i32_type()) && acc(p_Int_i32(_2p), write)
+  requires float$col$$col$Float_fn_pre_float$col$$col$Float$col$$col$powi(p_Param_snap(_1p,
+    Self$0), p_Int_i32_snap(_2p), Self$0)
+  ensures inhabited(Self$0) && acc(p_Param(_0p, Self$0), write)
+  ensures float$col$$col$Float_fn_post_float$col$$col$Float$col$$col$powi(p_Param_snap(_0p,
+    Self$0), old(p_Param_snap(_1p, Self$0)), old(p_Int_i32_snap(_2p)), Self$0)
+
+
+adt s_Param {
+  make_generic_s_Float_f32(make_concrete_s_Float_f32: s_Float_f32)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt Type {
+  s_Float_f32_type()
+  s_UInt_usize_type()
+  s_Int_i32_type()
+  Unknown_type(id: Int)
+}

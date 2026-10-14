@@ -1,0 +1,405 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+domain array  {
+  
+  function array_loc(a: array, i: Int): Ref 
+  
+  function alen(a: array): Int 
+  
+  function loc_inv_1(loc: Ref): array 
+  
+  function loc_inv_2(loc: Ref): Int 
+  
+  axiom {
+    (forall a: array, i: Int ::
+      { array_loc(a, i) }
+      loc_inv_1(array_loc(a, i)) == a && loc_inv_2(array_loc(a, i)) == i)
+  }
+  
+  axiom {
+    (forall a: array :: { alen(a) } alen(a) >= 0)
+  }
+}
+
+domain any  {
+  
+  
+}
+
+domain option[T1]  {
+  
+  function None(): option[T1] 
+  
+  function some(x: T1): option[T1] 
+  
+  function option_get(opt: option[T1]): T1 
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (None(): option[T1]) != (some(x): option[T1]))
+  }
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (option_get((some(x): option[T1])): T1) == x)
+  }
+  
+  axiom {
+    (forall opt: option[T1] ::
+      { (some((option_get(opt): T1)): option[T1]) }
+      (some((option_get(opt): T1)): option[T1]) == opt)
+  }
+}
+
+field int: Int
+
+function aloc(a: array, i: Int): Ref
+  requires 0 <= i
+  requires i < alen(a)
+  decreases 
+  ensures loc_inv_1(result) == a
+  ensures loc_inv_2(result) == i
+{
+  array_loc(a, i)
+}
+
+function any_as(t: any): any
+  decreases 
+
+
+function as_any(t: any): any
+  decreases 
+  ensures any_as(result) == t
+
+
+function opt_get(opt: option[any]): any
+  requires opt != (None(): option[any])
+  decreases 
+  ensures (some(result): option[any]) == opt
+{
+  (option_get(opt): any)
+}
+
+function opt_or_else(opt: option[any], alt: any): any
+  decreases 
+  ensures opt == (None(): option[any]) ==> result == alt
+  ensures opt != (None(): option[any]) ==> result == opt_get(opt)
+{
+  (opt == (None(): option[any]) ? alt : opt_get(opt))
+}
+
+function opt_get1(opt: option[array]): array
+  requires opt != (None(): option[array])
+  decreases 
+  ensures (some(result): option[array]) == opt
+{
+  (option_get(opt): array)
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+method check_sat_ChallengeOne()
+{
+  assert false
+}
+
+method ChallengeOne(tid: Int) returns (res: Ref)
+{
+  var exc: Ref
+  var return: Ref
+  var ChallengeOne1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new()
+  inhale type(flatten) == 1
+  ChallengeOne1 := flatten
+  return := ChallengeOne1
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_sort(this: Ref, A: option[array])
+  requires this != null
+  requires A != (None(): option[array])
+  requires (forall k: Int ::
+      { aloc(opt_get1(A), k) }
+      0 <= k && k < alen(opt_get1(A)) ==>
+      acc(aloc(opt_get1(A), k).int, write))
+{
+  assert false
+}
+
+method sort(this: Ref, tid: Int, A: option[array])
+  returns (res: option[array])
+  requires this != null
+  requires A != (None(): option[array])
+  requires (forall k: Int ::
+      { aloc(opt_get1(A), k) }
+      0 <= k && k < alen(opt_get1(A)) ==>
+      acc(aloc(opt_get1(A), k).int, write))
+  ensures (forall k: Int ::
+      { aloc(opt_get1(A), k) }
+      0 <= k && k < alen(opt_get1(A)) ==>
+      acc(aloc(opt_get1(A), k).int, write))
+  ensures (forall k: Int ::
+      { aloc(opt_get1(A), k) }
+      0 <= k && k < alen(opt_get1(A)) - 2 ==>
+      aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+{
+  var exc: Ref
+  var return: option[array]
+  var i: Int
+  var x: Int
+  var y: Int
+  var temp: Int
+  var j: Int
+  var jj: Int
+  var y1: Int
+  var j1: Int
+  var flatten: Int
+  var flatten1: Int
+  var flatten2: Int
+  var flatten3: Int
+  var flatten4: Int
+  var flatten5: Int
+  var flatten6: Int
+  var flatten7: Int
+  var flatten8: Int
+  var flatten9: Int
+  var flatten10: Int
+  var flatten11: Int
+  var flatten12: Int
+  var flatten13: Int
+  var flatten14: Int
+  var flatten15: Int
+  var flatten16: Int
+  var flatten17: Int
+  var flatten18: Int
+  var excBeforeLoop: Ref
+  var excBeforeLoop1: Ref
+  var excBeforeLoop2: Ref
+  var excBeforeLoop3: Ref
+  exc := null
+  flatten := 0
+  i := flatten
+  label loop
+  excBeforeLoop := exc
+  while (i < alen(opt_get1(A)) - 1)
+    invariant exc == excBeforeLoop
+    invariant A != (None(): option[array])
+    invariant 0 <= i
+    invariant i < alen(opt_get1(A)) + 1
+    invariant (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k && k < alen(opt_get1(A)) ==>
+        acc(aloc(opt_get1(A), k).int, write))
+    invariant (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k && k < i - 1 ==>
+        aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int) 
+  {
+    flatten1 := aloc(opt_get1(A), i).int
+    x := flatten1
+    flatten2 := aloc(opt_get1(A), i + 1).int
+    y := flatten2
+    if (x < y) {
+      temp := x
+      x := y
+      y := temp
+    }
+    assert y <= x
+    flatten3 := i - 1
+    j := flatten3
+    label loop1
+    excBeforeLoop1 := exc
+    while (0 <= j && x < aloc(opt_get1(A), j).int)
+      invariant exc == excBeforeLoop1
+      invariant y <= x
+      invariant -1 <= j
+      invariant j < i
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < alen(opt_get1(A)) ==>
+          acc(aloc(opt_get1(A), k).int, write))
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < j ==>
+          aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k - (j + 3) && k - (j + 3) < -1 + (i - j) ==>
+          x < aloc(opt_get1(A), k).int)
+      invariant i + 1 < alen(opt_get1(A))
+      invariant 0 <= j ==>
+        (forall l: Int ::
+          { aloc(opt_get1(A), l) }
+          0 <= l - (j + 3) && l - (j + 3) < -1 + (i - j) ==>
+          aloc(opt_get1(A), j).int <= aloc(opt_get1(A), l).int)
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k - (j + 3) && k - (j + 3) < -2 + (i - j) ==>
+          aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int) 
+    {
+      flatten4 := j + 2
+      flatten5 := aloc(opt_get1(A), j).int
+      aloc(opt_get1(A), flatten4).int := flatten5
+      flatten6 := j - 1
+      j := flatten6
+    }
+    jj := j
+    flatten7 := j + 2
+    aloc(opt_get1(A), flatten7).int := x
+    assert (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k - (jj + 2) && k - (jj + 2) < i - jj ==>
+        y <= aloc(opt_get1(A), k).int)
+    assert (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k - (jj + 2) && k - (jj + 2) < -1 + (i - jj) ==>
+        aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+    label loop2
+    excBeforeLoop2 := exc
+    while (0 <= j && y < aloc(opt_get1(A), j).int)
+      invariant exc == excBeforeLoop2
+      invariant -1 <= j
+      invariant j < jj + 1
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < alen(opt_get1(A)) ==>
+          acc(aloc(opt_get1(A), k).int, write))
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < j ==>
+          aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k - (j + 2) && k - (j + 2) < i - j ==>
+          y <= aloc(opt_get1(A), k).int)
+      invariant i + 1 < alen(opt_get1(A))
+      invariant 0 <= j ==>
+        (forall l: Int ::
+          { aloc(opt_get1(A), l) }
+          0 <= l - (j + 2) && l - (j + 2) < i - j ==>
+          aloc(opt_get1(A), j).int <= aloc(opt_get1(A), l).int) 
+    {
+      flatten8 := j + 1
+      flatten9 := aloc(opt_get1(A), j).int
+      aloc(opt_get1(A), flatten8).int := flatten9
+      flatten10 := j - 1
+      j := flatten10
+    }
+    inhale (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k - (jj + 2) && k - (jj + 2) < -1 + (i - jj) ==>
+        aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+    inhale (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k - (j + 2) && k - (j + 2) < jj - j ==>
+        aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+    flatten11 := j + 1
+    aloc(opt_get1(A), flatten11).int := y
+    flatten12 := i + 2
+    i := flatten12
+  }
+  if (i == alen(opt_get1(A)) - 1) {
+    flatten13 := aloc(opt_get1(A), i).int
+    y1 := flatten13
+    flatten14 := i - 1
+    j1 := flatten14
+    label loop3
+    excBeforeLoop3 := exc
+    while (0 <= j1 && y1 < aloc(opt_get1(A), j1).int)
+      invariant exc == excBeforeLoop3
+      invariant -1 <= j1
+      invariant j1 < alen(opt_get1(A)) - 2 + 1
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < alen(opt_get1(A)) ==>
+          acc(aloc(opt_get1(A), k).int, write))
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k && k < j1 ==>
+          aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k - (j1 + 2) && k - (j1 + 2) < -1 + (i - j1) ==>
+          y1 <= aloc(opt_get1(A), k).int)
+      invariant 0 <= j1 ==>
+        (forall l: Int ::
+          { aloc(opt_get1(A), l) }
+          0 <= l - (j1 + 2) && l - (j1 + 2) < -1 + (i - j1) ==>
+          aloc(opt_get1(A), j1).int <= aloc(opt_get1(A), l).int)
+      invariant (forall k: Int ::
+          { aloc(opt_get1(A), k) }
+          0 <= k - (j1 + 2) && k - (j1 + 2) < -2 + (i - j1) ==>
+          aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int) 
+    {
+      flatten15 := j1 + 1
+      flatten16 := aloc(opt_get1(A), j1).int
+      aloc(opt_get1(A), flatten15).int := flatten16
+      flatten17 := j1 - 1
+      j1 := flatten17
+    }
+    flatten18 := j1 + 1
+    aloc(opt_get1(A), flatten18).int := y1
+    assert (forall k: Int ::
+        { aloc(opt_get1(A), k) }
+        0 <= k && k < alen(opt_get1(A)) - 2 ==>
+        aloc(opt_get1(A), k).int <= aloc(opt_get1(A), k + 1).int)
+  }
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

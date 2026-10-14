@@ -1,0 +1,879 @@
+domain Address  {
+  
+  function field_address$$struct$m_Test$$$f$v(_0: Address): Address 
+}
+
+domain Bytes  {
+  
+  
+}
+
+domain Lifetime  {
+  
+  function included(_0: Lifetime, _1: Lifetime): Bool 
+  
+  function intersect(_0: Set[Lifetime]): Lifetime 
+  
+  axiom included_in_itself$ {
+    (forall lft: Lifetime :: { included(lft, lft) } included(lft, lft))
+  }
+  
+  axiom included_intersect$1 {
+    (forall lft_1: Set[Lifetime], lft_2: Set[Lifetime] ::
+      { included(intersect(lft_1), intersect(lft_2)) }
+      included(intersect(lft_1), intersect(lft_2)) == (lft_2 subset lft_1))
+  }
+  
+  axiom included_intersect$2 {
+    (forall lft_1: Set[Lifetime], lft_2: Lifetime ::
+      { included(intersect(lft_1), lft_2) }
+      included(intersect(lft_1), lft_2) == (lft_2 in lft_1))
+  }
+  
+  axiom intersect_singleton$ {
+    (forall lft: Lifetime ::
+      { intersect(Set(lft)) }
+      intersect(Set(lft)) == lft)
+  }
+}
+
+domain MarkerCalls  {
+  
+  function basic_block_marker$start_label$marker(): Bool 
+  
+  function basic_block_marker$label_entry$marker(): Bool 
+  
+  function basic_block_marker$label_bb0$marker(): Bool 
+  
+  function basic_block_marker$label_3_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb2$marker(): Bool 
+  
+  function basic_block_marker$resume_panic_label$marker(): Bool 
+  
+  function basic_block_marker$label_2_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb1$marker(): Bool 
+  
+  function basic_block_marker$return_label$marker(): Bool 
+  
+  function basic_block_marker$end_label$marker(): Bool 
+}
+
+domain Place  {
+  
+  unique function _1$place(): Place 
+  
+  function deref_reference_place(_0: Place): Place 
+  
+  unique function _4$place(): Place 
+  
+  function field_place$$struct$m_Test$$$f$v(_0: Place): Place 
+  
+  unique function _3$place(): Place 
+  
+  unique function _2$place(): Place 
+  
+  unique function _0$place(): Place 
+}
+
+domain Size  {
+  
+  function Size$struct$m_Test$$(): Snap$Usize 
+  
+  function Size$Seq$U32$(): Snap$Usize 
+  
+  function Size$ref$Shared$Seq$U32$(): Snap$Usize 
+  
+  function Size$ref$Shared$struct$m_Test$$(): Snap$Usize 
+  
+  function PaddingSize$struct$m_Test$$(): Snap$Usize 
+}
+
+domain Snap$Bool  {
+  
+  function constructor$Snap$Bool$(value: Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$$value(value: Snap$Bool): Bool 
+  
+  function valid$Snap$Bool(_0: Snap$Bool): Bool 
+  
+  axiom constructor$Snap$Bool$$bottom_up_injectivity_axiom {
+    (forall value: Bool ::
+      { constructor$Snap$Bool$(value) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$(value)) == value)
+  }
+  
+  axiom constructor$Snap$Bool$$top_down_injectivity_axiom {
+    (forall value: Snap$Bool ::
+      { valid$Snap$Bool(value) }
+      valid$Snap$Bool(value) ==>
+      value == constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)))
+  }
+  
+  axiom Snap$Bool$$validity_axiom_bottom_up_alternative {
+    (forall value: Bool ::
+      { valid$Snap$Bool(constructor$Snap$Bool$(value)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(value)))
+  }
+}
+
+domain Snap$Seq$U32  {
+  
+  function valid$Snap$Seq$U32(_0: Seq[Snap$U32]): Bool 
+  
+  function to_bytes$Seq$U32(snapshot: Seq[Snap$U32]): Bytes 
+  
+  axiom Snap$Seq$U32$Seq$U32$validity_axiom_top_down_sequence {
+    (forall value: Seq[Snap$U32] ::
+      { valid$Snap$Seq$U32(value) }
+      valid$Snap$Seq$U32(value) ==
+      (forall index: Snap$Usize ::
+        { valid$Snap$U32(value[destructor$Snap$Usize$$value(index)]) }
+        valid$Snap$Usize(index) &&
+        destructor$Snap$Usize$$value(index) < |value| ==>
+        valid$Snap$U32(value[destructor$Snap$Usize$$value(index)])))
+  }
+}
+
+domain Snap$U32  {
+  
+  function constructor$Snap$U32$(value: Int): Snap$U32 
+  
+  function destructor$Snap$U32$$value(value: Snap$U32): Int 
+  
+  function valid$Snap$U32(_0: Snap$U32): Bool 
+  
+  axiom constructor$Snap$U32$$bottom_up_injectivity_axiom {
+    (forall value: Int ::
+      { constructor$Snap$U32$(value) }
+      destructor$Snap$U32$$value(constructor$Snap$U32$(value)) == value)
+  }
+  
+  axiom constructor$Snap$U32$$top_down_injectivity_axiom {
+    (forall value: Snap$U32 ::
+      { valid$Snap$U32(value) }
+      valid$Snap$U32(value) ==>
+      value == constructor$Snap$U32$(destructor$Snap$U32$$value(value)))
+  }
+  
+  axiom Snap$U32$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$U32(constructor$Snap$U32$(value)) }
+      valid$Snap$U32(constructor$Snap$U32$(value)) ==
+      (0 <= value && value <= 4294967295))
+  }
+}
+
+domain Snap$Usize  {
+  
+  function constructor$Snap$Usize$(value: Int): Snap$Usize 
+  
+  function destructor$Snap$Usize$$value(value: Snap$Usize): Int 
+  
+  function valid$Snap$Usize(_0: Snap$Usize): Bool 
+  
+  axiom constructor$Snap$Usize$$bottom_up_injectivity_axiom {
+    (forall value: Int ::
+      { constructor$Snap$Usize$(value) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(value)) == value)
+  }
+  
+  axiom constructor$Snap$Usize$$top_down_injectivity_axiom {
+    (forall value: Snap$Usize ::
+      { valid$Snap$Usize(value) }
+      valid$Snap$Usize(value) ==>
+      value == constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)))
+  }
+  
+  axiom Snap$Usize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Usize(constructor$Snap$Usize$(value)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(value)) ==
+      (0 <= value && value <= 18446744073709551615))
+  }
+}
+
+domain Snap$ptr$Seq$U32  {
+  
+  function to_bytes$ptr$Seq$U32(snapshot: Snap$ptr$Seq$U32): Bytes 
+  
+  function constructor$Snap$ptr$Seq$U32$(value: Address): Snap$ptr$Seq$U32 
+  
+  function destructor$Snap$ptr$Seq$U32$$value(value: Snap$ptr$Seq$U32): Address 
+  
+  function valid$Snap$ptr$Seq$U32(_0: Snap$ptr$Seq$U32): Bool 
+  
+  axiom constructor$Snap$ptr$Seq$U32$$bottom_up_injectivity_axiom {
+    (forall value: Address ::
+      { constructor$Snap$ptr$Seq$U32$(value) }
+      destructor$Snap$ptr$Seq$U32$$value(constructor$Snap$ptr$Seq$U32$(value)) ==
+      value)
+  }
+  
+  axiom constructor$Snap$ptr$Seq$U32$$top_down_injectivity_axiom {
+    (forall value: Snap$ptr$Seq$U32 ::
+      { valid$Snap$ptr$Seq$U32(value) }
+      valid$Snap$ptr$Seq$U32(value) ==>
+      value ==
+      constructor$Snap$ptr$Seq$U32$(destructor$Snap$ptr$Seq$U32$$value(value)))
+  }
+  
+  axiom Snap$ptr$Seq$U32$$validity_axiom_bottom_up_alternative {
+    (forall value: Address ::
+      { valid$Snap$ptr$Seq$U32(constructor$Snap$ptr$Seq$U32$(value)) }
+      valid$Snap$ptr$Seq$U32(constructor$Snap$ptr$Seq$U32$(value)))
+  }
+}
+
+domain Snap$ptr$struct$m_Test$  {
+  
+  function to_bytes$ptr$struct$m_Test$(snapshot: Snap$ptr$struct$m_Test$): Bytes 
+  
+  function constructor$Snap$ptr$struct$m_Test$$(value: Address): Snap$ptr$struct$m_Test$ 
+  
+  function destructor$Snap$ptr$struct$m_Test$$$value(value: Snap$ptr$struct$m_Test$): Address 
+  
+  function valid$Snap$ptr$struct$m_Test$(_0: Snap$ptr$struct$m_Test$): Bool 
+  
+  axiom constructor$Snap$ptr$struct$m_Test$$$bottom_up_injectivity_axiom {
+    (forall value: Address ::
+      { constructor$Snap$ptr$struct$m_Test$$(value) }
+      destructor$Snap$ptr$struct$m_Test$$$value(constructor$Snap$ptr$struct$m_Test$$(value)) ==
+      value)
+  }
+  
+  axiom constructor$Snap$ptr$struct$m_Test$$$top_down_injectivity_axiom {
+    (forall value: Snap$ptr$struct$m_Test$ ::
+      { valid$Snap$ptr$struct$m_Test$(value) }
+      valid$Snap$ptr$struct$m_Test$(value) ==>
+      value ==
+      constructor$Snap$ptr$struct$m_Test$$(destructor$Snap$ptr$struct$m_Test$$$value(value)))
+  }
+  
+  axiom Snap$ptr$struct$m_Test$$$validity_axiom_bottom_up_alternative {
+    (forall value: Address ::
+      { valid$Snap$ptr$struct$m_Test$(constructor$Snap$ptr$struct$m_Test$$(value)) }
+      valid$Snap$ptr$struct$m_Test$(constructor$Snap$ptr$struct$m_Test$$(value)))
+  }
+}
+
+domain Snap$ref$Shared$Seq$U32  {
+  
+  function constructor$Snap$ref$Shared$Seq$U32$(address: Address, target_current: Seq[Snap$U32]): Snap$ref$Shared$Seq$U32 
+  
+  function destructor$Snap$ref$Shared$Seq$U32$$address(value: Snap$ref$Shared$Seq$U32): Address 
+  
+  function destructor$Snap$ref$Shared$Seq$U32$$target_current(value: Snap$ref$Shared$Seq$U32): Seq[Snap$U32] 
+  
+  function valid$Snap$ref$Shared$Seq$U32(_0: Snap$ref$Shared$Seq$U32): Bool 
+  
+  function constructor$Snap$ref$Shared$Seq$U32$no_alloc(target_current: Seq[Snap$U32]): Snap$ref$Shared$Seq$U32 
+  
+  function to_bytes$ref$Shared$Seq$U32(snapshot: Snap$ref$Shared$Seq$U32): Bytes 
+  
+  axiom constructor$Snap$ref$Shared$Seq$U32$$bottom_up_injectivity_axiom {
+    (forall address: Address, target_current: Seq[Snap$U32] ::
+      { constructor$Snap$ref$Shared$Seq$U32$(address, target_current) }
+      { constructor$Snap$ref$Shared$Seq$U32$(address, target_current) }
+      destructor$Snap$ref$Shared$Seq$U32$$address(constructor$Snap$ref$Shared$Seq$U32$(address,
+      target_current)) ==
+      address &&
+      destructor$Snap$ref$Shared$Seq$U32$$target_current(constructor$Snap$ref$Shared$Seq$U32$(address,
+      target_current)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Shared$Seq$U32$$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$Seq$U32 ::
+      { valid$Snap$ref$Shared$Seq$U32(value), destructor$Snap$ref$Shared$Seq$U32$$address(value) }
+      { valid$Snap$ref$Shared$Seq$U32(value), destructor$Snap$ref$Shared$Seq$U32$$target_current(value) }
+      valid$Snap$ref$Shared$Seq$U32(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$Seq$U32$(destructor$Snap$ref$Shared$Seq$U32$$address(value),
+      destructor$Snap$ref$Shared$Seq$U32$$target_current(value)))
+  }
+  
+  axiom Snap$ref$Shared$Seq$U32$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$Seq$U32 ::
+      { valid$Snap$ref$Shared$Seq$U32(snapshot), destructor$Snap$ref$Shared$Seq$U32$$target_current(snapshot) }
+      valid$Snap$ref$Shared$Seq$U32(snapshot) ==
+      valid$Snap$Seq$U32(destructor$Snap$ref$Shared$Seq$U32$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$Seq$U32$$validity_axiom_bottom_up_alternative {
+    (forall address: Address, target_current: Seq[Snap$U32] ::
+      { valid$Snap$ref$Shared$Seq$U32(constructor$Snap$ref$Shared$Seq$U32$(address,
+      target_current)), valid$Snap$Seq$U32(target_current) }
+      valid$Snap$ref$Shared$Seq$U32(constructor$Snap$ref$Shared$Seq$U32$(address,
+      target_current)) ==
+      valid$Snap$Seq$U32(target_current))
+  }
+  
+  axiom constructor$Snap$ref$Shared$Seq$U32$no_alloc$bottom_up_injectivity_axiom {
+    (forall target_current: Seq[Snap$U32] ::
+      { constructor$Snap$ref$Shared$Seq$U32$no_alloc(target_current) }
+      destructor$Snap$ref$Shared$Seq$U32$$target_current(constructor$Snap$ref$Shared$Seq$U32$no_alloc(target_current)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Shared$Seq$U32$no_alloc$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$Seq$U32 ::
+      { valid$Snap$ref$Shared$Seq$U32(value) }
+      valid$Snap$ref$Shared$Seq$U32(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$Seq$U32$no_alloc(destructor$Snap$ref$Shared$Seq$U32$$target_current(value)))
+  }
+  
+  axiom Snap$ref$Shared$Seq$U32$no_alloc$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$Seq$U32 ::
+      { valid$Snap$ref$Shared$Seq$U32(snapshot), destructor$Snap$ref$Shared$Seq$U32$$target_current(snapshot) }
+      valid$Snap$ref$Shared$Seq$U32(snapshot) ==
+      valid$Snap$Seq$U32(destructor$Snap$ref$Shared$Seq$U32$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$Seq$U32$no_alloc$validity_axiom_bottom_up_alternative {
+    (forall target_current: Seq[Snap$U32] ::
+      { valid$Snap$ref$Shared$Seq$U32(constructor$Snap$ref$Shared$Seq$U32$no_alloc(target_current)),
+      valid$Snap$Seq$U32(target_current) }
+      valid$Snap$ref$Shared$Seq$U32(constructor$Snap$ref$Shared$Seq$U32$no_alloc(target_current)) ==
+      valid$Snap$Seq$U32(target_current))
+  }
+}
+
+domain Snap$ref$Shared$struct$m_Test$  {
+  
+  function constructor$Snap$ref$Shared$struct$m_Test$$(address: Address, target_current: Snap$struct$m_Test$): Snap$ref$Shared$struct$m_Test$ 
+  
+  function destructor$Snap$ref$Shared$struct$m_Test$$$address(value: Snap$ref$Shared$struct$m_Test$): Address 
+  
+  function destructor$Snap$ref$Shared$struct$m_Test$$$target_current(value: Snap$ref$Shared$struct$m_Test$): Snap$struct$m_Test$ 
+  
+  function valid$Snap$ref$Shared$struct$m_Test$(_0: Snap$ref$Shared$struct$m_Test$): Bool 
+  
+  function constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(target_current: Snap$struct$m_Test$): Snap$ref$Shared$struct$m_Test$ 
+  
+  function to_bytes$ref$Shared$struct$m_Test$(snapshot: Snap$ref$Shared$struct$m_Test$): Bytes 
+  
+  axiom constructor$Snap$ref$Shared$struct$m_Test$$$bottom_up_injectivity_axiom {
+    (forall address: Address, target_current: Snap$struct$m_Test$ ::
+      { constructor$Snap$ref$Shared$struct$m_Test$$(address, target_current) }
+      { constructor$Snap$ref$Shared$struct$m_Test$$(address, target_current) }
+      destructor$Snap$ref$Shared$struct$m_Test$$$address(constructor$Snap$ref$Shared$struct$m_Test$$(address,
+      target_current)) ==
+      address &&
+      destructor$Snap$ref$Shared$struct$m_Test$$$target_current(constructor$Snap$ref$Shared$struct$m_Test$$(address,
+      target_current)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_Test$$$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(value), destructor$Snap$ref$Shared$struct$m_Test$$$address(value) }
+      { valid$Snap$ref$Shared$struct$m_Test$(value), destructor$Snap$ref$Shared$struct$m_Test$$$target_current(value) }
+      valid$Snap$ref$Shared$struct$m_Test$(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$struct$m_Test$$(destructor$Snap$ref$Shared$struct$m_Test$$$address(value),
+      destructor$Snap$ref$Shared$struct$m_Test$$$target_current(value)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_Test$$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(snapshot), destructor$Snap$ref$Shared$struct$m_Test$$$target_current(snapshot) }
+      valid$Snap$ref$Shared$struct$m_Test$(snapshot) ==
+      valid$Snap$struct$m_Test$(destructor$Snap$ref$Shared$struct$m_Test$$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_Test$$$validity_axiom_bottom_up_alternative {
+    (forall address: Address, target_current: Snap$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(constructor$Snap$ref$Shared$struct$m_Test$$(address,
+      target_current)), valid$Snap$struct$m_Test$(target_current) }
+      valid$Snap$ref$Shared$struct$m_Test$(constructor$Snap$ref$Shared$struct$m_Test$$(address,
+      target_current)) ==
+      valid$Snap$struct$m_Test$(target_current))
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_Test$$no_alloc$bottom_up_injectivity_axiom {
+    (forall target_current: Snap$struct$m_Test$ ::
+      { constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(target_current) }
+      destructor$Snap$ref$Shared$struct$m_Test$$$target_current(constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(target_current)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_Test$$no_alloc$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(value) }
+      valid$Snap$ref$Shared$struct$m_Test$(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(destructor$Snap$ref$Shared$struct$m_Test$$$target_current(value)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_Test$$no_alloc$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(snapshot), destructor$Snap$ref$Shared$struct$m_Test$$$target_current(snapshot) }
+      valid$Snap$ref$Shared$struct$m_Test$(snapshot) ==
+      valid$Snap$struct$m_Test$(destructor$Snap$ref$Shared$struct$m_Test$$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_Test$$no_alloc$validity_axiom_bottom_up_alternative {
+    (forall target_current: Snap$struct$m_Test$ ::
+      { valid$Snap$ref$Shared$struct$m_Test$(constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(target_current)),
+      valid$Snap$struct$m_Test$(target_current) }
+      valid$Snap$ref$Shared$struct$m_Test$(constructor$Snap$ref$Shared$struct$m_Test$$no_alloc(target_current)) ==
+      valid$Snap$struct$m_Test$(target_current))
+  }
+}
+
+domain Snap$struct$m_Test$  {
+  
+  function constructor$Snap$struct$m_Test$$(f$v: Seq[Snap$U32]): Snap$struct$m_Test$ 
+  
+  function destructor$Snap$struct$m_Test$$$f$v(value: Snap$struct$m_Test$): Seq[Snap$U32] 
+  
+  function valid$Snap$struct$m_Test$(_0: Snap$struct$m_Test$): Bool 
+  
+  function to_bytes$struct$m_Test$(snapshot: Snap$struct$m_Test$): Bytes 
+  
+  axiom constructor$Snap$struct$m_Test$$$bottom_up_injectivity_axiom {
+    (forall f$v: Seq[Snap$U32] ::
+      { constructor$Snap$struct$m_Test$$(f$v) }
+      destructor$Snap$struct$m_Test$$$f$v(constructor$Snap$struct$m_Test$$(f$v)) ==
+      f$v)
+  }
+  
+  axiom constructor$Snap$struct$m_Test$$$top_down_injectivity_axiom {
+    (forall value: Snap$struct$m_Test$ ::
+      { valid$Snap$struct$m_Test$(value) }
+      valid$Snap$struct$m_Test$(value) ==>
+      value ==
+      constructor$Snap$struct$m_Test$$(destructor$Snap$struct$m_Test$$$f$v(value)))
+  }
+  
+  axiom Snap$struct$m_Test$$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$struct$m_Test$ ::
+      { valid$Snap$struct$m_Test$(snapshot), destructor$Snap$struct$m_Test$$$f$v(snapshot) }
+      valid$Snap$struct$m_Test$(snapshot) ==
+      valid$Snap$Seq$U32(destructor$Snap$struct$m_Test$$$f$v(snapshot)))
+  }
+  
+  axiom Snap$struct$m_Test$$$validity_axiom_bottom_up_alternative {
+    (forall f$v: Seq[Snap$U32] ::
+      { valid$Snap$struct$m_Test$(constructor$Snap$struct$m_Test$$(f$v)), valid$Snap$Seq$U32(f$v) }
+      valid$Snap$struct$m_Test$(constructor$Snap$struct$m_Test$$(f$v)) ==
+      valid$Snap$Seq$U32(f$v))
+  }
+}
+
+domain ComputeAddress  {
+  
+  function compute_address(place: Place, address: Address): Address 
+  
+  axiom root$1$compute_address_axiom {
+    (forall address: Address ::
+      { compute_address(_1$place(), address) }
+      compute_address(_1$place(), address) == address)
+  }
+  
+  axiom ref$Shared$Seq$U32$compute_address_axiom {
+    (forall place: Place, snapshot: Snap$ref$Shared$Seq$U32 ::
+      { compute_address(deref_reference_place(place), destructor$Snap$ref$Shared$Seq$U32$$address(snapshot)) }
+      compute_address(deref_reference_place(place), destructor$Snap$ref$Shared$Seq$U32$$address(snapshot)) ==
+      destructor$Snap$ref$Shared$Seq$U32$$address(snapshot))
+  }
+  
+  axiom root$2$compute_address_axiom {
+    (forall address: Address ::
+      { compute_address(_4$place(), address) }
+      compute_address(_4$place(), address) == address)
+  }
+  
+  axiom root$3$compute_address_axiom {
+    (forall address: Address ::
+      { compute_address(_3$place(), address) }
+      compute_address(_3$place(), address) == address)
+  }
+  
+  axiom root$4$compute_address_axiom {
+    (forall address: Address ::
+      { compute_address(_2$place(), address) }
+      compute_address(_2$place(), address) == address)
+  }
+  
+  axiom struct$m_Test$$f$v$compute_address_axiom {
+    (forall place: Place, address: Address ::
+      { compute_address(field_place$$struct$m_Test$$$f$v(place), address) }
+      compute_address(field_place$$struct$m_Test$$$f$v(place), address) ==
+      field_address$$struct$m_Test$$$f$v(compute_address(place, address)))
+  }
+  
+  axiom root$5$compute_address_axiom {
+    (forall address: Address ::
+      { compute_address(_0$place(), address) }
+      compute_address(_0$place(), address) == address)
+  }
+  
+  axiom ref$Shared$struct$m_Test$$compute_address_axiom {
+    (forall place: Place, snapshot: Snap$ref$Shared$struct$m_Test$ ::
+      { compute_address(deref_reference_place(place), destructor$Snap$ref$Shared$struct$m_Test$$$address(snapshot)) }
+      compute_address(deref_reference_place(place), destructor$Snap$ref$Shared$struct$m_Test$$$address(snapshot)) ==
+      destructor$Snap$ref$Shared$struct$m_Test$$$address(snapshot))
+  }
+}
+
+method m_$openang$Test$space$as$space$std$$clone$$Clone$closeang$$$clone$Specifications()
+{
+  var _0$address: Address
+  var _0$snapshot$0: Snap$struct$m_Test$
+  var _0$snapshot$1: Snap$struct$m_Test$
+  var _0$snapshot$2: Snap$struct$m_Test$
+  var _1$address: Address
+  var _1$snapshot$0: Snap$ref$Shared$struct$m_Test$
+  var _2$address: Address
+  var _2$snapshot$0: Seq[Snap$U32]
+  var _3$address: Address
+  var _3$snapshot$0: Snap$ref$Shared$Seq$U32
+  var _3$snapshot$1: Snap$ref$Shared$Seq$U32
+  var _4$address: Address
+  var _4$snapshot$0: Snap$ref$Shared$Seq$U32
+  var _4$snapshot$1: Snap$ref$Shared$Seq$U32
+  var bw0$snapshot$0: Lifetime
+  var bw1$snapshot$0: Lifetime
+  var bw2$snapshot$0: Lifetime
+  var end_label$marker: Bool
+  var label_2_custom$marker: Bool
+  var label_3_custom$marker: Bool
+  var label_bb0$marker: Bool
+  var label_bb1$marker: Bool
+  var label_bb2$marker: Bool
+  var label_entry$marker: Bool
+  var lft_0$snapshot$1: Lifetime
+  var lft_1$snapshot$1: Lifetime
+  var lft_2$snapshot$1: Lifetime
+  var lft_3$snapshot$1: Lifetime
+  var lft_4$snapshot$1: Lifetime
+  var lft_5$alive$snapshot$0: Bool
+  var lft_5$snapshot$1: Lifetime
+  var lft_6$alive$snapshot$0: Bool
+  var lft_6$snapshot$1: Lifetime
+  var lft_7$alive$snapshot$0: Bool
+  var lft_7$snapshot$1: Lifetime
+  var lft_8$snapshot$1: Lifetime
+  var lft_function_call_1$snapshot$1: Lifetime
+  var lifetime_token_perm_amount$0$snapshot$0: Perm
+  var resume_panic_label$marker: Bool
+  var return_label$marker: Bool
+  var start_label$marker: Bool
+  var tmp$0: Snap$ref$Shared$Seq$U32
+  var tmp$1: Snap$ref$Shared$Seq$U32
+  var tmp$2: Bool
+  var tmp$3: Snap$struct$m_Test$
+  label start_label
+  lft_5$alive$snapshot$0 := true
+  lft_6$alive$snapshot$0 := true
+  lft_7$alive$snapshot$0 := true
+  start_label$marker := false
+  label_entry$marker := false
+  label_bb0$marker := false
+  label_3_custom$marker := false
+  label_bb2$marker := false
+  resume_panic_label$marker := false
+  label_2_custom$marker := false
+  label_bb1$marker := false
+  return_label$marker := false
+  end_label$marker := false
+  start_label$marker := true
+  inhale basic_block_marker$start_label$marker()
+  // Lifetime preconditions.
+  inhale lifetime_token_perm_amount$0$snapshot$0 > none
+  inhale lifetime_token_perm_amount$0$snapshot$0 < write
+  inhale true
+  inhale true
+  inhale true
+  lft_0$snapshot$1 := bw0$snapshot$0
+  lft_1$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_2$snapshot$1 := lft_tok_sep_take$3(bw0$snapshot$0, bw1$snapshot$0, bw2$snapshot$0,
+    lifetime_token_perm_amount$0$snapshot$0 / 15)
+  lft_5$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  // Allocate the parameters.
+  inhale valid$Snap$ref$Shared$struct$m_Test$(_1$snapshot$0)
+  // Assume functional preconditions.
+  // Allocate the return place.
+  inhale true
+  // Allocate implicitly allocated statements.
+  goto label_entry
+  label label_entry
+  label_entry$marker := true
+  inhale basic_block_marker$label_entry$marker()
+  goto label_bb0
+  label label_bb0
+  label_bb0$marker := true
+  inhale basic_block_marker$label_bb0$marker()
+  // Prepare lifetimes for statement mid bb0[0]
+  // bb0[0] StorageLive(_2)
+  inhale true
+  inhale true
+  // Prepare lifetimes for statement start bb0[1]
+  // Prepare lifetimes for statement mid bb0[1]
+  // bb0[1] StorageLive(_3)
+  inhale true
+  inhale true
+  // Prepare lifetimes for statement start bb0[2]
+  // Prepare lifetimes for statement mid bb0[2]
+  // bb0[2] StorageLive(_4)
+  inhale true
+  inhale true
+  // Prepare lifetimes for statement start bb0[3]
+  // Prepare lifetimes for statement mid bb0[3]
+  lft_3$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_7$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  // bb0[3] _4 = &((*_1).0: prusti_contracts::Seq<u32>)
+  inhale valid$Snap$ref$Shared$struct$m_Test$(_1$snapshot$0)
+  inhale valid$Snap$struct$m_Test$(destructor$Snap$ref$Shared$struct$m_Test$$$target_current(_1$snapshot$0))
+  tmp$0 := assign$ref$Shared$Seq$U32$Reborrow$Seq$U32$$lft_3$$(_4$place(), _4$address,
+    field_place$$struct$m_Test$$$f$v(deref_reference_place(_1$place())), destructor$Snap$ref$Shared$struct$m_Test$$$address(_1$snapshot$0),
+    destructor$Snap$struct$m_Test$$$f$v(destructor$Snap$ref$Shared$struct$m_Test$$$target_current(_1$snapshot$0)),
+    lft_5$snapshot$1, lft_3$snapshot$1, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  inhale _4$snapshot$1 == tmp$0
+  // Prepare lifetimes for statement start bb0[4]
+  lft_tok_sep_return$2(lft_3$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  // Prepare lifetimes for statement mid bb0[4]
+  lft_4$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_6$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  // bb0[4] _3 = &(*_4)
+  inhale valid$Snap$ref$Shared$Seq$U32(_4$snapshot$1)
+  tmp$1 := assign$ref$Shared$Seq$U32$Reborrow$Seq$U32$$lft_4$$(_3$place(), _3$address,
+    deref_reference_place(_4$place()), destructor$Snap$ref$Shared$Seq$U32$$address(_4$snapshot$1),
+    destructor$Snap$ref$Shared$Seq$U32$$target_current(_4$snapshot$1), lft_7$snapshot$1,
+    lft_4$snapshot$1, lifetime_token_perm_amount$0$snapshot$0 / 15)
+  inhale _3$snapshot$1 == tmp$1
+  exhale true
+  // Prepare lifetimes for statement mid bb0[5]
+  lft_tok_sep_return$2(lft_4$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_tok_sep_return$2(lft_7$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_8$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  // bb0[5] _2 = <prusti_contracts::Seq<u32> as std::clone::Clone>::clone(move _3) -> [return: bb1, unwind: bb2]
+  lft_function_call_1$snapshot$1 := lft_tok_sep_take$2(lft_2$snapshot$1, lft_6$snapshot$1,
+    lifetime_token_perm_amount$0$snapshot$0 / 30)
+  assert included(lft_8$snapshot$1, lft_6$snapshot$1)
+  consume$Move$ref$Shared$Seq$U32(_3$place(), _3$address, _3$snapshot$1, lft_6$alive$snapshot$0,
+    lft_6$snapshot$1)
+  exhale true
+  exhale true
+  exhale true
+  exhale true
+  if (tmp$2) {
+    goto label_2_custom
+  }
+  if (!tmp$2) {
+    goto label_3_custom
+  }
+  assert false
+  label label_3_custom
+  label_3_custom$marker := true
+  inhale basic_block_marker$label_3_custom$marker()
+  inhale true
+  inhale true
+  inhale true
+  inhale true
+  lft_tok_sep_return$2(lft_function_call_1$snapshot$1, lft_2$snapshot$1, lft_6$snapshot$1,
+    lifetime_token_perm_amount$0$snapshot$0 / 30)
+  // Prepare lifetimes for block bb2
+  lft_tok_sep_return$2(lft_6$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_tok_sep_return$2(lft_8$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  goto label_bb2
+  label label_bb2
+  label_bb2$marker := true
+  inhale basic_block_marker$label_bb2$marker()
+  // Prepare lifetimes for statement mid bb2[0]
+  // bb2[0] resume
+  goto resume_panic_label
+  label label__from__resume_panic_label__to__end_label
+  inhale _0$snapshot$2 == _0$snapshot$0
+  goto end_label
+  label resume_panic_label
+  resume_panic_label$marker := true
+  inhale basic_block_marker$resume_panic_label$marker()
+  goto label__from__resume_panic_label__to__end_label
+  label label_2_custom
+  label_2_custom$marker := true
+  inhale basic_block_marker$label_2_custom$marker()
+  inhale valid$Snap$Seq$U32(_2$snapshot$0)
+  inhale true
+  inhale true
+  inhale true
+  lft_tok_sep_return$2(lft_function_call_1$snapshot$1, lft_2$snapshot$1, lft_6$snapshot$1,
+    lifetime_token_perm_amount$0$snapshot$0 / 30)
+  // Prepare lifetimes for block bb1
+  lft_tok_sep_return$2(lft_6$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_tok_sep_return$2(lft_8$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  goto label_bb1
+  label label_bb1
+  label_bb1$marker := true
+  inhale basic_block_marker$label_bb1$marker()
+  // Prepare lifetimes for statement mid bb1[0]
+  // bb1[0] StorageDead(_3)
+  exhale true
+  exhale true
+  // Prepare lifetimes for statement start bb1[1]
+  // Prepare lifetimes for statement mid bb1[1]
+  // bb1[1] _0 = Test { v: move _2 }
+  tmp$3 := assign$struct$m_Test$$Aggregate$struct$m_Test$$$$$(_0$place(), _0$address,
+    _2$place(), _2$address, _2$snapshot$0)
+  inhale _0$snapshot$1 == tmp$3
+  // Prepare lifetimes for statement start bb1[2]
+  // Prepare lifetimes for statement mid bb1[2]
+  // bb1[2] StorageDead(_2)
+  exhale true
+  exhale true
+  // Prepare lifetimes for statement start bb1[3]
+  // Prepare lifetimes for statement mid bb1[3]
+  // bb1[3] StorageDead(_4)
+  exhale true
+  exhale true
+  // Prepare lifetimes for statement mid bb1[4]
+  // bb1[4] return
+  goto return_label
+  label label__from__return_label__to__end_label
+  inhale _0$snapshot$2 == _0$snapshot$1
+  goto end_label
+  label return_label
+  return_label$marker := true
+  inhale basic_block_marker$return_label$marker()
+  // Assert functional postconditions.
+  // Deallocate the parameters.
+  exhale true
+  // Deallocate the return place.
+  exhale valid$Snap$struct$m_Test$(_0$snapshot$1)
+  // Lifetime postconditions.
+  lft_tok_sep_return$2(lft_1$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  lft_tok_sep_return$3(lft_2$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, bw2$snapshot$0,
+    lifetime_token_perm_amount$0$snapshot$0 / 15)
+  lft_tok_sep_return$2(lft_5$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    15)
+  exhale true
+  exhale true
+  exhale true
+  goto label__from__return_label__to__end_label
+  label end_label
+  end_label$marker := true
+  inhale basic_block_marker$end_label$marker()
+  goto end_of_method
+  label end_of_method
+}
+
+method assign$ref$Shared$Seq$U32$Reborrow$Seq$U32$$lft_3$$(target_place: Place,
+  target_address: Address, operand_place: Place, operand_root_address: Address,
+  operand_snapshot_current: Seq[Snap$U32], lft_5: Lifetime, lft_3: Lifetime,
+  lifetime_perm: Perm)
+  returns (result_value: Snap$ref$Shared$Seq$U32)
+  requires true
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires included(lft_3, lft_5)
+  requires true
+  requires true
+  ensures operand_root_address ==
+    destructor$Snap$ref$Shared$Seq$U32$$address(result_value)
+  ensures operand_snapshot_current ==
+    destructor$Snap$ref$Shared$Seq$U32$$target_current(result_value)
+  ensures true
+  ensures true
+  ensures valid$Snap$ref$Shared$Seq$U32(result_value)
+  ensures true
+
+
+method assign$ref$Shared$Seq$U32$Reborrow$Seq$U32$$lft_4$$(target_place: Place,
+  target_address: Address, operand_place: Place, operand_root_address: Address,
+  operand_snapshot_current: Seq[Snap$U32], lft_7: Lifetime, lft_4: Lifetime,
+  lifetime_perm: Perm)
+  returns (result_value: Snap$ref$Shared$Seq$U32)
+  requires true
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires included(lft_4, lft_7)
+  requires true
+  requires true
+  ensures operand_root_address ==
+    destructor$Snap$ref$Shared$Seq$U32$$address(result_value)
+  ensures operand_snapshot_current ==
+    destructor$Snap$ref$Shared$Seq$U32$$target_current(result_value)
+  ensures true
+  ensures true
+  ensures valid$Snap$ref$Shared$Seq$U32(result_value)
+  ensures true
+
+
+method assign$struct$m_Test$$Aggregate$struct$m_Test$$$$$(target_place: Place,
+  target_address: Address, operand0_place: Place, operand0_root_address: Address,
+  operand0_value: Seq[Snap$U32])
+  returns (result_value: Snap$struct$m_Test$)
+  requires true
+  requires true
+  requires valid$Snap$Seq$U32(operand0_value)
+  ensures true
+  ensures true
+  ensures valid$Snap$struct$m_Test$(constructor$Snap$struct$m_Test$$(operand0_value))
+  ensures result_value == constructor$Snap$struct$m_Test$$(operand0_value)
+  ensures valid$Snap$struct$m_Test$(result_value)
+
+
+method consume$Move$ref$Shared$Seq$U32(operand1_place: Place, operand1_root_address: Address,
+  operand1_value: Snap$ref$Shared$Seq$U32, lft_6$alive: Bool, lft_6: Lifetime)
+  requires true
+  requires valid$Snap$ref$Shared$Seq$U32(operand1_value)
+  ensures true
+
+
+method lft_tok_sep_return$2(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  rd_perm: Perm)
+  requires none < rd_perm
+  requires true
+  requires lft == intersect(Set(lft_1, lft_2))
+  ensures true
+  ensures true
+
+
+method lft_tok_sep_return$3(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  lft_3: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires true
+  requires lft == intersect(Set(lft_1, lft_2, lft_3))
+  ensures true
+  ensures true
+  ensures true
+
+
+method lft_tok_sep_take$2(lft_1: Lifetime, lft_2: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires true
+  requires true
+  ensures true
+  ensures lft == intersect(Set(lft_1, lft_2))
+
+
+method lft_tok_sep_take$3(lft_1: Lifetime, lft_2: Lifetime, lft_3: Lifetime,
+  rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires true
+  requires true
+  requires true
+  ensures true
+  ensures lft == intersect(Set(lft_1, lft_2, lft_3))

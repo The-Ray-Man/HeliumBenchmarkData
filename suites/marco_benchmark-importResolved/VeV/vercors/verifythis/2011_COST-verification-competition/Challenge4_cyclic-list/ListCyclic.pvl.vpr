@@ -1,0 +1,265 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+field next: Ref
+
+function segmentToSeq(this: Ref, target: Ref): Seq[Ref]
+  requires this != null
+  requires acc(segment(this, target), write)
+  requires this != null
+{
+  (this == target ?
+    Seq[Ref]() :
+    (unfolding acc(segment(this, target), write) in
+      (this.next == null ?
+        Seq(this) :
+        Seq(this) ++ segmentToSeq(this.next, target))))
+}
+
+function length(this: Ref, current: Ref, previous: Seq[Ref]): Int
+  requires this != null
+  requires current != null && !((current in previous)) ==>
+    acc(state(current, previous), write) && current != null
+  ensures 0 <= result
+{
+  (current == null || (current in previous) ?
+    0 :
+    1 +
+    (unfolding acc(state(current, previous), write) in
+      length(this, current.next, previous ++ Seq(current))))
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+predicate state(this: Ref, previous: Seq[Ref]) {
+  acc(this.next, write) &&
+  (this.next != null && !((this.next in previous)) ==>
+  acc(state(this.next, previous ++ Seq(this)), write) && this.next != null)
+}
+
+predicate segment(this: Ref, target: Ref) {
+  (this != target ==> acc(this.next, write)) &&
+  (this != target ==>
+  (this.next == null ?
+    target == null :
+    acc(segment(this.next, target), write) && this.next != null))
+}
+
+method check_sat_Node()
+{
+  assert false
+}
+
+method Node(tid: Int) returns (res: Ref)
+  ensures acc(res.next, write)
+{
+  var exc: Ref
+  var return: Ref
+  var Node1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new(next)
+  inhale type(flatten) == 1
+  Node1 := flatten
+  return := Node1
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_segmentToSeq(this: Ref, target: Ref)
+  requires this != null
+  requires acc(segment(this, target), write)
+  requires this != null
+{
+  assert false
+}
+
+method check_sat_extendSegment(this: Ref, oldTarget: Ref)
+  requires this != null
+  requires oldTarget != null
+  requires acc(segment(this, oldTarget), write)
+  requires this != null
+  requires acc(oldTarget.next, write)
+  requires oldTarget.next != oldTarget
+  requires !((oldTarget.next in segmentToSeq(this, oldTarget)))
+{
+  assert false
+}
+
+method extendSegment(this: Ref, tid: Int, oldTarget: Ref)
+  returns (res: Bool)
+  requires this != null
+  requires oldTarget != null
+  requires acc(segment(this, oldTarget), write)
+  requires this != null
+  requires acc(oldTarget.next, write)
+  requires oldTarget.next != oldTarget
+  requires !((oldTarget.next in segmentToSeq(this, oldTarget)))
+  ensures acc(segment(this, old(oldTarget.next)), write)
+  ensures this != null
+  ensures segmentToSeq(this, old(oldTarget.next)) ==
+    old(segmentToSeq(this, oldTarget) ++ Seq(oldTarget))
+  ensures res
+{
+  var exc: Ref
+  var return: Bool
+  var res1: Bool
+  var flatten: Bool
+  exc := null
+  if (oldTarget == this) {
+    if (this.next != null) {
+      fold acc(segment(this.next, oldTarget.next), write)
+    }
+    fold acc(segment(this, old(oldTarget.next)), write)
+  } else {
+    unfold acc(segment(this, oldTarget), write)
+    res1 := extendSegment(this.next, tid, oldTarget)
+    fold acc(segment(this, old(oldTarget.next)), write)
+  }
+  flatten := true
+  return := flatten
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_length(current: Ref, previous: Seq[Ref], this: Ref)
+  requires this != null
+  requires current != null && !((current in previous)) ==>
+    acc(state(current, previous), write) && current != null
+{
+  assert false
+}
+
+method check_sat_cyclic(this: Ref)
+  requires this != null
+  requires acc(state(this, Seq[Ref]()), write)
+  requires this != null
+{
+  assert false
+}
+
+method cyclic(this: Ref, tid: Int)
+  returns (res: Bool, last: Ref, visited: Seq[Ref])
+  requires this != null
+  requires acc(state(this, Seq[Ref]()), write)
+  requires this != null
+  ensures acc(segment(this, last), write)
+  ensures this != null
+  ensures visited == segmentToSeq(this, last)
+  ensures last != null ==> acc(state(last, visited), write) && last != null
+  ensures res ==> last != null
+  ensures res ==>
+    (unfolding acc(state(last, visited), write) in last.next == this)
+  ensures !res ==>
+    last == null ||
+    (unfolding acc(state(last, visited), write) in
+      last.next != this && ((last.next in visited) || last.next == last))
+{
+  var exc: Ref
+  var return: Bool
+  var l_next: Ref
+  var flatten: Seq[Ref]
+  var flatten1: Ref
+  var flatten2: Bool
+  var flatten3: Bool
+  var flatten4: Seq[Ref]
+  var flatten5: Ref
+  var res1: Bool
+  var flatten6: Bool
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := Seq[Ref]()
+  visited := flatten
+  flatten1 := this
+  last := flatten1
+  fold acc(segment(this, this), write)
+  label loop
+  excBeforeLoop := exc
+  while (last != null)
+    invariant exc == excBeforeLoop
+    invariant acc(segment(this, last), write)
+    invariant this != null
+    invariant last != null ==>
+      acc(state(last, visited), write) && last != null
+    invariant visited == segmentToSeq(this, last)
+    invariant !((last in visited))
+    decreases length(this, last, visited) 
+  {
+    unfold acc(state(last, visited), write)
+    if (last.next == this) {
+      fold acc(state(last, visited), write)
+      flatten2 := true
+      return := flatten2
+      goto end
+    } elseif (last.next == last || (last.next in visited)) {
+      fold acc(state(last, visited), write)
+      flatten3 := false
+      return := flatten3
+      goto end
+    }
+    flatten4 := visited ++ Seq(last)
+    visited := flatten4
+    flatten5 := last.next
+    l_next := flatten5
+    res1 := extendSegment(this, tid, last)
+    last := l_next
+  }
+  flatten6 := false
+  return := flatten6
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

@@ -1,0 +1,453 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain s_Array  {
+  
+  function s_Array_index(arg0: s_Array, arg1: Int): s_Param 
+  
+  function s_Array_index_ref(arg0: Ref, arg1: Int, arg2: Type): Ref 
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain s_UInt_u32  {
+  
+  function s_UInt_u32_cons(arg0: Int): s_UInt_u32 
+  
+  function s_UInt_u32_value(arg0: s_UInt_u32): Int 
+  
+  axiom s_UInt_u32_ax_cons {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      s_UInt_u32_cons(s_UInt_u32_value(s)) == s)
+  }
+  
+  axiom s_UInt_u32_ax_bounds {
+    (forall s: s_UInt_u32 ::
+      { s_UInt_u32_value(s) }
+      0 <= s_UInt_u32_value(s) && s_UInt_u32_value(s) <= 4294967295)
+  }
+  
+  axiom s_UInt_u32_ax_value {
+    (forall value: Int ::
+      { s_UInt_u32_cons(value) }
+      0 <= value && value <= 4294967295 ==>
+      s_UInt_u32_value(s_UInt_u32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Array {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { inhabited(s_Array_type(U$1, M$0)) }
+      inhabited(s_Array_type(U$1, M$0)) ==
+      (M$0 == s_UInt_usize_cons(0) || inhabited(U$1)))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_UInt_u32 {
+    inhabited(s_UInt_u32_type()) == true
+  }
+  
+  axiom inhabited_deflate$col$$col$core$col$$col$LZOxide {
+    inhabited(s_deflate$col$$col$core$col$$col$LZOxide_type()) ==
+    (inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(65536))) &&
+    inhabited(s_UInt_usize_type()) &&
+    (inhabited(s_UInt_usize_type()) &&
+    (inhabited(s_UInt_u32_type()) && inhabited(s_UInt_u32_type()))))
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_Array  {
+  
+  axiom s_Array_Sized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Array_type(U$1, M$0)))
+  }
+  
+  axiom s_Array_MetaSized {
+    (forall U$1: Type, M$0: s_UInt_usize ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Array_type(U$1, M$0)))
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_UInt_u32  {
+  
+  axiom s_UInt_u32_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u32_type())
+  }
+  
+  axiom s_UInt_u32_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u32_type())
+  }
+}
+
+domain sizedness_deflate$col$$col$core$col$$col$LZOxide  {
+  
+  axiom s_deflate$col$$col$core$col$$col$LZOxide_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_deflate$col$$col$core$col$$col$LZOxide_type())
+  }
+  
+  axiom s_deflate$col$$col$core$col$$col$LZOxide_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_deflate$col$$col$core$col$$col$LZOxide_type())
+  }
+}
+
+field p_UInt_u8_val: s_UInt_u8
+
+field p_UInt_usize_val: s_UInt_usize
+
+field p_UInt_u32_val: s_UInt_u32
+
+function s_deflate$col$$col$core$col$$col$LZOxide_unreachable(): s_deflate$col$$col$core$col$$col$LZOxide
+  ensures false
+
+
+function s_deflate$col$$col$core$col$$col$LZOxide_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deflate$col$$col$core$col$$col$LZOxide_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deflate$col$$col$core$col$$col$LZOxide_field_2(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deflate$col$$col$core$col$$col$LZOxide_field_3(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_deflate$col$$col$core$col$$col$LZOxide_field_4(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Array_unreachable(U$1: Type, M$0: s_UInt_usize): s_Array
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function s_UInt_u32_unreachable(): s_UInt_u32
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function p_deflate$col$$col$core$col$$col$LZOxide_snap(self: Ref): s_deflate$col$$col$core$col$$col$LZOxide
+  requires acc(p_deflate$col$$col$core$col$$col$LZOxide(self), write)
+{
+  (unfolding acc(p_deflate$col$$col$core$col$$col$LZOxide(self), write) in
+    s_deflate$col$$col$core$col$$col$LZOxide_cons(p_Array_snap(s_deflate$col$$col$core$col$$col$LZOxide_field_0(self),
+    s_UInt_u8_type(), s_UInt_usize_cons(65536)), p_UInt_usize_snap(s_deflate$col$$col$core$col$$col$LZOxide_field_1(self)), p_UInt_usize_snap(s_deflate$col$$col$core$col$$col$LZOxide_field_2(self)), p_UInt_u32_snap(s_deflate$col$$col$core$col$$col$LZOxide_field_3(self)), p_UInt_u32_snap(s_deflate$col$$col$core$col$$col$LZOxide_field_4(self))))
+}
+
+function p_Array_index_frame(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+
+
+function p_Array_snap(self: Ref, U$1: Type, M$0: s_UInt_usize): s_Array
+  requires acc(p_Array(self, U$1, M$0), write)
+
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+function p_UInt_u32_snap(self: Ref): s_UInt_u32
+  requires acc(p_UInt_u32(self), write)
+{
+  (unfolding acc(p_UInt_u32(self), write) in self.p_UInt_u32_val)
+}
+
+predicate p_deflate$col$$col$core$col$$col$LZOxide(self: Ref) {
+  inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(65536))) &&
+  acc(p_Array(s_deflate$col$$col$core$col$$col$LZOxide_field_0(self), s_UInt_u8_type(),
+  s_UInt_usize_cons(65536)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_deflate$col$$col$core$col$$col$LZOxide_field_1(self)), write)) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_deflate$col$$col$core$col$$col$LZOxide_field_2(self)), write) &&
+  (inhabited(s_UInt_u32_type()) &&
+  acc(p_UInt_u32(s_deflate$col$$col$core$col$$col$LZOxide_field_3(self)), write) &&
+  (inhabited(s_UInt_u32_type()) &&
+  acc(p_UInt_u32(s_deflate$col$$col$core$col$$col$LZOxide_field_4(self)), write))))
+}
+
+predicate p_Array(self: Ref, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Array_index(self: Ref, index: Int, U$1: Type, M$0: s_UInt_usize) 
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+predicate p_UInt_u32(self: Ref) {
+  acc(self.p_UInt_u32_val, write)
+}
+
+method m_deflate$col$$col$core$col$$col$LZOxide$col$$col$new(_0p: Ref)
+  ensures inhabited(s_deflate$col$$col$core$col$$col$LZOxide_type()) &&
+    acc(p_deflate$col$$col$core$col$$col$LZOxide(_0p), write)
+{
+  var _1p: Ref
+  var _tmp0: s_Array
+  var _tmp1: s_Array
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  inhale (forall idx: Int ::
+      { s_Array_index(_tmp0, idx).make_concrete_s_UInt_u8 }
+      s_Array_index(_tmp0, idx).make_concrete_s_UInt_u8 ==
+      s_UInt_u8_cons(0))
+  p_Array_assign(_1p, s_UInt_u8_type(), s_UInt_usize_cons(65536), _tmp0)
+  label _before_0_2
+  _tmp1 := p_Array_snap(_1p, s_UInt_u8_type(), s_UInt_usize_cons(65536))
+  exhale inhabited(s_Array_type(s_UInt_u8_type(), s_UInt_usize_cons(65536))) &&
+    acc(p_Array(_1p, s_UInt_u8_type(), s_UInt_usize_cons(65536)), write)
+  p_deflate$col$$col$core$col$$col$LZOxide_assign(_0p, s_deflate$col$$col$core$col$$col$LZOxide_cons(_tmp1, s_UInt_usize_cons(1), s_UInt_usize_cons(0), s_UInt_u32_cons(0), s_UInt_u32_cons(8)))
+  label _before_0_3
+  label _before_0_4
+  label package_post0
+  goto end
+  label end
+}
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method p_deflate$col$$col$core$col$$col$LZOxide_assign(self: Ref, value: s_deflate$col$$col$core$col$$col$LZOxide)
+  ensures acc(p_deflate$col$$col$core$col$$col$LZOxide(self), write)
+  ensures p_deflate$col$$col$core$col$$col$LZOxide_snap(self) == value
+
+
+method p_Array_assign(self: Ref, U$1: Type, M$0: s_UInt_usize, value: s_Array)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures p_Array_snap(self, U$1, M$0) == value
+
+
+method p_Array_fold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  requires acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures acc(p_Array(self, U$1, M$0), write)
+  ensures (forall idx: Int ::
+      { s_Array_index(p_Array_snap(self, U$1, M$0), idx) }
+      s_Array_index(p_Array_snap(self, U$1, M$0), idx) ==
+      (idx == index ?
+        old(p_Param_snap(s_Array_index_ref(self, index, U$1), U$1)) :
+        old(s_Array_index(p_Array_index_frame(self, index, U$1, M$0), idx))))
+
+
+method p_Array_unfold_index(index: Int, self: Ref, U$1: Type, M$0: s_UInt_usize)
+  requires acc(p_Array(self, U$1, M$0), write)
+  ensures inhabited(U$1) &&
+    acc(p_Param(s_Array_index_ref(self, index, U$1), U$1), write)
+  ensures acc(p_Array_index(self, index, U$1, M$0), write)
+  ensures p_Param_snap(s_Array_index_ref(self, index, U$1), U$1) ==
+    old(s_Array_index(p_Array_snap(self, U$1, M$0), index))
+  ensures p_Array_index_frame(self, index, U$1, M$0) ==
+    old(p_Array_snap(self, U$1, M$0))
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method p_UInt_u32_assign(self: Ref, value: s_UInt_u32)
+  ensures acc(p_UInt_u32(self), write)
+  ensures p_UInt_u32_snap(self) == value
+
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_deflate$col$$col$core$col$$col$LZOxide {
+  s_deflate$col$$col$core$col$$col$LZOxide_cons(s_deflate$col$$col$core$col$$col$LZOxide_0: s_Array,
+  s_deflate$col$$col$core$col$$col$LZOxide_1: s_UInt_usize, s_deflate$col$$col$core$col$$col$LZOxide_2: s_UInt_usize,
+  s_deflate$col$$col$core$col$$col$LZOxide_3: s_UInt_u32, s_deflate$col$$col$core$col$$col$LZOxide_4: s_UInt_u32)
+}
+
+adt Type {
+  s_UInt_u8_type()
+  s_Array_type(s_Array_typaram_U$1: Type, s_Array_constparam_M$0: s_UInt_usize)
+  s_UInt_usize_type()
+  s_UInt_u32_type()
+  s_deflate$col$$col$core$col$$col$LZOxide_type()
+  Unknown_type(id: Int)
+}

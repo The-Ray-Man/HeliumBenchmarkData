@@ -1,0 +1,611 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain s_Int_i128  {
+  
+  function s_Int_i128_cons(arg0: Int): s_Int_i128 
+  
+  function s_Int_i128_value(arg0: s_Int_i128): Int 
+  
+  axiom s_Int_i128_ax_cons {
+    (forall s: s_Int_i128 ::
+      { s_Int_i128_value(s) }
+      s_Int_i128_cons(s_Int_i128_value(s)) == s)
+  }
+  
+  axiom s_Int_i128_ax_bounds {
+    (forall s: s_Int_i128 ::
+      { s_Int_i128_value(s) }
+      -170141183460469231731687303715884105728 <= s_Int_i128_value(s) &&
+      s_Int_i128_value(s) <= 170141183460469231731687303715884105727)
+  }
+  
+  axiom s_Int_i128_ax_value {
+    (forall value: Int ::
+      { s_Int_i128_cons(value) }
+      -170141183460469231731687303715884105728 <= value &&
+      value <= 170141183460469231731687303715884105727 ==>
+      s_Int_i128_value(s_Int_i128_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_RawPtr_mutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_mutable_type(T$0)) }
+      inhabited(s_RawPtr_mutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_RawPtr_immutable {
+    (forall T$0: Type ::
+      { inhabited(s_RawPtr_immutable_type(T$0)) }
+      inhabited(s_RawPtr_immutable_type(T$0)) == true)
+  }
+  
+  axiom inhabited_core$col$$col$ptr$col$$col$NonNull {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) ==
+      inhabited(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom inhabited_core$col$$col$marker$col$$col$PhantomData {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) ==
+      true)
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_core$col$$col$cell$col$$col$UnsafeCell {
+    (forall T$0: Type ::
+      { inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      inhabited(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner {
+    (forall T$1: Type ::
+      { inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)) }
+      inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)) ==
+      (inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$1)) &&
+      inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_Ref_immutable_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$1))))))
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_HasField  {
+  
+  function HasField_assoc_type_HasField$col$$col$Type(arg0: Type, arg1: Type,
+  arg2: Type, arg3: s_Int_i128, arg4: s_Int_i128): Type 
+  
+  function HasField_impl(arg0: Type, arg1: Type, arg2: Type, arg3: s_Int_i128,
+  arg4: s_Int_i128): Bool 
+}
+
+domain trait_HasTag  {
+  
+  function HasTag_assoc_type_HasTag$col$$col$Tag(arg0: Type, arg1: Type): Type 
+  
+  function HasTag_assoc_type_HasTag$col$$col$ProjectToTag(arg0: Type, arg1: Type): Type 
+  
+  function HasTag_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain trait_pointer$col$$col$cast$col$$col$Project  {
+  
+  function pointer$col$$col$cast$col$$col$Project_impl(arg0: Type, arg1: Type,
+  arg2: Type): Bool 
+}
+
+domain sizedness_RawPtr_mutable  {
+  
+  axiom s_RawPtr_mutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_mutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_mutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_mutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_mutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_mutable_type(T$0)))
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_core$col$$col$cell$col$$col$UnsafeCell  {
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$cell$col$$col$UnsafeCell_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain sizedness_RawPtr_immutable  {
+  
+  axiom s_RawPtr_immutable_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+  
+  axiom s_RawPtr_immutable_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_RawPtr_immutable_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$ptr$col$$col$NonNull  {
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$ptr$col$$col$NonNull_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$ptr$col$$col$NonNull_type(T$0)))
+  }
+}
+
+domain sizedness_core$col$$col$marker$col$$col$PhantomData  {
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_Sized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+  
+  axiom s_core$col$$col$marker$col$$col$PhantomData_MetaSized {
+    (forall T$0: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_core$col$$col$marker$col$$col$PhantomData_type(T$0)))
+  }
+}
+
+domain sizedness_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner  {
+  
+  axiom s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_Sized {
+    (forall T$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)))
+  }
+  
+  axiom s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_MetaSized {
+    (forall T$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$1)))
+  }
+}
+
+domain sizedness_pointer$col$$col$cast$col$$col$Projection  {
+  
+  axiom s_pointer$col$$col$cast$col$$col$Projection_Sized {
+    (forall Client$0: Type, F$1: Type, VARIANT_ID$2: s_Int_i128, FIELD_ID$3: s_Int_i128 ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$0, F$1, VARIANT_ID$2, FIELD_ID$3)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$0, F$1, VARIANT_ID$2, FIELD_ID$3)))
+  }
+  
+  axiom s_pointer$col$$col$cast$col$$col$Projection_MetaSized {
+    (forall Client$0: Type, F$1: Type, VARIANT_ID$2: s_Int_i128, FIELD_ID$3: s_Int_i128 ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$0, F$1, VARIANT_ID$2, FIELD_ID$3)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$0, F$1, VARIANT_ID$2, FIELD_ID$3)))
+  }
+}
+
+domain trait_fns_HasField_HasField$col$$col$project  {
+  
+  function HasField_fn_pre_HasField$col$$col$project(arg0: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner,
+  arg1: Type, arg2: Type, arg3: Type, arg4: s_Int_i128, arg5: s_Int_i128): Bool 
+  
+  function HasField_fn_post_HasField$col$$col$project(arg0: s_RawPtr_mutable,
+  arg1: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner, arg2: Type,
+  arg3: Type, arg4: Type, arg5: s_Int_i128, arg6: s_Int_i128): Bool 
+  
+  axiom HasField_fn_pre_HasField$col$$col$project_base {
+    (forall _1s: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner, Self$0: Type,
+    Client$1: Type, Field$2: Type, VARIANT_ID$3: s_Int_i128, FIELD_ID$4: s_Int_i128 ::
+      { HasField_fn_pre_HasField$col$$col$project(_1s, Self$0, Client$1, Field$2,
+      VARIANT_ID$3, FIELD_ID$4) }
+      true ==>
+      HasField_fn_pre_HasField$col$$col$project(_1s, Self$0, Client$1, Field$2,
+      VARIANT_ID$3, FIELD_ID$4))
+  }
+  
+  axiom HasField_fn_post_HasField$col$$col$project_base {
+    (forall _0s: s_RawPtr_mutable, _1s: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner,
+    Self$0: Type, Client$1: Type, Field$2: Type, VARIANT_ID$3: s_Int_i128, FIELD_ID$4: s_Int_i128 ::
+      { HasField_fn_post_HasField$col$$col$project(_0s, _1s, Self$0, Client$1,
+      Field$2, VARIANT_ID$3, FIELD_ID$4) }
+      HasField_fn_post_HasField$col$$col$project(_0s, _1s, Self$0, Client$1,
+      Field$2, VARIANT_ID$3, FIELD_ID$4) ==>
+      true ==> true)
+  }
+}
+
+domain trait_pointer$col$$col$cast$col$$col$Project_impl_zerocopy_pointer$col$$col$cast$col$$col$Projection_3465_condition  {
+  
+  axiom pointer$col$$col$cast$col$$col$Project_impl_zerocopy_pointer$col$$col$cast$col$$col$Projection_3465_condition {
+    (forall T$0: Type, Client$1: Type, F$2: Type, VARIANT_ID$3: s_Int_i128,
+    FIELD_ID$4: s_Int_i128 ::
+      { pointer$col$$col$cast$col$$col$Project_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$1, F$2, VARIANT_ID$3, FIELD_ID$4),
+      T$0, HasField_assoc_type_HasField$col$$col$Type(T$0, Client$1, F$2, VARIANT_ID$3,
+      FIELD_ID$4)) }
+      HasField_impl(T$0, Client$1, F$2, VARIANT_ID$3, FIELD_ID$4) &&
+      HasTag_impl(T$0, Client$1) &&
+      (core$col$$col$marker$col$$col$Sized_impl(F$2) &&
+      (core$col$$col$marker$col$$col$Sized_impl(Client$1) &&
+      core$col$$col$marker$col$$col$MetaSized_impl(T$0))) ==>
+      pointer$col$$col$cast$col$$col$Project_impl(s_pointer$col$$col$cast$col$$col$Projection_type(Client$1, F$2, VARIANT_ID$3, FIELD_ID$4),
+      T$0, HasField_assoc_type_HasField$col$$col$Type(T$0, Client$1, F$2, VARIANT_ID$3,
+      FIELD_ID$4)))
+  }
+}
+
+field p_RawPtr_mutable_addr: Ref
+
+field p_RawPtr_mutable_metadata: s_Param
+
+field p_RawPtr_immutable_addr: Ref
+
+field p_RawPtr_immutable_metadata: s_Param
+
+function s_RawPtr_mutable_unreachable(T$0: Type): s_RawPtr_mutable
+  ensures false
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Int_i128_unreachable(): s_Int_i128
+  ensures false
+
+
+function s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_unreachable(T$1: Type): s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner
+  ensures false
+
+
+function s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_0(self: Ref,
+  T$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_1(self: Ref,
+  T$1: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_unreachable(T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  ensures false
+
+
+function s_core$col$$col$ptr$col$$col$NonNull_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_RawPtr_immutable_unreachable(T$0: Type): s_RawPtr_immutable
+  ensures false
+
+
+function s_core$col$$col$marker$col$$col$PhantomData_unreachable(T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  ensures false
+
+
+function p_RawPtr_mutable_snap(self: Ref, T$0: Type): s_RawPtr_mutable
+  requires acc(p_RawPtr_mutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_mutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_mutable(self, T$0), write) in
+    s_RawPtr_mutable_cons(self.p_RawPtr_mutable_addr, self.p_RawPtr_mutable_metadata))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_snap(self: Ref,
+  T$1: Type): s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner
+  requires acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(self,
+    T$1), write)
+{
+  (unfolding acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(self,
+    T$1), write) in
+    s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_cons(p_core$col$$col$ptr$col$$col$NonNull_snap(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_0(self,
+    T$1), T$1), p_core$col$$col$marker$col$$col$PhantomData_snap(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_1(self,
+    T$1), s_Ref_immutable_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$1)))))
+}
+
+function p_core$col$$col$ptr$col$$col$NonNull_snap(self: Ref, T$0: Type): s_core$col$$col$ptr$col$$col$NonNull
+  requires acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write) in
+    s_core$col$$col$ptr$col$$col$NonNull_cons(p_RawPtr_immutable_snap(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+    T$0), T$0)))
+}
+
+function p_RawPtr_immutable_snap(self: Ref, T$0: Type): s_RawPtr_immutable
+  requires acc(p_RawPtr_immutable(self, T$0), write)
+  ensures s_Param_typ(result.s_RawPtr_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0)
+{
+  (unfolding acc(p_RawPtr_immutable(self, T$0), write) in
+    s_RawPtr_immutable_cons(self.p_RawPtr_immutable_addr, self.p_RawPtr_immutable_metadata))
+}
+
+function p_core$col$$col$marker$col$$col$PhantomData_snap(self: Ref, T$0: Type): s_core$col$$col$marker$col$$col$PhantomData
+  requires acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+{
+  (unfolding acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write) in
+    s_core$col$$col$marker$col$$col$PhantomData_cons())
+}
+
+predicate p_RawPtr_mutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_mutable_addr, write) &&
+  (acc(self.p_RawPtr_mutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_mutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(self: Ref,
+  T$1: Type) {
+  inhabited(s_core$col$$col$ptr$col$$col$NonNull_type(T$1)) &&
+  acc(p_core$col$$col$ptr$col$$col$NonNull(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_0(self,
+  T$1), T$1), write) &&
+  (inhabited(s_core$col$$col$marker$col$$col$PhantomData_type(s_Ref_immutable_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$1)))) &&
+  acc(p_core$col$$col$marker$col$$col$PhantomData(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_field_1(self,
+  T$1), s_Ref_immutable_type(s_core$col$$col$cell$col$$col$UnsafeCell_type(T$1))), write))
+}
+
+predicate p_core$col$$col$ptr$col$$col$NonNull(self: Ref, T$0: Type) {
+  inhabited(s_RawPtr_immutable_type(T$0)) &&
+  acc(p_RawPtr_immutable(s_core$col$$col$ptr$col$$col$NonNull_field_0(self,
+  T$0), T$0), write)
+}
+
+predicate p_RawPtr_immutable(self: Ref, T$0: Type) {
+  acc(self.p_RawPtr_immutable_addr, write) &&
+  (acc(self.p_RawPtr_immutable_metadata, write) &&
+  s_Param_typ(self.p_RawPtr_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(T$0))
+}
+
+predicate p_core$col$$col$marker$col$$col$PhantomData(self: Ref, T$0: Type) {
+  true
+}
+
+method m_$lt$pointer$col$$col$cast$col$$col$Projection$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$sp$as$sp$pointer$col$$col$cast$col$$col$Project$lt$T$com$$sp$$lt$T$sp$as$sp$HasField$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$gt$$col$$col$Type$gt$$gt$$col$$col$project(_0p: Ref,
+  _1p: Ref, T$0: Type, Client$1: Type, F$2: Type, VARIANT_ID$3: s_Int_i128,
+  FIELD_ID$4: s_Int_i128)
+  requires inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$0)) &&
+    acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(_1p, T$0), write)
+  ensures inhabited(s_RawPtr_mutable_type(HasField_assoc_type_HasField$col$$col$Type(T$0,
+    Client$1, F$2, VARIANT_ID$3, FIELD_ID$4))) &&
+    acc(p_RawPtr_mutable(_0p, HasField_assoc_type_HasField$col$$col$Type(T$0,
+    Client$1, F$2, VARIANT_ID$3, FIELD_ID$4)), write)
+{
+  var _2p: Ref
+  var _from_bb0_to_bb1: Bool
+  var _tmp0: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner
+  label start
+  inhale HasField_impl(T$0, Client$1, F$2, VARIANT_ID$3, FIELD_ID$4)
+  inhale HasTag_impl(T$0, Client$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(F$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Client$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$0)
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  _tmp0 := p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_snap(_1p,
+    T$0)
+  p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_assign(_2p, T$0,
+    _tmp0)
+  label _before_0_2
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  HasField_fn_stub_HasField$col$$col$project(_0p, _2p, T$0, Client$1, F$2, VARIANT_ID$3,
+    FIELD_ID$4)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label _before_1_1
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method p_RawPtr_mutable_assign(self: Ref, T$0: Type, value: s_RawPtr_mutable)
+  ensures acc(p_RawPtr_mutable(self, T$0), write)
+  ensures p_RawPtr_mutable_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_assign(self: Ref,
+  T$1: Type, value: s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner)
+  ensures acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(self,
+    T$1), write)
+  ensures p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_snap(self,
+    T$1) ==
+    value
+
+
+method p_core$col$$col$ptr$col$$col$NonNull_assign(self: Ref, T$0: Type, value: s_core$col$$col$ptr$col$$col$NonNull)
+  ensures acc(p_core$col$$col$ptr$col$$col$NonNull(self, T$0), write)
+  ensures p_core$col$$col$ptr$col$$col$NonNull_snap(self, T$0) == value
+
+
+method p_RawPtr_immutable_assign(self: Ref, T$0: Type, value: s_RawPtr_immutable)
+  ensures acc(p_RawPtr_immutable(self, T$0), write)
+  ensures p_RawPtr_immutable_snap(self, T$0) == value
+
+
+method p_core$col$$col$marker$col$$col$PhantomData_assign(self: Ref, T$0: Type,
+  value: s_core$col$$col$marker$col$$col$PhantomData)
+  ensures acc(p_core$col$$col$marker$col$$col$PhantomData(self, T$0), write)
+  ensures p_core$col$$col$marker$col$$col$PhantomData_snap(self, T$0) ==
+    value
+
+
+method HasField_fn_stub_HasField$col$$col$project(_0p: Ref, _1p: Ref, Self$0: Type,
+  Client$1: Type, Field$2: Type, VARIANT_ID$3: s_Int_i128, FIELD_ID$4: s_Int_i128)
+  requires inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(Self$0)) &&
+    acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(_1p, Self$0), write)
+  requires HasField_fn_pre_HasField$col$$col$project(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_snap(_1p,
+    Self$0), Self$0, Client$1, Field$2, VARIANT_ID$3, FIELD_ID$4)
+  ensures inhabited(s_RawPtr_mutable_type(HasField_assoc_type_HasField$col$$col$Type(Self$0,
+    Client$1, Field$2, VARIANT_ID$3, FIELD_ID$4))) &&
+    acc(p_RawPtr_mutable(_0p, HasField_assoc_type_HasField$col$$col$Type(Self$0,
+    Client$1, Field$2, VARIANT_ID$3, FIELD_ID$4)), write)
+  ensures HasField_fn_post_HasField$col$$col$project(p_RawPtr_mutable_snap(_0p,
+    HasField_assoc_type_HasField$col$$col$Type(Self$0, Client$1, Field$2, VARIANT_ID$3,
+    FIELD_ID$4)), old(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_snap(_1p,
+    Self$0)), Self$0, Client$1, Field$2, VARIANT_ID$3, FIELD_ID$4)
+
+
+method trait_pointer$col$$col$cast$col$$col$Project_impl_pointer$col$$col$cast$col$$col$Projection_3465_fn_pre_weaken_$lt$pointer$col$$col$cast$col$$col$Projection$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$sp$as$sp$pointer$col$$col$cast$col$$col$Project$lt$T$com$$sp$$lt$T$sp$as$sp$HasField$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$gt$$col$$col$Type$gt$$gt$$col$$col$project(_0p: Ref,
+  _1p: Ref, T$0: Type, Client$1: Type, F$2: Type, VARIANT_ID$3: s_Int_i128,
+  FIELD_ID$4: s_Int_i128)
+  requires inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$0)) &&
+    acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(_1p, T$0), write)
+{
+  label start
+  inhale HasField_impl(T$0, Client$1, F$2, VARIANT_ID$3, FIELD_ID$4)
+  inhale HasTag_impl(T$0, Client$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(F$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Client$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$0)
+}
+
+method trait_pointer$col$$col$cast$col$$col$Project_impl_pointer$col$$col$cast$col$$col$Projection_3465_fn_post_strengthen_$lt$pointer$col$$col$cast$col$$col$Projection$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$sp$as$sp$pointer$col$$col$cast$col$$col$Project$lt$T$com$$sp$$lt$T$sp$as$sp$HasField$lt$Client$com$$sp$F$com$$sp$VARIANT_ID$com$$sp$FIELD_ID$gt$$gt$$col$$col$Type$gt$$gt$$col$$col$project(_0p: Ref,
+  _1p: Ref, T$0: Type, Client$1: Type, F$2: Type, VARIANT_ID$3: s_Int_i128,
+  FIELD_ID$4: s_Int_i128)
+  requires inhabited(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(T$0)) &&
+    acc(p_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner(_1p, T$0), write)
+  requires inhabited(s_RawPtr_mutable_type(HasField_assoc_type_HasField$col$$col$Type(T$0,
+    Client$1, F$2, VARIANT_ID$3, FIELD_ID$4))) &&
+    acc(p_RawPtr_mutable(_0p, HasField_assoc_type_HasField$col$$col$Type(T$0,
+    Client$1, F$2, VARIANT_ID$3, FIELD_ID$4)), write)
+{
+  label start
+  inhale HasField_impl(T$0, Client$1, F$2, VARIANT_ID$3, FIELD_ID$4)
+  inhale HasTag_impl(T$0, Client$1)
+  inhale core$col$$col$marker$col$$col$Sized_impl(F$2)
+  inhale core$col$$col$marker$col$$col$Sized_impl(Client$1)
+  inhale core$col$$col$marker$col$$col$MetaSized_impl(T$0)
+}
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_RawPtr_mutable {
+  s_RawPtr_mutable_cons(s_RawPtr_mutable_0: Ref, s_RawPtr_mutable_1: s_Param)
+}
+
+adt s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner {
+  s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_cons(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_0: s_core$col$$col$ptr$col$$col$NonNull,
+  s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_1: s_core$col$$col$marker$col$$col$PhantomData)
+}
+
+adt s_core$col$$col$ptr$col$$col$NonNull {
+  s_core$col$$col$ptr$col$$col$NonNull_cons(s_core$col$$col$ptr$col$$col$NonNull_0: s_RawPtr_immutable)
+}
+
+adt s_RawPtr_immutable {
+  s_RawPtr_immutable_cons(s_RawPtr_immutable_0: Ref, s_RawPtr_immutable_1: s_Param)
+}
+
+adt s_core$col$$col$marker$col$$col$PhantomData {
+  s_core$col$$col$marker$col$$col$PhantomData_cons()
+}
+
+adt Type {
+  s_RawPtr_mutable_type(s_RawPtr_mutable_typaram_T$0: Type)
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_core$col$$col$cell$col$$col$UnsafeCell_type(s_core$col$$col$cell$col$$col$UnsafeCell_typaram_T$0: Type)
+  s_RawPtr_immutable_type(s_RawPtr_immutable_typaram_T$0: Type)
+  s_core$col$$col$ptr$col$$col$NonNull_type(s_core$col$$col$ptr$col$$col$NonNull_typaram_T$0: Type)
+  s_core$col$$col$marker$col$$col$PhantomData_type(s_core$col$$col$marker$col$$col$PhantomData_typaram_T$0: Type)
+  s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_type(s_pointer$col$$col$inner$col$$col$_def$col$$col$PtrInner_typaram_T$1: Type)
+  s_pointer$col$$col$cast$col$$col$Projection_type(s_pointer$col$$col$cast$col$$col$Projection_typaram_Client$0: Type,
+  s_pointer$col$$col$cast$col$$col$Projection_typaram_F$1: Type, s_pointer$col$$col$cast$col$$col$Projection_constparam_VARIANT_ID$2: s_Int_i128,
+  s_pointer$col$$col$cast$col$$col$Projection_constparam_FIELD_ID$3: s_Int_i128)
+  Unknown_type(id: Int)
+}

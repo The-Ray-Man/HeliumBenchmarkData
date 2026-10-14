@@ -1,0 +1,85 @@
+// Should be applied together with framing
+function apply_DepToTcWisdom(g0:Set[Ref], g1:Set[Ref]): Bool
+    requires NODES(g0, 1/2)
+    requires NODES(g1, 1/2)
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g0 union g1, u0, v0, u0, u0.next) }
+        { DEP_(g0 union g1, u0, v0.next, v0, v0.next) } 
+            u0 in g0 && v0 in g0 ==> __learn_trigger__( P_(g0 union g1,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g1 union g0, u0, v0, u0, u0.next) }
+        { DEP_(g1 union g0, u0, v0.next, v0, v0.next) } 
+            u0 in g1 && v0 in g1 ==> __learn_trigger__( P_(g1 union g0,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g0 union g1, u0, v0, u0, u0.next) }
+        { DEP_(g0 union g1, u0, v0.next, v0, v0.next) } 
+            u0 in g0 && v0 in g0 ==> __learn_trigger__( P_(g0 union g1,u0,v0) )
+    ensures forall u0:Ref, v0:Ref :: 
+        { DEP_(g1 union g0, u0, v0, u0, u0.next) }
+        { DEP_(g1 union g0, u0, v0.next, v0, v0.next) } 
+            u0 in g1 && v0 in g1 ==> __learn_trigger__( P_(g1 union g0,u0,v0) )
+
+method unlink_ZOPG_next(g:Set[Ref], node:Ref)
+    requires PROTECTED_GRAPH_next(g,node)
+    requires node in g
+    ensures PROTECTED_GRAPH_next(g,node)
+    ensures node.next == null
+    ensures old(node.next) == null ==> $$(g) == old($$(g))
+    ensures old(node.next) != null ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.next))
+    ensures old(node.next) != null ==> ZOPG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.next))
+
+method link_ZOPG_next(g:Set[Ref], from:Ref, to:Ref)
+    requires PROTECTED_GRAPH_next(g,from) 
+    requires from in g && from.next == null
+    requires (to != null) ==> to in g
+    ensures PROTECTED_GRAPH_next(g,from)
+    ensures from.next == to
+    ensures (to == null) ==> $$(g) == old($$(g))
+    ensures (to != null) ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures (to != null) ==> ZOPG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)      
+
+    // Automatic reasoning support
+    // a. Arity-independent
+    ensures forall n:Ref, m:Ref :: 
+        { P_(g, n, m) } 
+            n in g && m in g ==> 
+                __learn_trigger__( P_(g, n, from) ) && 
+                __learn_trigger__( P_(g, from, m) )
+    ensures (to != null) ==> forall n:Ref, m:Ref :: 
+        { P_(g, n, m) } 
+            n in g && m in g ==> 
+                __learn_trigger__( P_(g, n, to) ) && 
+                __learn_trigger__( P_(g, to, m) )
+
+    // b. Arity-dependent
+    ensures forall n0:Ref :: 
+        { P_(g, to, n0) }
+        { P_(g, from, n0) } 
+            n0 in g && n0 != from ==> __learn_trigger__(DEP_(g, from, n0, from, from.next))
+    ensures (to != null) ==> forall n0:Ref :: 
+        { P_(g, to, n0) }
+        { P_(g, from, n0) } 
+            n0 in g && n0 != to ==> __learn_trigger__(DEP_(g, to, n0, to, to.next))
+    ensures forall n0: Ref :: 
+        { P_(g, n0, to) }
+        { P_(g, n0, from) } 
+            n0 in g && n0 != from ==> __learn_trigger__(DEP_(g, n0, from, n0, n0.next))
+    ensures (to != null) ==> forall n0:Ref :: 
+        { P_(g, n0, to) }
+        { P_(g, n0, from) } 
+            n0 in g && n0 != to ==> __learn_trigger__(DEP_(g, n0, to, n0, n0.next)) // never helped so far
+
+    ensures (to != null) ==> forall n0:Ref :: 
+        { DEP_(g, to, n0, to, to.next) }
+        { DEP_(g, from, n0, from, from.next) } 
+            n0 in g ==> 
+                __learn_trigger__( P_(g, from, n0) ) && 
+                __learn_trigger__( P0(g, from, n0) ) 
+
+    ensures (to != null) ==> forall n0:Ref :: 
+        { DEP_(g, to, n0, to, to.next) }
+        { DEP_(g, from, n0, from, from.next) } 
+            n0 in g ==> 
+                __learn_trigger__( P_(g, to, n0) ) && 
+                __learn_trigger__( P0(g, to, n0) )
+

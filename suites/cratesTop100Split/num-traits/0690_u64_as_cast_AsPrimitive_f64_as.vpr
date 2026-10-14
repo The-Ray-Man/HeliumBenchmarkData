@@ -1,0 +1,689 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain s_Float_f64 interpretation (SMTLIB: "(_ FloatingPoint 11 53)", Boogie: "float53e11") {
+  
+  function s_Float_f64_cons(arg0: Int): s_Float_f64 
+  
+  function s_Float_f64_eq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.eq"
+  
+  function s_Float_f64_add(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.add RNE"
+  
+  function s_Float_f64_sub(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.sub RNE"
+  
+  function s_Float_f64_mul(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.mul RNE"
+  
+  function s_Float_f64_div(arg0: s_Float_f64, arg1: s_Float_f64): s_Float_f64 interpretation "fp.div RNE"
+  
+  function s_Float_f64_trunc(arg0: s_Float_f64): s_Float_f64 interpretation "fp.roundToIntegral RTZ"
+  
+  function s_Float_f64_is_nan(arg0: s_Float_f64): Bool interpretation "fp.isNaN"
+  
+  function s_Float_f64_is_infinite(arg0: s_Float_f64): Bool interpretation "fp.isInfinite"
+  
+  function s_Float_f64_lt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.lt"
+  
+  function s_Float_f64_leq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.leq"
+  
+  function s_Float_f64_geq(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.geq"
+  
+  function s_Float_f64_gt(arg0: s_Float_f64, arg1: s_Float_f64): Bool interpretation "fp.gt"
+  
+  function s_Float_f64_neg(arg0: s_Float_f64): s_Float_f64 interpretation "fp.neg"
+  
+  function s_Float_f64_abs(arg0: s_Float_f64): s_Float_f64 interpretation "fp.abs"
+  
+  function s_Float_f64_from_bv(arg0: s_BitVec_64): s_Float_f64 interpretation "(_ to_fp 11 53)"
+  
+  function s_Float_f64_to_real(arg0: s_Float_f64): Perm interpretation "fp.to_real"
+  
+  axiom s_Float_f64_ax_prim_to_snap {
+    (forall i: Int ::
+      { s_Float_f64_cons(i) }
+      s_Float_f64_cons(i) == s_Float_f64_from_bv(s_BitVec_64_from_int(i)) &&
+      s_Float_f64_to_real(s_Float_f64_cons(i)) ==
+      s_Float_f64_to_real(s_Float_f64_from_bv(s_BitVec_64_from_int(i))))
+  }
+}
+
+domain s_UInt_u64  {
+  
+  function s_UInt_u64_cons(arg0: Int): s_UInt_u64 
+  
+  function s_UInt_u64_value(arg0: s_UInt_u64): Int 
+  
+  axiom s_UInt_u64_ax_cons {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      s_UInt_u64_cons(s_UInt_u64_value(s)) == s)
+  }
+  
+  axiom s_UInt_u64_ax_bounds {
+    (forall s: s_UInt_u64 ::
+      { s_UInt_u64_value(s) }
+      0 <= s_UInt_u64_value(s) &&
+      s_UInt_u64_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_u64_ax_value {
+    (forall value: Int ::
+      { s_UInt_u64_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_u64_value(s_UInt_u64_cons(value)) == value)
+  }
+}
+
+domain s_Int_isize  {
+  
+  function s_Int_isize_cons(arg0: Int): s_Int_isize 
+  
+  function s_Int_isize_value(arg0: s_Int_isize): Int 
+  
+  axiom s_Int_isize_ax_cons {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      s_Int_isize_cons(s_Int_isize_value(s)) == s)
+  }
+  
+  axiom s_Int_isize_ax_bounds {
+    (forall s: s_Int_isize ::
+      { s_Int_isize_value(s) }
+      -9223372036854775808 <= s_Int_isize_value(s) &&
+      s_Int_isize_value(s) <= 9223372036854775807)
+  }
+  
+  axiom s_Int_isize_ax_value {
+    (forall value: Int ::
+      { s_Int_isize_cons(value) }
+      -9223372036854775808 <= value && value <= 9223372036854775807 ==>
+      s_Int_isize_value(s_Int_isize_cons(value)) == value)
+  }
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain s_BitVec_64 interpretation (SMTLIB: "(_ BitVec 64)", Boogie: "bv64") {
+  
+  function s_BitVec_64_from_int(arg0: Int): s_BitVec_64 interpretation "(_ int2bv 64)"
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Float_f64 {
+    inhabited(s_Float_f64_type()) == true
+  }
+  
+  axiom inhabited_UInt_u64 {
+    inhabited(s_UInt_u64_type()) == true
+  }
+  
+  axiom inhabited_Int_isize {
+    inhabited(s_Int_isize_type()) == true
+  }
+  
+  axiom inhabited_Never {
+    inhabited(s_Never_type()) == false
+  }
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_cast$col$$col$AsPrimitive  {
+  
+  function cast$col$$col$AsPrimitive_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Float_f64  {
+  
+  axiom s_Float_f64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Float_f64_type())
+  }
+  
+  axiom s_Float_f64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Float_f64_type())
+  }
+}
+
+domain sizedness_UInt_u64  {
+  
+  axiom s_UInt_u64_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_u64_type())
+  }
+  
+  axiom s_UInt_u64_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u64_type())
+  }
+}
+
+domain sizedness_Int_isize  {
+  
+  axiom s_Int_isize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Int_isize_type())
+  }
+  
+  axiom s_Int_isize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Int_isize_type())
+  }
+}
+
+domain sizedness_Never  {
+  
+  axiom s_Never_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_Never_type())
+  }
+  
+  axiom s_Never_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Never_type())
+  }
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_181_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_181_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u64_type(), s_Float_f64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_171_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_171_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u64_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_173_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_173_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u64_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_179_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_u64_179_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_u64_type(), s_Int_isize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_227_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_227_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_usize_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_229_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_229_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_usize_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_235_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_235_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_usize_type(), s_Int_isize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_237_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_UInt_usize_237_condition {
+    cast$col$$col$AsPrimitive_impl(s_UInt_usize_type(), s_Float_f64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_241_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_241_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_isize_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_243_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_243_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_isize_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_249_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_249_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_isize_type(), s_Int_isize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_251_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Int_isize_251_condition {
+    cast$col$$col$AsPrimitive_impl(s_Int_isize_type(), s_Float_f64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_266_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_266_condition {
+    cast$col$$col$AsPrimitive_impl(s_Float_f64_type(), s_Float_f64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_271_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_271_condition {
+    cast$col$$col$AsPrimitive_impl(s_Float_f64_type(), s_UInt_u64_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_273_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_273_condition {
+    cast$col$$col$AsPrimitive_impl(s_Float_f64_type(), s_UInt_usize_type())
+  }
+}
+
+domain trait_cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_279_condition  {
+  
+  axiom cast$col$$col$AsPrimitive_impl_num_traits_Float_f64_279_condition {
+    cast$col$$col$AsPrimitive_impl(s_Float_f64_type(), s_Int_isize_type())
+  }
+}
+
+field p_Float_f64_val: s_Float_f64
+
+field p_UInt_u64_val: s_UInt_u64
+
+field p_Int_isize_val: s_Int_isize
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+function s_Float_f64_unreachable(): s_Float_f64
+  ensures false
+
+
+function s_UInt_u64_unreachable(): s_UInt_u64
+  ensures false
+
+
+function s_Never_unreachable(): s_Never
+  ensures false
+
+
+function s_Never_discr(self: s_Never): s_Int_isize
+  ensures false
+
+
+function s_Int_isize_unreachable(): s_Int_isize
+  ensures false
+
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function p_Float_f64_snap(self: Ref): s_Float_f64
+  requires acc(p_Float_f64(self), write)
+{
+  (unfolding acc(p_Float_f64(self), write) in self.p_Float_f64_val)
+}
+
+function p_UInt_u64_snap(self: Ref): s_UInt_u64
+  requires acc(p_UInt_u64(self), write)
+{
+  (unfolding acc(p_UInt_u64(self), write) in self.p_UInt_u64_val)
+}
+
+function p_Never_field_discr(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Never_snap(self: Ref): s_Never
+  requires acc(p_Never(self), write)
+{
+  (unfolding acc(p_Never(self), write) in s_Never_unreachable())
+}
+
+function p_Int_isize_snap(self: Ref): s_Int_isize
+  requires acc(p_Int_isize(self), write)
+{
+  (unfolding acc(p_Int_isize(self), write) in self.p_Int_isize_val)
+}
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+function const_801_0_0(): s_Str
+
+
+function addr_to_ref(arg: Int): Ref
+
+
+predicate p_Float_f64(self: Ref) {
+  acc(self.p_Float_f64_val, write)
+}
+
+predicate p_UInt_u64(self: Ref) {
+  acc(self.p_UInt_u64_val, write)
+}
+
+predicate p_Never(self: Ref) {
+  inhabited(s_Int_isize_type()) &&
+  acc(p_Int_isize(p_Never_field_discr(self)), write) &&
+  (false && true)
+}
+
+predicate p_Int_isize(self: Ref) {
+  acc(self.p_Int_isize_val, write)
+}
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Str(self: Ref) 
+
+method m_$lt$u64$sp$as$sp$cast$col$$col$AsPrimitive$lt$f64$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  ensures inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: Ref
+  label start
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  goto bb_term_0
+  label bb_term_0
+  p_Ref_immutable_assign(_tmp0, s_Str_type(), s_Ref_immutable_cons(addr_to_ref(3338860677341428842496), make_generic_s_UInt_usize(s_UInt_usize_cons(19)), make_generic_s_Str(const_801_0_0())))
+  label pre0
+  m_core$col$$col$panicking$col$$col$panic(_2p, _tmp0)
+  label post1
+  exhale false
+  inhale false
+  goto end
+  label bb_1
+  assert false
+  goto end
+  label end
+}
+
+method m_core$col$$col$panicking$col$$col$panic(_0p: Ref, _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_1p, s_Str_type()), write)
+  ensures inhabited(s_Never_type()) && acc(p_Never(_0p), write)
+
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method p_Float_f64_assign(self: Ref, value: s_Float_f64)
+  ensures acc(p_Float_f64(self), write)
+  ensures p_Float_f64_snap(self) == value
+
+
+method p_UInt_u64_assign(self: Ref, value: s_UInt_u64)
+  ensures acc(p_UInt_u64(self), write)
+  ensures p_UInt_u64_snap(self) == value
+
+
+method p_Never_assign(self: Ref, value: s_Never)
+  ensures acc(p_Never(self), write)
+  ensures p_Never_snap(self) == value
+
+
+method p_Int_isize_assign(self: Ref, value: s_Int_isize)
+  ensures acc(p_Int_isize(self), write)
+  ensures p_Int_isize_snap(self) == value
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method trait_cast$col$$col$AsPrimitive_impl_UInt_u64_181_fn_pre_weaken_$lt$u64$sp$as$sp$cast$col$$col$AsPrimitive$lt$f64$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+{
+  label start
+}
+
+method trait_cast$col$$col$AsPrimitive_impl_UInt_u64_181_fn_post_strengthen_$lt$u64$sp$as$sp$cast$col$$col$AsPrimitive$lt$f64$gt$$gt$$col$$col$as_(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_UInt_u64_type()) && acc(p_UInt_u64(_1p), write)
+  requires inhabited(s_Float_f64_type()) && acc(p_Float_f64(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Never {
+  s_Never_DummyConstructor()
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt Type {
+  s_Float_f64_type()
+  s_UInt_u64_type()
+  s_Int_isize_type()
+  s_Never_type()
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Str_type()
+  s_UInt_usize_type()
+  Unknown_type(id: Int)
+}

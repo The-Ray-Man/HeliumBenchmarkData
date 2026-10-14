@@ -1,0 +1,41 @@
+method unlink_DAG_left(g: Set[Ref], node:Ref)
+    requires PROTECTED_GRAPH_left(g,node)
+    requires node in g
+    ensures PROTECTED_GRAPH_left(g,node)
+    ensures node.left == null
+    ensures (old(node.left) == null) || (old(node.right) == old(node.left)) ==> $$(g) == old($$(g))
+    ensures (old(node.left) != null) && (old(node.right) != old(node.left)) ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.left))
+    ensures (old(node.left) != null) && (old(node.right) != old(node.left)) ==> DAG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.left))
+
+method unlink_DAG_right(g: Set[Ref], node:Ref)
+    requires PROTECTED_GRAPH_right(g,node)
+    requires node in g
+    ensures PROTECTED_GRAPH_right(g,node)
+    ensures node.right == null
+    ensures (old(node.right) == null) || (old(node.left) == old(node.right)) ==> $$(g) == old($$(g))
+    ensures (old(node.right) != null) && (old(node.left) != old(node.right)) ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.right))
+    ensures (old(node.right) != null) && (old(node.left) != old(node.right)) ==> DAG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.right))
+    
+method link_DAG_left(g:Set[Ref], from:Ref, to:Ref)
+    requires PROTECTED_GRAPH_left(g,from)
+    requires from in g
+    requires from.left == null
+    requires to != null ==> to in g 
+    requires from.right != null ==> P_(g, from, from.right) // for triggering
+    ensures PROTECTED_GRAPH_left(g,from)
+    ensures from.left == to //&& 
+    ensures (to == null) || (old(from.right) == to) ==> ($$(g) == old($$(g)))
+    ensures (to != null) && (old(from.right) != to) ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures (to != null) && (old(from.right) != to) ==> DAG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)
+
+method link_DAG_right(g:Set[Ref], from:Ref, to:Ref)
+    requires PROTECTED_GRAPH_right(g,from)
+    requires from in g
+    requires from.right == null
+    requires to != null ==> to in g
+    requires from.left != null ==> P_(g, from, from.left) // for triggering
+    ensures PROTECTED_GRAPH_right(g,from)
+    ensures from.right == to
+    ensures (to == null) || (old(from.left) == to) ==> ($$(g) == old($$(g)))
+    ensures (to != null) && (old(from.left) != to) ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures (to != null) && (old(from.left) != to) ==> DAG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)

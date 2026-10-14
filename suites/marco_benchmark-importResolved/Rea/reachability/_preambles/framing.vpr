@@ -1,0 +1,36 @@
+// Used for memory allocation
+
+/**
+ * This function is supposed to be assumed right after atomic memory allocation. 
+ */
+function apply_AtomicTCFraming(graph_A:Set[Ref], node_B:Ref): Bool
+    requires READONLY_NODES(graph_A)
+    requires CLOSED_NODE(node_B, 1/2)
+    requires !(node_B in graph_A)
+    requires (forall u0:Ref :: 
+        { E_(graph_A, u0, node_B) }
+            u0 in graph_A ==> !E_(graph_A, u0, node_B))
+
+    // Needed for triggering
+    requires graph_A union Set(node_B) == Set(node_B) union graph_A
+
+    ensures (forall u0:Ref, v0:Ref :: 
+        { P_(graph_A, u0, v0) }
+        { P_(graph_A union Set(node_B), u0, v0) } 
+            u0 in graph_A && v0 in graph_A ==>
+                (P_(graph_A, u0, v0) <==> P_(graph_A union Set(node_B), u0, v0)))
+    
+    // A version of NoExit
+    ensures (forall u0:Ref :: 
+        { P_(graph_A union Set(node_B), u0, node_B) }
+            u0 in graph_A ==> !P_(graph_A union Set(node_B), u0, node_B))
+
+    ensures (forall v0:Ref :: 
+        { P_(graph_A union Set(node_B), node_B, v0) }
+            (v0 != node_B) ==> !P_(graph_A union Set(node_B), node_B, v0))
+
+    ensures (forall x:Ref, y:Ref :: 
+        { E_(graph_A, x, y) }
+        { E_(graph_A union Set(node_B), x, y) }
+            (x in graph_A) ==> 
+                (E_(graph_A union Set(node_B), x, y) <==> E_(graph_A, x, y)))

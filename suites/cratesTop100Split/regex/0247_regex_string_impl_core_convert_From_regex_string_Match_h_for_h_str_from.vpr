@@ -1,0 +1,507 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_Str  {
+  
+  axiom s_Param_typ_def_make_generic_s_Str {
+    (forall x: s_Str ::
+      { make_generic_s_Str(x) }
+      s_Param_typ(make_generic_s_Str(x)) == s_Str_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_Str {
+    (forall p: s_Param ::
+      { p.make_concrete_s_Str, s_Param_typ(p) }
+      s_Param_typ(p) == s_Str_type() ==>
+      make_generic_s_Str(p.make_concrete_s_Str) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_usize  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_usize {
+    (forall x: s_UInt_usize ::
+      { make_generic_s_UInt_usize(x) }
+      s_Param_typ(make_generic_s_UInt_usize(x)) == s_UInt_usize_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_usize {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_usize, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_usize_type() ==>
+      make_generic_s_UInt_usize(p.make_concrete_s_UInt_usize) == p)
+  }
+}
+
+domain ParamTyp_make_generic_s_regex$col$$col$string$col$$col$Match  {
+  
+  axiom s_Param_typ_def_make_generic_s_regex$col$$col$string$col$$col$Match {
+    (forall x: s_regex$col$$col$string$col$$col$Match ::
+      { make_generic_s_regex$col$$col$string$col$$col$Match(x) }
+      s_Param_typ(make_generic_s_regex$col$$col$string$col$$col$Match(x)) ==
+      s_regex$col$$col$string$col$$col$Match_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_regex$col$$col$string$col$$col$Match {
+    (forall p: s_Param ::
+      { p.make_concrete_s_regex$col$$col$string$col$$col$Match, s_Param_typ(p) }
+      s_Param_typ(p) == s_regex$col$$col$string$col$$col$Match_type() ==>
+      make_generic_s_regex$col$$col$string$col$$col$Match(p.make_concrete_s_regex$col$$col$string$col$$col$Match) ==
+      p)
+  }
+}
+
+domain ParamTyp_make_generic_s_0_Tuple  {
+  
+  axiom s_Param_typ_def_make_generic_s_0_Tuple {
+    (forall x: s_0_Tuple ::
+      { make_generic_s_0_Tuple(x) }
+      s_Param_typ(make_generic_s_0_Tuple(x)) == s_0_Tuple_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_0_Tuple {
+    (forall p: s_Param ::
+      { s_Param_has_typ(p, s_0_Tuple_type()) }
+      s_Param_typ(p) == s_0_Tuple_type() ==>
+      make_generic_s_0_Tuple(s_0_Tuple_cons()) == p)
+  }
+  
+  axiom make_generic_s_0_Tuple_unit {
+    (forall p: s_Param ::
+      { p.make_concrete_s_0_Tuple }
+      p.make_concrete_s_0_Tuple == s_0_Tuple_cons())
+  }
+}
+
+domain s_Str  {
+  
+  
+}
+
+domain s_UInt_usize  {
+  
+  function s_UInt_usize_cons(arg0: Int): s_UInt_usize 
+  
+  function s_UInt_usize_value(arg0: s_UInt_usize): Int 
+  
+  axiom s_UInt_usize_ax_cons {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      s_UInt_usize_cons(s_UInt_usize_value(s)) == s)
+  }
+  
+  axiom s_UInt_usize_ax_bounds {
+    (forall s: s_UInt_usize ::
+      { s_UInt_usize_value(s) }
+      0 <= s_UInt_usize_value(s) &&
+      s_UInt_usize_value(s) <= 18446744073709551615)
+  }
+  
+  axiom s_UInt_usize_ax_value {
+    (forall value: Int ::
+      { s_UInt_usize_cons(value) }
+      0 <= value && value <= 18446744073709551615 ==>
+      s_UInt_usize_value(s_UInt_usize_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Ref_immutable {
+    (forall U$1: Type ::
+      { inhabited(s_Ref_immutable_type(U$1)) }
+      inhabited(s_Ref_immutable_type(U$1)) == inhabited(U$1))
+  }
+  
+  axiom inhabited_Str {
+    inhabited(s_Str_type()) == true
+  }
+  
+  axiom inhabited_UInt_usize {
+    inhabited(s_UInt_usize_type()) == true
+  }
+  
+  axiom inhabited_regex$col$$col$string$col$$col$Match {
+    inhabited(s_regex$col$$col$string$col$$col$Match_type()) ==
+    (inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    (inhabited(s_UInt_usize_type()) && inhabited(s_UInt_usize_type())))
+  }
+}
+
+domain ReadPerm  {
+  
+  function read(): Perm 
+  
+  axiom read_bounds {
+    none < read() && read() < write
+  }
+}
+
+domain trait_core$col$$col$ptr$col$$col$Pointee  {
+  
+  function core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(arg0: Type): Type 
+  
+  function core$col$$col$ptr$col$$col$Pointee_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$Sized  {
+  
+  function core$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$marker$col$$col$MetaSized  {
+  
+  function core$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_core$col$$col$convert$col$$col$From  {
+  
+  function core$col$$col$convert$col$$col$From_impl(arg0: Type, arg1: Type): Bool 
+}
+
+domain sizedness_Ref_immutable  {
+  
+  axiom s_Ref_immutable_Sized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$Sized_impl(s_Ref_immutable_type(U$1)))
+  }
+  
+  axiom s_Ref_immutable_MetaSized {
+    (forall U$1: Type ::
+      { core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)) }
+      core$col$$col$marker$col$$col$MetaSized_impl(s_Ref_immutable_type(U$1)))
+  }
+}
+
+domain sizedness_Str  {
+  
+  axiom s_Str_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_Str_type())
+  }
+}
+
+domain sizedness_UInt_usize  {
+  
+  axiom s_UInt_usize_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_UInt_usize_type())
+  }
+  
+  axiom s_UInt_usize_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_UInt_usize_type())
+  }
+}
+
+domain sizedness_regex$col$$col$string$col$$col$Match  {
+  
+  axiom s_regex$col$$col$string$col$$col$Match_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_regex$col$$col$string$col$$col$Match_type())
+  }
+  
+  axiom s_regex$col$$col$string$col$$col$Match_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_regex$col$$col$string$col$$col$Match_type())
+  }
+}
+
+domain sizedness_0_Tuple  {
+  
+  axiom s_0_Tuple_Sized {
+    core$col$$col$marker$col$$col$Sized_impl(s_0_Tuple_type())
+  }
+  
+  axiom s_0_Tuple_MetaSized {
+    core$col$$col$marker$col$$col$MetaSized_impl(s_0_Tuple_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_regex_Ref_immutable_86_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_regex_Ref_immutable_86_condition {
+    core$col$$col$convert$col$$col$From_impl(s_Ref_immutable_type(s_Str_type()),
+    s_regex$col$$col$string$col$$col$Match_type())
+  }
+}
+
+domain trait_core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition  {
+  
+  axiom core$col$$col$convert$col$$col$From_impl_core_Param_2359_condition {
+    (forall T$0: Type ::
+      { core$col$$col$convert$col$$col$From_impl(T$0, T$0) }
+      core$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      core$col$$col$convert$col$$col$From_impl(T$0, T$0))
+  }
+}
+
+field p_Ref_immutable_addr: Ref
+
+field p_Ref_immutable_metadata: s_Param
+
+field p_UInt_usize_val: s_UInt_usize
+
+function s_Ref_immutable_unreachable(U$1: Type): s_Ref_immutable
+  ensures false
+
+
+function s_Ref_immutable_value_snap_of(immref_snap: s_Ref_immutable): s_Ref_immutable
+{
+  s_Ref_immutable_cons(null, immref_snap.s_Ref_immutable_1, immref_snap.s_Ref_immutable_2)
+}
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_Str_unreachable(): s_Str
+  ensures false
+
+
+function s_UInt_usize_unreachable(): s_UInt_usize
+  ensures false
+
+
+function s_regex$col$$col$string$col$$col$Match_unreachable(): s_regex$col$$col$string$col$$col$Match
+  ensures false
+
+
+function s_regex$col$$col$string$col$$col$Match_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_regex$col$$col$string$col$$col$Match_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_regex$col$$col$string$col$$col$Match_field_2(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_0_Tuple_unreachable(): s_0_Tuple
+  ensures false
+
+
+function p_Ref_immutable_snap(self: Ref, U$1: Type): s_Ref_immutable
+  requires acc(p_Ref_immutable(self, U$1), write)
+  ensures s_Param_typ(result.s_Ref_immutable_1) ==
+    core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1)
+  ensures s_Param_typ(result.s_Ref_immutable_2) == U$1
+{
+  (unfolding acc(p_Ref_immutable(self, U$1), write) in
+    s_Ref_immutable_cons(self.p_Ref_immutable_addr, self.p_Ref_immutable_metadata, p_Param_snap(self.p_Ref_immutable_addr,
+    U$1)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_Str_snap(self: Ref): s_Str
+  requires acc(p_Str(self), write)
+
+
+function p_regex$col$$col$string$col$$col$Match_snap(self: Ref): s_regex$col$$col$string$col$$col$Match
+  requires acc(p_regex$col$$col$string$col$$col$Match(self), write)
+{
+  (unfolding acc(p_regex$col$$col$string$col$$col$Match(self), write) in
+    s_regex$col$$col$string$col$$col$Match_cons(p_Ref_immutable_snap(s_regex$col$$col$string$col$$col$Match_field_0(self),
+    s_Str_type()), p_UInt_usize_snap(s_regex$col$$col$string$col$$col$Match_field_1(self)), p_UInt_usize_snap(s_regex$col$$col$string$col$$col$Match_field_2(self))))
+}
+
+function p_UInt_usize_snap(self: Ref): s_UInt_usize
+  requires acc(p_UInt_usize(self), write)
+{
+  (unfolding acc(p_UInt_usize(self), write) in self.p_UInt_usize_val)
+}
+
+predicate p_Ref_immutable(self: Ref, U$1: Type) {
+  acc(self.p_Ref_immutable_addr, write) &&
+  acc(self.p_Ref_immutable_metadata, write) &&
+  (s_Param_typ(self.p_Ref_immutable_metadata) ==
+  core$col$$col$ptr$col$$col$Pointee_assoc_type_core$col$$col$ptr$col$$col$Pointee$col$$col$Metadata(U$1) &&
+  acc(p_Param(self.p_Ref_immutable_addr, U$1), read()))
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_Str(self: Ref) 
+
+predicate p_regex$col$$col$string$col$$col$Match(self: Ref) {
+  inhabited(s_Ref_immutable_type(s_Str_type())) &&
+  acc(p_Ref_immutable(s_regex$col$$col$string$col$$col$Match_field_0(self),
+  s_Str_type()), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_regex$col$$col$string$col$$col$Match_field_1(self)), write) &&
+  (inhabited(s_UInt_usize_type()) &&
+  acc(p_UInt_usize(s_regex$col$$col$string$col$$col$Match_field_2(self)), write)))
+}
+
+predicate p_UInt_usize(self: Ref) {
+  acc(self.p_UInt_usize_val, write)
+}
+
+method m_regex$col$$col$string$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$regex$col$$col$string$col$$col$Match$lt$$sq$h$gt$$gt$$sp$for$sp$$amp$$sq$h$sp$str$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_regex$col$$col$string$col$$col$Match_type()) &&
+    acc(p_regex$col$$col$string$col$$col$Match(_1p), write)
+  ensures inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+{
+  var _2p: Ref
+  var _3p: Ref
+  var _from_bb0_to_bb1: Bool
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  label _before_0_1
+  label _before_0_2
+  p_Ref_immutable_assign(_3p, s_regex$col$$col$string$col$$col$Match_type(),
+    s_Ref_immutable_cons(_1p, make_generic_s_0_Tuple(s_0_Tuple_cons()), make_generic_s_regex$col$$col$string$col$$col$Match(p_regex$col$$col$string$col$$col$Match_snap(_1p))))
+  label _before_0_3
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_regex$col$$col$string$col$$col$Match$col$$col$$lt$$sq$h$gt$$col$$col$as_str(_2p,
+    _3p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  p_Ref_immutable_assign(_0p, s_Str_type(), s_Ref_immutable_cons(p_Ref_immutable_snap(_2p,
+    s_Str_type()).s_Ref_immutable_0, make_generic_s_UInt_usize(p_Ref_immutable_snap(_2p,
+    s_Str_type()).s_Ref_immutable_1.make_concrete_s_UInt_usize), make_generic_s_Str(p_Ref_immutable_snap(_2p,
+    s_Str_type()).s_Ref_immutable_2.make_concrete_s_Str)))
+  label _before_1_1
+  label _before_1_2
+  label _before_1_3
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_regex$col$$col$string$col$$col$Match$col$$col$$lt$$sq$h$gt$$col$$col$as_str(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_Ref_immutable_type(s_regex$col$$col$string$col$$col$Match_type())) &&
+    acc(p_Ref_immutable(_1p, s_regex$col$$col$string$col$$col$Match_type()), write)
+  ensures inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+
+
+method make_generic_Str(self: Ref)
+  requires acc(p_Str(self), write)
+  ensures acc(p_Param(self, s_Str_type()), write)
+  ensures old(make_generic_s_Str(p_Str_snap(self))) ==
+    p_Param_snap(self, s_Str_type())
+
+
+method make_concrete_Str(self: Ref)
+  requires acc(p_Param(self, s_Str_type()), write)
+  ensures acc(p_Str(self), write)
+  ensures old(p_Param_snap(self, s_Str_type())) ==
+    make_generic_s_Str(p_Str_snap(self))
+
+
+method make_generic_regex$col$$col$string$col$$col$Match(self: Ref)
+  requires acc(p_regex$col$$col$string$col$$col$Match(self), write)
+  ensures acc(p_Param(self, s_regex$col$$col$string$col$$col$Match_type()), write)
+  ensures old(make_generic_s_regex$col$$col$string$col$$col$Match(p_regex$col$$col$string$col$$col$Match_snap(self))) ==
+    p_Param_snap(self, s_regex$col$$col$string$col$$col$Match_type())
+
+
+method make_concrete_regex$col$$col$string$col$$col$Match(self: Ref)
+  requires acc(p_Param(self, s_regex$col$$col$string$col$$col$Match_type()), write)
+  ensures acc(p_regex$col$$col$string$col$$col$Match(self), write)
+  ensures old(p_Param_snap(self, s_regex$col$$col$string$col$$col$Match_type())) ==
+    make_generic_s_regex$col$$col$string$col$$col$Match(p_regex$col$$col$string$col$$col$Match_snap(self))
+
+
+method p_Ref_immutable_assign(self: Ref, U$1: Type, value: s_Ref_immutable)
+  ensures acc(p_Ref_immutable(self, U$1), write)
+  ensures p_Ref_immutable_snap(self, U$1) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_Str_assign(self: Ref, value: s_Str)
+  ensures acc(p_Str(self), write)
+  ensures p_Str_snap(self) == value
+
+
+method p_regex$col$$col$string$col$$col$Match_assign(self: Ref, value: s_regex$col$$col$string$col$$col$Match)
+  ensures acc(p_regex$col$$col$string$col$$col$Match(self), write)
+  ensures p_regex$col$$col$string$col$$col$Match_snap(self) == value
+
+
+method p_UInt_usize_assign(self: Ref, value: s_UInt_usize)
+  ensures acc(p_UInt_usize(self), write)
+  ensures p_UInt_usize_snap(self) == value
+
+
+method trait_core$col$$col$convert$col$$col$From_impl_Ref_immutable_86_fn_pre_weaken_regex$col$$col$string$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$regex$col$$col$string$col$$col$Match$lt$$sq$h$gt$$gt$$sp$for$sp$$amp$$sq$h$sp$str$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_regex$col$$col$string$col$$col$Match_type()) &&
+    acc(p_regex$col$$col$string$col$$col$Match(_1p), write)
+{
+  label start
+}
+
+method trait_core$col$$col$convert$col$$col$From_impl_Ref_immutable_86_fn_post_strengthen_regex$col$$col$string$col$$col$$lt$impl$sp$core$col$$col$convert$col$$col$From$lt$regex$col$$col$string$col$$col$Match$lt$$sq$h$gt$$gt$$sp$for$sp$$amp$$sq$h$sp$str$gt$$col$$col$from(_0p: Ref,
+  _1p: Ref)
+  requires inhabited(s_regex$col$$col$string$col$$col$Match_type()) &&
+    acc(p_regex$col$$col$string$col$$col$Match(_1p), write)
+  requires inhabited(s_Ref_immutable_type(s_Str_type())) &&
+    acc(p_Ref_immutable(_0p, s_Str_type()), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_Str(make_concrete_s_Str: s_Str)
+  make_generic_s_UInt_usize(make_concrete_s_UInt_usize: s_UInt_usize)
+  make_generic_s_regex$col$$col$string$col$$col$Match(make_concrete_s_regex$col$$col$string$col$$col$Match: s_regex$col$$col$string$col$$col$Match)
+  make_generic_s_0_Tuple(make_concrete_s_0_Tuple: s_0_Tuple)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Ref_immutable {
+  s_Ref_immutable_cons(s_Ref_immutable_0: Ref, s_Ref_immutable_1: s_Param, s_Ref_immutable_2: s_Param)
+}
+
+adt s_regex$col$$col$string$col$$col$Match {
+  s_regex$col$$col$string$col$$col$Match_cons(s_regex$col$$col$string$col$$col$Match_0: s_Ref_immutable,
+  s_regex$col$$col$string$col$$col$Match_1: s_UInt_usize, s_regex$col$$col$string$col$$col$Match_2: s_UInt_usize)
+}
+
+adt s_0_Tuple {
+  s_0_Tuple_cons()
+}
+
+adt Type {
+  s_Ref_immutable_type(s_Ref_immutable_typaram_U$1: Type)
+  s_Str_type()
+  s_UInt_usize_type()
+  s_regex$col$$col$string$col$$col$Match_type()
+  s_0_Tuple_type()
+  Unknown_type(id: Int)
+}

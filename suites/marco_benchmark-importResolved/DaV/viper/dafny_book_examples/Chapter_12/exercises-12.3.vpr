@@ -1,0 +1,708 @@
+// ===== begin import: <std>/decreases/declaration.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain WellFoundedOrder[T]{
+    // arg1 is smaller then arg2
+    function decreasing(arg1:T, arg2:T):Bool
+    function bounded(arg1:T):Bool
+}
+// ===== end import: <std>/decreases/declaration.vpr =====
+
+// ===== begin import: <std>/decreases/bool.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain BoolWellFoundedOrder{
+    //Booleans
+    axiom bool_ax_dec{
+        decreasing(false, true)
+    }
+    axiom bool_ax_bound{
+        forall bool1: Bool :: {bounded(bool1)}
+            bounded(bool1)
+    }
+}
+// ===== end import: <std>/decreases/bool.vpr =====
+
+// ===== begin import: <std>/decreases/int.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain IntWellFoundedOrder{
+	//Integers
+    axiom integer_ax_dec{
+        forall int1: Int, int2: Int :: {decreasing(int1, int2)}
+            (int1 < int2) ==> decreasing(int1, int2)
+    }
+    axiom integer_ax_bound{
+        forall int1: Int :: {bounded(int1)}
+            int1 >= 0 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/int.vpr =====
+
+// ===== begin import: <std>/decreases/multiset.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain MultiSetWellFoundedOrder[S]{
+    //MultiSet
+    axiom multiset_ax_dec{
+        forall mSet1: Multiset[S], mSet2: Multiset[S] :: {decreasing(mSet1, mSet2)}
+            (|mSet1| < |mSet2|) ==> decreasing(mSet1, mSet2)
+    }
+    axiom multiset_ax_bound{
+        forall mSet1: Multiset[S] :: {bounded(mSet1)}
+            bounded(mSet1)
+    }
+}
+// ===== end import: <std>/decreases/multiset.vpr =====
+
+// ===== begin import: <std>/predicateinstance/pi.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+domain PredicateInstance{}
+// ===== end import: <std>/predicateinstance/pi.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance_nested.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesNestedRelation{
+    function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance) : Bool
+
+    //Transitivity of the nested-Function
+    axiom nestedTrans{
+        forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance :: {nestedPredicates(l1, l2), nestedPredicates(l2, l3)}
+            nestedPredicates(l1,l2) && nestedPredicates(l2,l3) ==> nestedPredicates(l1,l3)
+    }
+
+    //A predicate cannot be nested inside itself
+    axiom nestedReflex{
+        forall l1: PredicateInstance ::
+            !nestedPredicates(l1, l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance_nested.vpr =====
+
+// ===== begin import: <std>/decreases/predicate_instance.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+// resolved: import "predicate_instance_nested.vpr"
+// resolved: import <predicateinstance/pi.vpr>
+
+domain PredicateInstancesWellFoundedOrder {
+    axiom predicate_instances_ax_dec{
+        forall l1: PredicateInstance, l2: PredicateInstance :: {nestedPredicates(l1,l2)}
+            decreasing(l1, l2) <==> nestedPredicates(l1,l2)
+    }
+
+    axiom predicate_instances_ax_bound{
+        forall l1: PredicateInstance :: {bounded(l1)}
+            bounded(l1)
+    }
+}
+// ===== end import: <std>/decreases/predicate_instance.vpr =====
+
+// ===== begin import: <std>/decreases/perm.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain PermWellFoundedOrder{
+	//Rationals
+    axiom rational_ax_dec{
+        forall int1: Perm, int2: Perm :: {decreasing(int1, int2)}
+            (int1 <= int2 - 1/1) ==> decreasing(int1, int2)
+    }
+    axiom rational_ax_bound{
+        forall int1: Perm :: {bounded(int1)}
+            int1 >= 0/1 ==> bounded(int1)
+    }
+}
+// ===== end import: <std>/decreases/perm.vpr =====
+
+// ===== begin import: <std>/decreases/ref.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain RefWellFoundedOrder{
+    //References
+	axiom ref_ax_dec{
+        forall ref1: Ref :: {decreasing(null,ref1)}
+            ref1 != null ==> decreasing(null, ref1)
+    }
+    axiom ref_ax_bound{
+        forall ref1: Ref :: {bounded(ref1)}
+            bounded(ref1)
+    }
+}
+// ===== end import: <std>/decreases/ref.vpr =====
+
+// ===== begin import: <std>/decreases/seq.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SeqWellFoundedOrder[S]{
+    //Sequences
+    axiom seq_ax_dec{
+        forall seq1: Seq[S], seq2: Seq[S] :: {decreasing(seq1,seq2)}
+            (|seq1| < |seq2|) ==> decreasing(seq1, seq2)
+    }
+    axiom seq_ax_bound{
+        forall seq1: Seq[S] :: {bounded(seq1)}
+            (|seq1| >= 0) ==> bounded(seq1)
+    }
+}
+// ===== end import: <std>/decreases/seq.vpr =====
+
+// ===== begin import: <std>/decreases/set.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "declaration.vpr"
+
+domain SetWellFoundedOrder[S]{
+    //Sets
+    axiom set_ax_dec{
+        forall set1: Set[S], set2: Set[S] :: {decreasing(set1, set2)}
+            (|set1| < |set2|) ==> decreasing(set1, set2)
+    }
+    axiom set_ax_bound{
+        forall set1: Set[S] ::  {bounded(set1)}
+            bounded(set1)
+    }
+}
+// ===== end import: <std>/decreases/set.vpr =====
+
+// ===== begin import: <std>/decreases/all.vpr =====
+// Any copyright is dedicated to the Public Domain.
+// http://creativecommons.org/publicdomain/zero/1.0/
+
+// resolved: import "bool.vpr"
+// resolved: import "int.vpr"
+// resolved: import "multiset.vpr"
+// resolved: import "predicate_instance.vpr"
+// resolved: import "perm.vpr"
+// resolved: import "ref.vpr"
+// resolved: import "seq.vpr"
+// resolved: import "set.vpr"
+// ===== end import: <std>/decreases/all.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/definitions.vpr =====
+/**
+ * This file contains auxiliary definitions that are used in multiple locations
+ */
+
+
+/**
+ * The Unit data type has a single value, `unit()`. We use it as the return value of
+ * translated lemmas. Viper does not provide a special syntax for defining lemmas.
+ * As lemmas need to be callable in a pure context, we translate them to functions
+ * with `Unit` as the return type. We could also use an arbitrary type like bool as
+ * the return type. We chose this way to express the fact that the return value is
+ * not important.
+ */
+adt Unit {
+  unit()
+}
+
+/**
+ * Viper sometimes has a problem where the postconditions of called functions are not
+ * added to the context. This function forces a condition to be checked, which will add 
+ * it, allowing us to use it in proofs.
+ */
+function asserting(x: Bool): Unit
+    requires x
+    decreases
+{
+    unit()
+}
+
+/**
+ * Viper does not have built-in support for tuples (pairs, triples, ...), so we
+ * need to define a pair type via a custom domain.
+ */
+domain Pair[T, G] {
+
+    /**
+     * The constructor takes two elements and returns a pair containing both of them.
+     */
+    function pair(T, G): Pair[T, G]
+
+    /**
+     * The destructors allow access to the elements of a pair.
+     */
+    function getLeft(Pair[T, G]): T
+    function getRight(Pair[T, G]): G
+
+    /**
+     * These axioms define the behavior of the functions above: If we create a pair 
+     * and then access its elements, we get the original elements back.
+     */
+    axiom axGetLeft {
+        forall x: T, y: G :: getLeft(pair(x, y)) == x
+    }
+
+    axiom axGetRight {
+        forall x: T, y: G :: getRight(pair(x, y)) == y
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/definitions.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.0.vpr =====
+/**
+ * We are now importing the decreases file for Integers, which is
+ * defined in the standard library and file all.vpr. We import this
+ * file in order to prove termination on Ints.
+ *
+ * This file holds other well-founded orders as well, but we will not
+ * need those in this chapter.
+ */
+// resolved: import <decreases/all.vpr>
+
+// resolved: import "../definitions.vpr"
+
+/**
+ * We take the definition of the Fibonacci sequence function from chapter 3.1
+ */
+function Fib(n: Int): Int
+    /**
+     * We need n to be a natural number. Otherwise the Fibonacci
+     * sequence will not be defined.
+     */
+    requires 0 <= n 
+    ensures 0 <= result
+    decreases n
+{
+    (n < 2) ? n : Fib(n - 2) + Fib(n - 1)
+}
+
+/**
+ * Now we will write a more efficient function for the calculation
+ * of the Fibonacci sequence using a loop inside a method.
+ */
+method ComputeFib(n: Int) returns (x: Int)
+    /**
+     * We again need n to be a natural number. We also want to ensure
+     * that our return value x will be positive.
+     */
+    requires 0 <= n 
+    ensures 0 <= x
+    ensures x == Fib(n)
+    decreases
+{
+    x := 0
+    var i: Int := 0
+    var y: Int := 1
+    var tmp: Int := x
+    while(i != n)
+        invariant 0 <= i && i <= n
+        invariant x == Fib(i) && y == Fib(i + 1)
+        decreases n - i
+    {
+        tmp := x
+        x := y
+        y := tmp + y
+        i := i + 1
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.0.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.1.vpr =====
+// resolved: import "examples-12.0.vpr"
+
+/**
+ * This method will compute the square of the Fib(n)
+ * number and return it. 
+ */
+method SquareFib(N: Int) returns (x: Int)
+    requires 0 <= N 
+    ensures 0 <= x
+    ensures x == Fib(N) * Fib(N)
+    decreases
+{
+    x := 0
+    var n: Int := 0
+    var y: Int := 1
+    while(n != N)
+        invariant 0 <= n && n <= N 
+        invariant x == Fib(n) * Fib(n)
+        invariant y == Fib(n + 1) * Fib(n + 1)
+        decreases N - n
+    {
+        x := y
+        y := Fib(n + 2) * Fib(n + 2)
+        n := n + 1
+    }
+}
+
+/**
+ * This function computes the square of the Fib(n) number
+ * using an extra variable k.
+ */
+method SquareFibWithk(N: Int) returns (x: Int)
+    requires 0 <= N 
+    ensures 0 <= x
+    ensures x == Fib(N) * Fib(N)
+    decreases
+{
+    x := 0
+    var n: Int := 0
+    var y: Int := 1
+    var k: Int := 0
+    var tmp1: Int := 0
+    var tmp2: Int := 1
+    while(n != N)
+        invariant 0 <= n && n <= N 
+        invariant x == Fib(n) * Fib(n)
+        invariant y == Fib(n + 1) * Fib(n + 1)
+        invariant k == 2 * Fib(n) * Fib(n + 1)
+        decreases N - n
+    {
+        /**
+         * Compared to the code in the book, we are using a
+         * temporary variable, as Viper does not 
+         * support simultaneous assignments of multiple variables.
+         */
+        tmp1 := x
+        tmp2 := y
+        x := y
+        y := tmp1 + k + y
+        k := k + tmp2 + tmp2
+        n := n + 1
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.1.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.2.vpr =====
+// resolved: import "examples-12.1.vpr"
+
+/**
+ * This function calculates the 2 to the power of n. 2 to the power
+ * of 0 is equal to 1.
+ */
+function Power(n: Int): Int
+    requires 0 <= n 
+    ensures 0 <= result
+    decreases n
+{
+    (n==0) ? 1 : 2 * Power(n-1)
+}
+
+method ComputePower(n: Int) returns (p: Int)
+    requires 0 <= n 
+    ensures 0 <= p 
+    ensures p == Power(n)
+    decreases
+{
+    p := 1
+    var i: Int := 0
+    while(i != n)
+        invariant 0 <= i && i <= n 
+        invariant p == Power(i)
+        decreases n - i
+    {
+        p := 2 * p
+        i := i + 1
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.2.vpr =====
+
+// ===== begin import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.3.vpr =====
+// resolved: import "examples-12.2.vpr"
+
+/**
+ * In this file, we also have to import the definition of
+ * lemmaAppendSumUp we defined in the exercise file, since
+ * we need it to prove certain loop invariants.
+ */
+// resolved: import "exercises-12.3.vpr"
+
+/**
+ * We will create an uninterpreted function.
+ */
+function F(x: Int): Int
+    decreases
+
+/**
+ *
+ * This function calculates the sum of all numbers between
+ * the two input parameters.
+ */
+function SumUp(lo: Int, hi: Int): Int
+    requires lo <= hi
+    decreases hi - lo
+{
+    (lo == hi) ? 0 : F(lo) + SumUp(lo + 1, hi)
+}
+
+/**
+ * This function sums down, going in the opposite
+ * direction of the one above.
+ */
+function SumDown(lo: Int, hi: Int): Int
+    requires lo <= hi
+    decreases hi - lo
+{
+    (lo == hi) ? 0 : SumDown(lo, hi - 1) + F(hi - 1)
+}
+
+/**
+ * Both functions above should return the same result. We will
+ * prove this assumption in the lemma below.
+ */
+function lemmaSameSums(lo: Int, hi: Int) : Unit
+    requires lo <= hi
+    ensures SumUp(lo, hi) == SumDown(lo, hi)
+    decreases hi - lo
+{
+    (lo == hi) ? unit() 
+                : 
+                let _ == (lemmaSameSums(lo + 1, hi)) in 
+                lemmaPrependSumDown(lo, hi)
+}
+
+/**
+ * An auxiliary function to help us prove the lemma above.
+ */
+function lemmaPrependSumDown(lo: Int, hi: Int) : Unit
+    requires lo < hi
+    ensures F(lo) + SumDown(lo + 1, hi) == SumDown(lo, hi)
+    decreases hi - lo
+{
+    (lo < hi - 1) ? lemmaPrependSumDown(lo, hi - 1) 
+                    : 
+                    asserting(SumDown(lo, hi) == SumDown(lo, hi - 1) + F(hi - 1))
+}
+
+/**
+ * Now we will compute the sum with the help of loops.
+ *
+ * I have commented out the postcondition of both functions,
+ * since they do not verify yet and we need to add an
+ * extra loop invariant. This will be done in LoopUp01 and
+ * LoopDown01.
+ */
+method LoopUp0(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    //ensures s == SumUp(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := lo
+    while(i != hi)
+        invariant lo <= i && i <= hi
+        decreases hi - i
+    {
+        s := s + F(i)
+        i := i + 1
+    }
+}
+
+method LoopDown0(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    //ensures s == SumDown(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := hi
+    while(i != lo)
+        invariant lo <= i && i <= hi
+        decreases i - lo
+    {
+        i := i - 1
+        s := s + F(i)
+    }
+}
+
+/**
+ * With the additional loop invariants, the postcondition can be verified.
+ */
+method LoopUp01(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumUp(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := lo
+    while(i != hi)
+        invariant lo <= i && i <= hi
+        invariant s == SumUp(lo, i)
+        decreases hi - i
+    {
+        s := s + F(i)
+        i := i + 1
+        var _ : Unit := lemmaAppendSumUp(lo, i)
+    }
+}
+
+method LoopDown01(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumDown(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := hi
+    while(i != lo)
+        invariant lo <= i && i <= hi
+        invariant s == SumDown(i, hi)
+        decreases i - lo
+    {
+        i := i - 1
+        s := s + F(i)
+        var _ : Unit := lemmaPrependSumDown(i, hi)
+    }
+}
+
+/**
+ * Here we have the different versions of the LoopUp and
+ * LoopDown functions.
+ *
+ * The LoopUp1 method uses the SumDown function to prove
+ * its postcondition, instead of using SumUp and then 
+ * having to establish the equality 
+ * SumUp(lo, hi -1) + F(hi - 1) == SumUp(lo, hi)
+ * with a lemma.
+ */
+method LoopUp1(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumDown(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := lo
+    while(i != hi)
+        invariant lo <= i && i <= hi
+        invariant s == SumDown(lo, i)
+        decreases hi - i
+    {
+        s := s + F(i)
+        i := i + 1
+    }
+}
+
+/**
+ * The LoopDown1 method goes the other way around. It
+ * uses SumUp to state its postcondition and its
+ * invariant and therefore does not need to 
+ * specify the equality  
+ * F(lo) + SumDown(lo + 1, hi) == SumDown(lo, hi)
+ * via a lemma.
+ */
+method LoopDown1(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumUp(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := hi
+    while(i != lo)
+        invariant lo <= i && i <= hi
+        invariant s == SumUp(i, hi)
+        decreases i - lo
+    {
+        i := i - 1
+        s := s + F(i)
+    }
+}
+
+/**
+ * These two methods have the equality we needed to provide
+ * in LoopUp01 and LoopDown01 directly in their respective loop invariant
+ * and they therefore do not need to state the lemmas.
+ */
+method LoopUp2(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumUp(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := lo
+    while(i != hi)
+        invariant lo <= i && i <= hi
+        invariant s + SumUp(i, hi) == SumUp(lo, hi)
+        decreases hi - i
+    {
+        s := s + F(i)
+        i := i + 1
+    }
+}
+
+method LoopDown2(lo: Int, hi: Int) returns (s: Int)
+    requires lo <= hi
+    ensures s == SumDown(lo, hi)
+    decreases
+{
+    s := 0
+    var i: Int := hi
+    while(i != lo)
+        invariant lo <= i && i <= hi
+        invariant s + SumDown(lo, i) == SumDown(lo, hi)
+        decreases i - lo
+    {
+        i := i - 1
+        s := s + F(i)
+    }
+}
+// ===== end import: DaV/viper/dafny_book_examples/Chapter_12/examples-12.3.vpr =====
+
+// resolved: import "examples-12.3.vpr"
+
+
+//Exercise 12.6
+/**
+ * This exercise asks us about the default decreases clauses 
+ * of the two functions. Since we have no default decreases
+ * clauses in Viper, this question does not make sense for
+ * Viper.
+ */
+
+//Exercise 12.7
+/**
+ * Automatic induction
+ */
+
+//Exercise 12.8
+/**
+ * We have to prove a lemmaAppendSumUp without relying on
+ * automatic induction. We will simply do as we always have,
+ * since there is no automatic induction in Viper. 
+ */
+function lemmaAppendSumUp(lo: Int, hi: Int) : Unit
+    requires lo < hi
+    ensures SumUp(lo, hi -1) + F(hi - 1) == SumUp(lo, hi)
+    decreases hi - lo
+{
+    let _0 == (lemmaSameSums(lo, hi)) in 
+    let _1 == (lemmaSameSums(lo, hi - 1)) in unit()
+}
+
+//Exercise 12.9
+/**
+ * We are asked to prove the lemmaSumRanges.
+ */
+function lemmaSumRanges(lo: Int, mid: Int, hi: Int) : Unit
+    requires lo <= mid && mid <= hi
+    ensures SumUp(lo, mid) + SumUp(mid, hi) == SumUp(lo, hi)
+    decreases hi - lo
+{
+    (lo == mid) ? unit() : lemmaSumRanges(lo + 1, mid, hi)
+}

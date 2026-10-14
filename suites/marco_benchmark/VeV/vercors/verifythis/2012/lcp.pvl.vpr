@@ -1,0 +1,272 @@
+domain WellFoundedOrder[T]  {
+  
+  function bounded(v: T): Bool 
+  
+  function decreasing(v1: T, v2: T): Bool 
+}
+
+domain IntOrder  {
+  
+  axiom {
+    (forall i: Int ::0 <= i == (bounded(i): Bool))
+  }
+  
+  axiom {
+    (forall i: Int ::(forall j: Int ::i < j == (decreasing(i, j): Bool)))
+  }
+}
+
+domain array  {
+  
+  function array_loc(a: array, i: Int): Ref 
+  
+  function alen(a: array): Int 
+  
+  function loc_inv_1(loc: Ref): array 
+  
+  function loc_inv_2(loc: Ref): Int 
+  
+  axiom {
+    (forall a: array, i: Int ::
+      { array_loc(a, i) }
+      loc_inv_1(array_loc(a, i)) == a && loc_inv_2(array_loc(a, i)) == i)
+  }
+  
+  axiom {
+    (forall a: array :: { alen(a) } alen(a) >= 0)
+  }
+}
+
+domain any  {
+  
+  
+}
+
+domain option[T1]  {
+  
+  function None(): option[T1] 
+  
+  function some(x: T1): option[T1] 
+  
+  function option_get(opt: option[T1]): T1 
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (None(): option[T1]) != (some(x): option[T1]))
+  }
+  
+  axiom {
+    (forall x: T1 ::
+      { (some(x): option[T1]) }
+      (option_get((some(x): option[T1])): T1) == x)
+  }
+  
+  axiom {
+    (forall opt: option[T1] ::
+      { (some((option_get(opt): T1)): option[T1]) }
+      (some((option_get(opt): T1)): option[T1]) == opt)
+  }
+}
+
+field int: Int
+
+function aloc(a: array, i: Int): Ref
+  requires 0 <= i
+  requires i < alen(a)
+  decreases 
+  ensures loc_inv_1(result) == a
+  ensures loc_inv_2(result) == i
+{
+  array_loc(a, i)
+}
+
+function any_as(t: any): any
+  decreases 
+
+
+function as_any(t: any): any
+  decreases 
+  ensures any_as(result) == t
+
+
+function opt_get(opt: option[any]): any
+  requires opt != (None(): option[any])
+  decreases 
+  ensures (some(result): option[any]) == opt
+{
+  (option_get(opt): any)
+}
+
+function opt_or_else(opt: option[any], alt: any): any
+  decreases 
+  ensures opt == (None(): option[any]) ==> result == alt
+  ensures opt != (None(): option[any]) ==> result == opt_get(opt)
+{
+  (opt == (None(): option[any]) ? alt : opt_get(opt))
+}
+
+function opt_get1(opt: option[array]): array
+  requires opt != (None(): option[array])
+  decreases 
+  ensures (some(result): option[array]) == opt
+{
+  (option_get(opt): array)
+}
+
+function type(type1: Ref): Int
+  decreases 
+  ensures result >= 0
+  ensures result <= 1
+  ensures type1 == null ==> result == 0
+  ensures type1 != null ==> result != 0
+
+
+function subtype(subtype1: Int, subtype2: Int): Bool
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+  decreases 
+{
+  (subtype1 == 0 ==> true) && (subtype1 == 1 ==> subtype2 == 1)
+}
+
+method check_sat_LCP()
+{
+  assert false
+}
+
+method LCP(tid: Int) returns (res: Ref)
+{
+  var exc: Ref
+  var return: Ref
+  var LCP1: Ref
+  var flatten: Ref
+  exc := null
+  flatten := new()
+  inhale type(flatten) == 1
+  LCP1 := flatten
+  return := LCP1
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_lcp(x: Int, a: option[array], y: Int, this: Ref)
+  requires this != null
+  requires a != (None(): option[array])
+  requires (forall k: Int ::
+      { aloc(opt_get1(a), k) }
+      0 <= k && k < alen(opt_get1(a)) ==>
+      acc(aloc(opt_get1(a), k).int, wildcard))
+  requires 0 <= x
+  requires x < alen(opt_get1(a))
+  requires 0 <= y
+  requires y < alen(opt_get1(a))
+{
+  assert false
+}
+
+method lcp(this: Ref, tid: Int, a: option[array], x: Int, y: Int)
+  returns (res: Int)
+  requires this != null
+  requires a != (None(): option[array])
+  requires (forall k: Int ::
+      { aloc(opt_get1(a), k) }
+      0 <= k && k < alen(opt_get1(a)) ==>
+      acc(aloc(opt_get1(a), k).int, wildcard))
+  requires 0 <= x
+  requires x < alen(opt_get1(a))
+  requires 0 <= y
+  requires y < alen(opt_get1(a))
+  ensures a != (None(): option[array])
+  ensures (forall k: Int ::
+      { aloc(opt_get1(a), k) }
+      0 <= k && k < alen(opt_get1(a)) ==>
+      acc(aloc(opt_get1(a), k).int, wildcard))
+  ensures 0 <= x
+  ensures x < alen(opt_get1(a))
+  ensures 0 <= y
+  ensures y < alen(opt_get1(a))
+  ensures 0 <= res + x
+  ensures res + x < alen(opt_get1(a)) + 1
+  ensures 0 <= res + y
+  ensures res + y < alen(opt_get1(a)) + 1
+  ensures (forall k: Int ::
+      { aloc(opt_get1(a), k) }
+      0 <= k && k < alen(opt_get1(a)) ==>
+      acc(aloc(opt_get1(a), k).int, wildcard))
+  ensures (forall i: Int, j: Int ::(let k1 ==
+        (i - x) in
+        (let k2 ==
+          (j - x) in
+          k1 == k2 && 0 <= k1 && k1 < res ==>
+          aloc(opt_get1(a), i).int == aloc(opt_get1(a), j).int)))
+{
+  var exc: Ref
+  var return: Int
+  var l: Int
+  var flatten: Int
+  var flatten1: Int
+  var excBeforeLoop: Ref
+  exc := null
+  flatten := 0
+  l := flatten
+  label loop
+  excBeforeLoop := exc
+  while (x + l < alen(opt_get1(a)) && y + l < alen(opt_get1(a)) &&
+  aloc(opt_get1(a), x + l).int == aloc(opt_get1(a), y + l).int)
+    invariant exc == excBeforeLoop
+    invariant a != (None(): option[array])
+    invariant (forall k: Int ::
+        { aloc(opt_get1(a), k) }
+        0 <= k && k < alen(opt_get1(a)) ==>
+        acc(aloc(opt_get1(a), k).int, wildcard))
+    invariant 0 <= x
+    invariant x < alen(opt_get1(a))
+    invariant 0 <= y
+    invariant y < alen(opt_get1(a))
+    invariant 0 <= l
+    invariant l < alen(opt_get1(a)) + 1
+    invariant 0 <= x + l
+    invariant x + l < alen(opt_get1(a)) + 1
+    invariant 0 <= y + l
+    invariant y + l < alen(opt_get1(a)) + 1
+    invariant (forall k: Int ::
+        { aloc(opt_get1(a), k) }
+        0 <= k && k < alen(opt_get1(a)) ==>
+        acc(aloc(opt_get1(a), k).int, wildcard))
+    invariant (forall i: Int, j: Int ::(let k1 ==
+          (i - x) in
+          (let k2 ==
+            (j - y) in
+            k1 == k2 && 0 <= k1 && k1 < l ==>
+            aloc(opt_get1(a), i).int == aloc(opt_get1(a), j).int))) 
+  {
+    flatten1 := l + 1
+    l := flatten1
+  }
+  return := l
+  goto end
+  label end
+  res := return
+  label bubble
+  assert exc == null
+}
+
+method check_sat_type()
+{
+  assert false
+}
+
+method check_sat_subtype(subtype1: Int, subtype2: Int)
+  requires subtype1 >= 0
+  requires subtype1 <= 1
+  requires subtype2 >= 0
+  requires subtype2 <= 1
+{
+  assert false
+}

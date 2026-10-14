@@ -1,0 +1,378 @@
+domain ParamTyp  {
+  
+  function s_Param_typ(arg0: s_Param): Type 
+  
+  function s_Param_has_typ(arg0: s_Param, arg1: Type): Bool 
+  
+  axiom s_Param_has_typ_own {
+    (forall p: s_Param ::
+      { s_Param_typ(p) }
+      s_Param_has_typ(p, s_Param_typ(p)))
+  }
+}
+
+domain ParamTyp_make_generic_s_UInt_u8  {
+  
+  axiom s_Param_typ_def_make_generic_s_UInt_u8 {
+    (forall x: s_UInt_u8 ::
+      { make_generic_s_UInt_u8(x) }
+      s_Param_typ(make_generic_s_UInt_u8(x)) == s_UInt_u8_type())
+  }
+  
+  axiom s_Param_typ_variant_make_generic_s_UInt_u8 {
+    (forall p: s_Param ::
+      { p.make_concrete_s_UInt_u8, s_Param_typ(p) }
+      s_Param_typ(p) == s_UInt_u8_type() ==>
+      make_generic_s_UInt_u8(p.make_concrete_s_UInt_u8) == p)
+  }
+}
+
+domain s_UInt_u8  {
+  
+  function s_UInt_u8_cons(arg0: Int): s_UInt_u8 
+  
+  function s_UInt_u8_value(arg0: s_UInt_u8): Int 
+  
+  axiom s_UInt_u8_ax_cons {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      s_UInt_u8_cons(s_UInt_u8_value(s)) == s)
+  }
+  
+  axiom s_UInt_u8_ax_bounds {
+    (forall s: s_UInt_u8 ::
+      { s_UInt_u8_value(s) }
+      0 <= s_UInt_u8_value(s) && s_UInt_u8_value(s) <= 255)
+  }
+  
+  axiom s_UInt_u8_ax_value {
+    (forall value: Int ::
+      { s_UInt_u8_cons(value) }
+      0 <= value && value <= 255 ==>
+      s_UInt_u8_value(s_UInt_u8_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_std$col$$col$cell$col$$col$UnsafeCell {
+    (forall T$0: Type ::
+      { inhabited(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      inhabited(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)) ==
+      inhabited(T$0))
+  }
+  
+  axiom inhabited_UInt_u8 {
+    inhabited(s_UInt_u8_type()) == true
+  }
+  
+  axiom inhabited_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8 {
+    inhabited(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type()) ==
+    inhabited(s_std$col$$col$cell$col$$col$UnsafeCell_type(s_UInt_u8_type()))
+  }
+  
+  axiom inhabited_once$col$$col$Once {
+    inhabited(s_once$col$$col$Once_type()) ==
+    inhabited(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type())
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$default$col$$col$Default  {
+  
+  function std$col$$col$default$col$$col$Default_impl(arg0: Type): Bool 
+}
+
+domain sizedness_UInt_u8  {
+  
+  axiom s_UInt_u8_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_UInt_u8_type())
+  }
+  
+  axiom s_UInt_u8_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_UInt_u8_type())
+  }
+}
+
+domain sizedness_std$col$$col$cell$col$$col$UnsafeCell  {
+  
+  axiom s_std$col$$col$cell$col$$col$UnsafeCell_Sized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+  
+  axiom s_std$col$$col$cell$col$$col$UnsafeCell_MetaSized {
+    (forall T$0: Type ::
+      { std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain sizedness_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8  {
+  
+  axiom s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type())
+  }
+  
+  axiom s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type())
+  }
+}
+
+domain sizedness_once$col$$col$Once  {
+  
+  axiom s_once$col$$col$Once_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_once$col$$col$Once_type())
+  }
+  
+  axiom s_once$col$$col$Once_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_once$col$$col$Once_type())
+  }
+}
+
+domain trait_std$col$$col$default$col$$col$Default_impl_parking_lot_once$col$$col$Once_16_condition  {
+  
+  axiom std$col$$col$default$col$$col$Default_impl_parking_lot_once$col$$col$Once_16_condition {
+    std$col$$col$default$col$$col$Default_impl(s_once$col$$col$Once_type())
+  }
+}
+
+domain trait_std$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition  {
+  
+  axiom std$col$$col$default$col$$col$Default_impl_core_UInt_u8_1967_condition {
+    std$col$$col$default$col$$col$Default_impl(s_UInt_u8_type())
+  }
+}
+
+domain trait_std$col$$col$default$col$$col$Default_impl_core_std$col$$col$cell$col$$col$UnsafeCell_2032_condition  {
+  
+  axiom std$col$$col$default$col$$col$Default_impl_core_std$col$$col$cell$col$$col$UnsafeCell_2032_condition {
+    (forall T$0: Type ::
+      { std$col$$col$default$col$$col$Default_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)) }
+      std$col$$col$default$col$$col$Default_impl(T$0) &&
+      std$col$$col$marker$col$$col$Sized_impl(T$0) ==>
+      std$col$$col$default$col$$col$Default_impl(s_std$col$$col$cell$col$$col$UnsafeCell_type(T$0)))
+  }
+}
+
+domain trait_std$col$$col$default$col$$col$Default_impl_core_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_2051_condition  {
+  
+  axiom std$col$$col$default$col$$col$Default_impl_core_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_2051_condition {
+    std$col$$col$default$col$$col$Default_impl(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type())
+  }
+}
+
+field p_UInt_u8_val: s_UInt_u8
+
+function s_once$col$$col$Once_unreachable(): s_once$col$$col$Once
+  ensures false
+
+
+function s_once$col$$col$Once_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_unreachable(): s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8
+  ensures false
+
+
+function s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_std$col$$col$cell$col$$col$UnsafeCell_unreachable(T$0: Type): s_std$col$$col$cell$col$$col$UnsafeCell
+  ensures false
+
+
+function s_std$col$$col$cell$col$$col$UnsafeCell_field_0(self: Ref, T$0: Type): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Param_unreachable(T$0: Type): s_Param
+  ensures false
+
+
+function s_UInt_u8_unreachable(): s_UInt_u8
+  ensures false
+
+
+function p_once$col$$col$Once_snap(self: Ref): s_once$col$$col$Once
+  requires acc(p_once$col$$col$Once(self), write)
+{
+  (unfolding acc(p_once$col$$col$Once(self), write) in
+    s_once$col$$col$Once_cons(p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_snap(s_once$col$$col$Once_field_0(self))))
+}
+
+function p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_snap(self: Ref): s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8
+  requires acc(p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8(self), write)
+{
+  (unfolding acc(p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8(self), write) in
+    s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_cons(p_std$col$$col$cell$col$$col$UnsafeCell_snap(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_field_0(self),
+    s_UInt_u8_type())))
+}
+
+function p_std$col$$col$cell$col$$col$UnsafeCell_snap(self: Ref, T$0: Type): s_std$col$$col$cell$col$$col$UnsafeCell
+  requires acc(p_std$col$$col$cell$col$$col$UnsafeCell(self, T$0), write)
+{
+  (unfolding acc(p_std$col$$col$cell$col$$col$UnsafeCell(self, T$0), write) in
+    s_std$col$$col$cell$col$$col$UnsafeCell_cons(p_Param_snap(s_std$col$$col$cell$col$$col$UnsafeCell_field_0(self,
+    T$0), T$0)))
+}
+
+function p_Param_snap(self: Ref, T$0: Type): s_Param
+  requires acc(p_Param(self, T$0), write)
+  ensures s_Param_typ(result) == T$0
+
+
+function p_UInt_u8_snap(self: Ref): s_UInt_u8
+  requires acc(p_UInt_u8(self), write)
+{
+  (unfolding acc(p_UInt_u8(self), write) in self.p_UInt_u8_val)
+}
+
+predicate p_once$col$$col$Once(self: Ref) {
+  inhabited(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type()) &&
+  acc(p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8(s_once$col$$col$Once_field_0(self)), write)
+}
+
+predicate p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8(self: Ref) {
+  inhabited(s_std$col$$col$cell$col$$col$UnsafeCell_type(s_UInt_u8_type())) &&
+  acc(p_std$col$$col$cell$col$$col$UnsafeCell(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_field_0(self),
+  s_UInt_u8_type()), write)
+}
+
+predicate p_std$col$$col$cell$col$$col$UnsafeCell(self: Ref, T$0: Type) {
+  inhabited(T$0) &&
+  acc(p_Param(s_std$col$$col$cell$col$$col$UnsafeCell_field_0(self, T$0), T$0), write)
+}
+
+predicate p_Param(self: Ref, T$0: Type) 
+
+predicate p_UInt_u8(self: Ref) {
+  acc(self.p_UInt_u8_val, write)
+}
+
+method m_$lt$once$col$$col$Once$sp$as$sp$std$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  ensures inhabited(s_once$col$$col$Once_type()) &&
+    acc(p_once$col$$col$Once(_0p), write)
+{
+  var _from_bb0_to_bb1: Bool
+  label start
+  _from_bb0_to_bb1 := false
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  goto bb_term_0
+  label bb_term_0
+  label pre0
+  m_once$col$$col$Once$col$$col$new(_0p)
+  label post1
+  label _after_0
+  _from_bb0_to_bb1 := true
+  goto bb_1
+  label bb_1
+  label _before_1_0
+  label package_post2
+  goto end
+  label bb_2
+  assert false
+  goto end
+  label end
+}
+
+method m_once$col$$col$Once$col$$col$new(_0p: Ref)
+  ensures inhabited(s_once$col$$col$Once_type()) &&
+    acc(p_once$col$$col$Once(_0p), write)
+
+
+method make_generic_UInt_u8(self: Ref)
+  requires acc(p_UInt_u8(self), write)
+  ensures acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures old(make_generic_s_UInt_u8(p_UInt_u8_snap(self))) ==
+    p_Param_snap(self, s_UInt_u8_type())
+
+
+method make_concrete_UInt_u8(self: Ref)
+  requires acc(p_Param(self, s_UInt_u8_type()), write)
+  ensures acc(p_UInt_u8(self), write)
+  ensures old(p_Param_snap(self, s_UInt_u8_type())) ==
+    make_generic_s_UInt_u8(p_UInt_u8_snap(self))
+
+
+method p_once$col$$col$Once_assign(self: Ref, value: s_once$col$$col$Once)
+  ensures acc(p_once$col$$col$Once(self), write)
+  ensures p_once$col$$col$Once_snap(self) == value
+
+
+method p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_assign(self: Ref,
+  value: s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8)
+  ensures acc(p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8(self), write)
+  ensures p_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_snap(self) ==
+    value
+
+
+method p_std$col$$col$cell$col$$col$UnsafeCell_assign(self: Ref, T$0: Type,
+  value: s_std$col$$col$cell$col$$col$UnsafeCell)
+  ensures acc(p_std$col$$col$cell$col$$col$UnsafeCell(self, T$0), write)
+  ensures p_std$col$$col$cell$col$$col$UnsafeCell_snap(self, T$0) == value
+
+
+method p_Param_assign(self: Ref, T$0: Type, value: s_Param)
+  ensures acc(p_Param(self, T$0), write)
+  ensures p_Param_snap(self, T$0) == value
+
+
+method p_UInt_u8_assign(self: Ref, value: s_UInt_u8)
+  ensures acc(p_UInt_u8(self), write)
+  ensures p_UInt_u8_snap(self) == value
+
+
+method trait_std$col$$col$default$col$$col$Default_impl_once$col$$col$Once_16_fn_pre_weaken_$lt$once$col$$col$Once$sp$as$sp$std$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+{
+  label start
+}
+
+method trait_std$col$$col$default$col$$col$Default_impl_once$col$$col$Once_16_fn_post_strengthen_$lt$once$col$$col$Once$sp$as$sp$std$col$$col$default$col$$col$Default$gt$$col$$col$default(_0p: Ref)
+  requires inhabited(s_once$col$$col$Once_type()) &&
+    acc(p_once$col$$col$Once(_0p), write)
+{
+  label start
+}
+
+adt s_Param {
+  make_generic_s_UInt_u8(make_concrete_s_UInt_u8: s_UInt_u8)
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_once$col$$col$Once {
+  s_once$col$$col$Once_cons(s_once$col$$col$Once_0: s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8)
+}
+
+adt s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8 {
+  s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_cons(s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_0: s_std$col$$col$cell$col$$col$UnsafeCell)
+}
+
+adt s_std$col$$col$cell$col$$col$UnsafeCell {
+  s_std$col$$col$cell$col$$col$UnsafeCell_cons(s_std$col$$col$cell$col$$col$UnsafeCell_0: s_Param)
+}
+
+adt Type {
+  s_UInt_u8_type()
+  s_std$col$$col$cell$col$$col$UnsafeCell_type(s_std$col$$col$cell$col$$col$UnsafeCell_typaram_T$0: Type)
+  s_std$col$$col$sync$col$$col$atomic$col$$col$AtomicU8_type()
+  s_once$col$$col$Once_type()
+  Unknown_type(id: Int)
+}

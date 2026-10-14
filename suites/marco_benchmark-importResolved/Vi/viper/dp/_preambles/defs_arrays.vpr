@@ -1,0 +1,63 @@
+// definitions needed when working with the IArray domain
+
+field val: Int
+
+// full access from element "from" until element "to" in array arr
+define access(arr, from, to) forall z: Int :: {slot(arr, z)} from <= z < to ==> acc(slot(arr, z).val)
+
+// half access from element "from" until element "to" in array arr
+define half_access(arr, from, to) forall z: Int :: {slot(arr, z)} from <= z < to ==> acc(slot(arr, z).val, 1/2)
+
+domain IArray {
+    // slot function to access the z-th element of array a
+    function slot(a: IArray, i: Int): Ref
+    // len function to access the length of array a
+    function len(a: IArray): Int
+    // when given a call slot(a, i), first returns a
+    function first(r: Ref): IArray
+    // when given a call slot(a, i), second returns i
+    function second(r: Ref): Int
+
+    // ensures that slot is an injective mapping
+    axiom all_diff {
+        forall a: IArray, i: Int :: { slot(a,i) }
+        first(slot(a,i)) == a && second(slot(a,i)) == i
+    }
+
+    // ensures that the length of an array is non-negative
+    axiom len_nonneg {
+        forall a: IArray :: { len(a) }
+        len(a) >= 0
+    }
+}
+
+// function to calculate the sum of all elements in an array starting from element p
+function sum_rec(xs: IArray, p: Int): Int 
+  requires forall z: Int :: {slot(xs, z)} p <= z < len(xs) ==> acc(slot(xs, z).val, 1/2)
+  requires 0 <= p <= len(xs)
+  decreases len(xs) - p
+{  
+  p == len(xs) ? 0 : slot(xs, p).val + sum_rec(xs, p + 1)
+}
+
+// function to determine the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// function to determine the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// function to determine the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+

@@ -1,0 +1,66 @@
+// Should be applied together with framing
+function apply_DepToTcWisdom(g0:Set[Ref], g1:Set[Ref]): Bool
+    requires READONLY_NODES(g0)
+    requires READONLY_NODES(g1)
+    ensures forall u:Ref, v:Ref :: 
+        { DEP_(g0 union g1, u, v, u, u.left) }
+        { DEP_(g0 union g1, u, v, u, u.right) }
+        { DEP_(g0 union g1, u, v.left, v, v.left) } 
+        { DEP_(g0 union g1, u, v.right, v, v.right) } 
+            u in g0 && v in g0 ==> __learn_trigger__( P_(g0 union g1,u,v) )
+    ensures forall u:Ref, v:Ref :: 
+        { DEP_(g1 union g0, u, v, u, u.left) }
+        { DEP_(g1 union g0, u, v, u, u.right) }
+        { DEP_(g1 union g0, u, v.left, v, v.left) } 
+        { DEP_(g1 union g0, u, v.right, v, v.right) } 
+            u in g1 && v in g1 ==> __learn_trigger__( P_(g1 union g0,u,v) )
+    ensures forall u:Ref, v:Ref :: 
+        { DEP_(g0 union g1, u, v, u, u.left) }
+        { DEP_(g0 union g1, u, v, u, u.right) }
+        { DEP_(g0 union g1, u, v.left, v, v.left) } 
+        { DEP_(g0 union g1, u, v.right, v, v.right) } 
+            u in g0 && v in g0 ==> __learn_trigger__( P_(g0 union g1,u,v) )
+    ensures forall u:Ref, v:Ref :: 
+        { DEP_(g1 union g0, u, v, u, u.left) }
+        { DEP_(g1 union g0, u, v, u, u.right) }
+        { DEP_(g1 union g0, u, v.left, v, v.left) } 
+        { DEP_(g1 union g0, u, v.right, v, v.right) } 
+            u in g1 && v in g1 ==> __learn_trigger__( P_(g1 union g0,u,v) )
+
+method unlink_ZOPG_left(g:Set[Ref], node:Ref)
+    requires node in g
+    requires PROTECTED_GRAPH_left(g,node)
+    ensures PROTECTED_GRAPH_left(g,node)
+    ensures node.left == null
+    ensures old(node.left) == null ==> $$(g) == old($$(g))
+    ensures old(node.left) != null ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.left))
+    ensures old(node.left) != null ==> ZOPG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.left))
+
+method link_ZOPG_left(g:Set[Ref], from:Ref, to:Ref)
+    requires from in g
+    requires to != null ==> to in g
+    requires PROTECTED_GRAPH_left(g,from) && from.left == null
+    ensures PROTECTED_GRAPH_left(g,from)
+    ensures from.left == to
+    ensures to == null ==> $$(g) == old($$(g))
+    ensures to != null ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures to != null ==> ZOPG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)
+
+method unlink_ZOPG_right(g:Set[Ref], node:Ref)
+    requires node in g
+    requires PROTECTED_GRAPH_right(g,node)
+    ensures PROTECTED_GRAPH_right(g,node)
+    ensures node.right == null
+    ensures old(node.right) == null ==> $$(g) == old($$(g))
+    ensures old(node.right) != null ==> UNLINK__PRECISE_EDGE_UPDATE_FORMULA(g, node, old(node.right))
+    ensures old(node.right) != null ==> ZOPG_UNLINK__PRECISE_TC_UPDATE_FORMULA(g, node, old(node.right))
+
+method link_ZOPG_right(g:Set[Ref], from:Ref, to:Ref)
+    requires from in g
+    requires to != null ==> to in g
+    requires PROTECTED_GRAPH_right(g,from) && from.right == null
+    ensures PROTECTED_GRAPH_right(g,from)
+    ensures from.right == to
+    ensures (to == null) ==> $$(g) == old($$(g))
+    ensures (to != null) ==> LINK__PRECISE_EDGE_UPDATE_FORMULA(g, from, to)
+    ensures (to != null) ==> ZOPG_LINK__PRECISE_TC_UPDATE_FORMULA(g, from, to)      

@@ -1,0 +1,969 @@
+// Generated on 2024-01-05 at 15:34:10
+domain TYPE {
+  
+  unique function class_ParallelABFS(): TYPE
+  
+  unique function class_java_DOT_lang_DOT_Object(): TYPE
+  
+  unique function class_EncodedGlobalVariables(): TYPE
+  
+  function directSuperclass(t: TYPE): TYPE
+  
+  function type_of(val: Ref): TYPE
+  
+  axiom ParallelABFS_directSuperclass {
+    directSuperclass(class_ParallelABFS()) == class_java_DOT_lang_DOT_Object()
+  }
+  
+  axiom EncodedGlobalVariables_directSuperclass {
+    directSuperclass(class_EncodedGlobalVariables()) == class_java_DOT_lang_DOT_Object()
+  }
+}
+
+domain frac {
+  
+  function frac_val(a: frac): Perm
+  
+  axiom frac_eq {
+    (forall a: frac, b: frac :: { frac_val(a),frac_val(b) } (frac_val(a) == frac_val(b)) == (a == b))
+  }
+  
+  axiom frac_bound {
+    (forall a: frac :: { frac_val(a) } 0 / 1 < frac_val(a) && frac_val(a) <= 1 / 1)
+  }
+}
+
+domain zfrac {
+  
+  function zfrac_val(a: zfrac): Perm
+  
+  axiom zfrac_eq {
+    (forall a: zfrac, b: zfrac :: { zfrac_val(a),zfrac_val(b) } (zfrac_val(a) == zfrac_val(b)) == (a == b))
+  }
+  
+  axiom zfrac_bound {
+    (forall a: zfrac :: { zfrac_val(a) } 0 / 1 <= zfrac_val(a) && zfrac_val(a) <= 1 / 1)
+  }
+}
+
+domain VCTArray[CT] {
+  
+  function loc(a: VCTArray[CT], i: Int): CT
+  
+  function alen(a: VCTArray[CT]): Int
+  
+  function first(r: CT): VCTArray[CT]
+  
+  function second(r: CT): Int
+  
+  axiom all_diff {
+    (forall a: VCTArray[CT], i: Int :: { (loc(a, i): CT) } (first((loc(a, i): CT)): VCTArray[CT]) == a && (second((loc(a, i): CT)): Int) == i)
+  }
+  
+  axiom len_nonneg {
+    (forall a: VCTArray[CT] :: { (alen(a): Int) } (alen(a): Int) >= 0)
+  }
+}
+
+domain VCTOption[T] {
+  
+  function VCTNone(): VCTOption[T]
+  
+  function VCTSome(t: T): VCTOption[T]
+  
+  function getVCTOption(o: VCTOption[T]): T
+  
+  function getVCTOptionOrElse(o: VCTOption[T], default: T): T
+  
+  axiom not_equal_vct {
+    (forall x: T :: { (VCTSome(x): VCTOption[T]) } (VCTNone(): VCTOption[T]) != (VCTSome(x): VCTOption[T]))
+  }
+  
+  axiom equal_vct {
+    (forall x: T, y: T :: { (VCTSome(x): VCTOption[T]),(VCTSome(y): VCTOption[T]) } ((VCTSome(x): VCTOption[T]) == (VCTSome(y): VCTOption[T])) == (x == y))
+  }
+  
+  axiom get_axiom_vct {
+    (forall x: T :: { (getVCTOption((VCTSome(x): VCTOption[T])): T) } (getVCTOption((VCTSome(x): VCTOption[T])): T) == x)
+  }
+  
+  axiom get_axiom_vct_2 {
+    (forall x: VCTOption[T] :: { (VCTSome((getVCTOption(x): T)): VCTOption[T]) } (VCTSome((getVCTOption(x): T)): VCTOption[T]) == x)
+  }
+  
+  axiom get_or_else_axiom_1 {
+    (forall val: T, default: T :: { (getVCTOptionOrElse((VCTSome(val): VCTOption[T]), default): T) } (getVCTOptionOrElse((VCTSome(val): VCTOption[T]), default): T) == val)
+  }
+  
+  axiom get_or_else_axiom_2 {
+    (forall default: T :: { (getVCTOptionOrElse((VCTNone(): VCTOption[T]), default): T) } (getVCTOptionOrElse((VCTNone(): VCTOption[T]), default): T) == default)
+  }
+}
+
+//  a field 
+field ParallelABFS_cost_seq: Seq[Int]
+
+//  a field 
+field ParallelABFS_oldcost_seq: Seq[Int]
+
+//  a field 
+field ParallelABFS_start_seq: Seq[Int]
+
+//  a field 
+field ParallelABFS_end_seq: Seq[Int]
+
+//  a field 
+field Integer__item: Int
+
+function ParallelABFS_inf(): Int
+{
+  -1
+}
+
+function ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int]): Bool
+{
+  0 < V && 0 < A && |start| == A && |end| == A && ((forall i: Int :: { start[i] } 0 <= i && i < A ==> 0 <= start[i] && start[i] < V) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> 0 <= end[i]) && (forall i: Int :: { end[i] } 0 <= i && i < A ==> end[i] < V) && (forall i: Int :: { start[i] } { end[i] } 0 <= i && i < A ==> start[i] != end[i]) && (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && start[i] == start[j]) ==> end[i] != end[j]))
+}
+
+function ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, start[i], end[i], Seq(i)))
+{
+  0 <= x && x < V && 0 <= y && y < V && (forall i: Int :: { P[i] } 0 <= i && i < |P| ==> 0 <= P[i] && P[i] < A) && (0 == |P| ==> x == y) && (0 < |P| ==> start[P[0]] == x && end[P[|P| - 1]] == y) && (forall i: Int :: 0 <= i && i < |P| - 1 ==> end[P[i]] == start[P[i + 1]])
+}
+
+function ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, start[i], end[i], Seq(i)))
+{
+  ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P) && (forall i: Int, j: Int :: 0 <= i && i < |P| - 1 && (i < j && j < |P|) ==> start[P[i]] != end[P[j]])
+}
+
+function ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+{
+  (exists P: Seq[Int] :: |P| <= len && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P))
+}
+
+function ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, len: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  decreases _
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, start[i], end[i], 1))
+{
+  (exists P: Seq[Int] :: |P| == len && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P))
+}
+
+function ParallelABFS_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], ys: Seq[Int], zs: Seq[Int]): Bool
+  ensures xs ++ ys ++ zs == xs ++ (ys ++ zs)
+{
+  true
+}
+
+function ParallelABFS_lemma_path_append_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int], a: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  requires 0 <= a && a < A
+  requires end[a] == x
+  ensures result && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, start[a], y, Seq(a) ++ P)
+
+
+function ParallelABFS_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], s: Int, t: Int, u: Int, P: Seq[Int], Q: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, s, t, P)
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, t, u, Q)
+  ensures result && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, s, u, P ++ Q)
+{
+  0 < |P| ==> ParallelABFS_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, end[P[0]], t, u, P[1..], Q) && ParallelABFS_lemma_path_append_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$_Integer(V, A, start, end, end[P[0]], u, P[1..] ++ Q, P[0]) && ParallelABFS_iseq_assoc_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$(Seq(P[0]), P[1..], Q) && Seq(P[0]) ++ P[1..] == P
+}
+
+function ParallelABFS_lemma_expath_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], s: Int, t: Int, u: Int, len1: Int, len2: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, s, t, len1)
+  requires ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, t, u, len2)
+  ensures result && ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, s, u, len1 + len2)
+{
+  (forall P: Seq[Int], Q: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, s, t, P) && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, t, u, Q) ==> ParallelABFS_lemma_path_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, s, t, u, P, Q))
+}
+
+function ParallelABFS_lemma_inv6_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == ParallelABFS_inf()
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() ==> cost[end[a]] != ParallelABFS_inf())
+  ensures false
+{
+  vertex != src && 0 < |P| && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, start[P[|P| - 1]], P[0..][..|P| - 1 - 0])
+}
+
+function ParallelABFS_lemma_inv6_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] == ParallelABFS_inf()
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() ==> cost[end[a]] != ParallelABFS_inf())
+  ensures (forall P: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1 ==> false)
+{
+  (forall P: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1 ==> ParallelABFS_lemma_inv6_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V, A, start, end, oldcost, cost, src, i, vertex, P))
+}
+
+function ParallelABFS_lemma_inv6_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() ==> cost[end[a]] != ParallelABFS_inf())
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1) ==> vertex != ParallelABFS_inf())
+{
+  (forall vertex: Int :: 0 <= vertex && vertex < V && cost[vertex] == ParallelABFS_inf() ==> ParallelABFS_lemma_inv6_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, oldcost, cost, src, i, vertex))
+}
+
+function ParallelABFS_lemma_inv5_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P)
+  requires |P| <= i + 1
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != ParallelABFS_inf()
+  requires |P| < cost[vertex]
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, v, t) && |t| <= i) ==> oldcost[v] <= |t|)
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() && (oldcost[end[a]] == ParallelABFS_inf() || oldcost[start[a]] + 1 <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + 1)
+  ensures false
+{
+  vertex != src && 0 < |P| && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, start[P[|P| - 1]], P[0..][..|P| - 1 - 0])
+}
+
+function ParallelABFS_lemma_inv5_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int, vertex: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires 0 <= vertex && vertex < V
+  requires oldcost[src] == 0 && cost[src] == 0 && cost[vertex] != ParallelABFS_inf()
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, v, t) && |t| <= i) ==> oldcost[v] <= |t|)
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() && (oldcost[end[a]] == ParallelABFS_inf() || oldcost[start[a]] + 1 <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + 1)
+  ensures (forall P: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1 && |P| < cost[vertex] ==> false)
+{
+  (forall P: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1 && |P| < cost[vertex] ==> ParallelABFS_lemma_inv5_helper1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$(V, A, start, end, oldcost, cost, src, i, vertex, P))
+}
+
+function ParallelABFS_lemma_inv5_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, v, t) && |t| <= i) ==> oldcost[v] <= |t|)
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() && (oldcost[end[a]] == ParallelABFS_inf() || oldcost[start[a]] + 1 <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + 1)
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1 && |P| < cost[vertex]) ==> vertex != ParallelABFS_inf())
+{
+  (forall vertex: Int :: 0 <= vertex && vertex < V && cost[vertex] != ParallelABFS_inf() ==> ParallelABFS_lemma_inv5_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, oldcost, cost, src, i, vertex))
+}
+
+function ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs: Seq[Int], elem: Int, idx: Int): Seq[Seq[Int]]
+  ensures |result| == 2
+  ensures |result[0]| + |result[1]| == |xs|
+  ensures (forall i: Int :: 0 <= i && i < |result[0]| ==> idx <= result[0][i] && result[0][i] < |xs| + idx)
+  ensures (forall i: Int :: 0 <= i && i < |result[1]| ==> idx <= result[1][i] && result[1][i] < |xs| + idx)
+  ensures (forall i: Int :: 0 <= i && i < |result[0]| ==> xs[result[0][i] - idx] != elem)
+  ensures (forall i: Int :: 0 <= i && i < |result[1]| ==> xs[result[1][i] - idx] == elem)
+  ensures (forall i: Int, j: Int :: 0 <= i && i < |result[0]| && (i < j && j < |result[0]|) ==> result[0][i] != result[0][j])
+  ensures (forall i: Int, j: Int :: 0 <= i && i < |result[1]| && (i < j && j < |result[1]|) ==> result[1][i] != result[1][j])
+  ensures |result[1]| == 0 ==> (forall i: Int :: { xs[i] } 0 <= i && i < |xs| ==> xs[i] != elem)
+{
+  (|xs| == 0 ? Seq(Seq[Int](), Seq[Int]()) : Seq((xs[0] == elem ? Seq[Int]() : Seq(idx)) ++ ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs[1..], elem, idx + 1)[0], (xs[0] == elem ? Seq(idx) : Seq[Int]()) ++ ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs[1..], elem, idx + 1)[1]))
+}
+
+function ParallelABFS_mapIndices_Sequence$Integer$_Sequence$Integer$(xs: Seq[Int], idx: Seq[Int]): Seq[Int]
+  requires (forall i: Int :: { idx[i] } 0 <= i && i < |idx| ==> 0 <= idx[i] && idx[i] < |xs|)
+  ensures |result| == |idx|
+  ensures (forall i: Int :: { result[i] } 0 <= i && i < |result| ==> result[i] == xs[idx[i]])
+{
+  (|idx| == 0 ? Seq[Int]() : Seq(xs[idx[0]]) ++ ParallelABFS_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, idx[1..]))
+}
+
+function ParallelABFS_simple_path_lemma1_helper_Sequence$Integer$_Integer(xs: Seq[Int], upper: Int): Bool
+  requires 0 <= upper
+  requires (forall i: Int :: { xs[i] } 0 <= i && i < |xs| ==> 0 <= xs[i] && xs[i] < upper)
+  requires (forall i: Int, j: Int :: { xs[j],xs[i] } 0 <= i && i < |xs| && (i < j && j < |xs|) ==> xs[i] != xs[j])
+  decreases _
+  ensures 1 < |ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]| ==> ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][0] != ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][1] && xs[ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][0]] == xs[ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1][1]]
+  ensures |ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]| < 2
+  ensures |xs| == |ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0]| + |ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[1]|
+  ensures 0 < upper ==> ParallelABFS_simple_path_lemma1_helper_Sequence$Integer$_Integer(ParallelABFS_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0]), upper - 1)
+  ensures 0 < upper ==> |ParallelABFS_mapIndices_Sequence$Integer$_Sequence$Integer$(xs, ParallelABFS_groupBy_Sequence$Integer$_Integer_Integer(xs, upper - 1, 0)[0])| <= upper - 1
+  ensures result
+{
+  |xs| <= upper
+}
+
+function ParallelABFS_vertices_in_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], P: Seq[Int], x: Int, y: Int, i: Int): Seq[Int]
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  requires i <= |P| - 1 && -1 <= i
+  ensures |result| == i + 2
+  ensures i == |P| - 1 ==> |result| == |P| + 1
+  ensures (forall k: Int :: { result[k] } 0 <= k && k < |result| ==> 0 <= result[k] && result[k] < V)
+  ensures result[0] == x
+  ensures (forall k: Int :: { result[k] } 1 <= k && k < |result| ==> result[k] == end[P[k - 1]])
+  ensures (forall k: Int, t: Int :: { result[t],result[k] } 0 <= k && k < |result| && (k < t && t < |result|) ==> result[k] != result[t])
+{
+  (i == -1 ? Seq(x) : ParallelABFS_vertices_in_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, P, x, y, i - 1) ++ Seq(end[P[i]]))
+}
+
+function ParallelABFS_simple_path_lemma1_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  ensures result && |P| < V
+{
+  ParallelABFS_simple_path_lemma1_helper_Sequence$Integer$_Integer(ParallelABFS_vertices_in_path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, P, x, y, |P| - 1), V)
+}
+
+function ParallelABFS_simple_path_lemma1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall P: Seq[Int] :: ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P) ==> |P| < V)
+{
+  (forall P: Seq[Int] :: ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P) ==> ParallelABFS_simple_path_lemma1_helper2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P))
+}
+
+function ParallelABFS_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, z: Int, P: Seq[Int], Q: Seq[Int]): Seq[Int]
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, y, z, Q)
+  requires (forall i: Int, j: Int :: 0 < i && i < |P| && (0 <= j && j < |Q|) ==> start[P[i]] != end[Q[j]])
+  requires (forall i: Int :: 0 <= i && i < |P| ==> end[P[i]] != x)
+  ensures ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, z, result)
+  ensures |result| <= |P| + |Q|
+{
+  (0 < |Q| ? (end[Q[0]] == x ? ParallelABFS_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, x, x, z, Seq[Int](), Q[1..]) : ParallelABFS_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, x, end[Q[0]], z, P ++ Seq(Q[0]), Q[1..])) : P)
+}
+
+function ParallelABFS_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, z: Int, a: Int, P: Seq[Int]): Seq[Int]
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, y, z, P)
+  requires 0 <= a && a < A && start[a] == x && end[a] == y
+  ensures ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, z, result)
+  ensures |result| <= |P| + 1
+{
+  ParallelABFS_trim_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end, x, y, z, Seq(a), P)
+}
+
+function ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int]): Seq[Int]
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  ensures ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, result)
+  ensures |result| <= |P|
+{
+  (0 < |P| ? ParallelABFS_extend_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Sequence$Integer$(V, A, start, end, x, end[P[0]], y, P[0], ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, end[P[0]], y, P[1..])) : P)
+}
+
+function ParallelABFS_simple_path_Part_1_lemma2_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int, P: Seq[Int]): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+  ensures result && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P)
+{
+  true
+}
+
+function ParallelABFS_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int, y: Int): Bool
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall P: Seq[Int] :: ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P) ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P))
+{
+  (forall P: Seq[Int] :: ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P) ==> ParallelABFS_simple_path_Part_1_lemma2_helper_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, y, P))
+}
+
+function ParallelABFS_compare_Integer_Integer(start_cost: Int, end_cost: Int): Bool
+  requires start_cost == ParallelABFS_inf() || 0 <= start_cost
+  requires end_cost == ParallelABFS_inf() || 0 <= end_cost
+  ensures start_cost != ParallelABFS_inf() && (end_cost == ParallelABFS_inf() || start_cost + 1 <= end_cost) ==> result
+  ensures result ==> start_cost != ParallelABFS_inf() && (end_cost == ParallelABFS_inf() || start_cost + 1 <= end_cost)
+  ensures start_cost == ParallelABFS_inf() || end_cost != ParallelABFS_inf() && end_cost < start_cost + 1 ==> !result
+  ensures !result ==> start_cost == ParallelABFS_inf() || end_cost != ParallelABFS_inf() && end_cost < start_cost + 1
+  ensures result && end_cost != ParallelABFS_inf() ==> start_cost + 1 <= end_cost
+{
+  (start_cost != ParallelABFS_inf() && (end_cost == ParallelABFS_inf() || start_cost + 1 <= end_cost) ? true : false)
+}
+
+function instanceof_TYPE_TYPE(t: TYPE, u: TYPE): Bool
+  ensures result == (t == u || directSuperclass(t) == u)
+
+
+function new_frac(x: Perm): frac
+  requires 0 / 1 < x && x <= 1 / 1
+  ensures frac_val(result) == x
+
+
+function new_zfrac(x: Perm): zfrac
+  requires 0 / 1 <= x && x <= 1 / 1
+  ensures zfrac_val(result) == x
+
+
+function getVCTOption1(x: VCTOption[VCTArray[Ref]]): VCTArray[Ref]
+  requires x != (VCTNone(): VCTOption[VCTArray[Ref]])
+{
+  (getVCTOption(x): VCTArray[Ref])
+}
+
+method ParallelABFS___contract_unsatisfiable__lemma_one_path_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int])
+  requires diz != null
+{
+  inhale true && ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_lemma_one_path_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int])
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, start[i], end[i], Seq(i)))
+  ensures (forall i: Int :: 0 <= i && i < A ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, start[i], end[i], 1))
+{
+  // assert
+  assert (forall i__1: Int :: 0 <= i__1 && i__1 < A ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, start[i__1], end[i__1], Seq(i__1)))
+  // assert
+  assert (forall i__2: Int :: 0 <= i__2 && i__2 < A ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, start[i__2], end[i__2], 1))
+}
+
+method ParallelABFS___contract_unsatisfiable__lemma_inv6_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+{
+  inhale true && (ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end) && (|oldcost| == V && |cost| == V) && (forall k__3: Int :: { oldcost[k__3] } { cost[k__3] } 0 <= k__3 && k__3 < V && cost[k__3] == ParallelABFS_inf() ==> oldcost[k__3] == cost[k__3]) && (forall k__4: Int :: { oldcost[k__4] } { cost[k__4] } 0 <= k__4 && k__4 < V && oldcost[k__4] == ParallelABFS_inf() ==> oldcost[k__4] <= cost[k__4]) && (forall k__5: Int :: { cost[k__5] } { oldcost[k__5] } 0 <= k__5 && k__5 < V && oldcost[k__5] != ParallelABFS_inf() ==> cost[k__5] <= oldcost[k__5]) && (forall k__6: Int :: { cost[k__6] } 0 <= k__6 && k__6 < V && k__6 != src ==> cost[k__6] == ParallelABFS_inf() || 0 < cost[k__6]) && (0 <= i && i < V - 1) && (0 <= src && src < V) && (oldcost[src] == 0 && cost[src] == 0) && (forall v__7: Int :: 0 <= v__7 && v__7 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v__7, i) ==> oldcost[v__7] != ParallelABFS_inf()) && (forall a__8: Int :: 0 <= a__8 && a__8 < A && oldcost[start[a__8]] != ParallelABFS_inf() ==> cost[end[a__8]] != ParallelABFS_inf()))
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_lemma_inv6_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() ==> cost[end[a]] != ParallelABFS_inf())
+  ensures (forall v: Int :: { cost[v] } 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i + 1) ==> cost[v] != ParallelABFS_inf())
+{
+  // assert
+  assert ParallelABFS_lemma_inv6_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V, A, start, end, oldcost, cost, src, i)
+}
+
+method ParallelABFS___contract_unsatisfiable__lemma_inv5_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+{
+  inhale true && (ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end) && (|oldcost| == V && |cost| == V) && (forall k__9: Int :: { oldcost[k__9] } { cost[k__9] } 0 <= k__9 && k__9 < V && cost[k__9] == ParallelABFS_inf() ==> oldcost[k__9] == cost[k__9]) && (forall k__10: Int :: { oldcost[k__10] } { cost[k__10] } 0 <= k__10 && k__10 < V && oldcost[k__10] == ParallelABFS_inf() ==> oldcost[k__10] <= cost[k__10]) && (forall k__11: Int :: { cost[k__11] } { oldcost[k__11] } 0 <= k__11 && k__11 < V && oldcost[k__11] != ParallelABFS_inf() ==> cost[k__11] <= oldcost[k__11]) && (forall k__12: Int :: { cost[k__12] } 0 <= k__12 && k__12 < V && k__12 != src ==> cost[k__12] == ParallelABFS_inf() || 0 < cost[k__12]) && (0 <= i && i < V - 1) && (0 <= src && src < V) && (oldcost[src] == 0 && cost[src] == 0) && (forall v__13: Int, t__14: Seq[Int] :: 0 <= v__13 && v__13 < V && oldcost[v__13] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, v__13, t__14) && |t__14| <= i) ==> oldcost[v__13] <= |t__14|) && (forall v__15: Int :: 0 <= v__15 && v__15 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v__15, i) ==> oldcost[v__15] != ParallelABFS_inf()) && (forall v__16: Int :: 0 <= v__16 && v__16 < V && oldcost[v__16] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v__16, oldcost[v__16])) && (forall a__17: Int :: 0 <= a__17 && a__17 < A && oldcost[start[a__17]] != ParallelABFS_inf() && (oldcost[end[a__17]] == ParallelABFS_inf() || oldcost[start[a__17]] + 1 <= oldcost[end[a__17]]) ==> cost[end[a__17]] <= oldcost[start[a__17]] + 1))
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_lemma_inv5_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], oldcost: Seq[Int], cost: Seq[Int], src: Int, i: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  requires |oldcost| == V && |cost| == V
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && cost[k] == ParallelABFS_inf() ==> oldcost[k] == cost[k])
+  requires (forall k: Int :: { oldcost[k] } { cost[k] } 0 <= k && k < V && oldcost[k] == ParallelABFS_inf() ==> oldcost[k] <= cost[k])
+  requires (forall k: Int :: { cost[k] } { oldcost[k] } 0 <= k && k < V && oldcost[k] != ParallelABFS_inf() ==> cost[k] <= oldcost[k])
+  requires (forall k: Int :: { cost[k] } 0 <= k && k < V && k != src ==> cost[k] == ParallelABFS_inf() || 0 < cost[k])
+  requires 0 <= i && i < V - 1
+  requires 0 <= src && src < V
+  requires oldcost[src] == 0 && cost[src] == 0
+  requires (forall v: Int, t: Seq[Int] :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, v, t) && |t| <= i) ==> oldcost[v] <= |t|)
+  requires (forall v: Int :: 0 <= v && v < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, i) ==> oldcost[v] != ParallelABFS_inf())
+  requires (forall v: Int :: 0 <= v && v < V && oldcost[v] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, start, end, src, v, oldcost[v]))
+  requires (forall a: Int :: 0 <= a && a < A && oldcost[start[a]] != ParallelABFS_inf() && (oldcost[end[a]] == ParallelABFS_inf() || oldcost[start[a]] + 1 <= oldcost[end[a]]) ==> cost[end[a]] <= oldcost[start[a]] + 1)
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && cost[vertex] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, src, vertex, P) && |P| <= i + 1) ==> cost[vertex] <= |P|)
+{
+  // assert
+  assert ParallelABFS_lemma_inv5_helper3_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V, A, start, end, oldcost, cost, src, i)
+}
+
+method ParallelABFS___contract_unsatisfiable__simple_path_lemma1_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+{
+  inhale true && ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_simple_path_lemma1_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P) ==> |P| < V)
+{
+  // assert
+  assert (forall v__18: Int, P__19: Seq[Int] :: 0 <= v__18 && v__18 < V && ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v__18, P__19) ==> ParallelABFS_simple_path_lemma1_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V, A, start, end, x, v__18))
+}
+
+method ParallelABFS___contract_unsatisfiable__simple_path_Part_1_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+{
+  inhale true && ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_simple_path_Part_1_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P) ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P))
+{
+  // assert
+  assert (forall v__20: Int :: { ParallelABFS_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V, A, start, end, x, v__20) } 0 <= v__20 && v__20 < V ==> ParallelABFS_simple_path_Part_1_lemma2_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer(V, A, start, end, x, v__20))
+}
+
+method ParallelABFS___contract_unsatisfiable__simple_path_Part_2_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+{
+  inhale true && ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_simple_path_Part_2_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P) ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P)))
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P) ==> ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P)))
+{
+  
+}
+
+method ParallelABFS___contract_unsatisfiable__simple_path_lemma3_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+{
+  inhale true && ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_simple_path_lemma3_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz: Ref, globals: Ref, V: Int, A: Int, start: Seq[Int], end: Seq[Int], x: Int)
+  requires diz != null
+  requires ParallelABFS_Graph_Integer_Integer_Sequence$Integer$_Sequence$Integer$(V, A, start, end)
+  ensures (forall v: Int, P: Seq[Int] :: 0 <= v && v < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P) ==> |ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, start, end, x, v, P)| <= |P|)
+{
+  
+}
+
+method ParallelABFS___contract_unsatisfiable__ABFS_EncodedGlobalVariables_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, V: Int, A: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], source: Int, counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+{
+  inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (acc(diz.ParallelABFS_start_seq, wildcard) && acc(diz.ParallelABFS_end_seq, wildcard) && |diz.ParallelABFS_start_seq| == A && |diz.ParallelABFS_end_seq| == A && (forall i__21: Int :: { (loc(getVCTOption1(contrib1), i__21): Ref) } 0 <= i__21 && i__21 < A ==> acc((loc(getVCTOption1(contrib1), i__21): Ref).Integer__item, write)) && (forall i__22: Int :: { (loc(getVCTOption1(contrib1), i__22): Ref) } 0 <= i__22 && i__22 < A ==> (loc(getVCTOption1(contrib1), i__22): Ref).Integer__item == 0) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (loc(getVCTOption1(counter), 0): Ref).Integer__item == 0 && acc(diz.ParallelABFS_cost_seq, write) && |diz.ParallelABFS_cost_seq| == V && acc(diz.ParallelABFS_oldcost_seq, write) && |diz.ParallelABFS_oldcost_seq| == V && (forall i__23: Int :: { diz.ParallelABFS_oldcost_seq[i__23] } { diz.ParallelABFS_cost_seq[i__23] } 0 <= i__23 && i__23 < V ==> diz.ParallelABFS_oldcost_seq[i__23] == diz.ParallelABFS_cost_seq[i__23]) && (forall i__24: Int :: { (loc(getVCTOption1(start), i__24): Ref) } 0 <= i__24 && i__24 < A ==> acc((loc(getVCTOption1(start), i__24): Ref).Integer__item, wildcard)) && (forall i__25: Int :: { (loc(getVCTOption1(start), i__25): Ref) } 0 <= i__25 && i__25 < A ==> 0 <= (loc(getVCTOption1(start), i__25): Ref).Integer__item && (loc(getVCTOption1(start), i__25): Ref).Integer__item < V) && (forall i__26: Int :: { (loc(getVCTOption1(end), i__26): Ref) } 0 <= i__26 && i__26 < A ==> acc((loc(getVCTOption1(end), i__26): Ref).Integer__item, wildcard)) && (forall i__27: Int :: { (loc(getVCTOption1(end), i__27): Ref) } 0 <= i__27 && i__27 < A ==> 0 <= (loc(getVCTOption1(end), i__27): Ref).Integer__item && (loc(getVCTOption1(end), i__27): Ref).Integer__item < V) && (forall i__28: Int :: { (loc(getVCTOption1(start), i__28): Ref) } { (loc(getVCTOption1(end), i__28): Ref) } 0 <= i__28 && i__28 < A ==> (loc(getVCTOption1(start), i__28): Ref).Integer__item != (loc(getVCTOption1(end), i__28): Ref).Integer__item) && (forall i__29: Int, j__30: Int :: 0 <= i__29 && i__29 < A && (0 <= j__30 && j__30 < A && i__29 != j__30 && (loc(getVCTOption1(start), i__29): Ref).Integer__item == (loc(getVCTOption1(start), j__30): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__29): Ref).Integer__item != (loc(getVCTOption1(end), j__30): Ref).Integer__item) && (forall i__31: Int :: { (loc(getVCTOption1(start), i__31): Ref) } { diz.ParallelABFS_start_seq[i__31] } 0 <= i__31 && i__31 < A ==> (loc(getVCTOption1(start), i__31): Ref).Integer__item == diz.ParallelABFS_start_seq[i__31]) && (forall i__32: Int :: { (loc(getVCTOption1(end), i__32): Ref) } { diz.ParallelABFS_end_seq[i__32] } 0 <= i__32 && i__32 < A ==> (loc(getVCTOption1(end), i__32): Ref).Integer__item == diz.ParallelABFS_end_seq[i__32]) && (forall i__33: Int :: { (loc(getVCTOption1(cost), i__33): Ref) } 0 <= i__33 && i__33 < V ==> acc((loc(getVCTOption1(cost), i__33): Ref).Integer__item, write)) && (forall i__34: Int :: { (loc(getVCTOption1(cost), i__34): Ref) } 0 <= i__34 && i__34 < V && i__34 != source ==> (loc(getVCTOption1(cost), i__34): Ref).Integer__item == ParallelABFS_inf()) && (loc(getVCTOption1(cost), source): Ref).Integer__item == 0 && (forall i__35: Int :: { (loc(getVCTOption1(cost), i__35): Ref) } { diz.ParallelABFS_cost_seq[i__35] } 0 <= i__35 && i__35 < V ==> (loc(getVCTOption1(cost), i__35): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__35]))
+  // assert
+  assert false
+  inhale false
+}
+
+method ParallelABFS_loop_body_31_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_EncodedGlobalVariables(diz: Ref, V: Int, A: Int, source: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], tid: Int, globals: Ref)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires 0 <= tid && tid < A
+  requires acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2)
+  requires (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures 0 <= tid && tid < A
+  ensures acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2)
+  ensures (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 1
+{
+  var __flatten_1__64: Ref
+  var __flatten_2__65: Ref
+  var __flatten_3__66: Ref
+  var __flatten_4__67: Ref
+  var __flatten_5__68: Bool
+  var __flatten_6__69: Ref
+  var __flatten_7__70: Ref
+  var __flatten_8__71: Int
+  var __flatten_9__72: Ref
+  var __flatten_10__73: Ref
+  var __flatten_11__74: Seq[Int]
+  var __flatten_12__75: Ref
+  var __flatten_13__76: Ref
+  var __flatten_14__77: Ref
+  var __flatten_16__78: Ref
+  inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelABFS_start_seq, wildcard) && acc(diz.ParallelABFS_end_seq, wildcard) && (|diz.ParallelABFS_start_seq| == A && |diz.ParallelABFS_end_seq| == A) && (forall i__36: Int :: { (loc(getVCTOption1(start), i__36): Ref) } 0 <= i__36 && i__36 < A ==> acc((loc(getVCTOption1(start), i__36): Ref).Integer__item, wildcard)) && (forall i__37: Int :: { (loc(getVCTOption1(start), i__37): Ref) } 0 <= i__37 && i__37 < A ==> 0 <= (loc(getVCTOption1(start), i__37): Ref).Integer__item && (loc(getVCTOption1(start), i__37): Ref).Integer__item < V) && (forall i__38: Int :: { (loc(getVCTOption1(end), i__38): Ref) } 0 <= i__38 && i__38 < A ==> acc((loc(getVCTOption1(end), i__38): Ref).Integer__item, wildcard)) && (forall i__39: Int :: { (loc(getVCTOption1(end), i__39): Ref) } 0 <= i__39 && i__39 < A ==> 0 <= (loc(getVCTOption1(end), i__39): Ref).Integer__item && (loc(getVCTOption1(end), i__39): Ref).Integer__item < V) && (forall i__40: Int :: { (loc(getVCTOption1(start), i__40): Ref) } { (loc(getVCTOption1(end), i__40): Ref) } 0 <= i__40 && i__40 < A ==> (loc(getVCTOption1(start), i__40): Ref).Integer__item != (loc(getVCTOption1(end), i__40): Ref).Integer__item) && (forall i__41: Int, j__42: Int :: 0 <= i__41 && i__41 < A && (0 <= j__42 && j__42 < A && i__41 != j__42 && (loc(getVCTOption1(start), i__41): Ref).Integer__item == (loc(getVCTOption1(start), j__42): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__41): Ref).Integer__item != (loc(getVCTOption1(end), j__42): Ref).Integer__item) && (forall i__43: Int :: { (loc(getVCTOption1(start), i__43): Ref) } { diz.ParallelABFS_start_seq[i__43] } 0 <= i__43 && i__43 < A ==> (loc(getVCTOption1(start), i__43): Ref).Integer__item == diz.ParallelABFS_start_seq[i__43]) && (forall i__44: Int :: { (loc(getVCTOption1(end), i__44): Ref) } { diz.ParallelABFS_end_seq[i__44] } 0 <= i__44 && i__44 < A ==> (loc(getVCTOption1(end), i__44): Ref).Integer__item == diz.ParallelABFS_end_seq[i__44]) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelABFS_cost_seq, write) && |diz.ParallelABFS_cost_seq| == V && acc(diz.ParallelABFS_oldcost_seq, write) && |diz.ParallelABFS_oldcost_seq| == V && (forall i__45: Int :: { (loc(getVCTOption1(contrib1), i__45): Ref) } 0 <= i__45 && i__45 < A ==> acc((loc(getVCTOption1(contrib1), i__45): Ref).Integer__item, 1 / 2)) && ((forall i__46: Int :: { (loc(getVCTOption1(contrib1), i__46): Ref) } 0 <= i__46 && i__46 < A ==> (loc(getVCTOption1(contrib1), i__46): Ref).Integer__item == 0) ==> (forall i__47: Int :: { diz.ParallelABFS_oldcost_seq[i__47] } { diz.ParallelABFS_cost_seq[i__47] } 0 <= i__47 && i__47 < V ==> diz.ParallelABFS_oldcost_seq[i__47] == diz.ParallelABFS_cost_seq[i__47])) && (forall i__48: Int :: { (loc(getVCTOption1(cost), i__48): Ref) } 0 <= i__48 && i__48 < V ==> acc((loc(getVCTOption1(cost), i__48): Ref).Integer__item, write)) && (forall i__49: Int :: { diz.ParallelABFS_oldcost_seq[i__49] } { diz.ParallelABFS_cost_seq[i__49] } 0 <= i__49 && i__49 < V && diz.ParallelABFS_cost_seq[i__49] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__49] == diz.ParallelABFS_cost_seq[i__49]) && (forall i__50: Int :: { diz.ParallelABFS_oldcost_seq[i__50] } { diz.ParallelABFS_cost_seq[i__50] } 0 <= i__50 && i__50 < V && diz.ParallelABFS_oldcost_seq[i__50] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__50] <= diz.ParallelABFS_cost_seq[i__50]) && (forall i__51: Int :: { diz.ParallelABFS_cost_seq[i__51] } { diz.ParallelABFS_oldcost_seq[i__51] } 0 <= i__51 && i__51 < V && diz.ParallelABFS_oldcost_seq[i__51] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[i__51] <= diz.ParallelABFS_oldcost_seq[i__51]) && ((forall i__52: Int :: { diz.ParallelABFS_oldcost_seq[i__52] } 0 <= i__52 && i__52 < V && i__52 != source ==> diz.ParallelABFS_oldcost_seq[i__52] == ParallelABFS_inf() || 0 < diz.ParallelABFS_oldcost_seq[i__52]) && diz.ParallelABFS_oldcost_seq[source] == 0) && ((forall i__53: Int :: { diz.ParallelABFS_cost_seq[i__53] } 0 <= i__53 && i__53 < V && i__53 != source ==> diz.ParallelABFS_cost_seq[i__53] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i__53]) && diz.ParallelABFS_cost_seq[source] == 0) && (forall i__54: Int :: { (loc(getVCTOption1(cost), i__54): Ref) } { diz.ParallelABFS_cost_seq[i__54] } 0 <= i__54 && i__54 < V ==> (loc(getVCTOption1(cost), i__54): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__54]) && (forall i__55: Int :: 0 <= i__55 && i__55 < A && (loc(getVCTOption1(contrib1), i__55): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[diz.ParallelABFS_start_seq[i__55]] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[diz.ParallelABFS_end_seq[i__55]] != ParallelABFS_inf()) && (forall a__56: Int :: 0 <= a__56 && a__56 < A && (loc(getVCTOption1(contrib1), a__56): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__56): Ref).Integer__item] != ParallelABFS_inf() && (diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__56): Ref).Integer__item] == ParallelABFS_inf() || diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__56): Ref).Integer__item] + 1 <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__56): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__56): Ref).Integer__item): Ref).Integer__item <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__56): Ref).Integer__item] + 1) && (forall i__57: Int :: 0 <= i__57 && i__57 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__57): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(start), i__57): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__57): Ref).Integer__item])) && (forall i__58: Int :: 0 <= i__58 && i__58 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__58): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(end), i__58): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__58): Ref).Integer__item])) && (forall i__59: Int :: 0 <= i__59 && i__59 < V && diz.ParallelABFS_cost_seq[i__59] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i__59, diz.ParallelABFS_cost_seq[i__59])) && (forall v__60: Int :: 0 <= v__60 && v__60 < V && diz.ParallelABFS_oldcost_seq[v__60] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__60, diz.ParallelABFS_oldcost_seq[v__60])) && (forall vertex__61: Int, P__62: Seq[Int] :: 0 <= vertex__61 && vertex__61 < V && diz.ParallelABFS_oldcost_seq[vertex__61] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__61, P__62) && |P__62| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[vertex__61] <= |P__62|) && (forall v__63: Int :: { diz.ParallelABFS_oldcost_seq[v__63] } 0 <= v__63 && v__63 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__63, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[v__63] != ParallelABFS_inf()))
+  __flatten_2__65 := (loc(getVCTOption1(start), tid): Ref)
+  __flatten_1__64 := (loc(getVCTOption1(cost), __flatten_2__65.Integer__item): Ref)
+  __flatten_4__67 := (loc(getVCTOption1(end), tid): Ref)
+  __flatten_3__66 := (loc(getVCTOption1(cost), __flatten_4__67.Integer__item): Ref)
+  __flatten_5__68 := ParallelABFS_compare_Integer_Integer(__flatten_1__64.Integer__item, __flatten_3__66.Integer__item)
+  if (__flatten_5__68) {
+    __flatten_7__70 := (loc(getVCTOption1(end), tid): Ref)
+    __flatten_6__69 := (loc(getVCTOption1(cost), __flatten_7__70.Integer__item): Ref)
+    __flatten_10__73 := (loc(getVCTOption1(start), tid): Ref)
+    __flatten_9__72 := (loc(getVCTOption1(cost), __flatten_10__73.Integer__item): Ref)
+    __flatten_8__71 := __flatten_9__72.Integer__item + 1
+    __flatten_6__69.Integer__item := __flatten_8__71
+    __flatten_12__75 := (loc(getVCTOption1(end), tid): Ref)
+    __flatten_14__77 := (loc(getVCTOption1(start), tid): Ref)
+    __flatten_13__76 := (loc(getVCTOption1(cost), __flatten_14__77.Integer__item): Ref)
+    __flatten_11__74 := diz.ParallelABFS_cost_seq[__flatten_12__75.Integer__item := __flatten_13__76.Integer__item + 1]
+    diz.ParallelABFS_cost_seq := __flatten_11__74
+    // assert
+    assert diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), tid): Ref).Integer__item] == (loc(getVCTOption1(cost), (loc(getVCTOption1(start), tid): Ref).Integer__item): Ref).Integer__item + 1
+    ParallelABFS_lemma_one_path_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq)
+    // assert
+    assert ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, (loc(getVCTOption1(start), tid): Ref).Integer__item, (loc(getVCTOption1(end), tid): Ref).Integer__item, 1)
+    // assert
+    assert ParallelABFS_lemma_expath_trans_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(start), tid): Ref).Integer__item, (loc(getVCTOption1(end), tid): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), tid): Ref).Integer__item], 1)
+    // assert
+    assert (loc(getVCTOption1(cost), (loc(getVCTOption1(end), tid): Ref).Integer__item): Ref).Integer__item == (loc(getVCTOption1(cost), (loc(getVCTOption1(start), tid): Ref).Integer__item): Ref).Integer__item + 1
+    // assert
+    assert ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(end), tid): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), tid): Ref).Integer__item] + 1)
+  }
+  __flatten_16__78 := (loc(getVCTOption1(contrib1), tid): Ref)
+  __flatten_16__78.Integer__item := 1
+  exhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelABFS_start_seq, wildcard) && acc(diz.ParallelABFS_end_seq, wildcard) && (|diz.ParallelABFS_start_seq| == A && |diz.ParallelABFS_end_seq| == A) && (forall i__79: Int :: { (loc(getVCTOption1(start), i__79): Ref) } 0 <= i__79 && i__79 < A ==> acc((loc(getVCTOption1(start), i__79): Ref).Integer__item, wildcard)) && (forall i__80: Int :: { (loc(getVCTOption1(start), i__80): Ref) } 0 <= i__80 && i__80 < A ==> 0 <= (loc(getVCTOption1(start), i__80): Ref).Integer__item && (loc(getVCTOption1(start), i__80): Ref).Integer__item < V) && (forall i__81: Int :: { (loc(getVCTOption1(end), i__81): Ref) } 0 <= i__81 && i__81 < A ==> acc((loc(getVCTOption1(end), i__81): Ref).Integer__item, wildcard)) && (forall i__82: Int :: { (loc(getVCTOption1(end), i__82): Ref) } 0 <= i__82 && i__82 < A ==> 0 <= (loc(getVCTOption1(end), i__82): Ref).Integer__item && (loc(getVCTOption1(end), i__82): Ref).Integer__item < V) && (forall i__83: Int :: { (loc(getVCTOption1(start), i__83): Ref) } { (loc(getVCTOption1(end), i__83): Ref) } 0 <= i__83 && i__83 < A ==> (loc(getVCTOption1(start), i__83): Ref).Integer__item != (loc(getVCTOption1(end), i__83): Ref).Integer__item) && (forall i__84: Int, j__85: Int :: 0 <= i__84 && i__84 < A && (0 <= j__85 && j__85 < A && i__84 != j__85 && (loc(getVCTOption1(start), i__84): Ref).Integer__item == (loc(getVCTOption1(start), j__85): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__84): Ref).Integer__item != (loc(getVCTOption1(end), j__85): Ref).Integer__item) && (forall i__86: Int :: { (loc(getVCTOption1(start), i__86): Ref) } { diz.ParallelABFS_start_seq[i__86] } 0 <= i__86 && i__86 < A ==> (loc(getVCTOption1(start), i__86): Ref).Integer__item == diz.ParallelABFS_start_seq[i__86]) && (forall i__87: Int :: { (loc(getVCTOption1(end), i__87): Ref) } { diz.ParallelABFS_end_seq[i__87] } 0 <= i__87 && i__87 < A ==> (loc(getVCTOption1(end), i__87): Ref).Integer__item == diz.ParallelABFS_end_seq[i__87]) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelABFS_cost_seq, write) && |diz.ParallelABFS_cost_seq| == V && acc(diz.ParallelABFS_oldcost_seq, write) && |diz.ParallelABFS_oldcost_seq| == V && (forall i__88: Int :: { (loc(getVCTOption1(contrib1), i__88): Ref) } 0 <= i__88 && i__88 < A ==> acc((loc(getVCTOption1(contrib1), i__88): Ref).Integer__item, 1 / 2)) && ((forall i__89: Int :: { (loc(getVCTOption1(contrib1), i__89): Ref) } 0 <= i__89 && i__89 < A ==> (loc(getVCTOption1(contrib1), i__89): Ref).Integer__item == 0) ==> (forall i__90: Int :: { diz.ParallelABFS_oldcost_seq[i__90] } { diz.ParallelABFS_cost_seq[i__90] } 0 <= i__90 && i__90 < V ==> diz.ParallelABFS_oldcost_seq[i__90] == diz.ParallelABFS_cost_seq[i__90])) && (forall i__91: Int :: { (loc(getVCTOption1(cost), i__91): Ref) } 0 <= i__91 && i__91 < V ==> acc((loc(getVCTOption1(cost), i__91): Ref).Integer__item, write)) && (forall i__92: Int :: { diz.ParallelABFS_oldcost_seq[i__92] } { diz.ParallelABFS_cost_seq[i__92] } 0 <= i__92 && i__92 < V && diz.ParallelABFS_cost_seq[i__92] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__92] == diz.ParallelABFS_cost_seq[i__92]) && (forall i__93: Int :: { diz.ParallelABFS_oldcost_seq[i__93] } { diz.ParallelABFS_cost_seq[i__93] } 0 <= i__93 && i__93 < V && diz.ParallelABFS_oldcost_seq[i__93] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__93] <= diz.ParallelABFS_cost_seq[i__93]) && (forall i__94: Int :: { diz.ParallelABFS_cost_seq[i__94] } { diz.ParallelABFS_oldcost_seq[i__94] } 0 <= i__94 && i__94 < V && diz.ParallelABFS_oldcost_seq[i__94] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[i__94] <= diz.ParallelABFS_oldcost_seq[i__94]) && ((forall i__95: Int :: { diz.ParallelABFS_oldcost_seq[i__95] } 0 <= i__95 && i__95 < V && i__95 != source ==> diz.ParallelABFS_oldcost_seq[i__95] == ParallelABFS_inf() || 0 < diz.ParallelABFS_oldcost_seq[i__95]) && diz.ParallelABFS_oldcost_seq[source] == 0) && ((forall i__96: Int :: { diz.ParallelABFS_cost_seq[i__96] } 0 <= i__96 && i__96 < V && i__96 != source ==> diz.ParallelABFS_cost_seq[i__96] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i__96]) && diz.ParallelABFS_cost_seq[source] == 0) && (forall i__97: Int :: { (loc(getVCTOption1(cost), i__97): Ref) } { diz.ParallelABFS_cost_seq[i__97] } 0 <= i__97 && i__97 < V ==> (loc(getVCTOption1(cost), i__97): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__97]) && (forall i__98: Int :: 0 <= i__98 && i__98 < A && (loc(getVCTOption1(contrib1), i__98): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[diz.ParallelABFS_start_seq[i__98]] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[diz.ParallelABFS_end_seq[i__98]] != ParallelABFS_inf()) && (forall a__99: Int :: 0 <= a__99 && a__99 < A && (loc(getVCTOption1(contrib1), a__99): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__99): Ref).Integer__item] != ParallelABFS_inf() && (diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__99): Ref).Integer__item] == ParallelABFS_inf() || diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__99): Ref).Integer__item] + 1 <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__99): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__99): Ref).Integer__item): Ref).Integer__item <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__99): Ref).Integer__item] + 1) && (forall i__100: Int :: 0 <= i__100 && i__100 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__100): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(start), i__100): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__100): Ref).Integer__item])) && (forall i__101: Int :: 0 <= i__101 && i__101 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__101): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(end), i__101): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__101): Ref).Integer__item])) && (forall i__102: Int :: 0 <= i__102 && i__102 < V && diz.ParallelABFS_cost_seq[i__102] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i__102, diz.ParallelABFS_cost_seq[i__102])) && (forall v__103: Int :: 0 <= v__103 && v__103 < V && diz.ParallelABFS_oldcost_seq[v__103] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__103, diz.ParallelABFS_oldcost_seq[v__103])) && (forall vertex__104: Int, P__105: Seq[Int] :: 0 <= vertex__104 && vertex__104 < V && diz.ParallelABFS_oldcost_seq[vertex__104] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__104, P__105) && |P__105| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[vertex__104] <= |P__105|) && (forall v__106: Int :: { diz.ParallelABFS_oldcost_seq[v__106] } 0 <= v__106 && v__106 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__106, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[v__106] != ParallelABFS_inf()))
+}
+
+method ParallelABFS_parrallel_region_main_1_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_EncodedGlobalVariables(diz: Ref, A: Int, V: Int, source: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], globals: Ref)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2))
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0)
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, 1 / 2))
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 1)
+{
+  inhale false
+}
+
+method ParallelABFS_loop_body_39_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer(diz: Ref, V: Int, A: Int, source: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]], tid: Int)
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires 0 <= tid && tid < A
+  requires acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write)
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures 0 <= tid && tid < A
+  ensures acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write)
+  ensures (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0
+{
+  var __flatten_17__107: Ref
+  __flatten_17__107 := (loc(getVCTOption1(contrib1), tid): Ref)
+  __flatten_17__107.Integer__item := 0
+}
+
+method ParallelABFS_parrallel_region_main_2_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz: Ref, A: Int, V: Int, source: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write))
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> acc((loc(getVCTOption1(contrib1), tid): Ref).Integer__item, write))
+  ensures (forall tid: Int :: { (loc(getVCTOption1(contrib1), tid): Ref) } 0 <= tid && tid < A ==> (loc(getVCTOption1(contrib1), tid): Ref).Integer__item == 0)
+{
+  inhale false
+}
+
+method ParallelABFS_ABFS_EncodedGlobalVariables_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Integer_Option$Array$Cell$Integer$$$(diz: Ref, globals: Ref, V: Int, A: Int, start: VCTOption[VCTArray[Ref]], end: VCTOption[VCTArray[Ref]], cost: VCTOption[VCTArray[Ref]], contrib1: VCTOption[VCTArray[Ref]], source: Int, counter: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 < V && 0 < A
+  requires 0 <= source && source < V
+  requires start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires (alen(getVCTOption1(start)): Int) == A
+  requires (alen(getVCTOption1(end)): Int) == A
+  requires (alen(getVCTOption1(cost)): Int) == V
+  requires (alen(getVCTOption1(counter)): Int) == 1
+  requires (alen(getVCTOption1(contrib1)): Int) == A
+  requires acc(diz.ParallelABFS_start_seq, wildcard)
+  requires acc(diz.ParallelABFS_end_seq, wildcard)
+  requires |diz.ParallelABFS_start_seq| == A
+  requires |diz.ParallelABFS_end_seq| == A
+  requires (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(contrib1), i): Ref).Integer__item, write))
+  requires (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(contrib1), i): Ref).Integer__item == 0)
+  requires acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+  requires (loc(getVCTOption1(counter), 0): Ref).Integer__item == 0
+  requires acc(diz.ParallelABFS_cost_seq, write)
+  requires |diz.ParallelABFS_cost_seq| == V
+  requires acc(diz.ParallelABFS_oldcost_seq, write)
+  requires |diz.ParallelABFS_oldcost_seq| == V
+  requires (forall i: Int :: { diz.ParallelABFS_oldcost_seq[i] } { diz.ParallelABFS_cost_seq[i] } 0 <= i && i < V ==> diz.ParallelABFS_oldcost_seq[i] == diz.ParallelABFS_cost_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(start), i): Ref).Integer__item, wildcard))
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(start), i): Ref).Integer__item && (loc(getVCTOption1(start), i): Ref).Integer__item < V)
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(end), i): Ref).Integer__item, wildcard))
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(end), i): Ref).Integer__item && (loc(getVCTOption1(end), i): Ref).Integer__item < V)
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item != (loc(getVCTOption1(end), i): Ref).Integer__item)
+  requires (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(start), i): Ref).Integer__item == (loc(getVCTOption1(start), j): Ref).Integer__item) ==> (loc(getVCTOption1(end), i): Ref).Integer__item != (loc(getVCTOption1(end), j): Ref).Integer__item)
+  requires (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { diz.ParallelABFS_start_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item == diz.ParallelABFS_start_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } { diz.ParallelABFS_end_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(end), i): Ref).Integer__item == diz.ParallelABFS_end_seq[i])
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V ==> acc((loc(getVCTOption1(cost), i): Ref).Integer__item, write))
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V && i != source ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == ParallelABFS_inf())
+  requires (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+  requires (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } { diz.ParallelABFS_cost_seq[i] } 0 <= i && i < V ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == diz.ParallelABFS_cost_seq[i])
+  ensures 0 < V && 0 < A
+  ensures 0 <= source && source < V
+  ensures start != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures end != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures (alen(getVCTOption1(start)): Int) == A
+  ensures (alen(getVCTOption1(end)): Int) == A
+  ensures (alen(getVCTOption1(cost)): Int) == V
+  ensures (alen(getVCTOption1(counter)): Int) == 1
+  ensures (alen(getVCTOption1(contrib1)): Int) == A
+  ensures acc(diz.ParallelABFS_start_seq, wildcard)
+  ensures acc(diz.ParallelABFS_end_seq, wildcard)
+  ensures |diz.ParallelABFS_start_seq| == A
+  ensures |diz.ParallelABFS_end_seq| == A
+  ensures (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(contrib1), i): Ref).Integer__item, write))
+  ensures (forall i: Int :: { (loc(getVCTOption1(contrib1), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(contrib1), i): Ref).Integer__item == 0)
+  ensures acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+  ensures (loc(getVCTOption1(counter), 0): Ref).Integer__item == V - 1
+  ensures acc(diz.ParallelABFS_cost_seq, write)
+  ensures |diz.ParallelABFS_cost_seq| == V
+  ensures acc(diz.ParallelABFS_oldcost_seq, write)
+  ensures |diz.ParallelABFS_oldcost_seq| == V
+  ensures (forall i: Int :: { diz.ParallelABFS_oldcost_seq[i] } { diz.ParallelABFS_cost_seq[i] } 0 <= i && i < V ==> diz.ParallelABFS_oldcost_seq[i] == diz.ParallelABFS_cost_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(start), i): Ref).Integer__item, wildcard))
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(start), i): Ref).Integer__item && (loc(getVCTOption1(start), i): Ref).Integer__item < V)
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> acc((loc(getVCTOption1(end), i): Ref).Integer__item, wildcard))
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> 0 <= (loc(getVCTOption1(end), i): Ref).Integer__item && (loc(getVCTOption1(end), i): Ref).Integer__item < V)
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { (loc(getVCTOption1(end), i): Ref) } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item != (loc(getVCTOption1(end), i): Ref).Integer__item)
+  ensures (forall i: Int, j: Int :: 0 <= i && i < A && (0 <= j && j < A && i != j && (loc(getVCTOption1(start), i): Ref).Integer__item == (loc(getVCTOption1(start), j): Ref).Integer__item) ==> (loc(getVCTOption1(end), i): Ref).Integer__item != (loc(getVCTOption1(end), j): Ref).Integer__item)
+  ensures (forall i: Int :: { (loc(getVCTOption1(start), i): Ref) } { diz.ParallelABFS_start_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(start), i): Ref).Integer__item == diz.ParallelABFS_start_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(end), i): Ref) } { diz.ParallelABFS_end_seq[i] } 0 <= i && i < A ==> (loc(getVCTOption1(end), i): Ref).Integer__item == diz.ParallelABFS_end_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } 0 <= i && i < V ==> acc((loc(getVCTOption1(cost), i): Ref).Integer__item, write))
+  ensures (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+  ensures (forall i: Int :: { diz.ParallelABFS_cost_seq[i] } 0 <= i && i < V && i != source ==> diz.ParallelABFS_cost_seq[i] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i])
+  ensures (forall i: Int :: { (loc(getVCTOption1(cost), i): Ref) } { diz.ParallelABFS_cost_seq[i] } 0 <= i && i < V ==> (loc(getVCTOption1(cost), i): Ref).Integer__item == diz.ParallelABFS_cost_seq[i])
+  ensures (forall i: Int :: 0 <= i && i < V && diz.ParallelABFS_cost_seq[i] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i, diz.ParallelABFS_cost_seq[i]))
+  ensures (forall vertex: Int, P: Seq[Int] :: 0 <= vertex && vertex < V && diz.ParallelABFS_cost_seq[vertex] != ParallelABFS_inf() && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex, P) ==> diz.ParallelABFS_cost_seq[vertex] <= |P|)
+  ensures (forall v: Int :: 0 <= v && v < V && (exists P: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v, P) && true) ==> diz.ParallelABFS_cost_seq[v] != ParallelABFS_inf())
+{
+  var __flatten_20__108: Ref
+  var __flatten_22__109: Ref
+  var __flatten_24__110: Seq[Int]
+  var __flatten_25__111: Ref
+  var __flatten_26__112: Int
+  var __flatten_27__113: Ref
+  while ((loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1)
+    invariant 0 < V && 0 < A
+    invariant 0 <= source && source < V
+    invariant start != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant end != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant counter != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant (alen(getVCTOption1(start)): Int) == A
+    invariant (alen(getVCTOption1(end)): Int) == A
+    invariant (alen(getVCTOption1(cost)): Int) == V
+    invariant (alen(getVCTOption1(counter)): Int) == 1
+    invariant (alen(getVCTOption1(contrib1)): Int) == A
+    invariant 0 < V && 0 < A
+    invariant 0 <= source && source < V
+    invariant (alen(getVCTOption1(counter)): Int) == 1
+    invariant acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write)
+    invariant 0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item <= V - 1
+    invariant start != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant end != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant cost != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant (alen(getVCTOption1(start)): Int) == A
+    invariant (alen(getVCTOption1(end)): Int) == A
+    invariant (alen(getVCTOption1(cost)): Int) == V
+    invariant acc(diz.ParallelABFS_start_seq, wildcard)
+    invariant |diz.ParallelABFS_start_seq| == A
+    invariant acc(diz.ParallelABFS_end_seq, wildcard)
+    invariant |diz.ParallelABFS_end_seq| == A
+    invariant acc(diz.ParallelABFS_cost_seq, write)
+    invariant acc(diz.ParallelABFS_oldcost_seq, write)
+    invariant |diz.ParallelABFS_cost_seq| == V
+    invariant |diz.ParallelABFS_oldcost_seq| == V
+    invariant (forall i__114: Int :: { diz.ParallelABFS_oldcost_seq[i__114] } { diz.ParallelABFS_cost_seq[i__114] } 0 <= i__114 && i__114 < V ==> diz.ParallelABFS_oldcost_seq[i__114] == diz.ParallelABFS_cost_seq[i__114])
+    invariant contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant (alen(getVCTOption1(contrib1)): Int) == A
+    invariant (forall i__115: Int :: { (loc(getVCTOption1(contrib1), i__115): Ref) } 0 <= i__115 && i__115 < A ==> acc((loc(getVCTOption1(contrib1), i__115): Ref).Integer__item, write))
+    invariant (forall i__116: Int :: { (loc(getVCTOption1(contrib1), i__116): Ref) } 0 <= i__116 && i__116 < A ==> (loc(getVCTOption1(contrib1), i__116): Ref).Integer__item == 0)
+    invariant (forall i__117: Int :: { (loc(getVCTOption1(start), i__117): Ref) } 0 <= i__117 && i__117 < A ==> acc((loc(getVCTOption1(start), i__117): Ref).Integer__item, wildcard))
+    invariant (forall i__118: Int :: { (loc(getVCTOption1(start), i__118): Ref) } 0 <= i__118 && i__118 < A ==> 0 <= (loc(getVCTOption1(start), i__118): Ref).Integer__item && (loc(getVCTOption1(start), i__118): Ref).Integer__item < V)
+    invariant (forall i__119: Int :: { (loc(getVCTOption1(end), i__119): Ref) } 0 <= i__119 && i__119 < A ==> acc((loc(getVCTOption1(end), i__119): Ref).Integer__item, wildcard))
+    invariant (forall i__120: Int :: { (loc(getVCTOption1(end), i__120): Ref) } 0 <= i__120 && i__120 < A ==> 0 <= (loc(getVCTOption1(end), i__120): Ref).Integer__item && (loc(getVCTOption1(end), i__120): Ref).Integer__item < V)
+    invariant (forall i__121: Int :: { (loc(getVCTOption1(start), i__121): Ref) } { (loc(getVCTOption1(end), i__121): Ref) } 0 <= i__121 && i__121 < A ==> (loc(getVCTOption1(start), i__121): Ref).Integer__item != (loc(getVCTOption1(end), i__121): Ref).Integer__item)
+    invariant (forall i__122: Int, j__123: Int :: 0 <= i__122 && i__122 < A && (0 <= j__123 && j__123 < A && i__122 != j__123 && (loc(getVCTOption1(start), i__122): Ref).Integer__item == (loc(getVCTOption1(start), j__123): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__122): Ref).Integer__item != (loc(getVCTOption1(end), j__123): Ref).Integer__item)
+    invariant (forall i__124: Int :: { (loc(getVCTOption1(start), i__124): Ref) } { diz.ParallelABFS_start_seq[i__124] } 0 <= i__124 && i__124 < A ==> (loc(getVCTOption1(start), i__124): Ref).Integer__item == diz.ParallelABFS_start_seq[i__124])
+    invariant (forall i__125: Int :: { (loc(getVCTOption1(end), i__125): Ref) } { diz.ParallelABFS_end_seq[i__125] } 0 <= i__125 && i__125 < A ==> (loc(getVCTOption1(end), i__125): Ref).Integer__item == diz.ParallelABFS_end_seq[i__125])
+    invariant (forall i__126: Int :: { (loc(getVCTOption1(cost), i__126): Ref) } 0 <= i__126 && i__126 < V ==> acc((loc(getVCTOption1(cost), i__126): Ref).Integer__item, write))
+    invariant (forall i__127: Int :: { diz.ParallelABFS_cost_seq[i__127] } 0 <= i__127 && i__127 < V && i__127 != source ==> diz.ParallelABFS_cost_seq[i__127] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i__127])
+    invariant (loc(getVCTOption1(cost), source): Ref).Integer__item == 0
+    invariant (forall i__128: Int :: { (loc(getVCTOption1(cost), i__128): Ref) } { diz.ParallelABFS_cost_seq[i__128] } 0 <= i__128 && i__128 < V ==> (loc(getVCTOption1(cost), i__128): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__128])
+    invariant (forall i__129: Int :: 0 <= i__129 && i__129 < V && diz.ParallelABFS_cost_seq[i__129] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i__129, diz.ParallelABFS_cost_seq[i__129]))
+    invariant (forall vertex__130: Int, P__131: Seq[Int] :: 0 <= vertex__130 && vertex__130 < V && diz.ParallelABFS_cost_seq[vertex__130] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__130, P__131) && |P__131| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_cost_seq[vertex__130] <= |P__131|)
+    invariant (forall v__132: Int :: { diz.ParallelABFS_cost_seq[v__132] } 0 <= v__132 && v__132 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__132, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_cost_seq[v__132] != ParallelABFS_inf()) 
+  {
+    exhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelABFS_start_seq, wildcard) && acc(diz.ParallelABFS_end_seq, wildcard) && (|diz.ParallelABFS_start_seq| == A && |diz.ParallelABFS_end_seq| == A) && (forall i__133: Int :: { (loc(getVCTOption1(start), i__133): Ref) } 0 <= i__133 && i__133 < A ==> acc((loc(getVCTOption1(start), i__133): Ref).Integer__item, wildcard)) && (forall i__134: Int :: { (loc(getVCTOption1(start), i__134): Ref) } 0 <= i__134 && i__134 < A ==> 0 <= (loc(getVCTOption1(start), i__134): Ref).Integer__item && (loc(getVCTOption1(start), i__134): Ref).Integer__item < V) && (forall i__135: Int :: { (loc(getVCTOption1(end), i__135): Ref) } 0 <= i__135 && i__135 < A ==> acc((loc(getVCTOption1(end), i__135): Ref).Integer__item, wildcard)) && (forall i__136: Int :: { (loc(getVCTOption1(end), i__136): Ref) } 0 <= i__136 && i__136 < A ==> 0 <= (loc(getVCTOption1(end), i__136): Ref).Integer__item && (loc(getVCTOption1(end), i__136): Ref).Integer__item < V) && (forall i__137: Int :: { (loc(getVCTOption1(start), i__137): Ref) } { (loc(getVCTOption1(end), i__137): Ref) } 0 <= i__137 && i__137 < A ==> (loc(getVCTOption1(start), i__137): Ref).Integer__item != (loc(getVCTOption1(end), i__137): Ref).Integer__item) && (forall i__138: Int, j__139: Int :: 0 <= i__138 && i__138 < A && (0 <= j__139 && j__139 < A && i__138 != j__139 && (loc(getVCTOption1(start), i__138): Ref).Integer__item == (loc(getVCTOption1(start), j__139): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__138): Ref).Integer__item != (loc(getVCTOption1(end), j__139): Ref).Integer__item) && (forall i__140: Int :: { (loc(getVCTOption1(start), i__140): Ref) } { diz.ParallelABFS_start_seq[i__140] } 0 <= i__140 && i__140 < A ==> (loc(getVCTOption1(start), i__140): Ref).Integer__item == diz.ParallelABFS_start_seq[i__140]) && (forall i__141: Int :: { (loc(getVCTOption1(end), i__141): Ref) } { diz.ParallelABFS_end_seq[i__141] } 0 <= i__141 && i__141 < A ==> (loc(getVCTOption1(end), i__141): Ref).Integer__item == diz.ParallelABFS_end_seq[i__141]) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelABFS_cost_seq, write) && |diz.ParallelABFS_cost_seq| == V && acc(diz.ParallelABFS_oldcost_seq, write) && |diz.ParallelABFS_oldcost_seq| == V && (forall i__142: Int :: { (loc(getVCTOption1(contrib1), i__142): Ref) } 0 <= i__142 && i__142 < A ==> acc((loc(getVCTOption1(contrib1), i__142): Ref).Integer__item, 1 / 2)) && ((forall i__143: Int :: { (loc(getVCTOption1(contrib1), i__143): Ref) } 0 <= i__143 && i__143 < A ==> (loc(getVCTOption1(contrib1), i__143): Ref).Integer__item == 0) ==> (forall i__144: Int :: { diz.ParallelABFS_oldcost_seq[i__144] } { diz.ParallelABFS_cost_seq[i__144] } 0 <= i__144 && i__144 < V ==> diz.ParallelABFS_oldcost_seq[i__144] == diz.ParallelABFS_cost_seq[i__144])) && (forall i__145: Int :: { (loc(getVCTOption1(cost), i__145): Ref) } 0 <= i__145 && i__145 < V ==> acc((loc(getVCTOption1(cost), i__145): Ref).Integer__item, write)) && (forall i__146: Int :: { diz.ParallelABFS_oldcost_seq[i__146] } { diz.ParallelABFS_cost_seq[i__146] } 0 <= i__146 && i__146 < V && diz.ParallelABFS_cost_seq[i__146] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__146] == diz.ParallelABFS_cost_seq[i__146]) && (forall i__147: Int :: { diz.ParallelABFS_oldcost_seq[i__147] } { diz.ParallelABFS_cost_seq[i__147] } 0 <= i__147 && i__147 < V && diz.ParallelABFS_oldcost_seq[i__147] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__147] <= diz.ParallelABFS_cost_seq[i__147]) && (forall i__148: Int :: { diz.ParallelABFS_cost_seq[i__148] } { diz.ParallelABFS_oldcost_seq[i__148] } 0 <= i__148 && i__148 < V && diz.ParallelABFS_oldcost_seq[i__148] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[i__148] <= diz.ParallelABFS_oldcost_seq[i__148]) && ((forall i__149: Int :: { diz.ParallelABFS_oldcost_seq[i__149] } 0 <= i__149 && i__149 < V && i__149 != source ==> diz.ParallelABFS_oldcost_seq[i__149] == ParallelABFS_inf() || 0 < diz.ParallelABFS_oldcost_seq[i__149]) && diz.ParallelABFS_oldcost_seq[source] == 0) && ((forall i__150: Int :: { diz.ParallelABFS_cost_seq[i__150] } 0 <= i__150 && i__150 < V && i__150 != source ==> diz.ParallelABFS_cost_seq[i__150] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i__150]) && diz.ParallelABFS_cost_seq[source] == 0) && (forall i__151: Int :: { (loc(getVCTOption1(cost), i__151): Ref) } { diz.ParallelABFS_cost_seq[i__151] } 0 <= i__151 && i__151 < V ==> (loc(getVCTOption1(cost), i__151): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__151]) && (forall i__152: Int :: 0 <= i__152 && i__152 < A && (loc(getVCTOption1(contrib1), i__152): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[diz.ParallelABFS_start_seq[i__152]] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[diz.ParallelABFS_end_seq[i__152]] != ParallelABFS_inf()) && (forall a__153: Int :: 0 <= a__153 && a__153 < A && (loc(getVCTOption1(contrib1), a__153): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__153): Ref).Integer__item] != ParallelABFS_inf() && (diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__153): Ref).Integer__item] == ParallelABFS_inf() || diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__153): Ref).Integer__item] + 1 <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__153): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__153): Ref).Integer__item): Ref).Integer__item <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__153): Ref).Integer__item] + 1) && (forall i__154: Int :: 0 <= i__154 && i__154 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__154): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(start), i__154): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__154): Ref).Integer__item])) && (forall i__155: Int :: 0 <= i__155 && i__155 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__155): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(end), i__155): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__155): Ref).Integer__item])) && (forall i__156: Int :: 0 <= i__156 && i__156 < V && diz.ParallelABFS_cost_seq[i__156] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i__156, diz.ParallelABFS_cost_seq[i__156])) && (forall v__157: Int :: 0 <= v__157 && v__157 < V && diz.ParallelABFS_oldcost_seq[v__157] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__157, diz.ParallelABFS_oldcost_seq[v__157])) && (forall vertex__158: Int, P__159: Seq[Int] :: 0 <= vertex__158 && vertex__158 < V && diz.ParallelABFS_oldcost_seq[vertex__158] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__158, P__159) && |P__159| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[vertex__158] <= |P__159|) && (forall v__160: Int :: { diz.ParallelABFS_oldcost_seq[v__160] } 0 <= v__160 && v__160 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__160, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[v__160] != ParallelABFS_inf()))
+    ParallelABFS_parrallel_region_main_1_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_EncodedGlobalVariables(diz, A, V, source, start, end, cost, contrib1, counter, globals)
+    inhale 0 < V && 0 < A && (0 <= source && source < V) && start != (VCTNone(): VCTOption[VCTArray[Ref]]) && end != (VCTNone(): VCTOption[VCTArray[Ref]]) && cost != (VCTNone(): VCTOption[VCTArray[Ref]]) && contrib1 != (VCTNone(): VCTOption[VCTArray[Ref]]) && counter != (VCTNone(): VCTOption[VCTArray[Ref]]) && (alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && (0 < V && 0 < A && 0 <= source && source < V && (alen(getVCTOption1(counter)): Int) == 1 && (alen(getVCTOption1(contrib1)): Int) == A && ((alen(getVCTOption1(start)): Int) == A && (alen(getVCTOption1(end)): Int) == A && (alen(getVCTOption1(cost)): Int) == V) && acc(diz.ParallelABFS_start_seq, wildcard) && acc(diz.ParallelABFS_end_seq, wildcard) && (|diz.ParallelABFS_start_seq| == A && |diz.ParallelABFS_end_seq| == A) && (forall i__161: Int :: { (loc(getVCTOption1(start), i__161): Ref) } 0 <= i__161 && i__161 < A ==> acc((loc(getVCTOption1(start), i__161): Ref).Integer__item, wildcard)) && (forall i__162: Int :: { (loc(getVCTOption1(start), i__162): Ref) } 0 <= i__162 && i__162 < A ==> 0 <= (loc(getVCTOption1(start), i__162): Ref).Integer__item && (loc(getVCTOption1(start), i__162): Ref).Integer__item < V) && (forall i__163: Int :: { (loc(getVCTOption1(end), i__163): Ref) } 0 <= i__163 && i__163 < A ==> acc((loc(getVCTOption1(end), i__163): Ref).Integer__item, wildcard)) && (forall i__164: Int :: { (loc(getVCTOption1(end), i__164): Ref) } 0 <= i__164 && i__164 < A ==> 0 <= (loc(getVCTOption1(end), i__164): Ref).Integer__item && (loc(getVCTOption1(end), i__164): Ref).Integer__item < V) && (forall i__165: Int :: { (loc(getVCTOption1(start), i__165): Ref) } { (loc(getVCTOption1(end), i__165): Ref) } 0 <= i__165 && i__165 < A ==> (loc(getVCTOption1(start), i__165): Ref).Integer__item != (loc(getVCTOption1(end), i__165): Ref).Integer__item) && (forall i__166: Int, j__167: Int :: 0 <= i__166 && i__166 < A && (0 <= j__167 && j__167 < A && i__166 != j__167 && (loc(getVCTOption1(start), i__166): Ref).Integer__item == (loc(getVCTOption1(start), j__167): Ref).Integer__item) ==> (loc(getVCTOption1(end), i__166): Ref).Integer__item != (loc(getVCTOption1(end), j__167): Ref).Integer__item) && (forall i__168: Int :: { (loc(getVCTOption1(start), i__168): Ref) } { diz.ParallelABFS_start_seq[i__168] } 0 <= i__168 && i__168 < A ==> (loc(getVCTOption1(start), i__168): Ref).Integer__item == diz.ParallelABFS_start_seq[i__168]) && (forall i__169: Int :: { (loc(getVCTOption1(end), i__169): Ref) } { diz.ParallelABFS_end_seq[i__169] } 0 <= i__169 && i__169 < A ==> (loc(getVCTOption1(end), i__169): Ref).Integer__item == diz.ParallelABFS_end_seq[i__169]) && acc((loc(getVCTOption1(counter), 0): Ref).Integer__item, write) && (0 <= (loc(getVCTOption1(counter), 0): Ref).Integer__item && (loc(getVCTOption1(counter), 0): Ref).Integer__item < V - 1) && acc(diz.ParallelABFS_cost_seq, write) && |diz.ParallelABFS_cost_seq| == V && acc(diz.ParallelABFS_oldcost_seq, write) && |diz.ParallelABFS_oldcost_seq| == V && (forall i__170: Int :: { (loc(getVCTOption1(contrib1), i__170): Ref) } 0 <= i__170 && i__170 < A ==> acc((loc(getVCTOption1(contrib1), i__170): Ref).Integer__item, 1 / 2)) && ((forall i__171: Int :: { (loc(getVCTOption1(contrib1), i__171): Ref) } 0 <= i__171 && i__171 < A ==> (loc(getVCTOption1(contrib1), i__171): Ref).Integer__item == 0) ==> (forall i__172: Int :: { diz.ParallelABFS_oldcost_seq[i__172] } { diz.ParallelABFS_cost_seq[i__172] } 0 <= i__172 && i__172 < V ==> diz.ParallelABFS_oldcost_seq[i__172] == diz.ParallelABFS_cost_seq[i__172])) && (forall i__173: Int :: { (loc(getVCTOption1(cost), i__173): Ref) } 0 <= i__173 && i__173 < V ==> acc((loc(getVCTOption1(cost), i__173): Ref).Integer__item, write)) && (forall i__174: Int :: { diz.ParallelABFS_oldcost_seq[i__174] } { diz.ParallelABFS_cost_seq[i__174] } 0 <= i__174 && i__174 < V && diz.ParallelABFS_cost_seq[i__174] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__174] == diz.ParallelABFS_cost_seq[i__174]) && (forall i__175: Int :: { diz.ParallelABFS_oldcost_seq[i__175] } { diz.ParallelABFS_cost_seq[i__175] } 0 <= i__175 && i__175 < V && diz.ParallelABFS_oldcost_seq[i__175] == ParallelABFS_inf() ==> diz.ParallelABFS_oldcost_seq[i__175] <= diz.ParallelABFS_cost_seq[i__175]) && (forall i__176: Int :: { diz.ParallelABFS_cost_seq[i__176] } { diz.ParallelABFS_oldcost_seq[i__176] } 0 <= i__176 && i__176 < V && diz.ParallelABFS_oldcost_seq[i__176] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[i__176] <= diz.ParallelABFS_oldcost_seq[i__176]) && ((forall i__177: Int :: { diz.ParallelABFS_oldcost_seq[i__177] } 0 <= i__177 && i__177 < V && i__177 != source ==> diz.ParallelABFS_oldcost_seq[i__177] == ParallelABFS_inf() || 0 < diz.ParallelABFS_oldcost_seq[i__177]) && diz.ParallelABFS_oldcost_seq[source] == 0) && ((forall i__178: Int :: { diz.ParallelABFS_cost_seq[i__178] } 0 <= i__178 && i__178 < V && i__178 != source ==> diz.ParallelABFS_cost_seq[i__178] == ParallelABFS_inf() || 0 < diz.ParallelABFS_cost_seq[i__178]) && diz.ParallelABFS_cost_seq[source] == 0) && (forall i__179: Int :: { (loc(getVCTOption1(cost), i__179): Ref) } { diz.ParallelABFS_cost_seq[i__179] } 0 <= i__179 && i__179 < V ==> (loc(getVCTOption1(cost), i__179): Ref).Integer__item == diz.ParallelABFS_cost_seq[i__179]) && (forall i__180: Int :: 0 <= i__180 && i__180 < A && (loc(getVCTOption1(contrib1), i__180): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[diz.ParallelABFS_start_seq[i__180]] != ParallelABFS_inf() ==> diz.ParallelABFS_cost_seq[diz.ParallelABFS_end_seq[i__180]] != ParallelABFS_inf()) && (forall a__181: Int :: 0 <= a__181 && a__181 < A && (loc(getVCTOption1(contrib1), a__181): Ref).Integer__item == 1 && diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__181): Ref).Integer__item] != ParallelABFS_inf() && (diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__181): Ref).Integer__item] == ParallelABFS_inf() || diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__181): Ref).Integer__item] + 1 <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(end), a__181): Ref).Integer__item]) ==> (loc(getVCTOption1(cost), (loc(getVCTOption1(end), a__181): Ref).Integer__item): Ref).Integer__item <= diz.ParallelABFS_oldcost_seq[(loc(getVCTOption1(start), a__181): Ref).Integer__item] + 1) && (forall i__182: Int :: 0 <= i__182 && i__182 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__182): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(start), i__182): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(start), i__182): Ref).Integer__item])) && (forall i__183: Int :: 0 <= i__183 && i__183 < A && diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__183): Ref).Integer__item] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, (loc(getVCTOption1(end), i__183): Ref).Integer__item, diz.ParallelABFS_cost_seq[(loc(getVCTOption1(end), i__183): Ref).Integer__item])) && (forall i__184: Int :: 0 <= i__184 && i__184 < V && diz.ParallelABFS_cost_seq[i__184] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, i__184, diz.ParallelABFS_cost_seq[i__184])) && (forall v__185: Int :: 0 <= v__185 && v__185 < V && diz.ParallelABFS_oldcost_seq[v__185] != ParallelABFS_inf() ==> ParallelABFS_ExPathEqual_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__185, diz.ParallelABFS_oldcost_seq[v__185])) && (forall vertex__186: Int, P__187: Seq[Int] :: 0 <= vertex__186 && vertex__186 < V && diz.ParallelABFS_oldcost_seq[vertex__186] != ParallelABFS_inf() && (ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__186, P__187) && |P__187| <= (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[vertex__186] <= |P__187|) && (forall v__188: Int :: { diz.ParallelABFS_oldcost_seq[v__188] } 0 <= v__188 && v__188 < V && ParallelABFS_ExPath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Integer(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__188, (loc(getVCTOption1(counter), 0): Ref).Integer__item) ==> diz.ParallelABFS_oldcost_seq[v__188] != ParallelABFS_inf()))
+    ParallelABFS_parrallel_region_main_2_Integer_Integer_Integer_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$_Option$Array$Cell$Integer$$$(diz, A, V, source, start, end, cost, contrib1, counter)
+    __flatten_20__108 := (loc(getVCTOption1(counter), 0): Ref)
+    ParallelABFS_lemma_inv6_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, diz.ParallelABFS_oldcost_seq, diz.ParallelABFS_cost_seq, source, __flatten_20__108.Integer__item)
+    __flatten_22__109 := (loc(getVCTOption1(counter), 0): Ref)
+    ParallelABFS_lemma_inv5_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Sequence$Integer$_Integer_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, diz.ParallelABFS_oldcost_seq, diz.ParallelABFS_cost_seq, source, __flatten_22__109.Integer__item)
+    __flatten_24__110 := diz.ParallelABFS_cost_seq
+    diz.ParallelABFS_oldcost_seq := __flatten_24__110
+    __flatten_25__111 := (loc(getVCTOption1(counter), 0): Ref)
+    __flatten_27__113 := (loc(getVCTOption1(counter), 0): Ref)
+    __flatten_26__112 := __flatten_27__113.Integer__item + 1
+    __flatten_25__111.Integer__item := __flatten_26__112
+  }
+  ParallelABFS_simple_path_lemma1_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source)
+  // assert
+  assert (forall v__189: Int, P__190: Seq[Int] :: 0 <= v__189 && v__189 < V && ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__189, P__190) ==> |P__190| < V)
+  ParallelABFS_simple_path_Part_1_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source)
+  // assert
+  assert (forall v__191: Int, P__192: Seq[Int] :: 0 <= v__191 && v__191 < V && ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__191, P__192) ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__191, P__192))
+  ParallelABFS_simple_path_Part_2_lemma2_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source)
+  // assert
+  assert (forall v__193: Int, P__194: Seq[Int] :: 0 <= v__193 && v__193 < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__193, P__194) ==> ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__193, ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__193, P__194)))
+  // assert
+  assert (forall v__195: Int, P__196: Seq[Int] :: 0 <= v__195 && v__195 < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__195, P__196) ==> ParallelABFS_SimplePath_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__195, ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__195, P__196)))
+  ParallelABFS_simple_path_lemma3_preserved_EncodedGlobalVariables_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer(diz, globals, V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source)
+  // assert
+  assert (forall v__197: Int, P__198: Seq[Int] :: 0 <= v__197 && v__197 < V && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__197, P__198) ==> |ParallelABFS_convert_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__197, P__198)| <= |P__198|)
+  // assert
+  assert (forall vertex__199: Int, P__200: Seq[Int] :: 0 <= vertex__199 && vertex__199 < V && diz.ParallelABFS_cost_seq[vertex__199] != ParallelABFS_inf() && ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, vertex__199, P__200) ==> diz.ParallelABFS_cost_seq[vertex__199] <= |P__200|)
+  // assert
+  assert (forall v__201: Int :: 0 <= v__201 && v__201 < V && (exists P__202: Seq[Int] :: ParallelABFS_Path_Integer_Integer_Sequence$Integer$_Sequence$Integer$_Integer_Integer_Sequence$Integer$(V, A, diz.ParallelABFS_start_seq, diz.ParallelABFS_end_seq, source, v__201, P__202) && true) ==> diz.ParallelABFS_cost_seq[v__201] != ParallelABFS_inf())
+}

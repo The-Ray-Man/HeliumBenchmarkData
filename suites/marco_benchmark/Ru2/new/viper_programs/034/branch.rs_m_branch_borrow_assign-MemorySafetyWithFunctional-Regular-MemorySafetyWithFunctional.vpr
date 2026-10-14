@@ -1,0 +1,2553 @@
+domain Address  {
+  
+  
+}
+
+domain Bytes  {
+  
+  
+}
+
+domain FunctionGas  {
+  
+  function function_gas_level$(_0: FunctionGas): FunctionGas 
+  
+  function function_no_gas$(): FunctionGas 
+}
+
+domain Lifetime  {
+  
+  function included(_0: Lifetime, _1: Lifetime): Bool 
+  
+  function intersect(_0: Set[Lifetime]): Lifetime 
+  
+  axiom included_in_itself$ {
+    (forall lft: Lifetime :: { included(lft, lft) } included(lft, lft))
+  }
+  
+  axiom included_intersect$1 {
+    (forall lft_1: Set[Lifetime], lft_2: Set[Lifetime] ::
+      { included(intersect(lft_1), intersect(lft_2)) }
+      included(intersect(lft_1), intersect(lft_2)) == (lft_2 subset lft_1))
+  }
+  
+  axiom included_intersect$2 {
+    (forall lft_1: Set[Lifetime], lft_2: Lifetime ::
+      { included(intersect(lft_1), lft_2) }
+      included(intersect(lft_1), lft_2) == (lft_2 in lft_1))
+  }
+  
+  axiom intersect_singleton$ {
+    (forall lft: Lifetime ::
+      { intersect(Set(lft)) }
+      intersect(Set(lft)) == lft)
+  }
+}
+
+domain MarkerCalls  {
+  
+  function basic_block_marker$start_label$marker(): Bool 
+  
+  function basic_block_marker$label_entry$marker(): Bool 
+  
+  function basic_block_marker$label_bb0$marker(): Bool 
+  
+  function basic_block_marker$label_2_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb1$marker(): Bool 
+  
+  function basic_block_marker$label_1_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb2$marker(): Bool 
+  
+  function basic_block_marker$label_bb3$marker(): Bool 
+  
+  function basic_block_marker$return_label$marker(): Bool 
+  
+  function basic_block_marker$end_label$marker(): Bool 
+}
+
+domain Place  {
+  
+  unique function _1$place(): Place 
+  
+  unique function _2$place(): Place 
+  
+  unique function _3$place(): Place 
+  
+  unique function _6$place(): Place 
+  
+  unique function _7$place(): Place 
+  
+  unique function _4$place(): Place 
+  
+  unique function _5$place(): Place 
+  
+  unique function _9$place(): Place 
+  
+  unique function _8$place(): Place 
+  
+  unique function _0$place(): Place 
+}
+
+domain PlaceOption  {
+  
+  function place_option_some(_0: Place): PlaceOption 
+  
+  function deref_reference_place(_0: PlaceOption): PlaceOption 
+}
+
+domain Size  {
+  
+  function Size$ref$Unique$I32$(): Snap$Usize 
+  
+  function PaddingSize$Tuple$$(): Snap$Usize 
+  
+  axiom Size$ref$Unique$I32$$valid {
+    valid$Snap$Usize(Size$ref$Unique$I32$())
+  }
+  
+  axiom PaddingSize$Tuple$$$valid {
+    valid$Snap$Usize(PaddingSize$Tuple$$())
+  }
+}
+
+domain Snap$Bool  {
+  
+  function constructor$Snap$Bool$(value: Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$$value(value: Snap$Bool): Bool 
+  
+  function snapshot_equality$Snap$Bool$(left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Bool(_0: Snap$Bool): Bool 
+  
+  function to_bytes$Bool(snapshot: Snap$Bool): Bytes 
+  
+  function from_bytes$Bool(bytes: Bytes): Snap$Bool 
+  
+  axiom constructor$Snap$Bool$$top_down_injectivity_axiom {
+    (forall value: Snap$Bool ::
+      { valid$Snap$Bool(value) }
+      { constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)) }
+      valid$Snap$Bool(value) ==>
+      value == constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      (destructor$Snap$Bool$$value(left) ==
+      destructor$Snap$Bool$$value(right))))
+  }
+  
+  axiom Snap$Bool$$validity_axiom_bottom_up_alternative {
+    (forall value: Bool ::
+      { valid$Snap$Bool(constructor$Snap$Bool$(value)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(value)))
+  }
+  
+  axiom constructor$Snap$Bool$$bottom_up_injectivity_axiom$value {
+    (forall value: Bool ::
+      { constructor$Snap$Bool$(value) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$(value)) == value)
+  }
+  
+  axiom Snap$Bool$Bool$to_bytes_injective {
+    (forall snapshot: Snap$Bool ::
+      { to_bytes$Bool(snapshot) }
+      snapshot == from_bytes$Bool(to_bytes$Bool(snapshot)))
+  }
+}
+
+domain Snap$I32  {
+  
+  function constructor$Snap$I32$(value: Int): Snap$I32 
+  
+  function destructor$Snap$I32$$value(value: Snap$I32): Int 
+  
+  function snapshot_equality$Snap$I32$(left: Snap$I32, right: Snap$I32, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$I32(_0: Snap$I32): Bool 
+  
+  function to_bytes$I32(snapshot: Snap$I32): Bytes 
+  
+  function from_bytes$I32(bytes: Bytes): Snap$I32 
+  
+  axiom constructor$Snap$I32$$top_down_injectivity_axiom {
+    (forall value: Snap$I32 ::
+      { valid$Snap$I32(value) }
+      { constructor$Snap$I32$(destructor$Snap$I32$$value(value)) }
+      valid$Snap$I32(value) ==>
+      value == constructor$Snap$I32$(destructor$Snap$I32$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$I32$$snapshot_equality_axiom {
+    (forall left: Snap$I32, right: Snap$I32, gas$: FunctionGas ::
+      { snapshot_equality$Snap$I32$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$I32$(left, right, gas$) ==
+      snapshot_equality$Snap$I32$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$I32$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$I32$(left, right, gas$) ==
+      (destructor$Snap$I32$$value(left) ==
+      destructor$Snap$I32$$value(right))))
+  }
+  
+  axiom Snap$I32$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$I32(constructor$Snap$I32$(value)) }
+      valid$Snap$I32(constructor$Snap$I32$(value)) ==
+      (-2147483648 <= value && value <= 2147483647))
+  }
+  
+  axiom constructor$Snap$I32$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$I32$(value) }
+      destructor$Snap$I32$$value(constructor$Snap$I32$(value)) == value)
+  }
+  
+  axiom Snap$I32$I32$to_bytes_injective {
+    (forall snapshot: Snap$I32 ::
+      { to_bytes$I32(snapshot) }
+      snapshot == from_bytes$I32(to_bytes$I32(snapshot)))
+  }
+}
+
+domain Snap$Tuple$  {
+  
+  function constructor$Snap$Tuple$$(): Snap$Tuple$ 
+  
+  function snapshot_equality$Snap$Tuple$$(left: Snap$Tuple$, right: Snap$Tuple$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Tuple$(_0: Snap$Tuple$): Bool 
+  
+  function to_bytes$Tuple$(snapshot: Snap$Tuple$): Bytes 
+  
+  axiom constructor$Snap$Tuple$$$top_down_injectivity_axiom {
+    (forall value: Snap$Tuple$ ::
+      { valid$Snap$Tuple$(value) }
+      valid$Snap$Tuple$(value) ==> value == constructor$Snap$Tuple$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Tuple$$$snapshot_equality_axiom {
+    (forall left: Snap$Tuple$, right: Snap$Tuple$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) ==
+      snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) == (left == right))
+  }
+  
+  axiom Snap$Tuple$$validity_axiom_bottom_up_alternative_no_parameters {
+    valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  }
+}
+
+domain Snap$Usize  {
+  
+  function constructor$Snap$Usize$(value: Int): Snap$Usize 
+  
+  function destructor$Snap$Usize$$value(value: Snap$Usize): Int 
+  
+  function snapshot_equality$Snap$Usize$(left: Snap$Usize, right: Snap$Usize,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Usize(_0: Snap$Usize): Bool 
+  
+  axiom constructor$Snap$Usize$$top_down_injectivity_axiom {
+    (forall value: Snap$Usize ::
+      { valid$Snap$Usize(value) }
+      { constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)) }
+      valid$Snap$Usize(value) ==>
+      value == constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Usize$$snapshot_equality_axiom {
+    (forall left: Snap$Usize, right: Snap$Usize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Usize$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      (destructor$Snap$Usize$$value(left) ==
+      destructor$Snap$Usize$$value(right))))
+  }
+  
+  axiom Snap$Usize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Usize(constructor$Snap$Usize$(value)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(value)) ==
+      (0 <= value && value <= 18446744073709551615))
+  }
+  
+  axiom constructor$Snap$Usize$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Usize$(value) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(value)) == value)
+  }
+}
+
+domain Snap$ptr$I32  {
+  
+  function to_bytes$ptr$I32(snapshot: Snap$ptr$I32): Bytes 
+  
+  function from_bytes$ptr$I32(bytes: Bytes): Snap$ptr$I32 
+  
+  function constructor$Snap$ptr$I32$(address: Address): Snap$ptr$I32 
+  
+  function destructor$Snap$ptr$I32$$address(value: Snap$ptr$I32): Address 
+  
+  function snapshot_equality$Snap$ptr$I32$(left: Snap$ptr$I32, right: Snap$ptr$I32,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$ptr$I32(_0: Snap$ptr$I32): Bool 
+  
+  axiom constructor$Snap$ptr$I32$$top_down_injectivity_axiom {
+    (forall value: Snap$ptr$I32 ::
+      { valid$Snap$ptr$I32(value) }
+      { constructor$Snap$ptr$I32$(destructor$Snap$ptr$I32$$address(value)) }
+      valid$Snap$ptr$I32(value) ==>
+      value ==
+      constructor$Snap$ptr$I32$(destructor$Snap$ptr$I32$$address(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ptr$I32$$snapshot_equality_axiom {
+    (forall left: Snap$ptr$I32, right: Snap$ptr$I32, gas$: FunctionGas ::
+      { snapshot_equality$Snap$ptr$I32$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ptr$I32$(left, right, gas$) ==
+      snapshot_equality$Snap$ptr$I32$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ptr$I32$(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ptr$I32$(left, right, gas$) ==
+      (destructor$Snap$ptr$I32$$address(left) ==
+      destructor$Snap$ptr$I32$$address(right))))
+  }
+  
+  axiom Snap$ptr$I32$$validity_axiom_bottom_up_alternative {
+    (forall address: Address ::
+      { valid$Snap$ptr$I32(constructor$Snap$ptr$I32$(address)) }
+      valid$Snap$ptr$I32(constructor$Snap$ptr$I32$(address)))
+  }
+  
+  axiom Snap$ptr$I32$ptr$I32$to_bytes_injective {
+    (forall snapshot: Snap$ptr$I32 ::
+      { to_bytes$ptr$I32(snapshot) }
+      snapshot == from_bytes$ptr$I32(to_bytes$ptr$I32(snapshot)))
+  }
+  
+  axiom constructor$Snap$ptr$I32$$bottom_up_injectivity_axiom$address {
+    (forall address: Address ::
+      { constructor$Snap$ptr$I32$(address) }
+      destructor$Snap$ptr$I32$$address(constructor$Snap$ptr$I32$(address)) ==
+      address)
+  }
+}
+
+domain Snap$ref$Unique$I32  {
+  
+  function constructor$Snap$ref$Unique$I32$(address: Address, target_current: Snap$I32,
+  target_final: Snap$I32): Snap$ref$Unique$I32 
+  
+  function destructor$Snap$ref$Unique$I32$$address(value: Snap$ref$Unique$I32): Address 
+  
+  function destructor$Snap$ref$Unique$I32$$target_current(value: Snap$ref$Unique$I32): Snap$I32 
+  
+  function destructor$Snap$ref$Unique$I32$$target_final(value: Snap$ref$Unique$I32): Snap$I32 
+  
+  function snapshot_equality$Snap$ref$Unique$I32$(left: Snap$ref$Unique$I32,
+  right: Snap$ref$Unique$I32, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$ref$Unique$I32(_0: Snap$ref$Unique$I32): Bool 
+  
+  function to_bytes$ref$Unique$I32(snapshot: Snap$ref$Unique$I32): Bytes 
+  
+  axiom constructor$Snap$ref$Unique$I32$$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Unique$I32 ::
+      { valid$Snap$ref$Unique$I32(value), destructor$Snap$ref$Unique$I32$$address(value) }
+      { valid$Snap$ref$Unique$I32(value), destructor$Snap$ref$Unique$I32$$target_current(value) }
+      { valid$Snap$ref$Unique$I32(value), destructor$Snap$ref$Unique$I32$$target_final(value) }
+      { constructor$Snap$ref$Unique$I32$(destructor$Snap$ref$Unique$I32$$address(value),
+      destructor$Snap$ref$Unique$I32$$target_current(value), destructor$Snap$ref$Unique$I32$$target_final(value)) }
+      valid$Snap$ref$Unique$I32(value) ==>
+      value ==
+      constructor$Snap$ref$Unique$I32$(destructor$Snap$ref$Unique$I32$$address(value),
+      destructor$Snap$ref$Unique$I32$$target_current(value), destructor$Snap$ref$Unique$I32$$target_final(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ref$Unique$I32$$snapshot_equality_axiom {
+    (forall left: Snap$ref$Unique$I32, right: Snap$ref$Unique$I32, gas$: FunctionGas ::
+      { snapshot_equality$Snap$ref$Unique$I32$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ref$Unique$I32$(left, right, gas$) ==
+      snapshot_equality$Snap$ref$Unique$I32$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ref$Unique$I32$(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ref$Unique$I32$(left, right, gas$) ==
+      (destructor$Snap$ref$Unique$I32$$address(left) ==
+      destructor$Snap$ref$Unique$I32$$address(right) &&
+      destructor$Snap$ref$Unique$I32$$target_current(left) ==
+      destructor$Snap$ref$Unique$I32$$target_current(right) &&
+      destructor$Snap$ref$Unique$I32$$target_final(left) ==
+      destructor$Snap$ref$Unique$I32$$target_final(right))))
+  }
+  
+  axiom Snap$ref$Unique$I32$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Unique$I32 ::
+      { valid$Snap$ref$Unique$I32(snapshot), destructor$Snap$ref$Unique$I32$$target_current(snapshot) }
+      { valid$Snap$ref$Unique$I32(snapshot), destructor$Snap$ref$Unique$I32$$target_final(snapshot) }
+      valid$Snap$ref$Unique$I32(snapshot) ==
+      (valid$Snap$I32(destructor$Snap$ref$Unique$I32$$target_current(snapshot)) &&
+      valid$Snap$I32(destructor$Snap$ref$Unique$I32$$target_final(snapshot))))
+  }
+  
+  axiom Snap$ref$Unique$I32$$validity_axiom_bottom_up_alternative {
+    (forall address: Address, target_current: Snap$I32, target_final: Snap$I32 ::
+      { valid$Snap$ref$Unique$I32(constructor$Snap$ref$Unique$I32$(address,
+      target_current, target_final)), valid$Snap$I32(target_current), valid$Snap$I32(target_final) }
+      valid$Snap$ref$Unique$I32(constructor$Snap$ref$Unique$I32$(address, target_current,
+      target_final)) ==
+      (valid$Snap$I32(target_current) && valid$Snap$I32(target_final)))
+  }
+  
+  axiom constructor$Snap$ref$Unique$I32$$bottom_up_injectivity_axiom$address {
+    (forall address: Address, target_current: Snap$I32, target_final: Snap$I32 ::
+      { constructor$Snap$ref$Unique$I32$(address, target_current, target_final) }
+      destructor$Snap$ref$Unique$I32$$address(constructor$Snap$ref$Unique$I32$(address,
+      target_current, target_final)) ==
+      address)
+  }
+  
+  axiom constructor$Snap$ref$Unique$I32$$bottom_up_injectivity_axiom$target_current {
+    (forall address: Address, target_current: Snap$I32, target_final: Snap$I32 ::
+      { constructor$Snap$ref$Unique$I32$(address, target_current, target_final) }
+      destructor$Snap$ref$Unique$I32$$target_current(constructor$Snap$ref$Unique$I32$(address,
+      target_current, target_final)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Unique$I32$$bottom_up_injectivity_axiom$target_final {
+    (forall address: Address, target_current: Snap$I32, target_final: Snap$I32 ::
+      { constructor$Snap$ref$Unique$I32$(address, target_current, target_final) }
+      destructor$Snap$ref$Unique$I32$$target_final(constructor$Snap$ref$Unique$I32$(address,
+      target_current, target_final)) ==
+      target_final)
+  }
+}
+
+domain UniqueRefSnapFunctions  {
+  
+  function snap_final_unique_ref$I32(_0: PlaceOption, _1: Address, _2: Lifetime,
+  _3: FunctionGas): Snap$I32 
+  
+  axiom snap_final_unique_ref$I32$definitional_axiom {
+    (forall place: PlaceOption, address: Address, reference_lifetime: Lifetime,
+    gas$: FunctionGas ::
+      { snap_final_unique_ref$I32(place, address, reference_lifetime, function_gas_level$(gas$)) }
+      snap_final_unique_ref$I32(place, address, reference_lifetime, function_gas_level$(gas$)) ==
+      snap_final_unique_ref$I32(place, address, reference_lifetime, gas$))
+  }
+}
+
+domain ComputeAddress  {
+  
+  function address_is_non_aliased(address: Address): Bool 
+}
+
+function MemoryBlock$bytes(address: Address, size: Snap$Usize): Bytes
+  requires acc(MemoryBlock(address, size), wildcard)
+
+
+function snap_current_unique_ref$I32(place: PlaceOption, address: Address, reference_lifetime: Lifetime): Snap$I32
+  requires acc(UniqueRef$I32(place, address, reference_lifetime), wildcard)
+  ensures valid$Snap$I32(result)
+
+
+function snap_owned_non_aliased$Bool(place: PlaceOption, address: Address): Snap$Bool
+  requires acc(OwnedNonAliased$Bool(place, address), wildcard)
+  ensures valid$Snap$Bool(result)
+  ensures (unfolding acc(OwnedNonAliased$Bool(place, address), wildcard) in
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(1)) ==
+      to_bytes$Bool(result))
+
+
+function snap_owned_non_aliased$I32(place: PlaceOption, address: Address): Snap$I32
+  requires acc(OwnedNonAliased$I32(place, address), wildcard)
+  ensures valid$Snap$I32(result)
+  ensures (unfolding acc(OwnedNonAliased$I32(place, address), wildcard) in
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(4)) ==
+      to_bytes$I32(result))
+
+
+function snap_owned_non_aliased$Tuple$(place: PlaceOption, address: Address): Snap$Tuple$
+  requires acc(OwnedNonAliased$Tuple$(place, address), wildcard)
+  ensures valid$Snap$Tuple$(result)
+  ensures (unfolding acc(OwnedNonAliased$Tuple$(place, address), wildcard) in
+      true)
+
+
+function snap_owned_non_aliased$ref$Unique$I32(place: PlaceOption, address: Address,
+  lft_8$alive: Bool, lft_8: Lifetime): Snap$ref$Unique$I32
+  requires acc(OwnedNonAliased$ref$Unique$I32(place, address, lft_8$alive, lft_8), wildcard)
+  ensures valid$Snap$ref$Unique$I32(result)
+  ensures (unfolding acc(OwnedNonAliased$ref$Unique$I32(place, address, lft_8$alive,
+      lft_8), wildcard) in
+      MemoryBlock$bytes(address, Size$ref$Unique$I32$()) ==
+      to_bytes$ptr$I32(constructor$Snap$ptr$I32$(destructor$Snap$ref$Unique$I32$$address(result))))
+  ensures (unfolding acc(OwnedNonAliased$ref$Unique$I32(place, address, lft_8$alive,
+      lft_8), wildcard) in
+      lft_8$alive ==>
+      destructor$Snap$ref$Unique$I32$$target_current(result) ==
+      snap_current_unique_ref$I32(deref_reference_place(place), destructor$Snap$ref$Unique$I32$$address(result),
+      lft_8) &&
+      destructor$Snap$ref$Unique$I32$$target_final(result) ==
+      snap_final_unique_ref$I32(deref_reference_place(place), destructor$Snap$ref$Unique$I32$$address(result),
+      lft_8, function_gas_level$(function_gas_level$(function_no_gas$()))))
+
+
+@qpresource()
+predicate OwnedNonAliased$Bool(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, constructor$Snap$Usize$(1)), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$I32(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, constructor$Snap$Usize$(4)), write)
+}
+
+@qpresource()
+predicate UniqueRef$I32(place: PlaceOption, address: Address, reference_lifetime: Lifetime) 
+
+@qpresource()
+predicate OwnedNonAliased$ref$Unique$I32(place: PlaceOption, address: Address,
+  lft_8$alive: Bool, lft_8: Lifetime) {
+  acc(MemoryBlock(address, Size$ref$Unique$I32$()), write) &&
+  (lft_8$alive ==>
+  acc(UniqueRef$I32(deref_reference_place(place), destructor$Snap$ptr$I32$$address(from_bytes$ptr$I32(MemoryBlock$bytes(address,
+  Size$ref$Unique$I32$()))), lft_8), write))
+}
+
+@qpresource()
+predicate OwnedNonAliased$Tuple$(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, PaddingSize$Tuple$$()), write)
+}
+
+@qpresource()
+predicate CloseMutRef$I32(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, final_snapshot: Snap$I32) 
+
+@qpresource()
+predicate DeadLifetimeToken(lifetime: Lifetime) 
+
+predicate LifetimeToken(lifetime: Lifetime) 
+
+@qpresource()
+predicate MemoryBlock(address: Address, size: Snap$Usize) 
+
+@qpresource()
+predicate MemoryBlockStackDrop(address: Address, size: Snap$Usize) 
+
+@qpresource()
+predicate view_shift$end$borrow$I32(lft_2: Lifetime, operand_place: PlaceOption,
+  operand_address: Address, arg$3: Snap$I32) 
+
+@qpresource()
+predicate view_shift$end$reborrow$I32(lft_4: Lifetime, operand_place: PlaceOption,
+  operand_address: Address, arg$3: Snap$I32, lft_8: Lifetime) 
+
+method m_branch_borrow_assign$MemorySafetyWithFunctional$Regular()
+{
+  var _0$snapshot$1: Snap$Tuple$
+  var _1$snapshot$0: Snap$Bool
+  var _2$address$snapshot$0: Address
+  var _2$snapshot$1: Snap$I32
+  var _2$snapshot$2: Snap$I32
+  var _2$snapshot$3: Snap$I32
+  var _3$address$snapshot$0: Address
+  var _3$snapshot$1: Snap$I32
+  var _3$snapshot$2: Snap$I32
+  var _3$snapshot$3: Snap$I32
+  var _4$snapshot$1: Snap$ref$Unique$I32
+  var _4$snapshot$2: Snap$ref$Unique$I32
+  var _4$snapshot$3: Snap$ref$Unique$I32
+  var _4$snapshot$4: Snap$ref$Unique$I32
+  var _4$snapshot$5: Snap$ref$Unique$I32
+  var _4$snapshot$6: Snap$ref$Unique$I32
+  var _5$snapshot$1: Snap$Tuple$
+  var _5$snapshot$2: Snap$Tuple$
+  var _5$snapshot$3: Snap$Tuple$
+  var _6$snapshot$1: Snap$Bool
+  var _7$snapshot$0: Snap$ref$Unique$I32
+  var _7$snapshot$1: Snap$ref$Unique$I32
+  var _7$snapshot$2: Snap$ref$Unique$I32
+  var _8$snapshot$0: Snap$ref$Unique$I32
+  var _8$snapshot$1: Snap$ref$Unique$I32
+  var _8$snapshot$2: Snap$ref$Unique$I32
+  var _9$snapshot$0: Snap$ref$Unique$I32
+  var _9$snapshot$1: Snap$ref$Unique$I32
+  var _9$snapshot$2: Snap$ref$Unique$I32
+  var bw0$snapshot$0: Lifetime
+  var bw1$snapshot$0: Lifetime
+  var bw3$snapshot$0: Lifetime
+  var bw4$snapshot$0: Lifetime
+  var end_label$marker$snapshot$0: Bool
+  var end_label$marker$snapshot$1: Bool
+  var label_1_custom$marker$snapshot$0: Bool
+  var label_1_custom$marker$snapshot$1: Bool
+  var label_1_custom$marker$snapshot$2: Bool
+  var label_2_custom$marker$snapshot$0: Bool
+  var label_2_custom$marker$snapshot$1: Bool
+  var label_2_custom$marker$snapshot$2: Bool
+  var label_bb0$marker$snapshot$0: Bool
+  var label_bb0$marker$snapshot$1: Bool
+  var label_bb1$marker$snapshot$0: Bool
+  var label_bb1$marker$snapshot$1: Bool
+  var label_bb1$marker$snapshot$2: Bool
+  var label_bb2$marker$snapshot$0: Bool
+  var label_bb2$marker$snapshot$1: Bool
+  var label_bb2$marker$snapshot$2: Bool
+  var label_bb3$marker$snapshot$0: Bool
+  var label_bb3$marker$snapshot$1: Bool
+  var label_entry$marker$snapshot$0: Bool
+  var label_entry$marker$snapshot$1: Bool
+  var lft_0$snapshot$1: Lifetime
+  var lft_1$snapshot$1: Lifetime
+  var lft_2$snapshot$0: Lifetime
+  var lft_2$snapshot$1: Lifetime
+  var lft_2$snapshot$2: Lifetime
+  var lft_3$snapshot$0: Lifetime
+  var lft_3$snapshot$1: Lifetime
+  var lft_3$snapshot$2: Lifetime
+  var lft_4$snapshot$0: Lifetime
+  var lft_4$snapshot$1: Lifetime
+  var lft_4$snapshot$2: Lifetime
+  var lft_5$alive$snapshot$0: Bool
+  var lft_5$snapshot$1: Lifetime
+  var lft_5$snapshot$2: Lifetime
+  var lft_5$snapshot$3: Lifetime
+  var lft_5$snapshot$4: Lifetime
+  var lft_5$snapshot$5: Lifetime
+  var lft_6$alive$snapshot$0: Bool
+  var lft_6$snapshot$0: Lifetime
+  var lft_6$snapshot$1: Lifetime
+  var lft_6$snapshot$2: Lifetime
+  var lft_7$alive$snapshot$0: Bool
+  var lft_7$snapshot$0: Lifetime
+  var lft_7$snapshot$1: Lifetime
+  var lft_7$snapshot$2: Lifetime
+  var lft_8$alive$snapshot$0: Bool
+  var lft_8$snapshot$0: Lifetime
+  var lft_8$snapshot$1: Lifetime
+  var lft_8$snapshot$2: Lifetime
+  var lifetime_token_perm_amount$0$snapshot$0: Perm
+  var old_lft_5_0$snapshot$0: Lifetime
+  var old_lft_5_0$snapshot$1: Lifetime
+  var old_lft_5_0$snapshot$2: Lifetime
+  var old_lft_5_1$snapshot$0: Lifetime
+  var old_lft_5_1$snapshot$1: Lifetime
+  var old_lft_5_1$snapshot$2: Lifetime
+  var return_label$marker$snapshot$0: Bool
+  var return_label$marker$snapshot$1: Bool
+  var start_label$marker$snapshot$0: Bool
+  var start_label$marker$snapshot$1: Bool
+  var tmp$0: Snap$ref$Unique$I32
+  var tmp$1: Snap$ref$Unique$I32
+  var tmp$2: Snap$ref$Unique$I32
+  var non_deterministic_jump$0: Int
+  var non_deterministic_jump$1: Int
+  var non_deterministic_jump$2: Int
+  var non_deterministic_jump$3: Int
+  var non_deterministic_jump$4: Int
+  var non_deterministic_jump$5: Int
+  var non_deterministic_jump$6: Int
+  var non_deterministic_jump$7: Int
+  var non_deterministic_jump$8: Int
+  var non_deterministic_jump$9: Int
+  var non_deterministic_jump$10: Int
+  var non_deterministic_jump$11: Int
+  var non_deterministic_jump$12: Int
+  var snapshot$OwnedNonAliased$Bool$0: Snap$Bool
+  var snapshot$OwnedNonAliased$I32$3: Snap$I32
+  var snapshot$OwnedNonAliased$I32$5: Snap$I32
+  var snapshot$OwnedNonAliased$Bool$9: Snap$Bool
+  var snapshot$OwnedNonAliased$Bool$10: Snap$Bool
+  var snapshot$OwnedNonAliased$ref$Unique$I32$12: Snap$ref$Unique$I32
+  var snapshot$OwnedNonAliased$ref$Unique$I32$13: Snap$ref$Unique$I32
+  var snapshot$MemoryBlock$15: Bytes
+  var snapshot$UniqueRef$I32$16: Snap$I32
+  var snapshot$OwnedNonAliased$I32$17: Snap$I32
+  var snapshot$OwnedNonAliased$I32$19: Snap$I32
+  var snapshot$UniqueRef$I32$20: Snap$I32
+  var snapshot$OwnedNonAliased$Tuple$$21: Snap$Tuple$
+  var snapshot$UniqueRef$I32$22: Snap$I32
+  var snapshot$OwnedNonAliased$ref$Unique$I32$25: Snap$ref$Unique$I32
+  var snapshot$MemoryBlock$26: Bytes
+  var snapshot$UniqueRef$I32$27: Snap$I32
+  var snapshot$OwnedNonAliased$ref$Unique$I32$28: Snap$ref$Unique$I32
+  var snapshot$OwnedNonAliased$ref$Unique$I32$29: Snap$ref$Unique$I32
+  var snapshot$MemoryBlock$31: Bytes
+  var snapshot$UniqueRef$I32$32: Snap$I32
+  var snapshot$OwnedNonAliased$I32$33: Snap$I32
+  var snapshot$OwnedNonAliased$I32$35: Snap$I32
+  var snapshot$UniqueRef$I32$36: Snap$I32
+  var snapshot$OwnedNonAliased$Tuple$$37: Snap$Tuple$
+  var snapshot$UniqueRef$I32$38: Snap$I32
+  var snapshot$OwnedNonAliased$Tuple$$39: Snap$Tuple$
+  var merge_variable$40: Address
+  var merge_variable$41: Lifetime
+  var snapshot$UniqueRef$I32$42: Snap$I32
+  var snapshot$MemoryBlock$43: Bytes
+  var snapshot$OwnedNonAliased$I32$46: Snap$I32
+  var snapshot$OwnedNonAliased$I32$48: Snap$I32
+  var snapshot$UniqueRef$I32$49: Snap$I32
+  var snapshot$OwnedNonAliased$Tuple$$50: Snap$Tuple$
+  var merge_variable$52: Lifetime
+  var merge_variable$53: Snap$I32
+  var permission$OwnedNonAliased$Bool$0: Perm
+  var permission$MemoryBlock$1: Perm
+  var permission$MemoryBlock$2: Perm
+  var permission$MemoryBlockStackDrop$3: Perm
+  var permission$MemoryBlock$4: Perm
+  var permission$OwnedNonAliased$I32$5: Perm
+  var permission$MemoryBlock$6: Perm
+  var permission$MemoryBlockStackDrop$7: Perm
+  var permission$MemoryBlock$8: Perm
+  var permission$OwnedNonAliased$I32$9: Perm
+  var permission$MemoryBlock$10: Perm
+  var permission$MemoryBlockStackDrop$11: Perm
+  var permission$MemoryBlock$12: Perm
+  var permission$MemoryBlockStackDrop$13: Perm
+  var permission$MemoryBlock$14: Perm
+  var permission$MemoryBlockStackDrop$15: Perm
+  var permission$MemoryBlock$16: Perm
+  var permission$OwnedNonAliased$Bool$17: Perm
+  var permission$OwnedNonAliased$Bool$18: Perm
+  var permission$OwnedNonAliased$Bool$19: Perm
+  var permission$MemoryBlock$20: Perm
+  var permission$MemoryBlockStackDrop$21: Perm
+  var permission$MemoryBlock$22: Perm
+  var permission$OwnedNonAliased$I32$23: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$24: Perm
+  var permission$view_shift$end$borrow$I32$25: Perm
+  var permission$MemoryBlock$26: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$27: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$28: Perm
+  var permission$MemoryBlock$29: Perm
+  var permission$MemoryBlock$30: Perm
+  var permission$MemoryBlockStackDrop$31: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$32: Perm
+  var permission$MemoryBlock$33: Perm
+  var permission$UniqueRef$I32$34: Perm
+  var permission$UniqueRef$I32$35: Perm
+  var permission$OwnedNonAliased$I32$36: Perm
+  var permission$CloseMutRef$I32$37: Perm
+  var permission$OwnedNonAliased$I32$38: Perm
+  var permission$MemoryBlock$39: Perm
+  var permission$MemoryBlock$40: Perm
+  var permission$OwnedNonAliased$I32$41: Perm
+  var permission$CloseMutRef$I32$42: Perm
+  var permission$OwnedNonAliased$I32$43: Perm
+  var permission$UniqueRef$I32$44: Perm
+  var permission$MemoryBlock$45: Perm
+  var permission$OwnedNonAliased$Tuple$$46: Perm
+  var permission$UniqueRef$I32$47: Perm
+  var permission$UniqueRef$I32$48: Perm
+  var permission$MemoryBlock$49: Perm
+  var permission$MemoryBlockStackDrop$50: Perm
+  var permission$MemoryBlock$51: Perm
+  var permission$MemoryBlockStackDrop$52: Perm
+  var permission$MemoryBlock$53: Perm
+  var permission$OwnedNonAliased$I32$54: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$55: Perm
+  var permission$view_shift$end$borrow$I32$56: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$57: Perm
+  var permission$MemoryBlock$58: Perm
+  var permission$UniqueRef$I32$59: Perm
+  var permission$MemoryBlock$60: Perm
+  var permission$UniqueRef$I32$61: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$62: Perm
+  var permission$view_shift$end$reborrow$I32$63: Perm
+  var permission$view_shift$end$reborrow$I32$64: Perm
+  var permission$MemoryBlock$65: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$66: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$67: Perm
+  var permission$MemoryBlock$68: Perm
+  var permission$MemoryBlock$69: Perm
+  var permission$MemoryBlockStackDrop$70: Perm
+  var permission$MemoryBlock$71: Perm
+  var permission$MemoryBlockStackDrop$72: Perm
+  var permission$OwnedNonAliased$ref$Unique$I32$73: Perm
+  var permission$MemoryBlock$74: Perm
+  var permission$UniqueRef$I32$75: Perm
+  var permission$UniqueRef$I32$76: Perm
+  var permission$OwnedNonAliased$I32$77: Perm
+  var permission$CloseMutRef$I32$78: Perm
+  var permission$OwnedNonAliased$I32$79: Perm
+  var permission$MemoryBlock$80: Perm
+  var permission$MemoryBlock$81: Perm
+  var permission$OwnedNonAliased$I32$82: Perm
+  var permission$CloseMutRef$I32$83: Perm
+  var permission$OwnedNonAliased$I32$84: Perm
+  var permission$UniqueRef$I32$85: Perm
+  var permission$MemoryBlock$86: Perm
+  var permission$OwnedNonAliased$Tuple$$87: Perm
+  var permission$UniqueRef$I32$88: Perm
+  var permission$UniqueRef$I32$89: Perm
+  var permission$OwnedNonAliased$I32$90: Perm
+  var permission$OwnedNonAliased$I32$91: Perm
+  var permission$OwnedNonAliased$Tuple$$92: Perm
+  var permission$UniqueRef$I32$93: Perm
+  var permission$MemoryBlock$94: Perm
+  var permission$OwnedNonAliased$Bool$95: Perm
+  var permission$MemoryBlock$96: Perm
+  var permission$MemoryBlock$97: Perm
+  var permission$MemoryBlockStackDrop$98: Perm
+  var permission$OwnedNonAliased$Tuple$$99: Perm
+  var permission$MemoryBlock$100: Perm
+  var permission$MemoryBlock$101: Perm
+  var permission$MemoryBlockStackDrop$102: Perm
+  var permission$UniqueRef$I32$103: Perm
+  var permission$OwnedNonAliased$I32$104: Perm
+  var permission$CloseMutRef$I32$105: Perm
+  var permission$OwnedNonAliased$I32$106: Perm
+  var permission$MemoryBlock$107: Perm
+  var permission$MemoryBlock$108: Perm
+  var permission$OwnedNonAliased$I32$109: Perm
+  var permission$CloseMutRef$I32$110: Perm
+  var permission$OwnedNonAliased$I32$111: Perm
+  var permission$UniqueRef$I32$112: Perm
+  var permission$UniqueRef$I32$113: Perm
+  var permission$MemoryBlock$114: Perm
+  var permission$OwnedNonAliased$Tuple$$115: Perm
+  var permission$MemoryBlock$116: Perm
+  var permission$MemoryBlockStackDrop$117: Perm
+  var permission$OwnedNonAliased$I32$118: Perm
+  var permission$MemoryBlock$119: Perm
+  var permission$DeadLifetimeToken$120: Perm
+  var permission$DeadLifetimeToken$121: Perm
+  var permission$DeadLifetimeToken$122: Perm
+  var permission$DeadLifetimeToken$123: Perm
+  var permission$DeadLifetimeToken$124: Perm
+  var permission$DeadLifetimeToken$125: Perm
+  var permission$DeadLifetimeToken$126: Perm
+  var permission$OwnedNonAliased$I32$127: Perm
+  var permission$view_shift$end$borrow$I32$128: Perm
+  var permission$OwnedNonAliased$I32$129: Perm
+  var permission$DeadLifetimeToken$130: Perm
+  var permission$DeadLifetimeToken$131: Perm
+  var permission$DeadLifetimeToken$132: Perm
+  var permission$DeadLifetimeToken$133: Perm
+  var permission$DeadLifetimeToken$134: Perm
+  var permission$DeadLifetimeToken$135: Perm
+  var permission$DeadLifetimeToken$136: Perm
+  var permission$DeadLifetimeToken$137: Perm
+  var permission$DeadLifetimeToken$138: Perm
+  var permission$DeadLifetimeToken$139: Perm
+  var permission$DeadLifetimeToken$140: Perm
+  var permission$DeadLifetimeToken$141: Perm
+  var permission$DeadLifetimeToken$142: Perm
+  var permission$OwnedNonAliased$I32$143: Perm
+  var permission$view_shift$end$borrow$I32$144: Perm
+  var permission$OwnedNonAliased$I32$145: Perm
+  var permission$MemoryBlock$146: Perm
+  var permission$DeadLifetimeToken$147: Perm
+  var permission$DeadLifetimeToken$148: Perm
+  var permission$DeadLifetimeToken$149: Perm
+  var permission$DeadLifetimeToken$150: Perm
+  var permission$DeadLifetimeToken$151: Perm
+  var permission$DeadLifetimeToken$152: Perm
+  var permission$DeadLifetimeToken$153: Perm
+  var permission$DeadLifetimeToken$154: Perm
+  var permission$DeadLifetimeToken$155: Perm
+  var permission$DeadLifetimeToken$156: Perm
+  var permission$DeadLifetimeToken$157: Perm
+  var permission$DeadLifetimeToken$158: Perm
+  var permission$DeadLifetimeToken$159: Perm
+  var permission$DeadLifetimeToken$160: Perm
+  var permission$DeadLifetimeToken$161: Perm
+  var permission$DeadLifetimeToken$162: Perm
+  var permission$DeadLifetimeToken$163: Perm
+  var permission$DeadLifetimeToken$164: Perm
+  var permission$DeadLifetimeToken$165: Perm
+  var permission$DeadLifetimeToken$166: Perm
+  var permission$DeadLifetimeToken$167: Perm
+  var permission$DeadLifetimeToken$168: Perm
+  var permission$DeadLifetimeToken$169: Perm
+  var permission$OwnedNonAliased$I32$170: Perm
+  var permission$MemoryBlock$171: Perm
+  var permission$MemoryBlock$172: Perm
+  var permission$MemoryBlockStackDrop$173: Perm
+  var permission$view_shift$end$borrow$I32$174: Perm
+  var permission$OwnedNonAliased$I32$175: Perm
+  var permission$DeadLifetimeToken$176: Perm
+  var permission$DeadLifetimeToken$177: Perm
+  var permission$DeadLifetimeToken$178: Perm
+  var permission$DeadLifetimeToken$179: Perm
+  var permission$DeadLifetimeToken$180: Perm
+  var permission$DeadLifetimeToken$181: Perm
+  var permission$DeadLifetimeToken$182: Perm
+  var permission$DeadLifetimeToken$183: Perm
+  var permission$DeadLifetimeToken$184: Perm
+  var permission$DeadLifetimeToken$185: Perm
+  var permission$DeadLifetimeToken$186: Perm
+  var permission$DeadLifetimeToken$187: Perm
+  var permission$DeadLifetimeToken$188: Perm
+  var permission$DeadLifetimeToken$189: Perm
+  var permission$DeadLifetimeToken$190: Perm
+  var permission$DeadLifetimeToken$191: Perm
+  var permission$DeadLifetimeToken$192: Perm
+  var permission$DeadLifetimeToken$193: Perm
+  var permission$DeadLifetimeToken$194: Perm
+  var permission$DeadLifetimeToken$195: Perm
+  var permission$DeadLifetimeToken$196: Perm
+  var permission$DeadLifetimeToken$197: Perm
+  var permission$DeadLifetimeToken$198: Perm
+  var permission$DeadLifetimeToken$199: Perm
+  var permission$DeadLifetimeToken$200: Perm
+  var permission$DeadLifetimeToken$201: Perm
+  var permission$DeadLifetimeToken$202: Perm
+  var permission$DeadLifetimeToken$203: Perm
+  var permission$DeadLifetimeToken$204: Perm
+  var permission$DeadLifetimeToken$205: Perm
+  var permission$DeadLifetimeToken$206: Perm
+  var permission$OwnedNonAliased$I32$207: Perm
+  var permission$view_shift$end$borrow$I32$208: Perm
+  var permission$OwnedNonAliased$I32$209: Perm
+  var permission$MemoryBlock$210: Perm
+  var permission$DeadLifetimeToken$211: Perm
+  var permission$DeadLifetimeToken$212: Perm
+  var permission$DeadLifetimeToken$213: Perm
+  var permission$DeadLifetimeToken$214: Perm
+  var permission$DeadLifetimeToken$215: Perm
+  var permission$DeadLifetimeToken$216: Perm
+  var permission$DeadLifetimeToken$217: Perm
+  var permission$DeadLifetimeToken$218: Perm
+  var permission$DeadLifetimeToken$219: Perm
+  var permission$DeadLifetimeToken$220: Perm
+  var permission$DeadLifetimeToken$221: Perm
+  var permission$DeadLifetimeToken$222: Perm
+  var permission$DeadLifetimeToken$223: Perm
+  var permission$DeadLifetimeToken$224: Perm
+  var permission$DeadLifetimeToken$225: Perm
+  var permission$DeadLifetimeToken$226: Perm
+  var permission$DeadLifetimeToken$227: Perm
+  var permission$DeadLifetimeToken$228: Perm
+  var permission$DeadLifetimeToken$229: Perm
+  var permission$DeadLifetimeToken$230: Perm
+  var permission$DeadLifetimeToken$231: Perm
+  var permission$DeadLifetimeToken$232: Perm
+  var permission$DeadLifetimeToken$233: Perm
+  var permission$DeadLifetimeToken$234: Perm
+  var permission$DeadLifetimeToken$235: Perm
+  var permission$DeadLifetimeToken$236: Perm
+  var permission$DeadLifetimeToken$237: Perm
+  var permission$DeadLifetimeToken$238: Perm
+  var permission$DeadLifetimeToken$239: Perm
+  var permission$DeadLifetimeToken$240: Perm
+  var permission$DeadLifetimeToken$241: Perm
+  var permission$OwnedNonAliased$I32$242: Perm
+  var permission$OwnedNonAliased$I32$243: Perm
+  var permission$MemoryBlock$244: Perm
+  var permission$DeadLifetimeToken$245: Perm
+  var permission$DeadLifetimeToken$246: Perm
+  var permission$DeadLifetimeToken$247: Perm
+  var permission$DeadLifetimeToken$248: Perm
+  var permission$DeadLifetimeToken$249: Perm
+  var permission$DeadLifetimeToken$250: Perm
+  var permission$DeadLifetimeToken$251: Perm
+  var permission$DeadLifetimeToken$252: Perm
+  var permission$DeadLifetimeToken$253: Perm
+  var permission$DeadLifetimeToken$254: Perm
+  var permission$DeadLifetimeToken$255: Perm
+  var permission$DeadLifetimeToken$256: Perm
+  var permission$DeadLifetimeToken$257: Perm
+  var permission$DeadLifetimeToken$258: Perm
+  var permission$DeadLifetimeToken$259: Perm
+  var permission$DeadLifetimeToken$260: Perm
+  var permission$DeadLifetimeToken$261: Perm
+  var permission$DeadLifetimeToken$262: Perm
+  var permission$DeadLifetimeToken$263: Perm
+  var permission$DeadLifetimeToken$264: Perm
+  var permission$DeadLifetimeToken$265: Perm
+  var permission$DeadLifetimeToken$266: Perm
+  var permission$DeadLifetimeToken$267: Perm
+  var permission$DeadLifetimeToken$268: Perm
+  var permission$DeadLifetimeToken$269: Perm
+  var permission$DeadLifetimeToken$270: Perm
+  var permission$DeadLifetimeToken$271: Perm
+  var permission$DeadLifetimeToken$272: Perm
+  var permission$DeadLifetimeToken$273: Perm
+  var permission$DeadLifetimeToken$274: Perm
+  var permission$DeadLifetimeToken$275: Perm
+  var permission$OwnedNonAliased$I32$276: Perm
+  var permission$MemoryBlock$277: Perm
+  var permission$MemoryBlock$278: Perm
+  var permission$MemoryBlockStackDrop$279: Perm
+  var permission$OwnedNonAliased$Bool$280: Perm
+  var permission$MemoryBlock$281: Perm
+  var permission$MemoryBlock$282: Perm
+  var permission$OwnedNonAliased$Tuple$$283: Perm
+  label start_label
+  inhale lft_5$alive$snapshot$0 && lft_6$alive$snapshot$0 &&
+    lft_7$alive$snapshot$0 &&
+    lft_8$alive$snapshot$0 &&
+    !start_label$marker$snapshot$0 &&
+    !label_entry$marker$snapshot$0 &&
+    !label_bb0$marker$snapshot$0 &&
+    !label_2_custom$marker$snapshot$0 &&
+    !label_bb1$marker$snapshot$0 &&
+    !label_1_custom$marker$snapshot$0 &&
+    !label_bb2$marker$snapshot$0 &&
+    !label_bb3$marker$snapshot$0 &&
+    !return_label$marker$snapshot$0 &&
+    !end_label$marker$snapshot$0 &&
+    start_label$marker$snapshot$1
+  inhale basic_block_marker$start_label$marker()
+  inhale lifetime_token_perm_amount$0$snapshot$0 > none &&
+    lifetime_token_perm_amount$0$snapshot$0 < write
+  assert lifetime_token_perm_amount$0$snapshot$0 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_0$snapshot$1 == intersect(Set(bw3$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_1$snapshot$1 == intersect(Set(bw3$snapshot$0, bw4$snapshot$0)) &&
+    permission$OwnedNonAliased$Bool$0 == write &&
+    _1$snapshot$0 == snapshot$OwnedNonAliased$Bool$0 &&
+    valid$Snap$Bool(_1$snapshot$0) &&
+    permission$MemoryBlock$1 == write &&
+    label_entry$marker$snapshot$1
+  inhale basic_block_marker$label_entry$marker()
+  inhale label_bb0$marker$snapshot$1
+  inhale basic_block_marker$label_bb0$marker()
+  inhale permission$MemoryBlock$2 == write &&
+    permission$MemoryBlockStackDrop$3 == write
+  assert permission$MemoryBlock$2 == write
+  inhale permission$MemoryBlock$4 == none
+  exhale valid$Snap$I32(constructor$Snap$I32$(1))
+  inhale permission$OwnedNonAliased$I32$5 == write &&
+    constructor$Snap$I32$(1) == snapshot$OwnedNonAliased$I32$3 &&
+    _2$snapshot$1 == constructor$Snap$I32$(1) &&
+    permission$MemoryBlock$6 == write &&
+    permission$MemoryBlockStackDrop$7 == write
+  assert permission$MemoryBlock$6 == write
+  inhale permission$MemoryBlock$8 == none
+  exhale valid$Snap$I32(constructor$Snap$I32$(1))
+  inhale permission$OwnedNonAliased$I32$9 == write &&
+    constructor$Snap$I32$(1) == snapshot$OwnedNonAliased$I32$5 &&
+    _3$snapshot$1 == constructor$Snap$I32$(1) &&
+    permission$MemoryBlock$10 == write &&
+    permission$MemoryBlockStackDrop$11 == write &&
+    permission$MemoryBlock$12 == write &&
+    permission$MemoryBlockStackDrop$13 == write &&
+    permission$MemoryBlock$14 == write &&
+    permission$MemoryBlockStackDrop$15 == write &&
+    _6$snapshot$1 == snapshot$OwnedNonAliased$Bool$0
+  exhale none < write
+  assert permission$MemoryBlock$14 == write
+  inhale permission$MemoryBlock$16 == none
+  assert permission$OwnedNonAliased$Bool$0 == write
+  inhale permission$OwnedNonAliased$Bool$17 == none
+  exhale snapshot$OwnedNonAliased$Bool$0 == snapshot$OwnedNonAliased$Bool$0
+  inhale permission$OwnedNonAliased$Bool$18 == write &&
+    snapshot$OwnedNonAliased$Bool$0 == snapshot$OwnedNonAliased$Bool$9 &&
+    permission$OwnedNonAliased$Bool$19 == write &&
+    snapshot$OwnedNonAliased$Bool$0 == snapshot$OwnedNonAliased$Bool$10 &&
+    valid$Snap$Bool(snapshot$OwnedNonAliased$Bool$0) &&
+    (non_deterministic_jump$12 == 0 || non_deterministic_jump$12 == 1)
+  if (non_deterministic_jump$12 == 0) {
+    goto label_1_custom
+  }
+  if (non_deterministic_jump$12 == 1) {
+    goto label_2_custom
+  }
+  assert false
+  label label_2_custom
+  inhale destructor$Snap$Bool$$value(_6$snapshot$1) &&
+    label_2_custom$marker$snapshot$1
+  inhale basic_block_marker$label_2_custom$marker()
+  inhale label_bb1$marker$snapshot$1
+  inhale basic_block_marker$label_bb1$marker()
+  inhale permission$MemoryBlock$20 == write &&
+    permission$MemoryBlockStackDrop$21 == write
+  exhale true
+  assert write >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_2$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_6$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  assert permission$MemoryBlock$20 == write
+  inhale permission$MemoryBlock$22 == none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lifetime_token_perm_amount$0$snapshot$0 / 16 < write
+  assert permission$OwnedNonAliased$I32$5 == write
+  inhale permission$OwnedNonAliased$I32$23 == none
+  exhale snapshot$OwnedNonAliased$I32$3 == snapshot$OwnedNonAliased$I32$3
+  exhale valid$Snap$I32(snapshot$OwnedNonAliased$I32$3)
+  inhale _2$address$snapshot$0 ==
+    destructor$Snap$ref$Unique$I32$$address(tmp$0) &&
+    snapshot$OwnedNonAliased$I32$3 ==
+    destructor$Snap$ref$Unique$I32$$target_current(tmp$0)
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$OwnedNonAliased$ref$Unique$I32$24 == write &&
+    tmp$0 == snapshot$OwnedNonAliased$ref$Unique$I32$12 &&
+    permission$view_shift$end$borrow$I32$25 == write &&
+    valid$Snap$ref$Unique$I32(tmp$0) &&
+    _7$snapshot$1 == tmp$0 &&
+    _2$snapshot$2 == destructor$Snap$ref$Unique$I32$$target_final(tmp$0)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_2$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_5$snapshot$1 == intersect(Set(bw0$snapshot$0)) &&
+    _4$snapshot$1 == snapshot$OwnedNonAliased$ref$Unique$I32$12
+  assert permission$MemoryBlock$10 == write
+  inhale permission$MemoryBlock$26 == none
+  assert permission$OwnedNonAliased$ref$Unique$I32$24 == write
+  inhale permission$OwnedNonAliased$ref$Unique$I32$27 == none
+  exhale snapshot$OwnedNonAliased$ref$Unique$I32$12 ==
+    snapshot$OwnedNonAliased$ref$Unique$I32$12
+  inhale permission$OwnedNonAliased$ref$Unique$I32$28 == write &&
+    snapshot$OwnedNonAliased$ref$Unique$I32$12 ==
+    snapshot$OwnedNonAliased$ref$Unique$I32$13 &&
+    permission$MemoryBlock$29 == write &&
+    valid$Snap$ref$Unique$I32(snapshot$OwnedNonAliased$ref$Unique$I32$12)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_6$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert permission$MemoryBlock$29 == write
+  inhale permission$MemoryBlock$30 == none
+  assert permission$MemoryBlockStackDrop$21 == write
+  inhale permission$MemoryBlockStackDrop$31 == none
+  assert permission$OwnedNonAliased$ref$Unique$I32$28 == write
+  inhale permission$OwnedNonAliased$ref$Unique$I32$32 == none &&
+    permission$MemoryBlock$33 == write &&
+    (non_deterministic_jump$1 == 0 || non_deterministic_jump$1 == 1)
+  if (non_deterministic_jump$1 == 0) {
+    goto then_block_label__31
+  }
+  if (non_deterministic_jump$1 == 1) {
+    goto label_bb1__remaining_block_label__30__0
+  }
+  assert false
+  label label_bb1__remaining_block_label__30__0
+  inhale false
+  goto end_of_method
+  label then_block_label__31
+  inhale lft_5$alive$snapshot$0 && permission$UniqueRef$I32$34 == write
+  goto remaining_block_label__30
+  label remaining_block_label__30
+  inhale valid$Snap$ref$Unique$I32(snapshot$OwnedNonAliased$ref$Unique$I32$13) &&
+    snapshot$MemoryBlock$15 ==
+    to_bytes$ptr$I32(constructor$Snap$ptr$I32$(destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$13))) &&
+    (non_deterministic_jump$9 == 0 || non_deterministic_jump$9 == 1)
+  if (non_deterministic_jump$9 == 0) {
+    goto then_block_label__34
+  }
+  if (non_deterministic_jump$9 == 1) {
+    goto remaining_block_label__30__remaining_block_label__33__9
+  }
+  assert false
+  label remaining_block_label__30__remaining_block_label__33__9
+  inhale false
+  goto end_of_method
+  label then_block_label__34
+  inhale lft_5$alive$snapshot$0 &&
+    destructor$Snap$ref$Unique$I32$$target_current(snapshot$OwnedNonAliased$ref$Unique$I32$13) ==
+    snapshot$UniqueRef$I32$16 &&
+    destructor$Snap$ref$Unique$I32$$target_final(snapshot$OwnedNonAliased$ref$Unique$I32$13) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$13),
+    lft_5$snapshot$1, function_gas_level$(function_gas_level$(function_no_gas$())))
+  goto remaining_block_label__33
+  label remaining_block_label__33
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$UniqueRef$I32$34 == write
+  inhale permission$UniqueRef$I32$35 == none
+  exhale snapshot$UniqueRef$I32$16 == snapshot$UniqueRef$I32$16
+  inhale permission$OwnedNonAliased$I32$36 == write &&
+    snapshot$UniqueRef$I32$16 == snapshot$OwnedNonAliased$I32$17 &&
+    permission$CloseMutRef$I32$37 == write
+  assert permission$OwnedNonAliased$I32$36 == write
+  inhale permission$OwnedNonAliased$I32$38 == none
+  exhale snapshot$OwnedNonAliased$I32$17 == snapshot$OwnedNonAliased$I32$17
+  inhale permission$MemoryBlock$39 == write
+  assert permission$MemoryBlock$39 == write
+  inhale permission$MemoryBlock$40 == none
+  exhale valid$Snap$I32(constructor$Snap$I32$(2))
+  inhale permission$OwnedNonAliased$I32$41 == write &&
+    constructor$Snap$I32$(2) == snapshot$OwnedNonAliased$I32$19 &&
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$2) ==
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$1) &&
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$2) ==
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$1) &&
+    destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$2) ==
+    constructor$Snap$I32$(2)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$CloseMutRef$I32$37 == write
+  inhale permission$CloseMutRef$I32$42 == none
+  assert permission$OwnedNonAliased$I32$41 == write
+  inhale permission$OwnedNonAliased$I32$43 == none
+  exhale snapshot$OwnedNonAliased$I32$19 == snapshot$OwnedNonAliased$I32$19
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$UniqueRef$I32$44 == write &&
+    snapshot$OwnedNonAliased$I32$19 == snapshot$UniqueRef$I32$20
+  assert permission$MemoryBlock$12 == write
+  inhale permission$MemoryBlock$45 == none
+  exhale valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  inhale permission$OwnedNonAliased$Tuple$$46 == write &&
+    constructor$Snap$Tuple$$() == snapshot$OwnedNonAliased$Tuple$$21 &&
+    _5$snapshot$1 == constructor$Snap$Tuple$$() &&
+    old_lft_5_0$snapshot$1 == lft_5$snapshot$1
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_5$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale true
+  assert write >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_5$snapshot$2 == intersect(Set(bw0$snapshot$0, bw1$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lifetime_token_perm_amount$0$snapshot$0 / 16 < write
+  exhale included(lft_5$snapshot$2, old_lft_5_0$snapshot$1)
+  assert permission$UniqueRef$I32$44 == write
+  inhale permission$UniqueRef$I32$47 == none
+  exhale destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$2) ==
+    snapshot$UniqueRef$I32$20
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$UniqueRef$I32$48 == write &&
+    destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$2) ==
+    snapshot$UniqueRef$I32$22 &&
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$2), old_lft_5_0$snapshot$1,
+    function_gas_level$(function_gas_level$(function_no_gas$()))) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$2), lft_5$snapshot$2,
+    function_gas_level$(function_gas_level$(function_no_gas$()))) &&
+    _2$snapshot$3 == _2$snapshot$2 &&
+    _3$snapshot$3 == _3$snapshot$1 &&
+    _4$snapshot$5 == _4$snapshot$2 &&
+    _5$snapshot$3 == _5$snapshot$1 &&
+    _7$snapshot$2 == _7$snapshot$1 &&
+    _8$snapshot$2 == _8$snapshot$0 &&
+    _9$snapshot$2 == _9$snapshot$0 &&
+    label_1_custom$marker$snapshot$2 == label_1_custom$marker$snapshot$0 &&
+    label_2_custom$marker$snapshot$2 == label_2_custom$marker$snapshot$1 &&
+    label_bb1$marker$snapshot$2 == label_bb1$marker$snapshot$1 &&
+    label_bb2$marker$snapshot$2 == label_bb2$marker$snapshot$0 &&
+    lft_2$snapshot$2 == lft_2$snapshot$1 &&
+    lft_3$snapshot$2 == lft_3$snapshot$0 &&
+    lft_4$snapshot$2 == lft_4$snapshot$0 &&
+    lft_5$snapshot$5 == lft_5$snapshot$2 &&
+    lft_6$snapshot$2 == lft_6$snapshot$1 &&
+    lft_7$snapshot$2 == lft_7$snapshot$0 &&
+    lft_8$snapshot$2 == lft_8$snapshot$0 &&
+    old_lft_5_0$snapshot$2 == old_lft_5_0$snapshot$1 &&
+    old_lft_5_1$snapshot$2 == old_lft_5_1$snapshot$0
+  goto edge_block_remaining_block_label__33__label_bb3
+  label label_1_custom
+  inhale !destructor$Snap$Bool$$value(_6$snapshot$1) &&
+    label_1_custom$marker$snapshot$1
+  inhale basic_block_marker$label_1_custom$marker()
+  inhale label_bb2$marker$snapshot$1
+  inhale basic_block_marker$label_bb2$marker()
+  inhale permission$MemoryBlock$49 == write &&
+    permission$MemoryBlockStackDrop$50 == write &&
+    permission$MemoryBlock$51 == write &&
+    permission$MemoryBlockStackDrop$52 == write
+  exhale true
+  assert write >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_3$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_8$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert permission$MemoryBlock$51 == write
+  inhale permission$MemoryBlock$53 == none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lifetime_token_perm_amount$0$snapshot$0 / 16 < write
+  assert permission$OwnedNonAliased$I32$9 == write
+  inhale permission$OwnedNonAliased$I32$54 == none
+  exhale snapshot$OwnedNonAliased$I32$5 == snapshot$OwnedNonAliased$I32$5
+  exhale valid$Snap$I32(snapshot$OwnedNonAliased$I32$5)
+  inhale _3$address$snapshot$0 ==
+    destructor$Snap$ref$Unique$I32$$address(tmp$1) &&
+    snapshot$OwnedNonAliased$I32$5 ==
+    destructor$Snap$ref$Unique$I32$$target_current(tmp$1)
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$OwnedNonAliased$ref$Unique$I32$55 == write &&
+    tmp$1 == snapshot$OwnedNonAliased$ref$Unique$I32$25 &&
+    permission$view_shift$end$borrow$I32$56 == write &&
+    valid$Snap$ref$Unique$I32(tmp$1) &&
+    _9$snapshot$1 == tmp$1 &&
+    _3$snapshot$2 == destructor$Snap$ref$Unique$I32$$target_final(tmp$1)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_3$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_4$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_7$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert permission$OwnedNonAliased$ref$Unique$I32$55 == write
+  inhale permission$OwnedNonAliased$ref$Unique$I32$57 == none &&
+    permission$MemoryBlock$58 == write &&
+    (non_deterministic_jump$0 == 0 || non_deterministic_jump$0 == 1)
+  if (non_deterministic_jump$0 == 0) {
+    goto then_block_label__19
+  }
+  if (non_deterministic_jump$0 == 1) {
+    goto label_bb2__remaining_block_label__18__1
+  }
+  assert false
+  label label_bb2__remaining_block_label__18__1
+  inhale false
+  goto end_of_method
+  label then_block_label__19
+  inhale lft_8$alive$snapshot$0 && permission$UniqueRef$I32$59 == write
+  goto remaining_block_label__18
+  label remaining_block_label__18
+  inhale valid$Snap$ref$Unique$I32(snapshot$OwnedNonAliased$ref$Unique$I32$25) &&
+    snapshot$MemoryBlock$26 ==
+    to_bytes$ptr$I32(constructor$Snap$ptr$I32$(destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$25))) &&
+    (non_deterministic_jump$5 == 0 || non_deterministic_jump$5 == 1)
+  if (non_deterministic_jump$5 == 0) {
+    goto then_block_label__22
+  }
+  if (non_deterministic_jump$5 == 1) {
+    goto remaining_block_label__18__remaining_block_label__21__5
+  }
+  assert false
+  label remaining_block_label__18__remaining_block_label__21__5
+  inhale false
+  goto end_of_method
+  label then_block_label__22
+  inhale lft_8$alive$snapshot$0 &&
+    destructor$Snap$ref$Unique$I32$$target_current(snapshot$OwnedNonAliased$ref$Unique$I32$25) ==
+    snapshot$UniqueRef$I32$27 &&
+    destructor$Snap$ref$Unique$I32$$target_final(snapshot$OwnedNonAliased$ref$Unique$I32$25) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_9$place())),
+    destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$25),
+    lft_8$snapshot$1, function_gas_level$(function_gas_level$(function_no_gas$())))
+  goto remaining_block_label__21
+  label remaining_block_label__21
+  assert permission$MemoryBlock$49 == write
+  inhale permission$MemoryBlock$60 == none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lifetime_token_perm_amount$0$snapshot$0 / 16 < write
+  exhale included(lft_4$snapshot$1, lft_8$snapshot$1)
+  assert permission$UniqueRef$I32$59 == write
+  inhale permission$UniqueRef$I32$61 == none
+  exhale snapshot$UniqueRef$I32$27 == snapshot$UniqueRef$I32$27
+  inhale destructor$Snap$ref$Unique$I32$$address(_9$snapshot$1) ==
+    destructor$Snap$ref$Unique$I32$$address(tmp$2) &&
+    snapshot$UniqueRef$I32$27 ==
+    destructor$Snap$ref$Unique$I32$$target_current(tmp$2)
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$OwnedNonAliased$ref$Unique$I32$62 == write &&
+    tmp$2 == snapshot$OwnedNonAliased$ref$Unique$I32$28 &&
+    valid$Snap$ref$Unique$I32(tmp$2) &&
+    permission$view_shift$end$reborrow$I32$63 == write &&
+    _8$snapshot$1 == tmp$2
+  assert permission$view_shift$end$reborrow$I32$63 == write
+  inhale permission$view_shift$end$reborrow$I32$64 == none &&
+    destructor$Snap$ref$Unique$I32$$target_final(tmp$2) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_9$place())),
+    destructor$Snap$ref$Unique$I32$$address(_9$snapshot$1), lft_8$snapshot$1,
+    function_gas_level$(function_gas_level$(function_no_gas$())))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_4$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_8$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 -
+    lifetime_token_perm_amount$0$snapshot$0 / 16 >=
+    none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_5$snapshot$3 == intersect(Set(bw1$snapshot$0)) &&
+    _4$snapshot$3 == snapshot$OwnedNonAliased$ref$Unique$I32$28
+  assert permission$MemoryBlock$10 == write
+  inhale permission$MemoryBlock$65 == none
+  assert permission$OwnedNonAliased$ref$Unique$I32$62 == write
+  inhale permission$OwnedNonAliased$ref$Unique$I32$66 == none
+  exhale snapshot$OwnedNonAliased$ref$Unique$I32$28 ==
+    snapshot$OwnedNonAliased$ref$Unique$I32$28
+  inhale permission$OwnedNonAliased$ref$Unique$I32$67 == write &&
+    snapshot$OwnedNonAliased$ref$Unique$I32$28 ==
+    snapshot$OwnedNonAliased$ref$Unique$I32$29 &&
+    permission$MemoryBlock$68 == write &&
+    valid$Snap$ref$Unique$I32(snapshot$OwnedNonAliased$ref$Unique$I32$28)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_7$snapshot$1 == intersect(Set(bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert permission$MemoryBlock$68 == write
+  inhale permission$MemoryBlock$69 == none
+  assert permission$MemoryBlockStackDrop$50 == write
+  inhale permission$MemoryBlockStackDrop$70 == none
+  assert permission$MemoryBlock$58 == write
+  inhale permission$MemoryBlock$71 == none
+  assert permission$MemoryBlockStackDrop$52 == write
+  inhale permission$MemoryBlockStackDrop$72 == none
+  assert permission$OwnedNonAliased$ref$Unique$I32$67 == write
+  inhale permission$OwnedNonAliased$ref$Unique$I32$73 == none &&
+    permission$MemoryBlock$74 == write &&
+    (non_deterministic_jump$6 == 0 || non_deterministic_jump$6 == 1)
+  if (non_deterministic_jump$6 == 0) {
+    goto then_block_label__25
+  }
+  if (non_deterministic_jump$6 == 1) {
+    goto remaining_block_label__21__remaining_block_label__24__6
+  }
+  assert false
+  label remaining_block_label__21__remaining_block_label__24__6
+  inhale false
+  goto end_of_method
+  label then_block_label__25
+  inhale lft_5$alive$snapshot$0 && permission$UniqueRef$I32$75 == write
+  goto remaining_block_label__24
+  label remaining_block_label__24
+  inhale valid$Snap$ref$Unique$I32(snapshot$OwnedNonAliased$ref$Unique$I32$29) &&
+    snapshot$MemoryBlock$31 ==
+    to_bytes$ptr$I32(constructor$Snap$ptr$I32$(destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$29))) &&
+    (non_deterministic_jump$7 == 0 || non_deterministic_jump$7 == 1)
+  if (non_deterministic_jump$7 == 0) {
+    goto then_block_label__28
+  }
+  if (non_deterministic_jump$7 == 1) {
+    goto remaining_block_label__24__remaining_block_label__27__7
+  }
+  assert false
+  label remaining_block_label__24__remaining_block_label__27__7
+  inhale false
+  goto end_of_method
+  label then_block_label__28
+  inhale lft_5$alive$snapshot$0 &&
+    destructor$Snap$ref$Unique$I32$$target_current(snapshot$OwnedNonAliased$ref$Unique$I32$29) ==
+    snapshot$UniqueRef$I32$32 &&
+    destructor$Snap$ref$Unique$I32$$target_final(snapshot$OwnedNonAliased$ref$Unique$I32$29) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(snapshot$OwnedNonAliased$ref$Unique$I32$29),
+    lft_5$snapshot$3, function_gas_level$(function_gas_level$(function_no_gas$())))
+  goto remaining_block_label__27
+  label remaining_block_label__27
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$UniqueRef$I32$75 == write
+  inhale permission$UniqueRef$I32$76 == none
+  exhale snapshot$UniqueRef$I32$32 == snapshot$UniqueRef$I32$32
+  inhale permission$OwnedNonAliased$I32$77 == write &&
+    snapshot$UniqueRef$I32$32 == snapshot$OwnedNonAliased$I32$33 &&
+    permission$CloseMutRef$I32$78 == write
+  assert permission$OwnedNonAliased$I32$77 == write
+  inhale permission$OwnedNonAliased$I32$79 == none
+  exhale snapshot$OwnedNonAliased$I32$33 == snapshot$OwnedNonAliased$I32$33
+  inhale permission$MemoryBlock$80 == write
+  assert permission$MemoryBlock$80 == write
+  inhale permission$MemoryBlock$81 == none
+  exhale valid$Snap$I32(constructor$Snap$I32$(3))
+  inhale permission$OwnedNonAliased$I32$82 == write &&
+    constructor$Snap$I32$(3) == snapshot$OwnedNonAliased$I32$35 &&
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$4) ==
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$3) &&
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$4) ==
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$3) &&
+    destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$4) ==
+    constructor$Snap$I32$(3)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$CloseMutRef$I32$78 == write
+  inhale permission$CloseMutRef$I32$83 == none
+  assert permission$OwnedNonAliased$I32$82 == write
+  inhale permission$OwnedNonAliased$I32$84 == none
+  exhale snapshot$OwnedNonAliased$I32$35 == snapshot$OwnedNonAliased$I32$35
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$UniqueRef$I32$85 == write &&
+    snapshot$OwnedNonAliased$I32$35 == snapshot$UniqueRef$I32$36
+  assert permission$MemoryBlock$12 == write
+  inhale permission$MemoryBlock$86 == none
+  exhale valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  inhale permission$OwnedNonAliased$Tuple$$87 == write &&
+    constructor$Snap$Tuple$$() == snapshot$OwnedNonAliased$Tuple$$37 &&
+    _5$snapshot$2 == constructor$Snap$Tuple$$() &&
+    old_lft_5_1$snapshot$1 == lft_5$snapshot$3
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_5$snapshot$3 == intersect(Set(bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale true
+  assert write >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert write - lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale lft_5$snapshot$4 == intersect(Set(bw0$snapshot$0, bw1$snapshot$0))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lifetime_token_perm_amount$0$snapshot$0 / 16 < write
+  exhale included(lft_5$snapshot$4, old_lft_5_1$snapshot$1)
+  assert permission$UniqueRef$I32$85 == write
+  inhale permission$UniqueRef$I32$88 == none
+  exhale destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$4) ==
+    snapshot$UniqueRef$I32$36
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$UniqueRef$I32$89 == write &&
+    destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$4) ==
+    snapshot$UniqueRef$I32$38 &&
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$4), old_lft_5_1$snapshot$1,
+    function_gas_level$(function_gas_level$(function_no_gas$()))) ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$4), lft_5$snapshot$4,
+    function_gas_level$(function_gas_level$(function_no_gas$()))) &&
+    _2$snapshot$3 == _2$snapshot$1 &&
+    _3$snapshot$3 == _3$snapshot$2 &&
+    _4$snapshot$5 == _4$snapshot$4 &&
+    _5$snapshot$3 == _5$snapshot$2 &&
+    _7$snapshot$2 == _7$snapshot$0 &&
+    _8$snapshot$2 == _8$snapshot$1 &&
+    _9$snapshot$2 == _9$snapshot$1 &&
+    label_1_custom$marker$snapshot$2 == label_1_custom$marker$snapshot$1 &&
+    label_2_custom$marker$snapshot$2 == label_2_custom$marker$snapshot$0 &&
+    label_bb1$marker$snapshot$2 == label_bb1$marker$snapshot$0 &&
+    label_bb2$marker$snapshot$2 == label_bb2$marker$snapshot$1 &&
+    lft_2$snapshot$2 == lft_2$snapshot$0 &&
+    lft_3$snapshot$2 == lft_3$snapshot$1 &&
+    lft_4$snapshot$2 == lft_4$snapshot$1 &&
+    lft_5$snapshot$5 == lft_5$snapshot$4 &&
+    lft_6$snapshot$2 == lft_6$snapshot$0 &&
+    lft_7$snapshot$2 == lft_7$snapshot$1 &&
+    lft_8$snapshot$2 == lft_8$snapshot$1 &&
+    old_lft_5_0$snapshot$2 == old_lft_5_0$snapshot$0 &&
+    old_lft_5_1$snapshot$2 == old_lft_5_1$snapshot$1
+  goto edge_block_remaining_block_label__27__label_bb3
+  label edge_block_remaining_block_label__33__label_bb3
+  inhale merge_variable$40 ==
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$5) &&
+    merge_variable$41 == lft_5$snapshot$5 &&
+    snapshot$OwnedNonAliased$Tuple$$21 ==
+    snapshot$OwnedNonAliased$Tuple$$39 &&
+    snapshot$UniqueRef$I32$22 == snapshot$UniqueRef$I32$42 &&
+    snapshot$MemoryBlock$15 == snapshot$MemoryBlock$43 &&
+    permission$OwnedNonAliased$I32$90 == permission$OwnedNonAliased$I32$9 &&
+    permission$OwnedNonAliased$I32$91 == none &&
+    permission$OwnedNonAliased$Tuple$$92 ==
+    permission$OwnedNonAliased$Tuple$$46 &&
+    permission$UniqueRef$I32$93 == permission$UniqueRef$I32$48 &&
+    permission$MemoryBlock$94 == permission$MemoryBlock$33
+  goto label_bb3
+  label edge_block_remaining_block_label__27__label_bb3
+  inhale merge_variable$40 ==
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$4) &&
+    merge_variable$41 == lft_5$snapshot$4 &&
+    snapshot$OwnedNonAliased$Tuple$$37 ==
+    snapshot$OwnedNonAliased$Tuple$$39 &&
+    snapshot$UniqueRef$I32$38 == snapshot$UniqueRef$I32$42 &&
+    snapshot$MemoryBlock$31 == snapshot$MemoryBlock$43 &&
+    permission$OwnedNonAliased$I32$90 == none &&
+    permission$OwnedNonAliased$I32$91 == permission$OwnedNonAliased$I32$5 &&
+    permission$OwnedNonAliased$Tuple$$92 ==
+    permission$OwnedNonAliased$Tuple$$87 &&
+    permission$UniqueRef$I32$93 == permission$UniqueRef$I32$89 &&
+    permission$MemoryBlock$94 == permission$MemoryBlock$74
+  goto label_bb3
+  label label_bb3
+  inhale label_bb3$marker$snapshot$1
+  inhale basic_block_marker$label_bb3$marker()
+  assert permission$OwnedNonAliased$Bool$19 == write
+  inhale permission$OwnedNonAliased$Bool$95 == none
+  exhale snapshot$OwnedNonAliased$Bool$10 ==
+    snapshot$OwnedNonAliased$Bool$10
+  inhale permission$MemoryBlock$96 == write
+  assert permission$MemoryBlock$96 == write
+  inhale permission$MemoryBlock$97 == none
+  assert permission$MemoryBlockStackDrop$15 == write
+  inhale permission$MemoryBlockStackDrop$98 == none
+  assert permission$OwnedNonAliased$Tuple$$92 == write
+  inhale permission$OwnedNonAliased$Tuple$$99 == none
+  exhale snapshot$OwnedNonAliased$Tuple$$39 ==
+    snapshot$OwnedNonAliased$Tuple$$39
+  inhale permission$MemoryBlock$100 == write
+  assert permission$MemoryBlock$100 == write
+  inhale permission$MemoryBlock$101 == none
+  assert permission$MemoryBlockStackDrop$13 == write
+  inhale permission$MemoryBlockStackDrop$102 == none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$UniqueRef$I32$93 == write
+  inhale permission$UniqueRef$I32$103 == none
+  exhale snapshot$UniqueRef$I32$42 == snapshot$UniqueRef$I32$42
+  inhale permission$OwnedNonAliased$I32$104 == write &&
+    snapshot$UniqueRef$I32$42 == snapshot$OwnedNonAliased$I32$46 &&
+    permission$CloseMutRef$I32$105 == write
+  assert permission$OwnedNonAliased$I32$104 == write
+  inhale permission$OwnedNonAliased$I32$106 == none
+  exhale snapshot$OwnedNonAliased$I32$46 == snapshot$OwnedNonAliased$I32$46
+  inhale permission$MemoryBlock$107 == write
+  assert permission$MemoryBlock$107 == write
+  inhale permission$MemoryBlock$108 == none
+  exhale valid$Snap$I32(constructor$Snap$I32$(4))
+  inhale permission$OwnedNonAliased$I32$109 == write &&
+    constructor$Snap$I32$(4) == snapshot$OwnedNonAliased$I32$48 &&
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$6) ==
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$5) &&
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$6) ==
+    destructor$Snap$ref$Unique$I32$$target_final(_4$snapshot$5) &&
+    destructor$Snap$ref$Unique$I32$$target_current(_4$snapshot$6) ==
+    constructor$Snap$I32$(4)
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  assert permission$CloseMutRef$I32$105 == write
+  inhale permission$CloseMutRef$I32$110 == none
+  assert permission$OwnedNonAliased$I32$109 == write
+  inhale permission$OwnedNonAliased$I32$111 == none
+  exhale snapshot$OwnedNonAliased$I32$48 == snapshot$OwnedNonAliased$I32$48
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  inhale permission$UniqueRef$I32$112 == write &&
+    snapshot$OwnedNonAliased$I32$48 == snapshot$UniqueRef$I32$49
+  assert permission$UniqueRef$I32$112 == write
+  inhale permission$UniqueRef$I32$113 == none &&
+    snapshot$UniqueRef$I32$49 ==
+    snap_final_unique_ref$I32(deref_reference_place(place_option_some(_4$place())),
+    destructor$Snap$ref$Unique$I32$$address(_4$snapshot$6), lft_5$snapshot$5,
+    function_gas_level$(function_gas_level$(function_no_gas$())))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_5$snapshot$5 == intersect(Set(bw0$snapshot$0, bw1$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  assert permission$MemoryBlock$1 == write
+  inhale permission$MemoryBlock$114 == none
+  exhale valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  inhale permission$OwnedNonAliased$Tuple$$115 == write &&
+    constructor$Snap$Tuple$$() == snapshot$OwnedNonAliased$Tuple$$50 &&
+    _0$snapshot$1 == constructor$Snap$Tuple$$()
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  assert permission$MemoryBlock$94 == write
+  inhale permission$MemoryBlock$116 == none
+  assert permission$MemoryBlockStackDrop$11 == write
+  inhale permission$MemoryBlockStackDrop$117 == none
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  inhale non_deterministic_jump$2 == 0 || non_deterministic_jump$2 == 1
+  if (non_deterministic_jump$2 == 0) {
+    goto then_block_label__1
+  }
+  if (non_deterministic_jump$2 == 1) {
+    goto label_bb3__remaining_block_label__0__2
+  }
+  assert false
+  label label_bb3__remaining_block_label__0__2
+  inhale !label_bb1$marker$snapshot$2 && !label_bb1$marker$snapshot$2
+  goto edge_block_label_bb3__remaining_block_label__0__2__remaining_block_label__0
+  label then_block_label__1
+  inhale label_bb1$marker$snapshot$2
+  assert permission$OwnedNonAliased$I32$90 == write
+  inhale permission$OwnedNonAliased$I32$118 == none
+  exhale snapshot$OwnedNonAliased$I32$5 == snapshot$OwnedNonAliased$I32$5
+  inhale permission$MemoryBlock$119 == write
+  goto edge_block_then_block_label__1__remaining_block_label__0
+  label edge_block_then_block_label__1__remaining_block_label__0
+  inhale merge_variable$52 == lft_3$snapshot$1 &&
+    merge_variable$53 ==
+    destructor$Snap$ref$Unique$I32$$target_final(tmp$1) &&
+    permission$OwnedNonAliased$I32$127 == none
+  permission$DeadLifetimeToken$120 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$123 := write
+  permission$DeadLifetimeToken$124 := write
+  permission$DeadLifetimeToken$125 := write
+  permission$DeadLifetimeToken$122 := write
+  permission$DeadLifetimeToken$126 := write
+  goto remaining_block_label__0
+  label edge_block_label_bb3__remaining_block_label__0__2__remaining_block_label__0
+  inhale merge_variable$52 == lft_3$snapshot$2 &&
+    merge_variable$53 ==
+    destructor$Snap$ref$Unique$I32$$target_final(_9$snapshot$2) &&
+    permission$OwnedNonAliased$I32$127 == permission$OwnedNonAliased$I32$90
+  permission$DeadLifetimeToken$120 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$122 := write
+  goto remaining_block_label__0
+  label remaining_block_label__0
+  inhale non_deterministic_jump$3 == 0 || non_deterministic_jump$3 == 1
+  if (non_deterministic_jump$3 == 0) {
+    goto then_block_label__4
+  }
+  if (non_deterministic_jump$3 == 1) {
+    goto remaining_block_label__0__remaining_block_label__3__3
+  }
+  assert false
+  label remaining_block_label__0__remaining_block_label__3__3
+  inhale !label_bb2$marker$snapshot$2 && !label_bb2$marker$snapshot$2
+  goto edge_block_remaining_block_label__0__remaining_block_label__3__3__remaining_block_label__3
+  label edge_block_remaining_block_label__0__remaining_block_label__3__3__remaining_block_label__3
+  inhale permission$DeadLifetimeToken$130 ==
+    permission$DeadLifetimeToken$120 &&
+    permission$DeadLifetimeToken$131 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$132 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$133 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$134 == permission$DeadLifetimeToken$125 &&
+    permission$DeadLifetimeToken$135 == permission$DeadLifetimeToken$122 &&
+    permission$DeadLifetimeToken$136 == permission$DeadLifetimeToken$126 &&
+    permission$OwnedNonAliased$I32$143 ==
+    permission$OwnedNonAliased$I32$127 &&
+    permission$view_shift$end$borrow$I32$144 ==
+    permission$view_shift$end$borrow$I32$56
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$120 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$121 := write
+  goto remaining_block_label__3
+  label then_block_label__4
+  inhale label_bb2$marker$snapshot$2
+  assert permission$view_shift$end$borrow$I32$56 == write
+  inhale permission$view_shift$end$borrow$I32$128 == none &&
+    permission$OwnedNonAliased$I32$129 == write &&
+    _3$snapshot$3 == snapshot$OwnedNonAliased$I32$5 &&
+    valid$Snap$I32(_3$snapshot$3)
+  goto edge_block_then_block_label__4__remaining_block_label__3
+  label edge_block_then_block_label__4__remaining_block_label__3
+  inhale permission$DeadLifetimeToken$130 ==
+    permission$DeadLifetimeToken$120 &&
+    permission$DeadLifetimeToken$131 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$132 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$133 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$134 == permission$DeadLifetimeToken$125 &&
+    permission$DeadLifetimeToken$135 == permission$DeadLifetimeToken$122 &&
+    permission$DeadLifetimeToken$136 == permission$DeadLifetimeToken$126 &&
+    permission$OwnedNonAliased$I32$143 ==
+    permission$OwnedNonAliased$I32$129 &&
+    permission$view_shift$end$borrow$I32$144 == none
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$137 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$138 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$120 := write
+  permission$DeadLifetimeToken$135 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$139 := write
+  permission$DeadLifetimeToken$121 := write
+  permission$DeadLifetimeToken$140 := write
+  permission$DeadLifetimeToken$141 := write
+  permission$DeadLifetimeToken$142 := write
+  goto remaining_block_label__3
+  label remaining_block_label__3
+  inhale non_deterministic_jump$8 == 0 || non_deterministic_jump$8 == 1
+  if (non_deterministic_jump$8 == 0) {
+    goto then_block_label__7
+  }
+  if (non_deterministic_jump$8 == 1) {
+    goto remaining_block_label__3__remaining_block_label__6__8
+  }
+  assert false
+  label remaining_block_label__3__remaining_block_label__6__8
+  inhale !label_bb2$marker$snapshot$2 && !label_bb2$marker$snapshot$2
+  goto edge_block_remaining_block_label__3__remaining_block_label__6__8__remaining_block_label__6
+  label edge_block_remaining_block_label__3__remaining_block_label__6__8__remaining_block_label__6
+  inhale permission$DeadLifetimeToken$147 ==
+    permission$DeadLifetimeToken$130 &&
+    permission$DeadLifetimeToken$148 == permission$DeadLifetimeToken$131 &&
+    permission$DeadLifetimeToken$149 == permission$DeadLifetimeToken$132 &&
+    permission$DeadLifetimeToken$150 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$151 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$152 == permission$DeadLifetimeToken$137 &&
+    permission$DeadLifetimeToken$153 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$154 == permission$DeadLifetimeToken$138 &&
+    permission$DeadLifetimeToken$155 == permission$DeadLifetimeToken$133 &&
+    permission$DeadLifetimeToken$156 == permission$DeadLifetimeToken$134 &&
+    permission$DeadLifetimeToken$157 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$158 == permission$DeadLifetimeToken$120 &&
+    permission$DeadLifetimeToken$159 == permission$DeadLifetimeToken$135 &&
+    permission$DeadLifetimeToken$160 == permission$DeadLifetimeToken$136 &&
+    permission$DeadLifetimeToken$161 == permission$DeadLifetimeToken$126 &&
+    permission$DeadLifetimeToken$162 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$163 == permission$DeadLifetimeToken$139 &&
+    permission$DeadLifetimeToken$164 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$165 == permission$DeadLifetimeToken$140 &&
+    permission$DeadLifetimeToken$166 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$167 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$168 == permission$DeadLifetimeToken$141 &&
+    permission$DeadLifetimeToken$169 == permission$DeadLifetimeToken$142 &&
+    permission$OwnedNonAliased$I32$170 ==
+    permission$OwnedNonAliased$I32$143 &&
+    permission$MemoryBlock$171 == permission$MemoryBlock$119
+  goto remaining_block_label__6
+  label then_block_label__7
+  inhale label_bb2$marker$snapshot$2
+  assert permission$OwnedNonAliased$I32$143 == write
+  inhale permission$OwnedNonAliased$I32$145 == none
+  exhale snapshot$OwnedNonAliased$I32$5 == snapshot$OwnedNonAliased$I32$5
+  inhale permission$MemoryBlock$146 == write
+  goto edge_block_then_block_label__7__remaining_block_label__6
+  label edge_block_then_block_label__7__remaining_block_label__6
+  inhale permission$DeadLifetimeToken$147 ==
+    permission$DeadLifetimeToken$130 &&
+    permission$DeadLifetimeToken$148 == permission$DeadLifetimeToken$131 &&
+    permission$DeadLifetimeToken$149 == permission$DeadLifetimeToken$132 &&
+    permission$DeadLifetimeToken$150 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$151 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$152 == permission$DeadLifetimeToken$137 &&
+    permission$DeadLifetimeToken$153 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$154 == permission$DeadLifetimeToken$138 &&
+    permission$DeadLifetimeToken$155 == permission$DeadLifetimeToken$133 &&
+    permission$DeadLifetimeToken$156 == permission$DeadLifetimeToken$134 &&
+    permission$DeadLifetimeToken$157 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$158 == permission$DeadLifetimeToken$120 &&
+    permission$DeadLifetimeToken$159 == permission$DeadLifetimeToken$135 &&
+    permission$DeadLifetimeToken$160 == permission$DeadLifetimeToken$136 &&
+    permission$DeadLifetimeToken$161 == permission$DeadLifetimeToken$126 &&
+    permission$DeadLifetimeToken$162 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$163 == permission$DeadLifetimeToken$139 &&
+    permission$DeadLifetimeToken$164 == permission$DeadLifetimeToken$121 &&
+    permission$DeadLifetimeToken$165 == permission$DeadLifetimeToken$140 &&
+    permission$DeadLifetimeToken$166 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$167 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$168 == permission$DeadLifetimeToken$141 &&
+    permission$DeadLifetimeToken$169 == permission$DeadLifetimeToken$142 &&
+    permission$OwnedNonAliased$I32$170 == none &&
+    permission$MemoryBlock$171 == permission$MemoryBlock$146
+  goto remaining_block_label__6
+  label remaining_block_label__6
+  assert permission$MemoryBlock$171 == write
+  inhale permission$MemoryBlock$172 == none
+  assert permission$MemoryBlockStackDrop$7 == write
+  inhale permission$MemoryBlockStackDrop$173 == none
+  permission$DeadLifetimeToken$147 := write
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  inhale non_deterministic_jump$10 == 0 || non_deterministic_jump$10 == 1
+  if (non_deterministic_jump$10 == 0) {
+    goto then_block_label__10
+  }
+  if (non_deterministic_jump$10 == 1) {
+    goto remaining_block_label__6__remaining_block_label__9__10
+  }
+  assert false
+  label remaining_block_label__6__remaining_block_label__9__10
+  inhale !label_bb1$marker$snapshot$2 && !label_bb1$marker$snapshot$2
+  goto edge_block_remaining_block_label__6__remaining_block_label__9__10__remaining_block_label__9
+  label edge_block_remaining_block_label__6__remaining_block_label__9__10__remaining_block_label__9
+  inhale permission$DeadLifetimeToken$176 ==
+    permission$DeadLifetimeToken$147 &&
+    permission$DeadLifetimeToken$177 == permission$DeadLifetimeToken$148 &&
+    permission$DeadLifetimeToken$178 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$179 == permission$DeadLifetimeToken$149 &&
+    permission$DeadLifetimeToken$180 == permission$DeadLifetimeToken$150 &&
+    permission$DeadLifetimeToken$181 == permission$DeadLifetimeToken$137 &&
+    permission$DeadLifetimeToken$182 == permission$DeadLifetimeToken$151 &&
+    permission$DeadLifetimeToken$183 == permission$DeadLifetimeToken$152 &&
+    permission$DeadLifetimeToken$184 == permission$DeadLifetimeToken$138 &&
+    permission$DeadLifetimeToken$185 == permission$DeadLifetimeToken$153 &&
+    permission$DeadLifetimeToken$186 == permission$DeadLifetimeToken$154 &&
+    permission$DeadLifetimeToken$187 == permission$DeadLifetimeToken$155 &&
+    permission$DeadLifetimeToken$188 == permission$DeadLifetimeToken$156 &&
+    permission$DeadLifetimeToken$189 == permission$DeadLifetimeToken$157 &&
+    permission$DeadLifetimeToken$190 == permission$DeadLifetimeToken$158 &&
+    permission$DeadLifetimeToken$191 == permission$DeadLifetimeToken$159 &&
+    permission$DeadLifetimeToken$192 == permission$DeadLifetimeToken$126 &&
+    permission$DeadLifetimeToken$193 == permission$DeadLifetimeToken$160 &&
+    permission$DeadLifetimeToken$194 == permission$DeadLifetimeToken$161 &&
+    permission$DeadLifetimeToken$195 == permission$DeadLifetimeToken$139 &&
+    permission$DeadLifetimeToken$196 == permission$DeadLifetimeToken$162 &&
+    permission$DeadLifetimeToken$197 == permission$DeadLifetimeToken$163 &&
+    permission$DeadLifetimeToken$198 == permission$DeadLifetimeToken$140 &&
+    permission$DeadLifetimeToken$199 == permission$DeadLifetimeToken$164 &&
+    permission$DeadLifetimeToken$200 == permission$DeadLifetimeToken$165 &&
+    permission$DeadLifetimeToken$201 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$202 == permission$DeadLifetimeToken$166 &&
+    permission$DeadLifetimeToken$203 == permission$DeadLifetimeToken$167 &&
+    permission$DeadLifetimeToken$204 == permission$DeadLifetimeToken$142 &&
+    permission$DeadLifetimeToken$205 == permission$DeadLifetimeToken$168 &&
+    permission$DeadLifetimeToken$206 == permission$DeadLifetimeToken$169 &&
+    permission$OwnedNonAliased$I32$207 == permission$OwnedNonAliased$I32$91 &&
+    permission$view_shift$end$borrow$I32$208 ==
+    permission$view_shift$end$borrow$I32$25
+  permission$DeadLifetimeToken$176 := write
+  permission$DeadLifetimeToken$191 := write
+  goto remaining_block_label__9
+  label then_block_label__10
+  inhale label_bb1$marker$snapshot$2
+  permission$DeadLifetimeToken$150 := write
+  assert permission$view_shift$end$borrow$I32$25 == write
+  inhale permission$view_shift$end$borrow$I32$174 == none &&
+    permission$OwnedNonAliased$I32$175 == write &&
+    _2$snapshot$3 == snapshot$OwnedNonAliased$I32$3 &&
+    valid$Snap$I32(_2$snapshot$3)
+  goto edge_block_then_block_label__10__remaining_block_label__9
+  label edge_block_then_block_label__10__remaining_block_label__9
+  inhale permission$DeadLifetimeToken$176 ==
+    permission$DeadLifetimeToken$147 &&
+    permission$DeadLifetimeToken$177 == permission$DeadLifetimeToken$148 &&
+    permission$DeadLifetimeToken$178 == permission$DeadLifetimeToken$123 &&
+    permission$DeadLifetimeToken$179 == permission$DeadLifetimeToken$149 &&
+    permission$DeadLifetimeToken$180 == permission$DeadLifetimeToken$150 &&
+    permission$DeadLifetimeToken$181 == permission$DeadLifetimeToken$137 &&
+    permission$DeadLifetimeToken$182 == permission$DeadLifetimeToken$151 &&
+    permission$DeadLifetimeToken$183 == permission$DeadLifetimeToken$152 &&
+    permission$DeadLifetimeToken$184 == permission$DeadLifetimeToken$138 &&
+    permission$DeadLifetimeToken$185 == permission$DeadLifetimeToken$153 &&
+    permission$DeadLifetimeToken$186 == permission$DeadLifetimeToken$154 &&
+    permission$DeadLifetimeToken$187 == permission$DeadLifetimeToken$155 &&
+    permission$DeadLifetimeToken$188 == permission$DeadLifetimeToken$156 &&
+    permission$DeadLifetimeToken$189 == permission$DeadLifetimeToken$157 &&
+    permission$DeadLifetimeToken$190 == permission$DeadLifetimeToken$158 &&
+    permission$DeadLifetimeToken$191 == permission$DeadLifetimeToken$159 &&
+    permission$DeadLifetimeToken$192 == permission$DeadLifetimeToken$126 &&
+    permission$DeadLifetimeToken$193 == permission$DeadLifetimeToken$160 &&
+    permission$DeadLifetimeToken$194 == permission$DeadLifetimeToken$161 &&
+    permission$DeadLifetimeToken$195 == permission$DeadLifetimeToken$139 &&
+    permission$DeadLifetimeToken$196 == permission$DeadLifetimeToken$162 &&
+    permission$DeadLifetimeToken$197 == permission$DeadLifetimeToken$163 &&
+    permission$DeadLifetimeToken$198 == permission$DeadLifetimeToken$140 &&
+    permission$DeadLifetimeToken$199 == permission$DeadLifetimeToken$164 &&
+    permission$DeadLifetimeToken$200 == permission$DeadLifetimeToken$165 &&
+    permission$DeadLifetimeToken$201 == permission$DeadLifetimeToken$124 &&
+    permission$DeadLifetimeToken$202 == permission$DeadLifetimeToken$166 &&
+    permission$DeadLifetimeToken$203 == permission$DeadLifetimeToken$167 &&
+    permission$DeadLifetimeToken$204 == permission$DeadLifetimeToken$142 &&
+    permission$DeadLifetimeToken$205 == permission$DeadLifetimeToken$168 &&
+    permission$DeadLifetimeToken$206 == permission$DeadLifetimeToken$169 &&
+    permission$OwnedNonAliased$I32$207 ==
+    permission$OwnedNonAliased$I32$175 &&
+    permission$view_shift$end$borrow$I32$208 == none
+  permission$DeadLifetimeToken$176 := write
+  permission$DeadLifetimeToken$179 := write
+  permission$DeadLifetimeToken$180 := write
+  permission$DeadLifetimeToken$187 := write
+  permission$DeadLifetimeToken$188 := write
+  permission$DeadLifetimeToken$191 := write
+  permission$DeadLifetimeToken$193 := write
+  goto remaining_block_label__9
+  label remaining_block_label__9
+  inhale non_deterministic_jump$11 == 0 || non_deterministic_jump$11 == 1
+  if (non_deterministic_jump$11 == 0) {
+    goto then_block_label__13
+  }
+  if (non_deterministic_jump$11 == 1) {
+    goto remaining_block_label__9__remaining_block_label__12__11
+  }
+  assert false
+  label remaining_block_label__9__remaining_block_label__12__11
+  inhale !label_bb1$marker$snapshot$2 && !label_bb1$marker$snapshot$2
+  goto edge_block_remaining_block_label__9__remaining_block_label__12__11__remaining_block_label__12
+  label edge_block_remaining_block_label__9__remaining_block_label__12__11__remaining_block_label__12
+  inhale permission$DeadLifetimeToken$211 ==
+    permission$DeadLifetimeToken$176 &&
+    permission$DeadLifetimeToken$212 == permission$DeadLifetimeToken$177 &&
+    permission$DeadLifetimeToken$213 == permission$DeadLifetimeToken$178 &&
+    permission$DeadLifetimeToken$214 == permission$DeadLifetimeToken$179 &&
+    permission$DeadLifetimeToken$215 == permission$DeadLifetimeToken$180 &&
+    permission$DeadLifetimeToken$216 == permission$DeadLifetimeToken$181 &&
+    permission$DeadLifetimeToken$217 == permission$DeadLifetimeToken$182 &&
+    permission$DeadLifetimeToken$218 == permission$DeadLifetimeToken$183 &&
+    permission$DeadLifetimeToken$219 == permission$DeadLifetimeToken$184 &&
+    permission$DeadLifetimeToken$220 == permission$DeadLifetimeToken$185 &&
+    permission$DeadLifetimeToken$221 == permission$DeadLifetimeToken$186 &&
+    permission$DeadLifetimeToken$222 == permission$DeadLifetimeToken$187 &&
+    permission$DeadLifetimeToken$223 == permission$DeadLifetimeToken$188 &&
+    permission$DeadLifetimeToken$224 == permission$DeadLifetimeToken$189 &&
+    permission$DeadLifetimeToken$225 == permission$DeadLifetimeToken$190 &&
+    permission$DeadLifetimeToken$226 == permission$DeadLifetimeToken$191 &&
+    permission$DeadLifetimeToken$227 == permission$DeadLifetimeToken$192 &&
+    permission$DeadLifetimeToken$228 == permission$DeadLifetimeToken$193 &&
+    permission$DeadLifetimeToken$229 == permission$DeadLifetimeToken$194 &&
+    permission$DeadLifetimeToken$230 == permission$DeadLifetimeToken$195 &&
+    permission$DeadLifetimeToken$231 == permission$DeadLifetimeToken$196 &&
+    permission$DeadLifetimeToken$232 == permission$DeadLifetimeToken$197 &&
+    permission$DeadLifetimeToken$233 == permission$DeadLifetimeToken$198 &&
+    permission$DeadLifetimeToken$234 == permission$DeadLifetimeToken$199 &&
+    permission$DeadLifetimeToken$235 == permission$DeadLifetimeToken$200 &&
+    permission$DeadLifetimeToken$236 == permission$DeadLifetimeToken$201 &&
+    permission$DeadLifetimeToken$237 == permission$DeadLifetimeToken$202 &&
+    permission$DeadLifetimeToken$238 == permission$DeadLifetimeToken$203 &&
+    permission$DeadLifetimeToken$239 == permission$DeadLifetimeToken$204 &&
+    permission$DeadLifetimeToken$240 == permission$DeadLifetimeToken$205 &&
+    permission$DeadLifetimeToken$241 == permission$DeadLifetimeToken$206 &&
+    permission$OwnedNonAliased$I32$242 ==
+    permission$OwnedNonAliased$I32$207
+  permission$DeadLifetimeToken$225 := write
+  goto remaining_block_label__12
+  label then_block_label__13
+  inhale label_bb1$marker$snapshot$2
+  assert permission$OwnedNonAliased$I32$207 == write
+  inhale permission$OwnedNonAliased$I32$209 == none
+  exhale snapshot$OwnedNonAliased$I32$3 == snapshot$OwnedNonAliased$I32$3
+  inhale permission$MemoryBlock$210 == write
+  goto edge_block_then_block_label__13__remaining_block_label__12
+  label edge_block_then_block_label__13__remaining_block_label__12
+  inhale permission$DeadLifetimeToken$211 ==
+    permission$DeadLifetimeToken$176 &&
+    permission$DeadLifetimeToken$212 == permission$DeadLifetimeToken$177 &&
+    permission$DeadLifetimeToken$213 == permission$DeadLifetimeToken$178 &&
+    permission$DeadLifetimeToken$214 == permission$DeadLifetimeToken$179 &&
+    permission$DeadLifetimeToken$215 == permission$DeadLifetimeToken$180 &&
+    permission$DeadLifetimeToken$216 == permission$DeadLifetimeToken$181 &&
+    permission$DeadLifetimeToken$217 == permission$DeadLifetimeToken$182 &&
+    permission$DeadLifetimeToken$218 == permission$DeadLifetimeToken$183 &&
+    permission$DeadLifetimeToken$219 == permission$DeadLifetimeToken$184 &&
+    permission$DeadLifetimeToken$220 == permission$DeadLifetimeToken$185 &&
+    permission$DeadLifetimeToken$221 == permission$DeadLifetimeToken$186 &&
+    permission$DeadLifetimeToken$222 == permission$DeadLifetimeToken$187 &&
+    permission$DeadLifetimeToken$223 == permission$DeadLifetimeToken$188 &&
+    permission$DeadLifetimeToken$224 == permission$DeadLifetimeToken$189 &&
+    permission$DeadLifetimeToken$225 == permission$DeadLifetimeToken$190 &&
+    permission$DeadLifetimeToken$226 == permission$DeadLifetimeToken$191 &&
+    permission$DeadLifetimeToken$227 == permission$DeadLifetimeToken$192 &&
+    permission$DeadLifetimeToken$228 == permission$DeadLifetimeToken$193 &&
+    permission$DeadLifetimeToken$229 == permission$DeadLifetimeToken$194 &&
+    permission$DeadLifetimeToken$230 == permission$DeadLifetimeToken$195 &&
+    permission$DeadLifetimeToken$231 == permission$DeadLifetimeToken$196 &&
+    permission$DeadLifetimeToken$232 == permission$DeadLifetimeToken$197 &&
+    permission$DeadLifetimeToken$233 == permission$DeadLifetimeToken$198 &&
+    permission$DeadLifetimeToken$234 == permission$DeadLifetimeToken$199 &&
+    permission$DeadLifetimeToken$235 == permission$DeadLifetimeToken$200 &&
+    permission$DeadLifetimeToken$236 == permission$DeadLifetimeToken$201 &&
+    permission$DeadLifetimeToken$237 == permission$DeadLifetimeToken$202 &&
+    permission$DeadLifetimeToken$238 == permission$DeadLifetimeToken$203 &&
+    permission$DeadLifetimeToken$239 == permission$DeadLifetimeToken$204 &&
+    permission$DeadLifetimeToken$240 == permission$DeadLifetimeToken$205 &&
+    permission$DeadLifetimeToken$241 == permission$DeadLifetimeToken$206 &&
+    permission$OwnedNonAliased$I32$242 == none
+  permission$DeadLifetimeToken$225 := write
+  goto remaining_block_label__12
+  label remaining_block_label__12
+  inhale non_deterministic_jump$4 == 0 || non_deterministic_jump$4 == 1
+  if (non_deterministic_jump$4 == 0) {
+    goto then_block_label__16
+  }
+  if (non_deterministic_jump$4 == 1) {
+    goto remaining_block_label__12__remaining_block_label__15__4
+  }
+  assert false
+  label remaining_block_label__12__remaining_block_label__15__4
+  inhale !label_bb2$marker$snapshot$2 && !label_bb2$marker$snapshot$2
+  goto edge_block_remaining_block_label__12__remaining_block_label__15__4__remaining_block_label__15
+  label edge_block_remaining_block_label__12__remaining_block_label__15__4__remaining_block_label__15
+  inhale permission$DeadLifetimeToken$245 ==
+    permission$DeadLifetimeToken$211 &&
+    permission$DeadLifetimeToken$246 == permission$DeadLifetimeToken$212 &&
+    permission$DeadLifetimeToken$247 == permission$DeadLifetimeToken$213 &&
+    permission$DeadLifetimeToken$248 == permission$DeadLifetimeToken$214 &&
+    permission$DeadLifetimeToken$249 == permission$DeadLifetimeToken$215 &&
+    permission$DeadLifetimeToken$250 == permission$DeadLifetimeToken$216 &&
+    permission$DeadLifetimeToken$251 == permission$DeadLifetimeToken$217 &&
+    permission$DeadLifetimeToken$252 == permission$DeadLifetimeToken$218 &&
+    permission$DeadLifetimeToken$253 == permission$DeadLifetimeToken$219 &&
+    permission$DeadLifetimeToken$254 == permission$DeadLifetimeToken$220 &&
+    permission$DeadLifetimeToken$255 == permission$DeadLifetimeToken$221 &&
+    permission$DeadLifetimeToken$256 == permission$DeadLifetimeToken$222 &&
+    permission$DeadLifetimeToken$257 == permission$DeadLifetimeToken$223 &&
+    permission$DeadLifetimeToken$258 == permission$DeadLifetimeToken$224 &&
+    permission$DeadLifetimeToken$259 == permission$DeadLifetimeToken$225 &&
+    permission$DeadLifetimeToken$260 == permission$DeadLifetimeToken$226 &&
+    permission$DeadLifetimeToken$261 == permission$DeadLifetimeToken$227 &&
+    permission$DeadLifetimeToken$262 == permission$DeadLifetimeToken$228 &&
+    permission$DeadLifetimeToken$263 == permission$DeadLifetimeToken$229 &&
+    permission$DeadLifetimeToken$264 == permission$DeadLifetimeToken$230 &&
+    permission$DeadLifetimeToken$265 == permission$DeadLifetimeToken$231 &&
+    permission$DeadLifetimeToken$266 == permission$DeadLifetimeToken$232 &&
+    permission$DeadLifetimeToken$267 == permission$DeadLifetimeToken$233 &&
+    permission$DeadLifetimeToken$268 == permission$DeadLifetimeToken$234 &&
+    permission$DeadLifetimeToken$269 == permission$DeadLifetimeToken$235 &&
+    permission$DeadLifetimeToken$270 == permission$DeadLifetimeToken$236 &&
+    permission$DeadLifetimeToken$271 == permission$DeadLifetimeToken$237 &&
+    permission$DeadLifetimeToken$272 == permission$DeadLifetimeToken$238 &&
+    permission$DeadLifetimeToken$273 == permission$DeadLifetimeToken$239 &&
+    permission$DeadLifetimeToken$274 == permission$DeadLifetimeToken$240 &&
+    permission$DeadLifetimeToken$275 == permission$DeadLifetimeToken$241 &&
+    permission$OwnedNonAliased$I32$276 ==
+    permission$OwnedNonAliased$I32$242 &&
+    permission$MemoryBlock$277 == permission$MemoryBlock$210
+  permission$DeadLifetimeToken$260 := write
+  goto remaining_block_label__15
+  label then_block_label__16
+  inhale label_bb2$marker$snapshot$2
+  assert permission$OwnedNonAliased$I32$242 == write
+  inhale permission$OwnedNonAliased$I32$243 == none
+  exhale snapshot$OwnedNonAliased$I32$3 == snapshot$OwnedNonAliased$I32$3
+  inhale permission$MemoryBlock$244 == write
+  goto edge_block_then_block_label__16__remaining_block_label__15
+  label edge_block_then_block_label__16__remaining_block_label__15
+  inhale permission$DeadLifetimeToken$245 ==
+    permission$DeadLifetimeToken$211 &&
+    permission$DeadLifetimeToken$246 == permission$DeadLifetimeToken$212 &&
+    permission$DeadLifetimeToken$247 == permission$DeadLifetimeToken$213 &&
+    permission$DeadLifetimeToken$248 == permission$DeadLifetimeToken$214 &&
+    permission$DeadLifetimeToken$249 == permission$DeadLifetimeToken$215 &&
+    permission$DeadLifetimeToken$250 == permission$DeadLifetimeToken$216 &&
+    permission$DeadLifetimeToken$251 == permission$DeadLifetimeToken$217 &&
+    permission$DeadLifetimeToken$252 == permission$DeadLifetimeToken$218 &&
+    permission$DeadLifetimeToken$253 == permission$DeadLifetimeToken$219 &&
+    permission$DeadLifetimeToken$254 == permission$DeadLifetimeToken$220 &&
+    permission$DeadLifetimeToken$255 == permission$DeadLifetimeToken$221 &&
+    permission$DeadLifetimeToken$256 == permission$DeadLifetimeToken$222 &&
+    permission$DeadLifetimeToken$257 == permission$DeadLifetimeToken$223 &&
+    permission$DeadLifetimeToken$258 == permission$DeadLifetimeToken$224 &&
+    permission$DeadLifetimeToken$259 == permission$DeadLifetimeToken$225 &&
+    permission$DeadLifetimeToken$260 == permission$DeadLifetimeToken$226 &&
+    permission$DeadLifetimeToken$261 == permission$DeadLifetimeToken$227 &&
+    permission$DeadLifetimeToken$262 == permission$DeadLifetimeToken$228 &&
+    permission$DeadLifetimeToken$263 == permission$DeadLifetimeToken$229 &&
+    permission$DeadLifetimeToken$264 == permission$DeadLifetimeToken$230 &&
+    permission$DeadLifetimeToken$265 == permission$DeadLifetimeToken$231 &&
+    permission$DeadLifetimeToken$266 == permission$DeadLifetimeToken$232 &&
+    permission$DeadLifetimeToken$267 == permission$DeadLifetimeToken$233 &&
+    permission$DeadLifetimeToken$268 == permission$DeadLifetimeToken$234 &&
+    permission$DeadLifetimeToken$269 == permission$DeadLifetimeToken$235 &&
+    permission$DeadLifetimeToken$270 == permission$DeadLifetimeToken$236 &&
+    permission$DeadLifetimeToken$271 == permission$DeadLifetimeToken$237 &&
+    permission$DeadLifetimeToken$272 == permission$DeadLifetimeToken$238 &&
+    permission$DeadLifetimeToken$273 == permission$DeadLifetimeToken$239 &&
+    permission$DeadLifetimeToken$274 == permission$DeadLifetimeToken$240 &&
+    permission$DeadLifetimeToken$275 == permission$DeadLifetimeToken$241 &&
+    permission$OwnedNonAliased$I32$276 == none &&
+    permission$MemoryBlock$277 == permission$MemoryBlock$244
+  permission$DeadLifetimeToken$259 := write
+  permission$DeadLifetimeToken$260 := write
+  goto remaining_block_label__15
+  label remaining_block_label__15
+  assert permission$MemoryBlock$277 == write
+  inhale permission$MemoryBlock$278 == none
+  assert permission$MemoryBlockStackDrop$3 == write
+  inhale permission$MemoryBlockStackDrop$279 == none
+  permission$DeadLifetimeToken$245 := write
+  exhale included(lft_5$snapshot$5, bw0$snapshot$0)
+  inhale return_label$marker$snapshot$1
+  inhale basic_block_marker$return_label$marker()
+  exhale true
+  assert permission$OwnedNonAliased$Bool$18 == write
+  inhale permission$OwnedNonAliased$Bool$280 == none
+  exhale snapshot$OwnedNonAliased$Bool$9 == snapshot$OwnedNonAliased$Bool$9
+  inhale permission$MemoryBlock$281 == write
+  assert permission$MemoryBlock$281 == write
+  inhale permission$MemoryBlock$282 == none
+  assert permission$OwnedNonAliased$Tuple$$115 == write
+  inhale permission$OwnedNonAliased$Tuple$$283 == none
+  exhale _0$snapshot$1 == snapshot$OwnedNonAliased$Tuple$$50
+  exhale valid$Snap$Tuple$(_0$snapshot$1)
+  inhale end_label$marker$snapshot$1
+  inhale basic_block_marker$end_label$marker()
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_0$snapshot$1 == intersect(Set(bw3$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 16
+  exhale lft_1$snapshot$1 == intersect(Set(bw3$snapshot$0, bw4$snapshot$0))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  assert lifetime_token_perm_amount$0$snapshot$0 / 16 >= none
+  goto end_of_method
+  label end_of_method
+}
+
+method apply_view_shift$end$borrow$I32(lft_2: Lifetime, operand_place: PlaceOption,
+  operand_address: Address, arg$3: Snap$I32)
+  requires acc(DeadLifetimeToken(lft_2), write)
+  requires acc(view_shift$end$borrow$I32(lft_2, operand_place, operand_address,
+    arg$3), write)
+  ensures acc(OwnedNonAliased$I32(operand_place, operand_address), write) &&
+    arg$3 == snap_owned_non_aliased$I32(operand_place, operand_address)
+  ensures valid$Snap$I32(arg$3)
+  ensures acc(DeadLifetimeToken(lft_2), write)
+
+
+method apply_view_shift$end$reborrow$I32(lft_4: Lifetime, operand_place: PlaceOption,
+  operand_address: Address, arg$3: Snap$I32, lft_8: Lifetime)
+  requires acc(DeadLifetimeToken(lft_4), write)
+  requires acc(view_shift$end$reborrow$I32(lft_4, operand_place, operand_address,
+    arg$3, lft_8), write)
+  ensures acc(UniqueRef$I32(operand_place, operand_address, lft_8), write) &&
+    arg$3 ==
+    snap_current_unique_ref$I32(operand_place, operand_address, lft_8)
+  ensures valid$Snap$I32(arg$3)
+  ensures acc(DeadLifetimeToken(lft_4), write)
+
+
+method assign$0(target_place: PlaceOption, target_address: Address, operand_place: PlaceOption,
+  operand_address: Address, operand_snapshot: Snap$I32, lft_2: Lifetime, lifetime_perm: Perm)
+  returns (result_value: Snap$ref$Unique$I32)
+  requires acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires acc(OwnedNonAliased$I32(operand_place, operand_address), write) &&
+    operand_snapshot ==
+    snap_owned_non_aliased$I32(operand_place, operand_address)
+  requires acc(LifetimeToken(lft_2), lifetime_perm)
+  requires valid$Snap$I32(operand_snapshot)
+  ensures operand_address ==
+    destructor$Snap$ref$Unique$I32$$address(result_value)
+  ensures operand_snapshot ==
+    destructor$Snap$ref$Unique$I32$$target_current(result_value)
+  ensures acc(LifetimeToken(lft_2), lifetime_perm)
+  ensures acc(OwnedNonAliased$ref$Unique$I32(target_place, target_address, true,
+    lft_2), write) &&
+    result_value ==
+    snap_owned_non_aliased$ref$Unique$I32(target_place, target_address, true,
+    lft_2)
+  ensures acc(view_shift$end$borrow$I32(lft_2, operand_place, operand_address,
+    destructor$Snap$ref$Unique$I32$$target_final(result_value)), write)
+  ensures valid$Snap$ref$Unique$I32(result_value)
+
+
+method assign$1(target_place: PlaceOption, target_address: Address, operand_place: PlaceOption,
+  operand_address: Address, operand_snapshot: Snap$I32, lft_3: Lifetime, lifetime_perm: Perm)
+  returns (result_value: Snap$ref$Unique$I32)
+  requires acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires acc(OwnedNonAliased$I32(operand_place, operand_address), write) &&
+    operand_snapshot ==
+    snap_owned_non_aliased$I32(operand_place, operand_address)
+  requires acc(LifetimeToken(lft_3), lifetime_perm)
+  requires valid$Snap$I32(operand_snapshot)
+  ensures operand_address ==
+    destructor$Snap$ref$Unique$I32$$address(result_value)
+  ensures operand_snapshot ==
+    destructor$Snap$ref$Unique$I32$$target_current(result_value)
+  ensures acc(LifetimeToken(lft_3), lifetime_perm)
+  ensures acc(OwnedNonAliased$ref$Unique$I32(target_place, target_address, true,
+    lft_3), write) &&
+    result_value ==
+    snap_owned_non_aliased$ref$Unique$I32(target_place, target_address, true,
+    lft_3)
+  ensures acc(view_shift$end$borrow$I32(lft_3, operand_place, operand_address,
+    destructor$Snap$ref$Unique$I32$$target_final(result_value)), write)
+  ensures valid$Snap$ref$Unique$I32(result_value)
+
+
+method assign$2(target_place: PlaceOption, target_address: Address, operand_place: PlaceOption,
+  operand_address: Address, operand_snapshot_current: Snap$I32, operand_snapshot_final: Snap$I32,
+  lft_8: Lifetime, lft_4: Lifetime, lifetime_perm: Perm)
+  returns (result_value: Snap$ref$Unique$I32)
+  requires acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires included(lft_4, lft_8)
+  requires acc(UniqueRef$I32(operand_place, operand_address, lft_8), write) &&
+    operand_snapshot_current ==
+    snap_current_unique_ref$I32(operand_place, operand_address, lft_8)
+  requires acc(LifetimeToken(lft_4), lifetime_perm)
+  ensures operand_address ==
+    destructor$Snap$ref$Unique$I32$$address(result_value)
+  ensures operand_snapshot_current ==
+    destructor$Snap$ref$Unique$I32$$target_current(result_value)
+  ensures acc(LifetimeToken(lft_4), lifetime_perm)
+  ensures acc(OwnedNonAliased$ref$Unique$I32(target_place, target_address, true,
+    lft_4), write) &&
+    result_value ==
+    snap_owned_non_aliased$ref$Unique$I32(target_place, target_address, true,
+    lft_4)
+  ensures valid$Snap$ref$Unique$I32(result_value)
+  ensures acc(view_shift$end$reborrow$I32(lft_4, operand_place, operand_address,
+    destructor$Snap$ref$Unique$I32$$target_final(result_value), lft_8), write)
+
+
+method bor_shorten$ref$Unique$I32(lft: Lifetime, old_lft: Lifetime, lifetime_perm: Perm,
+  place: PlaceOption, address: Address, current_snapshot: Snap$I32, final_snapshot: Snap$I32)
+  requires none < lifetime_perm
+  requires lifetime_perm < write
+  requires included(lft, old_lft)
+  requires acc(LifetimeToken(lft), lifetime_perm)
+  requires acc(UniqueRef$I32(place, address, old_lft), write) &&
+    current_snapshot ==
+    snap_current_unique_ref$I32(place, address, old_lft)
+  ensures acc(LifetimeToken(lft), lifetime_perm)
+  ensures acc(UniqueRef$I32(place, address, lft), write) &&
+    current_snapshot == snap_current_unique_ref$I32(place, address, lft)
+  ensures snap_final_unique_ref$I32(place, address, old_lft, function_gas_level$(function_gas_level$(function_no_gas$()))) ==
+    snap_final_unique_ref$I32(place, address, lft, function_gas_level$(function_gas_level$(function_no_gas$())))
+
+
+method change_unique_ref_place$ref$Unique$I32(target_place: PlaceOption, source_place: PlaceOption,
+  source_snapshot: Snap$ref$Unique$I32, lft_8$alive: Bool, lft_8: Lifetime)
+  requires lft_8$alive ==>
+    acc(UniqueRef$I32(deref_reference_place(source_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8), write) &&
+    destructor$Snap$ref$Unique$I32$$target_current(source_snapshot) ==
+    snap_current_unique_ref$I32(deref_reference_place(source_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8)
+  requires lft_8$alive ==>
+    destructor$Snap$ref$Unique$I32$$target_final(source_snapshot) ==
+    snap_final_unique_ref$I32(deref_reference_place(source_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8, function_gas_level$(function_gas_level$(function_no_gas$())))
+  ensures lft_8$alive ==>
+    acc(UniqueRef$I32(deref_reference_place(target_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8), write) &&
+    destructor$Snap$ref$Unique$I32$$target_current(source_snapshot) ==
+    snap_current_unique_ref$I32(deref_reference_place(target_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8)
+  ensures lft_8$alive ==>
+    destructor$Snap$ref$Unique$I32$$target_final(source_snapshot) ==
+    snap_final_unique_ref$I32(deref_reference_place(target_place), destructor$Snap$ref$Unique$I32$$address(source_snapshot),
+    lft_8, function_gas_level$(function_gas_level$(function_no_gas$())))
+
+
+method close_mut_ref$I32(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, current_snapshot: Snap$I32, final_snapshot: Snap$I32)
+  requires none < lifetime_perm
+  requires acc(CloseMutRef$I32(lifetime, lifetime_perm, place, address, final_snapshot), write)
+  requires acc(OwnedNonAliased$I32(place, address), write) &&
+    current_snapshot == snap_owned_non_aliased$I32(place, address)
+  ensures acc(LifetimeToken(lifetime), lifetime_perm)
+  ensures acc(UniqueRef$I32(place, address, lifetime), write) &&
+    current_snapshot ==
+    snap_current_unique_ref$I32(place, address, lifetime)
+
+
+method copy_place$Bool(target_place: PlaceOption, target_address: Address, source_place: PlaceOption,
+  source_address: Address, source_snapshot: Snap$Bool, source_permission_amount: Perm)
+  requires none < source_permission_amount
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(1)), write)
+  requires acc(OwnedNonAliased$Bool(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Bool(source_place, source_address)
+  ensures acc(OwnedNonAliased$Bool(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Bool(source_place, source_address)
+  ensures acc(OwnedNonAliased$Bool(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Bool(target_place, target_address)
+  ensures valid$Snap$Bool(source_snapshot)
+{
+  unfold acc(OwnedNonAliased$Bool(source_place, source_address), source_permission_amount)
+  memory_copy$Bool(source_address, target_address, source_permission_amount)
+  fold acc(OwnedNonAliased$Bool(target_place, target_address), write)
+  fold acc(OwnedNonAliased$Bool(source_place, source_address), source_permission_amount)
+}
+
+method dead_inclusion(lft_1: Lifetime, lft_2: Lifetime)
+  requires acc(DeadLifetimeToken(lft_2), write)
+  requires included(lft_1, lft_2)
+  ensures acc(DeadLifetimeToken(lft_1), write)
+  ensures acc(DeadLifetimeToken(lft_2), write)
+
+
+method endlft(bw: Lifetime)
+  requires acc(LifetimeToken(bw), write)
+  ensures acc(DeadLifetimeToken(bw), write)
+
+
+method into_memory_block$Bool(place: PlaceOption, address: Address, snapshot: Snap$Bool)
+  requires acc(OwnedNonAliased$Bool(place, address), write) &&
+    snapshot == snap_owned_non_aliased$Bool(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(1)), write)
+{
+  unfold acc(OwnedNonAliased$Bool(place, address), write)
+}
+
+method into_memory_block$I32(place: PlaceOption, address: Address, snapshot: Snap$I32)
+  requires acc(OwnedNonAliased$I32(place, address), write) &&
+    snapshot == snap_owned_non_aliased$I32(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(4)), write)
+{
+  unfold acc(OwnedNonAliased$I32(place, address), write)
+}
+
+method into_memory_block$Tuple$(place: PlaceOption, address: Address, snapshot: Snap$Tuple$)
+  requires acc(OwnedNonAliased$Tuple$(place, address), write) &&
+    snapshot == snap_owned_non_aliased$Tuple$(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+{
+  unfold acc(OwnedNonAliased$Tuple$(place, address), write)
+  memory_block_join$Tuple$(address, write)
+}
+
+method lft_tok_sep_return$1(lft: Lifetime, lft_1: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+
+
+method lft_tok_sep_return$2(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1, lft_2))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft_2), rd_perm)
+
+
+method lft_tok_sep_take$1(lft_1: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1))
+
+
+method lft_tok_sep_take$2(lft_1: Lifetime, lft_2: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  requires acc(LifetimeToken(lft_2), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1, lft_2))
+
+
+method memory_block_join$Tuple$(address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, PaddingSize$Tuple$$()), permission_amount)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures (forall snapshot: Snap$Tuple$ ::
+      { to_bytes$Tuple$(snapshot) }
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(0)) ==
+      to_bytes$Tuple$(snapshot))
+
+
+method memory_block_split$Tuple$(address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures acc(MemoryBlock(address, PaddingSize$Tuple$$()), permission_amount)
+  ensures true
+
+
+method memory_copy$Bool(source_address: Address, target_address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(1)), write)
+  requires acc(MemoryBlock(source_address, constructor$Snap$Usize$(1)), permission_amount)
+  ensures acc(MemoryBlock(target_address, constructor$Snap$Usize$(1)), write)
+  ensures acc(MemoryBlock(source_address, constructor$Snap$Usize$(1)), permission_amount)
+  ensures MemoryBlock$bytes(source_address, constructor$Snap$Usize$(1)) ==
+    old(MemoryBlock$bytes(source_address, constructor$Snap$Usize$(1)))
+  ensures MemoryBlock$bytes(target_address, constructor$Snap$Usize$(1)) ==
+    MemoryBlock$bytes(source_address, constructor$Snap$Usize$(1))
+
+
+method memory_copy$ref$Unique$I32(source_address: Address, target_address: Address,
+  permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  requires acc(MemoryBlock(source_address, Size$ref$Unique$I32$()), permission_amount)
+  ensures acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  ensures acc(MemoryBlock(source_address, Size$ref$Unique$I32$()), permission_amount)
+  ensures MemoryBlock$bytes(source_address, Size$ref$Unique$I32$()) ==
+    old(MemoryBlock$bytes(source_address, Size$ref$Unique$I32$()))
+  ensures MemoryBlock$bytes(target_address, Size$ref$Unique$I32$()) ==
+    MemoryBlock$bytes(source_address, Size$ref$Unique$I32$())
+
+
+method move_place$ref$Unique$I32(target_place: PlaceOption, target_address: Address,
+  source_place: PlaceOption, source_address: Address, source_snapshot: Snap$ref$Unique$I32,
+  lft_8$alive: Bool, lft_8: Lifetime)
+  requires acc(MemoryBlock(target_address, Size$ref$Unique$I32$()), write)
+  requires acc(OwnedNonAliased$ref$Unique$I32(source_place, source_address,
+    lft_8$alive, lft_8), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$ref$Unique$I32(source_place, source_address, lft_8$alive,
+    lft_8)
+  ensures acc(OwnedNonAliased$ref$Unique$I32(target_place, target_address, lft_8$alive,
+    lft_8), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$ref$Unique$I32(target_place, target_address, lft_8$alive,
+    lft_8)
+  ensures acc(MemoryBlock(source_address, Size$ref$Unique$I32$()), write)
+  ensures valid$Snap$ref$Unique$I32(source_snapshot)
+{
+  unfold acc(OwnedNonAliased$ref$Unique$I32(source_place, source_address, lft_8$alive,
+    lft_8), write)
+  memory_copy$ref$Unique$I32(source_address, target_address, write)
+  change_unique_ref_place$ref$Unique$I32(target_place, source_place, source_snapshot,
+    lft_8$alive, lft_8)
+  fold acc(OwnedNonAliased$ref$Unique$I32(target_place, target_address, lft_8$alive,
+    lft_8), write)
+  if (!lft_8$alive) {
+    // FIXME: This is a hack. Because the lifetime is dead, the reference is dangling and there is no predicate that would witness that the value of the dereference is the source of the dereference. This is also the reason why it is sound just to assume that the two are equal. A proper solution should use a custom equality function that equates the targets only if lifetimes are alive.
+    inhale destructor$Snap$ref$Unique$I32$$target_current(source_snapshot) ==
+      destructor$Snap$ref$Unique$I32$$target_current(snap_owned_non_aliased$ref$Unique$I32(target_place,
+      target_address, lft_8$alive, lft_8))
+    inhale destructor$Snap$ref$Unique$I32$$target_final(source_snapshot) ==
+      destructor$Snap$ref$Unique$I32$$target_final(snap_owned_non_aliased$ref$Unique$I32(target_place,
+      target_address, lft_8$alive, lft_8))
+  }
+}
+
+method newlft() returns (bw: Lifetime)
+  ensures acc(LifetimeToken(bw), write)
+
+
+method open_mut_ref$I32(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, current_snapshot: Snap$I32, final_snapshot: Snap$I32)
+  requires none < lifetime_perm
+  requires acc(LifetimeToken(lifetime), lifetime_perm)
+  requires acc(UniqueRef$I32(place, address, lifetime), write) &&
+    current_snapshot ==
+    snap_current_unique_ref$I32(place, address, lifetime)
+  ensures acc(OwnedNonAliased$I32(place, address), write) &&
+    current_snapshot == snap_owned_non_aliased$I32(place, address)
+  ensures acc(CloseMutRef$I32(lifetime, lifetime_perm, place, address, final_snapshot), write)
+
+
+method write_address_constant$I32(target_address: Address, source_snapshot: Snap$I32)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(4)), write)
+  ensures acc(MemoryBlock(target_address, constructor$Snap$Usize$(4)), write)
+  ensures MemoryBlock$bytes(target_address, constructor$Snap$Usize$(4)) ==
+    to_bytes$I32(source_snapshot)
+
+
+method write_place_constant$I32(target_place: PlaceOption, target_address: Address,
+  source_snapshot: Snap$I32)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(4)), write)
+  requires valid$Snap$I32(source_snapshot)
+  ensures acc(OwnedNonAliased$I32(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$I32(target_place, target_address)
+{
+  write_address_constant$I32(target_address, source_snapshot)
+  fold acc(OwnedNonAliased$I32(target_place, target_address), write)
+}
+
+method write_place_constant$Tuple$(target_place: PlaceOption, target_address: Address,
+  source_snapshot: Snap$Tuple$)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(0)), write)
+  requires valid$Snap$Tuple$(source_snapshot)
+  ensures acc(OwnedNonAliased$Tuple$(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Tuple$(target_place, target_address)
+{
+  memory_block_split$Tuple$(target_address, write)
+  fold acc(OwnedNonAliased$Tuple$(target_place, target_address), write)
+}

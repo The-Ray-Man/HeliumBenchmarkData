@@ -1,0 +1,797 @@
+domain frac {
+  
+  function frac_val(a: frac): Perm
+  
+  axiom frac_bound {
+    (forall a: frac :: { frac_val(a) } 0 / 1 < frac_val(a) && frac_val(a) <= 1 / 1)
+  }
+}
+
+domain zfrac {
+  
+  function zfrac_val(a: zfrac): Perm
+  
+  axiom zfrac_bound {
+    (forall a: zfrac :: { zfrac_val(a) } 0 / 1 <= zfrac_val(a) && zfrac_val(a) <= 1 / 1)
+  }
+}
+
+domain VCTArray[CT] {
+  
+  function loc(a: VCTArray[CT], i: Int): CT
+  
+  function alen(a: VCTArray[CT]): Int
+  
+  function second(r: CT): Int
+  
+  axiom good_name_here {
+    (forall a: VCTArray[CT], i: Int :: { (loc(a, i): CT) } (second((loc(a, i): CT)): Int) == (second((loc(a, 0): CT)): Int) + i)
+  }
+  
+  axiom second_injectivity {
+    (forall a: VCTArray[CT], b: VCTArray[CT], i: Int, j: Int :: { (loc(a, i): CT),(loc(b, j): CT) } (second((loc(a, i): CT)): Int) == (second((loc(b, j): CT)): Int) ==> (loc(a, i): CT) == (loc(b, j): CT))
+  }
+  
+  axiom len_nonneg {
+    (forall a: VCTArray[CT] :: { (alen(a): Int) } (alen(a): Int) >= 0)
+  }
+}
+
+domain VCTOption[T] {
+  
+  function VCTNone(): VCTOption[T]
+  
+  function VCTSome(t: T): VCTOption[T]
+  
+  function getVCTOption(o: VCTOption[T]): T
+  
+  axiom not_equal_vct {
+    (forall x: T :: { (VCTSome(x): VCTOption[T]) } (VCTNone(): VCTOption[T]) != (VCTSome(x): VCTOption[T]))
+  }
+  
+  axiom get_axiom_vct {
+    (forall x: T :: { (getVCTOption((VCTSome(x): VCTOption[T])): T) } (getVCTOption((VCTSome(x): VCTOption[T])): T) == x)
+  }
+  
+  axiom get_axiom_vct_2 {
+    (forall x: VCTOption[T] :: { (VCTSome((getVCTOption(x): T)): VCTOption[T]) } (VCTSome((getVCTOption(x): T)): VCTOption[T]) == x)
+  }
+}
+
+//  a field 
+field Integer__item: Int
+
+//  a field 
+field VCTOption_VCTArray_Ref____item: VCTOption[VCTArray[Ref]]
+
+//  a field 
+field Char__item: Int
+
+function method_Ref_get__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], n: Int): Int
+  requires diz != null
+  requires 0 <= n
+  requires n < |xs|
+{
+  xs[n]
+}
+
+function method_Ref_exp__Integer__Integer(diz: Ref, n: Int, p: Int): Int
+  requires diz != null
+  requires 0 <= p
+  ensures n == 2 ==> p < result
+{
+  (0 < p ? n * method_Ref_exp__Integer__Integer(diz, n, p - 1) : 1)
+}
+
+function method_Ref_Take__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], n: Int): Seq[Int]
+  requires diz != null
+  requires n <= |xs|
+  decreases _
+  ensures n < 0 ==> |method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n)| == 0
+  ensures 0 <= n ==> |method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n)| == n
+  ensures (forall i: Int :: { xs[i] } { method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n), i) } 0 <= i && i < n ==> xs[i] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n), i))
+{
+  (0 < n ? Seq(xs[0]) ++ method_Ref_Take__Sequence$Integer$__Integer(diz, xs[1..], n - 1) : Seq[Int]())
+}
+
+function method_Ref_intsum__Sequence$Integer$(diz: Ref, xs: Seq[Int]): Int
+  requires diz != null
+  ensures |xs| == 0 ==> result == 0
+  ensures |xs| == 1 ==> result == xs[0]
+{
+  (0 < |xs| ? xs[0] + method_Ref_intsum__Sequence$Integer$(diz, xs[1..]) : 0)
+}
+
+function method_Ref_psum__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], i: Int): Seq[Int]
+  requires diz != null
+  requires 0 <= i && i <= |xs|
+  ensures |result| == |xs| - i
+  ensures (forall j: Int :: { result[j] } 0 <= j && j < |result| ==> result[j] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + j + 1)))
+{
+  (i < |xs| ? Seq(method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1))) ++ method_Ref_psum__Sequence$Integer$__Integer(diz, xs, i + 1) : Seq[Int]())
+}
+
+function method_Ref_psum2__Sequence$Integer$(diz: Ref, xs: Seq[Int]): Seq[Int]
+  requires diz != null
+  ensures |result| == |xs|
+  ensures (forall j: Int :: { result[j] } 0 <= j && j < |result| ==> result[j] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, j + 1)))
+{
+  method_Ref_psum__Sequence$Integer$__Integer(diz, xs, 0)
+}
+
+function method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz: Ref, input: Seq[Int], i: Int, offset: Int): Seq[Int]
+  requires diz != null
+  requires 0 <= |input|
+  requires 0 <= i
+  requires i <= |input|
+  requires 0 < offset
+  requires offset <= |input| * 2
+  ensures |result| == |input| - i
+  ensures (forall j: Int :: { result[j] } 0 <= j && j < |result| ==> result[j] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, input, i + j + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, input, i + j + 1 - offset)))
+{
+  (i < |input| ? Seq(method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, input, i + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, input, i + 1 - offset))) ++ method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz, input, i + 1, offset) : Seq[Int]())
+}
+
+function method_Ref_lemma_partial_prefixsum_base__Sequence$Integer$__Integer__Integer(diz: Ref, xs: Seq[Int], i: Int, offset: Int): Bool
+  requires diz != null
+  requires |xs| <= 1
+  requires 0 <= i
+  requires 0 < offset
+  requires offset <= |xs|
+  ensures result && (i < |xs| ==> xs == method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz, xs, i, offset * 2))
+{
+  true
+}
+
+function method_Ref_lemma_exp2_red_mult__Integer(diz: Ref, n: Int): Bool
+  requires diz != null
+  requires 0 < n
+  ensures result && method_Ref_exp__Integer__Integer(diz, 2, n) == 2 * method_Ref_exp__Integer__Integer(diz, 2, n - 1)
+{
+  true
+}
+
+function method_Ref_lemma_exp2_red_div__Integer(diz: Ref, n: Int): Bool
+  requires diz != null
+  requires 0 < n
+  ensures result && method_Ref_exp__Integer__Integer(diz, 2, n) / 2 == method_Ref_exp__Integer__Integer(diz, 2, n - 1)
+{
+  true
+}
+
+function method_Ref_lemma_exp2_positive__Integer(diz: Ref, n: Int): Bool
+  requires diz != null
+  requires 0 <= n
+  ensures result && 0 < method_Ref_exp__Integer__Integer(diz, 2, n)
+{
+  (0 < n ? method_Ref_lemma_exp2_positive__Integer(diz, n - 1) : true)
+}
+
+function method_Ref_lemma_exp2_leq__Integer__Integer(diz: Ref, i: Int, j: Int): Bool
+  requires diz != null
+  requires 0 <= i
+  requires i <= j
+  ensures result && method_Ref_exp__Integer__Integer(diz, 2, i) <= method_Ref_exp__Integer__Integer(diz, 2, j)
+{
+  (0 < i ? method_Ref_lemma_exp2_leq__Integer__Integer(diz, i - 1, j - 1) : method_Ref_lemma_exp2_positive__Integer(diz, j))
+}
+
+function method_Ref_lemma_psum_get__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], i: Int): Bool
+  requires diz != null
+  requires 0 <= i && i < |xs|
+  ensures result && method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, xs), i) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1))
+{
+  (0 < |xs| ? (0 < i ? method_Ref_lemma_psum_get__Sequence$Integer$__Integer(diz, xs[1..], i - 1) : true) : true)
+}
+
+function method_Ref_lemma_psum_get_all__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], j: Int): Bool
+  requires diz != null
+  requires 0 <= j && j <= |xs|
+  ensures result && (forall i: Int :: { method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, xs), i) } j <= i && i < |xs| ==> method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, xs), i) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1)))
+{
+  (j < |xs| ? method_Ref_lemma_psum_get__Sequence$Integer$__Integer(diz, xs, j) && method_Ref_lemma_psum_get_all__Sequence$Integer$__Integer(diz, xs, j + 1) : true)
+}
+
+function method_Ref_lemma_intsum_app__Sequence$Integer$__Sequence$Integer$(diz: Ref, xs: Seq[Int], ys: Seq[Int]): Bool
+  requires diz != null
+  requires 0 <= |xs|
+  requires 0 <= |ys|
+  ensures result && |xs| == 0 ==> method_Ref_intsum__Sequence$Integer$(diz, xs ++ ys) == method_Ref_intsum__Sequence$Integer$(diz, ys)
+  ensures result && |ys| == 0 ==> method_Ref_intsum__Sequence$Integer$(diz, xs ++ ys) == method_Ref_intsum__Sequence$Integer$(diz, xs)
+  ensures result && |xs ++ ys| == |xs| + |ys|
+  ensures result && method_Ref_intsum__Sequence$Integer$(diz, xs[1..] ++ ys) == method_Ref_intsum__Sequence$Integer$(diz, xs[1..]) + method_Ref_intsum__Sequence$Integer$(diz, ys)
+  ensures result && method_Ref_intsum__Sequence$Integer$(diz, xs ++ ys) == method_Ref_intsum__Sequence$Integer$(diz, xs) + method_Ref_intsum__Sequence$Integer$(diz, ys)
+{
+  (0 < |xs| ? method_Ref_lemma_intsum_app__Sequence$Integer$__Sequence$Integer$(diz, xs[1..], ys) && xs[1..] ++ ys == xs ++ ys[1..] : true)
+}
+
+function method_Ref_lemma_intsum_zero(diz: Ref): Bool
+  requires diz != null
+  ensures result && method_Ref_intsum__Sequence$Integer$(diz, Seq[Int]()) == 0
+{
+  true
+}
+
+function method_Ref_lemma_intsum_single__Integer(diz: Ref, x: Int): Bool
+  requires diz != null
+  ensures result && method_Ref_intsum__Sequence$Integer$(diz, Seq(x)) == x
+{
+  Seq(x)[1..] == Seq[Int]() && method_Ref_lemma_intsum_zero(diz)
+}
+
+function method_Ref_missing_lemma_2__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], n: Int): Bool
+  requires diz != null
+  requires 0 <= n && n < |xs|
+  ensures result && method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n + 1) == method_Ref_Take__Sequence$Integer$__Integer(diz, xs, n) ++ Seq(xs[n])
+{
+  (1 <= n ? method_Ref_missing_lemma_2__Sequence$Integer$__Integer(diz, xs[1..], n - 1) : true)
+}
+
+function method_Ref_lemma_intsum_Take__Sequence$Integer$__Integer(diz: Ref, xs: Seq[Int], i: Int): Bool
+  requires diz != null
+  requires 0 <= |xs|
+  requires 0 <= i
+  requires i < |xs|
+{
+  method_Ref_missing_lemma_2__Sequence$Integer$__Integer(diz, xs, i) && method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1) == method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i) ++ Seq(xs[i]) && method_Ref_lemma_intsum_app__Sequence$Integer$__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i), Seq(xs[i])) && method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i) ++ Seq(xs[i])) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) + method_Ref_intsum__Sequence$Integer$(diz, Seq(xs[i])) && method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1)) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) + method_Ref_intsum__Sequence$Integer$(diz, Seq(xs[i])) && method_Ref_lemma_intsum_single__Integer(diz, xs[i]) && xs[i] == method_Ref_intsum__Sequence$Integer$(diz, Seq(xs[i])) && method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) + method_Ref_intsum__Sequence$Integer$(diz, Seq(xs[i])) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) && method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) == method_Ref_intsum__Sequence$Integer$(diz, Seq(xs[i])) && xs[i] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, xs, i)) && true
+}
+
+function new_frac(x: Perm): frac
+  requires 0 / 1 < x && x <= 1 / 1
+  ensures frac_val(result) == x
+
+
+function new_zfrac(x: Perm): zfrac
+  requires 0 / 1 <= x && x <= 1 / 1
+  ensures zfrac_val(result) == x
+
+
+function getVCTOption1(x: VCTOption[VCTArray[Ref]]): VCTArray[Ref]
+  requires x != (VCTNone(): VCTOption[VCTArray[Ref]])
+{
+  (getVCTOption(x): VCTArray[Ref])
+}
+
+method method_Ref_cudaEventCreate(diz: Ref, current_thread_id: Int, globals: Ref) returns (sys__result: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_cudaEventDestroy__Integer(diz: Ref, current_thread_id: Int, globals: Ref, e: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_cudaEventRecord__Integer__Integer(diz: Ref, current_thread_id: Int, globals: Ref, e: Int, i: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_cudaEventSynchronize__Integer(diz: Ref, current_thread_id: Int, globals: Ref, e: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_cudaEventElapsedTime__Integer__Integer(diz: Ref, current_thread_id: Int, globals: Ref, begin: Int, end: Int) returns (sys__result: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method __contract_unsatisfiable__method_Ref_CUDA_Kernel_Kogge_Stone__Option$Array$Cell$Integer$$$__Integer(diz: Ref, current_thread_id: Int, globals: Ref, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gcount: Int, opencl_gsize: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale output != (VCTNone(): VCTOption[VCTArray[Ref]]) && k == 10 && opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k) && opencl_gcount == 1 && ((0 < opencl_gcount ==> (forall opencl_lid__1: Int :: 0 <= opencl_lid__1 && opencl_lid__1 < opencl_gsize && 0 < opencl_lid__1 ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]))) && (0 < opencl_gcount ==> (forall opencl_lid__2: Int :: 0 <= opencl_lid__2 && opencl_lid__2 < opencl_gsize && 0 < opencl_lid__2 ==> opencl_lid__2 - 1 < (alen(getVCTOption1(output)): Int))) && (forall opencl_gid__3: Int, k_fresh_rw_0__4: Int :: 0 <= opencl_gid__3 && opencl_gid__3 < opencl_gcount && (0 <= k_fresh_rw_0__4 + 1 && k_fresh_rw_0__4 + 1 < opencl_gsize && 0 < k_fresh_rw_0__4 + 1) ==> acc((loc(getVCTOption1(output), k_fresh_rw_0__4): Ref).Integer__item, 1 / 2)) && ((0 < opencl_gcount && 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])) && (0 < opencl_gcount ==> 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)) && (0 < opencl_gcount ==> (forall opencl_lid__5: Int :: { (loc(getVCTOption1(output), opencl_lid__5): Ref) } 0 <= opencl_lid__5 && opencl_lid__5 < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid__5): Ref).Integer__item, opencl_gcount * (1 / 2))))))
+  // assert
+  assert false
+  inhale false
+  label method_end___contract_unsatisfiable__method_Ref_CUDA_Kernel_Kogge_Stone__Option$Array$Cell$Integer$$$__Integer_0
+}
+
+method barrier_check_3(diz: Ref, current_thread_id: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gsize: Int, opencl_gcount: Int, temp_seq: Seq[Int], tid: Int, offset: Int, temp: Int)
+  requires diz != null
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 <= current_thread_id
+  requires 0 < |[0..opencl_gsize)|
+  requires 0 < opencl_gsize ==> 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 < opencl_gsize ==> 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gsize ==> tid < (alen(getVCTOption1(output)): Int)
+  requires 0 < opencl_gsize ==> acc((loc(getVCTOption1(output), tid): Ref).Integer__item, 1 / 2 * opencl_gsize)
+  requires 0 < opencl_gsize && offset <= tid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gsize && offset <= tid ==> tid - offset < (alen(getVCTOption1(output)): Int)
+  requires (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && offset <= tid ==> acc((loc(getVCTOption1(output), tid - offset): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gsize && offset <= tid ==> temp == (loc(getVCTOption1(output), tid): Ref).Integer__item + (loc(getVCTOption1(output), tid - offset): Ref).Integer__item
+  requires 0 < opencl_gsize && tid < offset ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < |[0..opencl_gsize)|
+  ensures 0 < opencl_gsize ==> 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < opencl_gsize ==> 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures 0 < opencl_gsize ==> tid < (alen(getVCTOption1(output)): Int)
+  ensures 0 < opencl_gsize ==> acc((loc(getVCTOption1(output), tid): Ref).Integer__item, opencl_gsize / 1)
+  ensures 0 < opencl_gsize && tid < offset ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+{
+  inhale false
+}
+
+method barrier_main_3(diz: Ref, current_thread_id: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gsize: Int, opencl_gcount: Int, temp_seq: Seq[Int], tid: Int, offset: Int, temp: Int)
+  requires diz != null
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 <= current_thread_id
+  requires 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires tid < (alen(getVCTOption1(output)): Int)
+  requires acc((loc(getVCTOption1(output), tid): Ref).Integer__item, 1 / 2)
+  requires offset <= tid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]) && tid - offset < (alen(getVCTOption1(output)): Int) && acc((loc(getVCTOption1(output), tid - offset): Ref).Integer__item, 1 / 2)
+  requires offset <= tid ==> temp == (loc(getVCTOption1(output), tid): Ref).Integer__item + (loc(getVCTOption1(output), tid - offset): Ref).Integer__item
+  requires tid < offset ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures tid < (alen(getVCTOption1(output)): Int)
+  ensures acc((loc(getVCTOption1(output), tid): Ref).Integer__item, write)
+  ensures tid < offset ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+{
+  inhale false
+}
+
+method barrier_check_4(diz: Ref, current_thread_id: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gsize: Int, opencl_gcount: Int, temp_seq: Seq[Int], tid: Int, offset: Int)
+  requires diz != null
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 <= current_thread_id
+  requires 0 < |[0..opencl_gsize)|
+  requires 0 < opencl_gsize ==> 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 < opencl_gsize ==> 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, write))
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize && tid < offset ==> (loc(getVCTOption1(output), opencl_lid): Ref).Integer__item == temp_seq[tid])
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < |[0..opencl_gsize)|
+  ensures 0 < opencl_gsize ==> 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < opencl_gsize ==> 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures 0 < opencl_gsize ==> tid < (alen(getVCTOption1(output)): Int)
+  ensures 0 < opencl_gsize ==> acc((loc(getVCTOption1(output), tid): Ref).Integer__item, 1 / 2 * opencl_gsize)
+  ensures 0 < opencl_gsize && offset * 2 <= tid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures 0 < opencl_gsize && offset * 2 <= tid ==> tid - offset * 2 < (alen(getVCTOption1(output)): Int)
+  ensures (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && offset * 2 <= tid ==> acc((loc(getVCTOption1(output), tid - offset * 2): Ref).Integer__item, 1 / 2))
+  ensures 0 < opencl_gsize && tid < offset * 2 ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+{
+  inhale false
+}
+
+method barrier_main_4(diz: Ref, current_thread_id: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gsize: Int, opencl_gcount: Int, temp_seq: Seq[Int], tid: Int, offset: Int, opencl_lid: Int)
+  requires diz != null
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 0 <= current_thread_id
+  requires 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires opencl_lid < (alen(getVCTOption1(output)): Int)
+  requires acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, write)
+  requires tid < offset ==> (loc(getVCTOption1(output), opencl_lid): Ref).Integer__item == temp_seq[tid]
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures |temp_seq| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 0 <= tid && tid < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures 1 <= offset && offset < method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures tid < (alen(getVCTOption1(output)): Int)
+  ensures acc((loc(getVCTOption1(output), tid): Ref).Integer__item, 1 / 2)
+  ensures offset * 2 <= tid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]) && tid - offset * 2 < (alen(getVCTOption1(output)): Int) && acc((loc(getVCTOption1(output), tid - offset * 2): Ref).Integer__item, 1 / 2)
+  ensures tid < offset * 2 ==> (loc(getVCTOption1(output), tid): Ref).Integer__item == temp_seq[tid]
+{
+  inhale false
+}
+
+method loop_body_5(diz: Ref, current_thread_id: Int, opencl_lid: Int, k: Int, output: VCTOption[VCTArray[Ref]], opencl_gsize: Int, opencl_gcount: Int, opencl_gid: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= opencl_lid && opencl_lid < opencl_gsize)
+  requires 0 < opencl_lid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]) && opencl_lid - 1 < (alen(getVCTOption1(output)): Int) && acc((loc(getVCTOption1(output), opencl_lid - 1): Ref).Integer__item, 1 / 2)
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires opencl_lid < (alen(getVCTOption1(output)): Int)
+  requires acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, 1 / 2)
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= opencl_lid && opencl_lid < opencl_gsize)
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures opencl_lid < (alen(getVCTOption1(output)): Int)
+  ensures acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, 1 / 2)
+{
+  var tid__6: Int
+  var out__7: Seq[Int]
+  var offset__8: Int
+  var temp__9: Int
+  var temp_seq__10: Seq[Int]
+  var __flatten_1__11: Ref
+  var __flatten_2__12: Ref
+  var __flatten_4__13: Ref
+  var __flatten_25__14: VCTArray[Ref]
+  var __flatten_27__15: VCTArray[Ref]
+  var __flatten_30__16: VCTArray[Ref]
+  tid__6 := opencl_lid
+  // assert
+  assert tid__6 == opencl_lid
+  inhale |out__7| == method_Ref_exp__Integer__Integer(diz, 2, k)
+  inhale (loc(getVCTOption1(output), tid__6): Ref).Integer__item == out__7[tid__6]
+  offset__8 := 1
+  temp_seq__10 := out__7
+  // assert
+  assert method_Ref_missing_lemma_2__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6)
+  // assert
+  assert method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6 + 1) == method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6) ++ Seq(temp_seq__10[tid__6])
+  // assert
+  assert method_Ref_lemma_intsum_app__Sequence$Integer$__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6), Seq(temp_seq__10[tid__6]))
+  // assert
+  assert method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6) ++ Seq(temp_seq__10[tid__6])) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6)) + method_Ref_intsum__Sequence$Integer$(diz, Seq(temp_seq__10[tid__6]))
+  // assert
+  assert method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6 + 1)) == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6)) + method_Ref_intsum__Sequence$Integer$(diz, Seq(temp_seq__10[tid__6]))
+  // assert
+  assert method_Ref_lemma_intsum_single__Integer(diz, temp_seq__10[tid__6])
+  // assert
+  assert temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, Seq(temp_seq__10[tid__6]))
+  // assert
+  assert tid__6 < offset__8 ==> (loc(getVCTOption1(output), tid__6): Ref).Integer__item == temp_seq__10[tid__6]
+  // assert
+  assert temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6 + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, temp_seq__10, tid__6))
+  while (offset__8 < method_Ref_exp__Integer__Integer(diz, 2, k))
+    invariant output != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant k == 10
+    invariant opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+    invariant opencl_gcount == 1
+    invariant 1 <= offset__8
+    invariant |temp_seq__10| == |out__7|
+    invariant offset__8 < 2 * method_Ref_exp__Integer__Integer(diz, 2, k)
+    invariant output != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant tid__6 < (alen(getVCTOption1(output)): Int)
+    invariant acc((loc(getVCTOption1(output), tid__6): Ref).Integer__item, 1 / 2)
+    invariant offset__8 <= tid__6 ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]) && tid__6 - offset__8 < (alen(getVCTOption1(output)): Int) && acc((loc(getVCTOption1(output), tid__6 - offset__8): Ref).Integer__item, 1 / 2)
+    invariant temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1 - offset__8))
+    invariant tid__6 < offset__8 ==> temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1))
+    invariant tid__6 < offset__8 ==> temp_seq__10[tid__6] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, out__7), tid__6)
+    invariant temp_seq__10[tid__6] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz, out__7, 0, offset__8), tid__6)
+    invariant tid__6 < offset__8 ==> (loc(getVCTOption1(output), tid__6): Ref).Integer__item == temp_seq__10[tid__6] 
+  {
+    __flatten_25__14 := getVCTOption1(output)
+    __flatten_1__11 := (loc(__flatten_25__14, tid__6): Ref)
+    temp__9 := __flatten_1__11.Integer__item
+    if (offset__8 <= tid__6) {
+      __flatten_27__15 := getVCTOption1(output)
+      __flatten_2__12 := (loc(__flatten_27__15, tid__6 - offset__8): Ref)
+      temp__9 := temp__9 + __flatten_2__12.Integer__item
+    }
+    // assert
+    assert tid__6 < offset__8 ==> temp__9 == (loc(getVCTOption1(output), tid__6): Ref).Integer__item
+    // assert
+    assert offset__8 <= tid__6 ==> temp__9 == (loc(getVCTOption1(output), tid__6): Ref).Integer__item + (loc(getVCTOption1(output), tid__6 - offset__8): Ref).Integer__item
+    barrier_main_3(diz, current_thread_id, output, k, opencl_gsize, opencl_gcount, temp_seq__10, tid__6, offset__8, temp__9)
+    if (offset__8 <= tid__6) {
+      __flatten_30__16 := getVCTOption1(output)
+      __flatten_4__13 := (loc(__flatten_30__16, tid__6): Ref)
+      __flatten_4__13.Integer__item := temp__9
+    }
+    // assert
+    assert tid__6 < offset__8 ==> (loc(getVCTOption1(output), tid__6): Ref).Integer__item == temp_seq__10[tid__6]
+    temp_seq__10 := method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz, out__7, 0, offset__8 * 2)
+    // assert
+    assert temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1)) - method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1 - offset__8 * 2))
+    // assert
+    assert tid__6 < offset__8 * 2 ==> temp_seq__10[tid__6] == method_Ref_intsum__Sequence$Integer$(diz, method_Ref_Take__Sequence$Integer$__Integer(diz, out__7, tid__6 + 1))
+    // assert
+    assert tid__6 < offset__8 * 2 ==> temp_seq__10[tid__6] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, out__7), tid__6)
+    // assert
+    assert temp_seq__10[tid__6] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_partial_prefixsum__Sequence$Integer$__Integer__Integer(diz, out__7, 0, offset__8 * 2), tid__6)
+    barrier_main_4(diz, current_thread_id, output, k, opencl_gsize, opencl_gcount, temp_seq__10, tid__6, offset__8, opencl_lid)
+    offset__8 := offset__8 * 2
+  }
+  // assert
+  assert temp_seq__10[tid__6] == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, out__7), tid__6)
+  // assert
+  assert (loc(getVCTOption1(output), tid__6): Ref).Integer__item == temp_seq__10[tid__6]
+  // assert
+  assert (loc(getVCTOption1(output), tid__6): Ref).Integer__item == method_Ref_get__Sequence$Integer$__Integer(diz, method_Ref_psum2__Sequence$Integer$(diz, out__7), tid__6)
+  label method_end_loop_body_5_1
+}
+
+method parrallel_region_main_2(diz: Ref, current_thread_id: Int, opencl_gsize: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gcount: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]))
+  requires (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> opencl_lid - 1 < (alen(getVCTOption1(output)): Int))
+  requires (forall k_fresh_rw_0: Int :: { (loc(getVCTOption1(output), k_fresh_rw_0): Ref) } 0 <= k_fresh_rw_0 + 1 && k_fresh_rw_0 + 1 < opencl_gsize && 0 < k_fresh_rw_0 + 1 ==> acc((loc(getVCTOption1(output), k_fresh_rw_0): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, 1 / 2))
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  ensures (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, 1 / 2))
+{
+  inhale false
+}
+
+method loop_body_4(diz: Ref, current_thread_id: Int, opencl_gsize: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gcount: Int, opencl_gid: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires 0 <= opencl_gid && opencl_gid < opencl_gcount
+  requires (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]))
+  requires (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> opencl_lid - 1 < (alen(getVCTOption1(output)): Int))
+  requires (forall k_fresh_rw_0: Int :: { (loc(getVCTOption1(output), k_fresh_rw_0): Ref) } 0 <= k_fresh_rw_0 + 1 && k_fresh_rw_0 + 1 < opencl_gsize && 0 < k_fresh_rw_0 + 1 ==> acc((loc(getVCTOption1(output), k_fresh_rw_0): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  requires (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, 1 / 2))
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures 0 <= opencl_gid && opencl_gid < opencl_gcount
+{
+  parrallel_region_main_2(diz, current_thread_id, opencl_gsize, output, k, opencl_gcount)
+  label method_end_loop_body_4_2
+}
+
+method parrallel_region_main_1(diz: Ref, current_thread_id: Int, opencl_gcount: Int, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gsize: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]))
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> opencl_lid - 1 < (alen(getVCTOption1(output)): Int))
+  requires (forall opencl_gid: Int, k_fresh_rw_0: Int :: 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= k_fresh_rw_0 + 1 && k_fresh_rw_0 + 1 < opencl_gsize && 0 < k_fresh_rw_0 + 1) ==> acc((loc(getVCTOption1(output), k_fresh_rw_0): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gcount && 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gcount ==> 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, opencl_gcount * (1 / 2)))
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+{
+  inhale false
+}
+
+method method_Ref_CUDA_Kernel_Kogge_Stone__Option$Array$Cell$Integer$$$__Integer(diz: Ref, current_thread_id: Int, globals: Ref, output: VCTOption[VCTArray[Ref]], k: Int, opencl_gcount: Int, opencl_gsize: Int)
+  requires diz != null
+  requires output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires k == 10
+  requires opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  requires opencl_gcount == 1
+  requires 0 <= current_thread_id
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> output != (VCTNone(): VCTOption[VCTArray[Ref]]))
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: 0 <= opencl_lid && opencl_lid < opencl_gsize && 0 < opencl_lid ==> opencl_lid - 1 < (alen(getVCTOption1(output)): Int))
+  requires (forall opencl_gid: Int, k_fresh_rw_0: Int :: 0 <= opencl_gid && opencl_gid < opencl_gcount && (0 <= k_fresh_rw_0 + 1 && k_fresh_rw_0 + 1 < opencl_gsize && 0 < k_fresh_rw_0 + 1) ==> acc((loc(getVCTOption1(output), k_fresh_rw_0): Ref).Integer__item, 1 / 2))
+  requires 0 < opencl_gcount && 0 < opencl_gsize ==> output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires 0 < opencl_gcount ==> 0 < opencl_gsize ==> opencl_gsize - 1 < (alen(getVCTOption1(output)): Int)
+  requires 0 < opencl_gcount ==> (forall opencl_lid: Int :: { (loc(getVCTOption1(output), opencl_lid): Ref) } 0 <= opencl_lid && opencl_lid < opencl_gsize ==> acc((loc(getVCTOption1(output), opencl_lid): Ref).Integer__item, opencl_gcount * (1 / 2)))
+  ensures output != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures k == 10
+  ensures opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k)
+  ensures opencl_gcount == 1
+{
+  exhale output != (VCTNone(): VCTOption[VCTArray[Ref]]) && k == 10 && opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k) && opencl_gcount == 1 && true
+  parrallel_region_main_1(diz, current_thread_id, opencl_gcount, output, k, opencl_gsize)
+  inhale output != (VCTNone(): VCTOption[VCTArray[Ref]]) && k == 10 && opencl_gsize == method_Ref_exp__Integer__Integer(diz, 2, k) && opencl_gcount == 1 && true
+  label method_end_method_Ref_CUDA_Kernel_Kogge_Stone__Option$Array$Cell$Integer$$$__Integer_3
+}
+
+method method_Ref_vercorsMallocInt__Integer(diz: Ref, current_thread_id: Int, globals: Ref, N: Int) returns (sys__result: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 <= current_thread_id
+  ensures sys__result != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(sys__result)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(sys__result), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(sys__result), __i): Ref).Integer__item, write))
+{
+  inhale false
+}
+
+method method_Ref_vercorsFreeInt__Option$Array$Cell$Integer$$$(diz: Ref, current_thread_id: Int, globals: Ref, ar: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_vercorsCudaMallocInt__Integer(diz: Ref, current_thread_id: Int, globals: Ref, N: Int) returns (sys__result: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 <= current_thread_id
+  ensures sys__result != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(sys__result)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(sys__result), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(sys__result), __i): Ref).Integer__item, write))
+{
+  inhale false
+}
+
+method method_Ref_vercorsCudaFreeInt__Option$Array$Cell$Integer$$$(diz: Ref, current_thread_id: Int, globals: Ref, addr: VCTOption[VCTArray[Ref]])
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  inhale false
+}
+
+method method_Ref_vercorsCudaMemcpyInt__Option$Array$Cell$Integer$$$__Option$Array$Cell$Integer$$$__Integer__Integer(diz: Ref, current_thread_id: Int, globals: Ref, tgt: VCTOption[VCTArray[Ref]], src: VCTOption[VCTArray[Ref]], N: Int, direction: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+  requires src != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires N <= (alen(getVCTOption1(src)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(src), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(src), __i): Ref).Integer__item, wildcard))
+  requires tgt != (VCTNone(): VCTOption[VCTArray[Ref]])
+  requires N <= (alen(getVCTOption1(tgt)): Int)
+  requires (forall __i: Int :: { (loc(getVCTOption1(tgt), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(tgt), __i): Ref).Integer__item, write))
+  ensures src != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(src)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(src), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(src), __i): Ref).Integer__item, wildcard))
+  ensures tgt != (VCTNone(): VCTOption[VCTArray[Ref]])
+  ensures N <= (alen(getVCTOption1(tgt)): Int)
+  ensures (forall __i: Int :: { (loc(getVCTOption1(tgt), __i): Ref) } 0 <= __i && __i < N ==> acc((loc(getVCTOption1(tgt), __i): Ref).Integer__item, write))
+  ensures (forall i: Int :: { (loc(getVCTOption1(src), i): Ref) } { (loc(getVCTOption1(tgt), i): Ref) } 0 <= i && i < N ==> (loc(getVCTOption1(src), i): Ref).Integer__item == (loc(getVCTOption1(tgt), i): Ref).Integer__item)
+{
+  inhale false
+}
+
+method method_Ref_CUDA_Host_Kogge_Stone__Integer__Option$Array$Cell$Option$Array$Cell$Char$$$$$$(diz: Ref, current_thread_id: Int, globals: Ref, argc: Int, argv: VCTOption[VCTArray[Ref]]) returns (sys__result: Int)
+  requires diz != null
+  requires 0 <= current_thread_id
+{
+  var k__17: Int
+  var host_input__18: VCTOption[VCTArray[Ref]]
+  var __flatten_9__19: Int
+  var host_output__20: VCTOption[VCTArray[Ref]]
+  var __flatten_11__21: Int
+  var q__22: Int
+  var __flatten_13__23: Ref
+  var __flatten_14__24: Int
+  var __flatten_15__25: Ref
+  var __flatten_16__26: Int
+  var device_output__27: VCTOption[VCTArray[Ref]]
+  var __flatten_17__28: Int
+  var __flatten_19__29: Int
+  var num_of_blocks__30: Int
+  var num_of_threads_per_block__31: Int
+  var __flatten_40__32: VCTArray[Ref]
+  var __flatten_42__33: VCTArray[Ref]
+  k__17 := 10
+  __flatten_9__19 := method_Ref_exp__Integer__Integer(diz, 2, k__17)
+  host_input__18 := method_Ref_vercorsMallocInt__Integer(diz, current_thread_id, globals, __flatten_9__19)
+  __flatten_11__21 := method_Ref_exp__Integer__Integer(diz, 2, k__17)
+  host_output__20 := method_Ref_vercorsMallocInt__Integer(diz, current_thread_id, globals, __flatten_11__21)
+  q__22 := 0
+  while (q__22 < method_Ref_exp__Integer__Integer(diz, 2, k__17))
+    invariant k__17 == 10
+    invariant 0 <= q__22 && q__22 <= method_Ref_exp__Integer__Integer(diz, 2, k__17)
+    invariant host_input__18 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant method_Ref_exp__Integer__Integer(diz, 2, k__17) <= (alen(getVCTOption1(host_input__18)): Int)
+    invariant (forall __i__34: Int :: { (loc(getVCTOption1(host_input__18), __i__34): Ref) } 0 <= __i__34 && __i__34 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> acc((loc(getVCTOption1(host_input__18), __i__34): Ref).Integer__item, write))
+    invariant host_output__20 != (VCTNone(): VCTOption[VCTArray[Ref]])
+    invariant method_Ref_exp__Integer__Integer(diz, 2, k__17) <= (alen(getVCTOption1(host_output__20)): Int)
+    invariant (forall __i__35: Int :: { (loc(getVCTOption1(host_output__20), __i__35): Ref) } 0 <= __i__35 && __i__35 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> acc((loc(getVCTOption1(host_output__20), __i__35): Ref).Integer__item, write))
+    invariant (forall i__36: Int :: { (loc(getVCTOption1(host_input__18), i__36): Ref) } { (loc(getVCTOption1(host_output__20), i__36): Ref) } 0 <= i__36 && i__36 < q__22 ==> (loc(getVCTOption1(host_input__18), i__36): Ref).Integer__item == (loc(getVCTOption1(host_output__20), i__36): Ref).Integer__item) 
+  {
+    __flatten_40__32 := getVCTOption1(host_output__20)
+    __flatten_13__23 := (loc(__flatten_40__32, q__22): Ref)
+    __flatten_42__33 := getVCTOption1(host_input__18)
+    __flatten_15__25 := (loc(__flatten_42__33, q__22): Ref)
+    __flatten_14__24 := __flatten_15__25.Integer__item
+    __flatten_13__23.Integer__item := __flatten_14__24
+    __flatten_16__26 := q__22
+    q__22 := q__22 + 1
+  }
+  __flatten_17__28 := method_Ref_exp__Integer__Integer(diz, 2, k__17)
+  device_output__27 := method_Ref_vercorsCudaMallocInt__Integer(diz, current_thread_id, globals, __flatten_17__28)
+  // assert
+  assert device_output__27 != (VCTNone(): VCTOption[VCTArray[Ref]]) && method_Ref_exp__Integer__Integer(diz, 2, k__17) <= (alen(getVCTOption1(device_output__27)): Int) && (forall __i__37: Int :: { (loc(getVCTOption1(device_output__27), __i__37): Ref) } 0 <= __i__37 && __i__37 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> acc((loc(getVCTOption1(device_output__27), __i__37): Ref).Integer__item, write))
+  __flatten_19__29 := method_Ref_exp__Integer__Integer(diz, 2, k__17)
+  method_Ref_vercorsCudaMemcpyInt__Option$Array$Cell$Integer$$$__Option$Array$Cell$Integer$$$__Integer__Integer(diz, current_thread_id, globals, device_output__27, host_output__20, __flatten_19__29, 0)
+  // assert
+  assert (forall i__38: Int :: { (loc(getVCTOption1(host_output__20), i__38): Ref) } { (loc(getVCTOption1(device_output__27), i__38): Ref) } 0 <= i__38 && i__38 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> (loc(getVCTOption1(host_output__20), i__38): Ref).Integer__item == (loc(getVCTOption1(device_output__27), i__38): Ref).Integer__item)
+  // assert
+  assert (forall i__39: Int :: { (loc(getVCTOption1(host_output__20), i__39): Ref) } { (loc(getVCTOption1(host_input__18), i__39): Ref) } 0 <= i__39 && i__39 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> (loc(getVCTOption1(host_output__20), i__39): Ref).Integer__item == (loc(getVCTOption1(host_input__18), i__39): Ref).Integer__item)
+  // assert
+  assert (forall i__40: Int :: { (loc(getVCTOption1(device_output__27), i__40): Ref) } { (loc(getVCTOption1(host_input__18), i__40): Ref) } 0 <= i__40 && i__40 < method_Ref_exp__Integer__Integer(diz, 2, k__17) ==> (loc(getVCTOption1(device_output__27), i__40): Ref).Integer__item == (loc(getVCTOption1(host_input__18), i__40): Ref).Integer__item)
+  num_of_blocks__30 := 1
+  num_of_threads_per_block__31 := method_Ref_exp__Integer__Integer(diz, 2, k__17)
+  method_Ref_CUDA_Kernel_Kogge_Stone__Option$Array$Cell$Integer$$$__Integer(diz, current_thread_id, globals, device_output__27, k__17, num_of_blocks__30, num_of_threads_per_block__31)
+  method_Ref_vercorsFreeInt__Option$Array$Cell$Integer$$$(diz, current_thread_id, globals, host_output__20)
+  method_Ref_vercorsCudaFreeInt__Option$Array$Cell$Integer$$$(diz, current_thread_id, globals, device_output__27)
+  label method_end_method_Ref_CUDA_Host_Kogge_Stone__Integer__Option$Array$Cell$Option$Array$Cell$Char$$$$$$_4
+}
+
+method array_new_Sequence_Integer_(size0: Int) returns (sys__result: Seq[Int])
+  ensures 0 < size0 ==> sys__result == Seq[Int]()
+{
+  inhale false
+}

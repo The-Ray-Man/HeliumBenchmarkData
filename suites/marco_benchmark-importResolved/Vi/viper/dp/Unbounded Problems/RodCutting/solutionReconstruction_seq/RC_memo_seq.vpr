@@ -1,0 +1,154 @@
+// ===== begin import: Vi/viper/dp/_preambles/defs.vpr =====
+// definitions needed when working with sequences
+
+// computer the sum of all elements in a sequence recursively
+function sum_rec(xs: Seq[Int]): Int 
+  decreases |xs|
+{  
+  |xs| == 0
+    ? 0
+    : xs[0] + sum_rec(xs[1..])
+}
+
+// determines the maximum of two numbers
+function max(a: Int, b: Int): Int
+  decreases a, b
+{
+    a > b ? a : b
+}
+
+// determines the minimum of two numbers
+function min(a: Int, b: Int): Int
+  decreases a, b
+{
+  a < b ? a : b
+}
+
+// determines the minimum between three numbers
+function min3(a: Int, b: Int, c: Int): Int
+  decreases a, b, c
+{
+  min(min(a, b), c)
+}
+// ===== end import: Vi/viper/dp/_preambles/defs.vpr =====
+
+// Rod Cutting Problem using memoization verified using sequences and solution reconstruction
+
+// THis file contains all definitions needed to verify the Rod Cutting problem using sequences and solution reconstruction
+
+// resolved: import "../../../_preambles/defs.vpr"
+
+// This defines the preconditions that are reused for all versions of the rod cutting problem when using the solution reconstruction approach.
+define preconds_solution_reconstruction_rod_cutting_seqs(prices, rod_length) (rod_length >= 0) && (forall k: Int :: {prices[k]} 0 <= k < |prices| ==> prices[k] >= 0)
+
+// This macro defines what a valid way of cutting a rod is. 
+// The sum of all the cuts must be equal to the length of the rod and all cuts must be greater than 0 and less than or equal to the length of the rod.
+define valid_cut(cut, rod_length)  (sum_rec(cut) == rod_length && forall i: Int :: {cut[i]} 0 <= i < |cut| ==> cut[i] > 0 && cut[i] <= rod_length)
+
+// This macro defines what a maximum cut is, i.e. what our result schould be. 
+// To show that a cut is maximal, we compare the given cut to all possible valid cuts. 
+define max_cut(cut, rod_length) (valid_cut(cut, rod_length) && forall all_possible: Seq[Int] :: {price(all_possible, prices), sum_rec(all_possible)} valid_cut(all_possible, rod_length) ==> price(cut, prices) >= price(all_possible, prices))
+
+// This macro defines that all elements of a sequence must be greater than 0.
+define allPos(sequence) forall i: Int :: {sequence[i]} 0 <= i < |sequence| ==> sequence[i] > 0
+// This macro defines that all elements of a sequence must be less than or equal to the sum of all elements.
+define lessThanSum(sequence) forall i: Int :: {sequence[i]} 0 <= i < |sequence| ==> sequence[i] <= sum_rec(sequence)
+
+// This proves that if all elements of a sequence are larger than 0, all elements must be smaller or equal to the sum of all elements as well
+method allElemsLTSum (sequence: Seq[Int]) 
+    requires allPos(sequence)
+    ensures lessThanSum(sequence)
+    decreases |sequence|
+{
+    // inductively prove that all elements are less than or equal to the sum of all elements
+    if (|sequence| != 0) {
+        assert sum_rec(sequence[1..]) == sum_rec(sequence) - sequence[0]
+        allElemsLTSum(sequence[1..])
+    }
+}
+
+// Since Viper is unable to generalize the above lemma for all possible sequences, we need this.
+method lemma_forall_introduction()
+  // Our goal is to prove that for all possible sequences, if all elements are positive, then all elements are less than or equal to the sum of all elements.
+  ensures [forall ys: Seq[Int] :: {sum_rec(ys)} allPos(ys) ==> lessThanSum(ys), true]
+  decreases
+{
+  var xs: Seq[Int]
+
+  assume forall i: Int :: {xs[i]} 0 <= i < |xs| ==> xs[i] > 0
+  allElemsLTSum(xs)
+  assert forall i: Int :: {xs[i]} 0 <= i < |xs| ==> xs[i] <= sum_rec(xs)
+}
+
+// Given a sequence of cuts and a sequence of prices, this function calculates the price of the cuts.
+// price(cuts, prices) == sum(prices[cuts[i] - 1]) for i in range len(cuts)
+function price(cuts: Seq[Int], prices: Seq[Int]): Int
+    requires forall i: Int :: {cuts[i]} 0 <= i < |cuts| ==> 0 < cuts[i] <= |prices|
+{
+    // As long as cuts is not empty, we add the price for the first cut in the cuts sequence (values[cuts[0] - 1]) to the price of the remaining cuts.
+    // We want to get the values' entry at cuts[0] - 1 becuase values[0] represents the value of a rod with length 1 and so on (rods with length 0 have no value).
+    |cuts| == 0 ? 0 : prices[cuts[0] - 1] + price(cuts[1..], prices)
+}
+
+
+// This method returns both the result cut and the memoization array to be able to carry the changes to the memoization array back to the recursive call.
+method rodCutting_memo(prices: Seq[Int], n: Int, mem: Seq[Seq[Int]]) returns (res: Seq[Int], newmem: Seq[Seq[Int]])
+    requires preconds_solution_reconstruction_rod_cutting_seqs(prices, n)
+    requires |prices| >= n
+    requires |mem| == |prices| + 1
+    // For all k, if mem[k] is not empty, then it must contain the maximum cut for a rod of length k.
+    requires forall k: Int :: {mem[k]} 0 <= k < |mem| && mem[k] != Seq[Int]() ==> max_cut(mem[k], k) 
+    ensures |mem| == |newmem|
+    ensures forall k: Int :: {newmem[k]} 0 <= k < |newmem| && newmem[k] != Seq[Int]() ==> max_cut(newmem[k], k)
+    ensures max_cut(res, n)
+    decreases n
+{
+    newmem := mem
+    // If the memoization array already contains the best cut for a rod of length n, we return it.
+    if (mem[n] != Seq[Int]()) {
+        res := mem[n]
+    } 
+    // Base Case: if the length of the rod is 0, there is no possible way to cut the rod and thus the returned array of cuts is empty. 
+    elseif (n == 0) {
+        res := Seq[Int]()
+    } 
+    else {
+        var bestCuts: Seq[Int] := Seq(n)
+        var tempMem: Seq[Seq[Int]] := mem
+        // Needed to show Viper that 
+        assert sum_rec(bestCuts) == bestCuts[0] + sum_rec(bestCuts[1..])
+
+        var i: Int := 1
+        while (i <= n)
+            invariant i <= n + 1 && i >= 1
+            invariant i <= |prices| + 1
+            invariant valid_cut(bestCuts, n)
+            // For all valid cuts for a rod of length n whose first cut is smaller than i (but larger than 0 bc no cuts of length 0 exist), 
+            // the price of the cut is less than or equal to the price of the current best cut
+            invariant forall xs: Seq[Int] :: {sum_rec(xs), price(xs, prices)} valid_cut(xs, n) && 0 < xs[0] < i ==> price(xs, prices) <= price(bestCuts, prices)
+            invariant |tempMem| == |mem|
+            // For all entries i in the memo sequence, if its not empty, it must contain the maximum cut for a rod of length i
+            invariant forall j: Int :: {tempMem[j]} 0 <= j < |tempMem| ==> tempMem[j] != Seq[Int]() ==> max_cut(tempMem[j], j)
+            decreases n - i
+        {
+            var cut: Seq[Int] 
+            // We recursively call rodCutting_memo to get the best cut for a rod of length n - i.
+            cut, tempMem := rodCutting_memo(prices, n - i, mem)
+            var temp: Int := n - i
+            var curr_cut: Seq[Int]
+            // We append the current cut to the best cut for a rod of length n - i.
+            curr_cut := Seq(i) ++ cut
+
+            if (price(curr_cut, prices) > price(bestCuts, prices)) {
+                bestCuts := curr_cut
+            }
+
+            // Lemma needed so that Viper can prove the invariants.
+            lemma_forall_introduction()
+
+            i := i + 1
+        }
+        newmem := tempMem[n := bestCuts]
+        res := newmem[n]
+    }
+}

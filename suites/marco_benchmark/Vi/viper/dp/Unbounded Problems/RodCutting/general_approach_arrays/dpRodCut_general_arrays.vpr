@@ -1,0 +1,80 @@
+import "../../../_preambles/defs_arrays.vpr"
+
+// preconditions needed to ensure the correctness of the rod cutting problem
+define valid_rodCutting(prices, n) (access(prices, 0, len(prices))) && (len(prices) >= n) && (forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0)
+
+function rc_rec(prices: IArray, n: Int): Int
+  requires valid_rodCutting(prices, n) 
+  requires n >= 0
+  decreases n
+{
+  // Base Case: if the length of the rod is 0, the price is 0.
+  n == 0 ? 0 : 
+  // Otherwise, we redirect the the call to a helper function cutFirst that additionally takes an argument representing where the first cut is made.  
+  cutFirst(prices, n, n)
+}
+
+function cutFirst(prices: IArray, n: Int, firstCut: Int): Int
+  requires valid_rodCutting(prices, n) 
+  requires 0 <= firstCut <= n
+  decreases n, firstCut
+{
+  // Base cases: either the length of the rod is 0 or the first cut is at 0.
+  n == 0 || firstCut == 0 ? 0 :
+  // Base case: if the first cut is at 1, we either cut at 1 and add the corresponding price or do not cut at 1 and move on.
+  firstCut == 1 ? max(slot(prices, 0).val + rc_rec(prices, n - 1), 0) :
+  // either cut at firstCut and add the corresponding price or don't cut at firstCut and move on
+  max(slot(prices, firstCut - 1).val + rc_rec(prices, n - firstCut), cutFirst(prices, n, firstCut - 1))
+}
+
+method rodCutting_dp(prices: IArray, n: Int) returns (res: Int)
+    requires valid_rodCutting(prices, n)
+    requires n == len(prices) 
+    ensures access(prices, 0, len(prices))
+    ensures forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0
+    // property that we aim to verify
+    ensures res == rc_rec(prices, n)
+    decreases
+{
+    var dp: IArray
+    // Inhaling the permissions needed to write and read our DP table
+    inhale access(dp, 0, len(dp))
+    inhale len(dp) == n + 1
+    // Base Case: if the length of the rod is 0, the price is 0.
+    slot(dp, 0).val := 0
+   
+    var i: Int := 1
+
+    while (i <= n)
+        invariant valid_rodCutting(prices, n)
+        invariant 0 < i <= n + 1
+        invariant len(dp) == n + 1
+        invariant access(dp, 0, len(dp))
+        // All DP entries k up until i contain the maximum cut for a rod of length k.
+        invariant forall k: Int :: {slot(dp, k)} 0 <= k < i ==> slot(dp, k).val == rc_rec(prices, k)
+        decreases n - i
+    {
+        var currBest:  Int := 0
+        var prevBest: Int := currBest
+        var j: Int := 1
+        while (j <= i)
+            invariant valid_rodCutting(prices, n)
+            invariant access(dp, 0, len(dp))
+            invariant 0 < i <= n
+            invariant 0 < j <= i + 1
+            invariant len(dp) == n + 1
+            // All DP entries k up until i contain the maximum cut for a rod of length k.
+            invariant forall k: Int :: {slot(dp, k)} 0 <= k < i ==> slot(dp, k).val == rc_rec(prices, k)
+            // Current best cut is the maximum of the previous best cut and the price of cutting the rod at length j
+            invariant cutFirst(prices, i, j - 1) == currBest
+            decreases i - j
+        {
+            prevBest := currBest
+            currBest := max(prevBest, slot(prices, j - 1).val + slot(dp, i - j).val)
+            j := j + 1
+        }
+        slot(dp, i).val := currBest
+        i := i + 1
+    }
+    res := slot(dp, n).val
+}

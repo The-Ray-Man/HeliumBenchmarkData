@@ -1,0 +1,56 @@
+import "../../_preambles/defs_arrays.vpr"
+
+
+// recursive implementation of Fibonacci
+function fibRec(n : Int) : Int
+    requires n >= 0
+    decreases n
+{
+    n <= 1 ? n : fibRec(n - 1) + fibRec(n - 2)
+} 
+
+// Fibonacci with memoization and using heap-based arrays
+method fibMem(n : Int) returns (res : Int)
+    requires n >= 0
+    ensures res == fibRec(n)
+    decreases n
+{
+    var mem : IArray
+    inhale forall i : Int :: {slot(mem, i)} 0 <= i && i <= len(mem) ==> acc(slot(mem, i).val)
+    inhale len(mem) == n + 1
+    var k : Int := 0
+    while (k < len(mem))
+        invariant forall i : Int :: {slot(mem, i)} 0 <= i && i <= len(mem) ==> acc(slot(mem, i).val)
+        invariant k <= len(mem) && k >= 0
+        invariant forall j : Int :: 0 <= j && j < k ==> slot(mem, j).val == 0
+        decreases len(mem) - k
+    {
+        slot(mem, k).val := 0
+        k := k + 1
+    }
+    res := fibAux(n, mem)
+}
+
+method fibAux(n : Int, mem : IArray) returns (res : Int)
+    requires forall i: Int :: {slot(mem, i)} 0 <= i && i < len(mem) ==> acc(slot(mem, i).val)
+    requires n >= 0 && n < len(mem)
+    requires forall i: Int :: {slot(mem, i).val} 0 <= i && i < len(mem) ==> (slot(mem, i).val != 0 ==> slot(mem, i).val == fibRec(i))
+
+    ensures forall i: Int :: {slot(mem, i)} 0 <= i && i < len(mem) ==> acc(slot(mem, i).val)
+    ensures forall i: Int :: {slot(mem, i).val} 0 <= i && i < len(mem) ==> (slot(mem, i).val != 0 ==> slot(mem, i).val == fibRec(i))
+    ensures res == fibRec(n)
+    decreases n
+{
+    if (n <= 1) {
+        res := n
+    } else {
+        if (slot(mem, n).val != 0) {
+            res := slot(mem, n).val
+        } else {
+            var fib_1 : Int := fibAux(n - 2, mem)
+            var fib_0 : Int := fibAux(n - 1, mem)
+            slot(mem, n).val := fib_0 + fib_1
+            res := slot(mem, n).val
+        }
+    }
+}

@@ -1,0 +1,1860 @@
+domain Address  {
+  
+  function null_address$(): Address 
+  
+  function field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(_0: Address): Address 
+  
+  function field_address$$struct$m_collections$$vec$$Vec$$$f$len(_0: Address): Address 
+  
+  function field_address$$struct$m_collections$$vec$$Vec$$$f$cap(_0: Address): Address 
+  
+  function address_constructor$(_0: Allocation, _1: Int, _2: Snap$Usize): Address 
+  
+  function get_allocation$(_0: Address): Allocation 
+  
+  function get_index$(_0: Address, _1: Snap$Usize): Int 
+  
+  function address_range_contains$(_0: Address, _1: Int, _2: Int, _3: Snap$Usize,
+  _4: Address): Bool 
+  
+  function offset_address$(_0: Address, _1: Int, _2: Snap$Usize): Address 
+  
+  axiom address_constructor$injectivity1 {
+    (forall allocation: Allocation, index: Int, element_size: Snap$Usize ::
+      { address_constructor$(allocation, index, element_size) }
+      get_allocation$(address_constructor$(allocation, index, element_size)) ==
+      allocation &&
+      get_index$(address_constructor$(allocation, index, element_size), element_size) ==
+      index)
+  }
+  
+  axiom address_constructor$injectivity2 {
+    (forall address: Address, index: Int, element_size: Snap$Usize ::
+      { address_constructor$(get_allocation$(address), index, element_size) }
+      get_index$(address, element_size) == index ==>
+      address_constructor$(get_allocation$(address), index, element_size) ==
+      address)
+  }
+  
+  axiom address_range_contains$definition {
+    (forall base_address: Address, start_index: Int, end_index: Int, element_size: Snap$Usize,
+    checked_address: Address ::
+      { address_range_contains$(base_address, start_index, end_index, element_size,
+      checked_address) }
+      address_range_contains$(base_address, start_index, end_index, element_size,
+      checked_address) ==
+      (get_allocation$(base_address) == get_allocation$(checked_address) &&
+      get_index$(base_address, element_size) + start_index <=
+      get_index$(checked_address, element_size) &&
+      get_index$(checked_address, element_size) <
+      get_index$(base_address, element_size) + end_index))
+  }
+  
+  axiom offset_address$definition {
+    (forall address: Address, offset: Int, element_size: Snap$Usize ::
+      { offset_address$(address, offset, element_size) }
+      offset_address$(address, offset, element_size) ==
+      address_constructor$(get_allocation$(address), get_index$(address, element_size) +
+      offset, element_size))
+  }
+}
+
+domain Allocation  {
+  
+  
+}
+
+domain ArithmeticWrappers  {
+  
+  function add_wrapper$(_0: Int, _1: Int): Int 
+  
+  axiom add_wrapper$definition {
+    (forall left: Int, right: Int ::
+      { add_wrapper$(left, right) }
+      add_wrapper$(left, right) == left + right)
+  }
+}
+
+domain Bytes  {
+  
+  
+}
+
+domain Casts  {
+  
+  function cast$Isize$Usize(_0: Snap$Isize): Snap$Usize 
+  
+  axiom cast$Isize$Usize$definition {
+    (forall parameter: Snap$Isize ::
+      { cast$Isize$Usize(parameter) }
+      valid$Snap$Usize(constructor$Snap$Usize$(destructor$Snap$Isize$$value(parameter))) ==>
+      cast$Isize$Usize(parameter) ==
+      constructor$Snap$Usize$(destructor$Snap$Isize$$value(parameter)))
+  }
+}
+
+domain FunctionGas  {
+  
+  function function_gas_level$(_0: FunctionGas): FunctionGas 
+  
+  function function_no_gas$(): FunctionGas 
+}
+
+domain Lifetime  {
+  
+  function included(_0: Lifetime, _1: Lifetime): Bool 
+  
+  function intersect(_0: Set[Lifetime]): Lifetime 
+  
+  axiom included_in_itself$ {
+    (forall lft: Lifetime :: { included(lft, lft) } included(lft, lft))
+  }
+  
+  axiom included_intersect$1 {
+    (forall lft_1: Set[Lifetime], lft_2: Set[Lifetime] ::
+      { included(intersect(lft_1), intersect(lft_2)) }
+      included(intersect(lft_1), intersect(lft_2)) == (lft_2 subset lft_1))
+  }
+  
+  axiom included_intersect$2 {
+    (forall lft_1: Set[Lifetime], lft_2: Lifetime ::
+      { included(intersect(lft_1), lft_2) }
+      included(intersect(lft_1), lft_2) == (lft_2 in lft_1))
+  }
+  
+  axiom intersect_singleton$ {
+    (forall lft: Lifetime ::
+      { intersect(Set(lft)) }
+      intersect(Set(lft)) == lft)
+  }
+}
+
+domain MarkerCalls  {
+  
+  function basic_block_marker$start_label$marker(): Bool 
+  
+  function basic_block_marker$label_entry$marker(): Bool 
+  
+  function basic_block_marker$label_bb0$marker(): Bool 
+  
+  function basic_block_marker$return_label$marker(): Bool 
+  
+  function basic_block_marker$end_label$marker(): Bool 
+}
+
+domain Place  {
+  
+  unique function _1$place(): Place 
+  
+  unique function _0$place(): Place 
+}
+
+domain PlaceOption  {
+  
+  function deref_reference_place(_0: PlaceOption): PlaceOption 
+  
+  function place_option_none(): PlaceOption 
+  
+  function field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(_0: PlaceOption): PlaceOption 
+  
+  function field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(_0: PlaceOption): PlaceOption 
+  
+  function field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(_0: PlaceOption): PlaceOption 
+  
+  function place_option_some(_0: Place): PlaceOption 
+  
+  axiom place_option_none$struct$m_collections$$vec$$Vec$$field$f$ptr {
+    field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place_option_none()) ==
+    place_option_none()
+  }
+  
+  axiom place_option_none$struct$m_collections$$vec$$Vec$$field$f$len {
+    field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place_option_none()) ==
+    place_option_none()
+  }
+  
+  axiom place_option_none$struct$m_collections$$vec$$Vec$$field$f$cap {
+    field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place_option_none()) ==
+    place_option_none()
+  }
+}
+
+domain Size  {
+  
+  function Size$ref$Shared$struct$m_collections$$vec$$Vec$$(): Snap$Usize 
+  
+  function Size$Usize$(): Snap$Usize 
+  
+  function Size$ptr$Tuple$$(): Snap$Usize 
+  
+  function PaddingSize$Tuple$$(): Snap$Usize 
+  
+  function PaddingSize$struct$m_collections$$vec$$Vec$$(): Snap$Usize 
+  
+  axiom Size$ref$Shared$struct$m_collections$$vec$$Vec$$$valid {
+    valid$Snap$Usize(Size$ref$Shared$struct$m_collections$$vec$$Vec$$())
+  }
+  
+  axiom Size$Usize$$valid {
+    valid$Snap$Usize(Size$Usize$())
+  }
+  
+  axiom Size$ptr$Tuple$$$valid {
+    valid$Snap$Usize(Size$ptr$Tuple$$())
+  }
+  
+  axiom PaddingSize$Tuple$$$valid {
+    valid$Snap$Usize(PaddingSize$Tuple$$())
+  }
+  
+  axiom PaddingSize$struct$m_collections$$vec$$Vec$$$valid {
+    valid$Snap$Usize(PaddingSize$struct$m_collections$$vec$$Vec$$())
+  }
+}
+
+domain Snap$Bool  {
+  
+  function constructor$Snap$Bool$(value: Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$$value(value: Snap$Bool): Bool 
+  
+  function snapshot_equality$Snap$Bool$(left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Bool(_0: Snap$Bool): Bool 
+  
+  function constructor$Snap$Bool$GeCmp_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Bool 
+  
+  function destructor$Snap$Bool$GeCmp_Usize$left(value: Snap$Bool): Snap$Usize 
+  
+  function destructor$Snap$Bool$GeCmp_Usize$right(value: Snap$Bool): Snap$Usize 
+  
+  function snapshot_equality$Snap$Bool$GeCmp_Usize(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  function constructor$Snap$Bool$LeCmp_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Bool 
+  
+  function destructor$Snap$Bool$LeCmp_Usize$left(value: Snap$Bool): Snap$Usize 
+  
+  function destructor$Snap$Bool$LeCmp_Usize$right(value: Snap$Bool): Snap$Usize 
+  
+  function snapshot_equality$Snap$Bool$LeCmp_Usize(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  function constructor$Snap$Bool$LtCmp_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Bool 
+  
+  function destructor$Snap$Bool$LtCmp_Usize$left(value: Snap$Bool): Snap$Usize 
+  
+  function destructor$Snap$Bool$LtCmp_Usize$right(value: Snap$Bool): Snap$Usize 
+  
+  function snapshot_equality$Snap$Bool$LtCmp_Usize(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  function constructor$Snap$Bool$GtCmp_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Bool 
+  
+  function destructor$Snap$Bool$GtCmp_Usize$left(value: Snap$Bool): Snap$Usize 
+  
+  function destructor$Snap$Bool$GtCmp_Usize$right(value: Snap$Bool): Snap$Usize 
+  
+  function snapshot_equality$Snap$Bool$GtCmp_Usize(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  function constructor$Snap$Bool$NeCmp_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Bool 
+  
+  function destructor$Snap$Bool$NeCmp_Usize$left(value: Snap$Bool): Snap$Usize 
+  
+  function destructor$Snap$Bool$NeCmp_Usize$right(value: Snap$Bool): Snap$Usize 
+  
+  function snapshot_equality$Snap$Bool$NeCmp_Usize(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  function constructor$Snap$Bool$And_Bool(left: Snap$Bool, right: Snap$Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$And_Bool$left(value: Snap$Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$And_Bool$right(value: Snap$Bool): Snap$Bool 
+  
+  function snapshot_equality$Snap$Bool$And_Bool(left: Snap$Bool, right: Snap$Bool,
+  gas$: FunctionGas): Bool 
+  
+  axiom constructor$Snap$Bool$$top_down_injectivity_axiom {
+    (forall value: Snap$Bool ::
+      { valid$Snap$Bool(value) }
+      { constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)) }
+      valid$Snap$Bool(value) ==>
+      value == constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      (destructor$Snap$Bool$$value(left) ==
+      destructor$Snap$Bool$$value(right))))
+  }
+  
+  axiom Snap$Bool$$validity_axiom_bottom_up_alternative {
+    (forall value: Bool ::
+      { valid$Snap$Bool(constructor$Snap$Bool$(value)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$GeCmp_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$GeCmp_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$GeCmp_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$GeCmp_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$GeCmp_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$GeCmp_Usize(left, right, gas$) ==
+      (destructor$Snap$Bool$GeCmp_Usize$left(left) ==
+      destructor$Snap$Bool$GeCmp_Usize$left(right) &&
+      destructor$Snap$Bool$GeCmp_Usize$right(left) ==
+      destructor$Snap$Bool$GeCmp_Usize$right(right))))
+  }
+  
+  axiom GeCmp_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Bool$GeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Bool$GeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Bool$(left_const >= right_const))
+  }
+  
+  axiom GeCmp_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$GeCmp_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$GeCmp_Usize(left_snap,
+      right_snap)) ==
+      destructor$Snap$Usize$$value(left_snap) >=
+      destructor$Snap$Usize$$value(right_snap))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$LeCmp_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$LeCmp_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$LeCmp_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$LeCmp_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$LeCmp_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$LeCmp_Usize(left, right, gas$) ==
+      (destructor$Snap$Bool$LeCmp_Usize$left(left) ==
+      destructor$Snap$Bool$LeCmp_Usize$left(right) &&
+      destructor$Snap$Bool$LeCmp_Usize$right(left) ==
+      destructor$Snap$Bool$LeCmp_Usize$right(right))))
+  }
+  
+  axiom LeCmp_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Bool$(left_const <= right_const))
+  }
+  
+  axiom LeCmp_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(left_snap,
+      right_snap)) ==
+      destructor$Snap$Usize$$value(left_snap) <=
+      destructor$Snap$Usize$$value(right_snap))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$LtCmp_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$LtCmp_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$LtCmp_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$LtCmp_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$LtCmp_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$LtCmp_Usize(left, right, gas$) ==
+      (destructor$Snap$Bool$LtCmp_Usize$left(left) ==
+      destructor$Snap$Bool$LtCmp_Usize$left(right) &&
+      destructor$Snap$Bool$LtCmp_Usize$right(left) ==
+      destructor$Snap$Bool$LtCmp_Usize$right(right))))
+  }
+  
+  axiom LtCmp_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Bool$(left_const < right_const))
+  }
+  
+  axiom LtCmp_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(left_snap,
+      right_snap)) ==
+      destructor$Snap$Usize$$value(left_snap) <
+      destructor$Snap$Usize$$value(right_snap))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$GtCmp_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$GtCmp_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$GtCmp_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$GtCmp_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$GtCmp_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$GtCmp_Usize(left, right, gas$) ==
+      (destructor$Snap$Bool$GtCmp_Usize$left(left) ==
+      destructor$Snap$Bool$GtCmp_Usize$left(right) &&
+      destructor$Snap$Bool$GtCmp_Usize$right(left) ==
+      destructor$Snap$Bool$GtCmp_Usize$right(right))))
+  }
+  
+  axiom GtCmp_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Bool$(left_const > right_const))
+  }
+  
+  axiom GtCmp_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(left_snap,
+      right_snap)) ==
+      destructor$Snap$Usize$$value(left_snap) >
+      destructor$Snap$Usize$$value(right_snap))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$NeCmp_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$NeCmp_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$NeCmp_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$NeCmp_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$NeCmp_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$NeCmp_Usize(left, right, gas$) ==
+      (destructor$Snap$Bool$NeCmp_Usize$left(left) ==
+      destructor$Snap$Bool$NeCmp_Usize$left(right) &&
+      destructor$Snap$Bool$NeCmp_Usize$right(left) ==
+      destructor$Snap$Bool$NeCmp_Usize$right(right))))
+  }
+  
+  axiom NeCmp_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Bool$(left_const != right_const))
+  }
+  
+  axiom NeCmp_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(left_snap,
+      right_snap)) ==
+      (destructor$Snap$Usize$$value(left_snap) !=
+      destructor$Snap$Usize$$value(right_snap)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$And_Bool$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$And_Bool(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$And_Bool(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$And_Bool(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$And_Bool(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Bool$And_Bool(left, right, gas$) ==
+      (destructor$Snap$Bool$And_Bool$left(left) ==
+      destructor$Snap$Bool$And_Bool$left(right) &&
+      destructor$Snap$Bool$And_Bool$right(left) ==
+      destructor$Snap$Bool$And_Bool$right(right))))
+  }
+  
+  axiom And_Bool$simplification_axiom {
+    (forall left_const: Bool, right_const: Bool ::
+      { constructor$Snap$Bool$And_Bool(constructor$Snap$Bool$(left_const), constructor$Snap$Bool$(right_const)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(left_const)) &&
+      valid$Snap$Bool(constructor$Snap$Bool$(right_const)) ==>
+      constructor$Snap$Bool$And_Bool(constructor$Snap$Bool$(left_const), constructor$Snap$Bool$(right_const)) ==
+      constructor$Snap$Bool$(left_const && right_const))
+  }
+  
+  axiom And_Bool$eval_axiom {
+    (forall left_snap: Snap$Bool, right_snap: Snap$Bool ::
+      { destructor$Snap$Bool$$value(constructor$Snap$Bool$And_Bool(left_snap,
+      right_snap)) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$And_Bool(left_snap,
+      right_snap)) ==
+      (destructor$Snap$Bool$$value(left_snap) &&
+      destructor$Snap$Bool$$value(right_snap)))
+  }
+  
+  axiom constructor$Snap$Bool$$bottom_up_injectivity_axiom$value {
+    (forall value: Bool ::
+      { constructor$Snap$Bool$(value) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$(value)) == value)
+  }
+}
+
+domain Snap$I64  {
+  
+  function constructor$Snap$I64$(value: Int): Snap$I64 
+  
+  function destructor$Snap$I64$$value(value: Snap$I64): Int 
+  
+  function snapshot_equality$Snap$I64$(left: Snap$I64, right: Snap$I64, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$I64(_0: Snap$I64): Bool 
+  
+  axiom constructor$Snap$I64$$top_down_injectivity_axiom {
+    (forall value: Snap$I64 ::
+      { valid$Snap$I64(value) }
+      { constructor$Snap$I64$(destructor$Snap$I64$$value(value)) }
+      valid$Snap$I64(value) ==>
+      value == constructor$Snap$I64$(destructor$Snap$I64$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$I64$$snapshot_equality_axiom {
+    (forall left: Snap$I64, right: Snap$I64, gas$: FunctionGas ::
+      { snapshot_equality$Snap$I64$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$I64$(left, right, gas$) ==
+      snapshot_equality$Snap$I64$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$I64$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$I64$(left, right, gas$) ==
+      (destructor$Snap$I64$$value(left) ==
+      destructor$Snap$I64$$value(right))))
+  }
+  
+  axiom Snap$I64$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$I64(constructor$Snap$I64$(value)) }
+      valid$Snap$I64(constructor$Snap$I64$(value)) ==
+      (-9223372036854775808 <= value && value <= 9223372036854775807))
+  }
+  
+  axiom constructor$Snap$I64$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$I64$(value) }
+      destructor$Snap$I64$$value(constructor$Snap$I64$(value)) == value)
+  }
+}
+
+domain Snap$Isize  {
+  
+  function constructor$Snap$Isize$(value: Int): Snap$Isize 
+  
+  function destructor$Snap$Isize$$value(value: Snap$Isize): Int 
+  
+  function snapshot_equality$Snap$Isize$(left: Snap$Isize, right: Snap$Isize,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Isize(_0: Snap$Isize): Bool 
+  
+  axiom constructor$Snap$Isize$$top_down_injectivity_axiom {
+    (forall value: Snap$Isize ::
+      { valid$Snap$Isize(value) }
+      { constructor$Snap$Isize$(destructor$Snap$Isize$$value(value)) }
+      valid$Snap$Isize(value) ==>
+      value == constructor$Snap$Isize$(destructor$Snap$Isize$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Isize$$snapshot_equality_axiom {
+    (forall left: Snap$Isize, right: Snap$Isize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Isize$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Isize$(left, right, gas$) ==
+      snapshot_equality$Snap$Isize$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Isize$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Isize$(left, right, gas$) ==
+      (destructor$Snap$Isize$$value(left) ==
+      destructor$Snap$Isize$$value(right))))
+  }
+  
+  axiom Snap$Isize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Isize(constructor$Snap$Isize$(value)) }
+      valid$Snap$Isize(constructor$Snap$Isize$(value)) ==
+      (-9223372036854775808 <= value && value <= 9223372036854775807))
+  }
+  
+  axiom constructor$Snap$Isize$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Isize$(value) }
+      destructor$Snap$Isize$$value(constructor$Snap$Isize$(value)) == value)
+  }
+}
+
+domain Snap$Tuple$  {
+  
+  function constructor$Snap$Tuple$$(): Snap$Tuple$ 
+  
+  function snapshot_equality$Snap$Tuple$$(left: Snap$Tuple$, right: Snap$Tuple$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Tuple$(_0: Snap$Tuple$): Bool 
+  
+  function to_bytes$Tuple$(snapshot: Snap$Tuple$): Bytes 
+  
+  axiom constructor$Snap$Tuple$$$top_down_injectivity_axiom {
+    (forall value: Snap$Tuple$ ::
+      { valid$Snap$Tuple$(value) }
+      valid$Snap$Tuple$(value) ==> value == constructor$Snap$Tuple$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Tuple$$$snapshot_equality_axiom {
+    (forall left: Snap$Tuple$, right: Snap$Tuple$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) ==
+      snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) == (left == right))
+  }
+  
+  axiom Snap$Tuple$$validity_axiom_bottom_up_alternative_no_parameters {
+    valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  }
+}
+
+domain Snap$Unbounded  {
+  
+  function constructor$Snap$Unbounded$(value: Int): Snap$Unbounded 
+  
+  function destructor$Snap$Unbounded$$value(value: Snap$Unbounded): Int 
+  
+  function snapshot_equality$Snap$Unbounded$(left: Snap$Unbounded, right: Snap$Unbounded,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Unbounded(_0: Snap$Unbounded): Bool 
+  
+  axiom constructor$Snap$Unbounded$$top_down_injectivity_axiom {
+    (forall value: Snap$Unbounded ::
+      { valid$Snap$Unbounded(value) }
+      { constructor$Snap$Unbounded$(destructor$Snap$Unbounded$$value(value)) }
+      valid$Snap$Unbounded(value) ==>
+      value ==
+      constructor$Snap$Unbounded$(destructor$Snap$Unbounded$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Unbounded$$snapshot_equality_axiom {
+    (forall left: Snap$Unbounded, right: Snap$Unbounded, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Unbounded$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Unbounded$(left, right, gas$) ==
+      snapshot_equality$Snap$Unbounded$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Unbounded$(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Unbounded$(left, right, gas$) ==
+      (destructor$Snap$Unbounded$$value(left) ==
+      destructor$Snap$Unbounded$$value(right))))
+  }
+  
+  axiom Snap$Unbounded$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Unbounded(constructor$Snap$Unbounded$(value)) }
+      valid$Snap$Unbounded(constructor$Snap$Unbounded$(value)))
+  }
+  
+  axiom constructor$Snap$Unbounded$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Unbounded$(value) }
+      destructor$Snap$Unbounded$$value(constructor$Snap$Unbounded$(value)) ==
+      value)
+  }
+}
+
+domain Snap$Usize  {
+  
+  function constructor$Snap$Usize$(value: Int): Snap$Usize 
+  
+  function destructor$Snap$Usize$$value(value: Snap$Usize): Int 
+  
+  function snapshot_equality$Snap$Usize$(left: Snap$Usize, right: Snap$Usize,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Usize(_0: Snap$Usize): Bool 
+  
+  function constructor$Snap$Usize$Mul_Usize(left: Snap$Usize, right: Snap$Usize): Snap$Usize 
+  
+  function destructor$Snap$Usize$Mul_Usize$left(value: Snap$Usize): Snap$Usize 
+  
+  function destructor$Snap$Usize$Mul_Usize$right(value: Snap$Usize): Snap$Usize 
+  
+  function snapshot_equality$Snap$Usize$Mul_Usize(left: Snap$Usize, right: Snap$Usize,
+  gas$: FunctionGas): Bool 
+  
+  function to_bytes$Usize(snapshot: Snap$Usize): Bytes 
+  
+  function from_bytes$Usize(bytes: Bytes): Snap$Usize 
+  
+  axiom constructor$Snap$Usize$$top_down_injectivity_axiom {
+    (forall value: Snap$Usize ::
+      { valid$Snap$Usize(value) }
+      { constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)) }
+      valid$Snap$Usize(value) ==>
+      value == constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Usize$$snapshot_equality_axiom {
+    (forall left: Snap$Usize, right: Snap$Usize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Usize$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      (destructor$Snap$Usize$$value(left) ==
+      destructor$Snap$Usize$$value(right))))
+  }
+  
+  axiom Snap$Usize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Usize(constructor$Snap$Usize$(value)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(value)) ==
+      (0 <= value && value <= 18446744073709551615))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Usize$Mul_Usize$snapshot_equality_axiom {
+    (forall left: Snap$Usize, right: Snap$Usize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Usize$Mul_Usize(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Usize$Mul_Usize(left, right, gas$) ==
+      snapshot_equality$Snap$Usize$Mul_Usize(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Usize$Mul_Usize(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$Usize$Mul_Usize(left, right, gas$) ==
+      (destructor$Snap$Usize$Mul_Usize$left(left) ==
+      destructor$Snap$Usize$Mul_Usize$left(right) &&
+      destructor$Snap$Usize$Mul_Usize$right(left) ==
+      destructor$Snap$Usize$Mul_Usize$right(right))))
+  }
+  
+  axiom Mul_Usize$simplification_axiom {
+    (forall left_const: Int, right_const: Int ::
+      { constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(left_const)) &&
+      valid$Snap$Usize(constructor$Snap$Usize$(right_const)) ==>
+      constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(left_const),
+      constructor$Snap$Usize$(right_const)) ==
+      constructor$Snap$Usize$(left_const * right_const))
+  }
+  
+  axiom Mul_Usize$eval_axiom {
+    (forall left_snap: Snap$Usize, right_snap: Snap$Usize ::
+      { destructor$Snap$Usize$$value(constructor$Snap$Usize$Mul_Usize(left_snap,
+      right_snap)) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$Mul_Usize(left_snap,
+      right_snap)) ==
+      destructor$Snap$Usize$$value(left_snap) *
+      destructor$Snap$Usize$$value(right_snap))
+  }
+  
+  axiom constructor$Snap$Usize$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Usize$(value) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(value)) == value)
+  }
+  
+  axiom Snap$Usize$Usize$to_bytes_injective {
+    (forall snapshot: Snap$Usize ::
+      { to_bytes$Usize(snapshot) }
+      snapshot == from_bytes$Usize(to_bytes$Usize(snapshot)))
+  }
+}
+
+domain Snap$ptr$Tuple$  {
+  
+  function constructor$Snap$ptr$Tuple$$(address: Address): Snap$ptr$Tuple$ 
+  
+  function destructor$Snap$ptr$Tuple$$$address(value: Snap$ptr$Tuple$): Address 
+  
+  function snapshot_equality$Snap$ptr$Tuple$$(left: Snap$ptr$Tuple$, right: Snap$ptr$Tuple$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$ptr$Tuple$(_0: Snap$ptr$Tuple$): Bool 
+  
+  function to_bytes$ptr$Tuple$(snapshot: Snap$ptr$Tuple$): Bytes 
+  
+  function from_bytes$ptr$Tuple$(bytes: Bytes): Snap$ptr$Tuple$ 
+  
+  axiom constructor$Snap$ptr$Tuple$$$top_down_injectivity_axiom {
+    (forall value: Snap$ptr$Tuple$ ::
+      { valid$Snap$ptr$Tuple$(value) }
+      { constructor$Snap$ptr$Tuple$$(destructor$Snap$ptr$Tuple$$$address(value)) }
+      valid$Snap$ptr$Tuple$(value) ==>
+      value ==
+      constructor$Snap$ptr$Tuple$$(destructor$Snap$ptr$Tuple$$$address(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ptr$Tuple$$$snapshot_equality_axiom {
+    (forall left: Snap$ptr$Tuple$, right: Snap$ptr$Tuple$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$ptr$Tuple$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ptr$Tuple$$(left, right, gas$) ==
+      snapshot_equality$Snap$ptr$Tuple$$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ptr$Tuple$$(left, right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ptr$Tuple$$(left, right, gas$) ==
+      (destructor$Snap$ptr$Tuple$$$address(left) ==
+      destructor$Snap$ptr$Tuple$$$address(right))))
+  }
+  
+  axiom Snap$ptr$Tuple$$$validity_axiom_bottom_up_alternative {
+    (forall address: Address ::
+      { valid$Snap$ptr$Tuple$(constructor$Snap$ptr$Tuple$$(address)) }
+      valid$Snap$ptr$Tuple$(constructor$Snap$ptr$Tuple$$(address)))
+  }
+  
+  axiom constructor$Snap$ptr$Tuple$$$bottom_up_injectivity_axiom$address {
+    (forall address: Address ::
+      { constructor$Snap$ptr$Tuple$$(address) }
+      destructor$Snap$ptr$Tuple$$$address(constructor$Snap$ptr$Tuple$$(address)) ==
+      address)
+  }
+  
+  axiom Snap$ptr$Tuple$$ptr$Tuple$$to_bytes_injective {
+    (forall snapshot: Snap$ptr$Tuple$ ::
+      { to_bytes$ptr$Tuple$(snapshot) }
+      snapshot == from_bytes$ptr$Tuple$(to_bytes$ptr$Tuple$(snapshot)))
+  }
+}
+
+domain Snap$ptr$struct$m_collections$$vec$$Vec$  {
+  
+  function to_bytes$ptr$struct$m_collections$$vec$$Vec$(snapshot: Snap$ptr$struct$m_collections$$vec$$Vec$): Bytes 
+  
+  function from_bytes$ptr$struct$m_collections$$vec$$Vec$(bytes: Bytes): Snap$ptr$struct$m_collections$$vec$$Vec$ 
+  
+  function constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(address: Address): Snap$ptr$struct$m_collections$$vec$$Vec$ 
+  
+  function destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(value: Snap$ptr$struct$m_collections$$vec$$Vec$): Address 
+  
+  function snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left: Snap$ptr$struct$m_collections$$vec$$Vec$,
+  right: Snap$ptr$struct$m_collections$$vec$$Vec$, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$ptr$struct$m_collections$$vec$$Vec$(_0: Snap$ptr$struct$m_collections$$vec$$Vec$): Bool 
+  
+  axiom constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$top_down_injectivity_axiom {
+    (forall value: Snap$ptr$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ptr$struct$m_collections$$vec$$Vec$(value) }
+      { constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(value)) }
+      valid$Snap$ptr$struct$m_collections$$vec$$Vec$(value) ==>
+      value ==
+      constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$snapshot_equality_axiom {
+    (forall left: Snap$ptr$struct$m_collections$$vec$$Vec$, right: Snap$ptr$struct$m_collections$$vec$$Vec$,
+    gas$: FunctionGas ::
+      { snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left, right,
+      function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left, right,
+      gas$) ==
+      snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left, right,
+      function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left, right,
+      gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ptr$struct$m_collections$$vec$$Vec$$(left, right,
+      gas$) ==
+      (destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(left) ==
+      destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(right))))
+  }
+  
+  axiom Snap$ptr$struct$m_collections$$vec$$Vec$$$validity_axiom_bottom_up_alternative {
+    (forall address: Address ::
+      { valid$Snap$ptr$struct$m_collections$$vec$$Vec$(constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(address)) }
+      valid$Snap$ptr$struct$m_collections$$vec$$Vec$(constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(address)))
+  }
+  
+  axiom Snap$ptr$struct$m_collections$$vec$$Vec$$ptr$struct$m_collections$$vec$$Vec$$to_bytes_injective {
+    (forall snapshot: Snap$ptr$struct$m_collections$$vec$$Vec$ ::
+      { to_bytes$ptr$struct$m_collections$$vec$$Vec$(snapshot) }
+      snapshot ==
+      from_bytes$ptr$struct$m_collections$$vec$$Vec$(to_bytes$ptr$struct$m_collections$$vec$$Vec$(snapshot)))
+  }
+  
+  axiom constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$address {
+    (forall address: Address ::
+      { constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(address) }
+      destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(address)) ==
+      address)
+  }
+}
+
+domain Snap$ref$Shared$struct$m_collections$$vec$$Vec$  {
+  
+  function constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address: Address,
+  target_current: Snap$struct$m_collections$$vec$$Vec$): Snap$ref$Shared$struct$m_collections$$vec$$Vec$ 
+  
+  function destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(value: Snap$ref$Shared$struct$m_collections$$vec$$Vec$): Address 
+  
+  function destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value: Snap$ref$Shared$struct$m_collections$$vec$$Vec$): Snap$struct$m_collections$$vec$$Vec$ 
+  
+  function snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left: Snap$ref$Shared$struct$m_collections$$vec$$Vec$,
+  right: Snap$ref$Shared$struct$m_collections$$vec$$Vec$, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(_0: Snap$ref$Shared$struct$m_collections$$vec$$Vec$): Bool 
+  
+  function constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(target_current: Snap$struct$m_collections$$vec$$Vec$): Snap$ref$Shared$struct$m_collections$$vec$$Vec$ 
+  
+  function snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left: Snap$ref$Shared$struct$m_collections$$vec$$Vec$,
+  right: Snap$ref$Shared$struct$m_collections$$vec$$Vec$, gas$: FunctionGas): Bool 
+  
+  function to_bytes$ref$Shared$struct$m_collections$$vec$$Vec$(snapshot: Snap$ref$Shared$struct$m_collections$$vec$$Vec$): Bytes 
+  
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(value), destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(value) }
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(value), destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value) }
+      { constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(value),
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value)) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(value),
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$snapshot_equality_axiom {
+    (forall left: Snap$ref$Shared$struct$m_collections$$vec$$Vec$, right: Snap$ref$Shared$struct$m_collections$$vec$$Vec$,
+    gas$: FunctionGas ::
+      { snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left,
+      right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left,
+      right, gas$) ==
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left,
+      right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left,
+      right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(left,
+      right, gas$) ==
+      (destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(left) ==
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(right) &&
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(left) ==
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(right))))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(snapshot), destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(snapshot) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(snapshot) ==
+      valid$Snap$struct$m_collections$$vec$$Vec$(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$validity_axiom_bottom_up_alternative {
+    (forall address: Address, target_current: Snap$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current)), valid$Snap$struct$m_collections$$vec$$Vec$(target_current) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current)) ==
+      valid$Snap$struct$m_collections$$vec$$Vec$(target_current))
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc$top_down_injectivity_axiom {
+    (forall value: Snap$ref$Shared$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(value) }
+      { constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value)) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(value) ==>
+      value ==
+      constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc$snapshot_equality_axiom {
+    (forall left: Snap$ref$Shared$struct$m_collections$$vec$$Vec$, right: Snap$ref$Shared$struct$m_collections$$vec$$Vec$,
+    gas$: FunctionGas ::
+      { snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left,
+      right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left,
+      right, gas$) ==
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left,
+      right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left,
+      right, gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(left,
+      right, gas$) ==
+      (destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(left) ==
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(right))))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$ref$Shared$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(snapshot), destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(snapshot) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(snapshot) ==
+      valid$Snap$struct$m_collections$$vec$$Vec$(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(snapshot)))
+  }
+  
+  axiom Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc$validity_axiom_bottom_up_alternative {
+    (forall target_current: Snap$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(target_current)),
+      valid$Snap$struct$m_collections$$vec$$Vec$(target_current) }
+      valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(target_current)) ==
+      valid$Snap$struct$m_collections$$vec$$Vec$(target_current))
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$address {
+    (forall address: Address, target_current: Snap$struct$m_collections$$vec$$Vec$ ::
+      { constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current) }
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current)) ==
+      address)
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$target_current {
+    (forall address: Address, target_current: Snap$struct$m_collections$$vec$$Vec$ ::
+      { constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current) }
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$(address,
+      target_current)) ==
+      target_current)
+  }
+  
+  axiom constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc$bottom_up_injectivity_axiom$target_current {
+    (forall target_current: Snap$struct$m_collections$$vec$$Vec$ ::
+      { constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(target_current) }
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(constructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$no_alloc(target_current)) ==
+      target_current)
+  }
+}
+
+domain Snap$struct$m_collections$$vec$$Vec$  {
+  
+  function constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr: Snap$ptr$Tuple$,
+  f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$]): Snap$struct$m_collections$$vec$$Vec$ 
+  
+  function destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(value: Snap$struct$m_collections$$vec$$Vec$): Snap$ptr$Tuple$ 
+  
+  function destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(value: Snap$struct$m_collections$$vec$$Vec$): Snap$Usize 
+  
+  function destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(value: Snap$struct$m_collections$$vec$$Vec$): Snap$Usize 
+  
+  function destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(value: Snap$struct$m_collections$$vec$$Vec$): Seq[Snap$Tuple$] 
+  
+  function snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left: Snap$struct$m_collections$$vec$$Vec$,
+  right: Snap$struct$m_collections$$vec$$Vec$, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$struct$m_collections$$vec$$Vec$(_0: Snap$struct$m_collections$$vec$$Vec$): Bool 
+  
+  function to_bytes$struct$m_collections$$vec$$Vec$(snapshot: Snap$struct$m_collections$$vec$$Vec$): Bytes 
+  
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$top_down_injectivity_axiom {
+    (forall value: Snap$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$struct$m_collections$$vec$$Vec$(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(value) }
+      { valid$Snap$struct$m_collections$$vec$$Vec$(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(value) }
+      { valid$Snap$struct$m_collections$$vec$$Vec$(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(value) }
+      { valid$Snap$struct$m_collections$$vec$$Vec$(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(value) }
+      { constructor$Snap$struct$m_collections$$vec$$Vec$$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(value),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(value),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(value)) }
+      valid$Snap$struct$m_collections$$vec$$Vec$(value) ==>
+      value ==
+      constructor$Snap$struct$m_collections$$vec$$Vec$$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(value),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(value), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(value),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$snapshot_equality_axiom {
+    (forall left: Snap$struct$m_collections$$vec$$Vec$, right: Snap$struct$m_collections$$vec$$Vec$,
+    gas$: FunctionGas ::
+      { snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left, right,
+      function_gas_level$(gas$)) }
+      snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left, right, gas$) ==
+      snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left, right,
+      gas$) ==
+      (left == right) &&
+      snapshot_equality$Snap$struct$m_collections$$vec$$Vec$$(left, right, gas$) ==
+      (destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(left) ==
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(right) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(left) ==
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(right) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(left) ==
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(right) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(left) ==
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(right))))
+  }
+  
+  axiom Snap$struct$m_collections$$vec$$Vec$$$validity_axiom_top_down_alternative {
+    (forall snapshot: Snap$struct$m_collections$$vec$$Vec$ ::
+      { valid$Snap$struct$m_collections$$vec$$Vec$(snapshot), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(snapshot) }
+      { valid$Snap$struct$m_collections$$vec$$Vec$(snapshot), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(snapshot) }
+      { valid$Snap$struct$m_collections$$vec$$Vec$(snapshot), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot) }
+      valid$Snap$struct$m_collections$$vec$$Vec$(snapshot) ==
+      (!(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot)), constructor$Snap$Usize$(0))) ||
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot)), constructor$Snap$Usize$(18446744073709551615)))) &&
+      (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot)), cast$Isize$Usize(constructor$Snap$Isize$(9223372036854775807)))) &&
+      (!destructor$Snap$Bool$$value(constructor$Snap$Bool$(destructor$Snap$ptr$Tuple$$$address(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(snapshot)) ==
+      null_address$())) &&
+      (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(snapshot),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot))) &&
+      (!destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(0),
+      constructor$Snap$Usize$(0))) ?
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot) ==
+        constructor$Snap$Usize$(18446744073709551615) &&
+        valid$Snap$ptr$Tuple$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(snapshot)) :
+        destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot),
+        constructor$Snap$Usize$(0))) ==>
+        valid$Snap$ptr$Tuple$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(snapshot)) &&
+        !(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot)), constructor$Snap$Usize$(0))) ||
+        destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot)), constructor$Snap$Usize$(18446744073709551615)))))))) &&
+      valid$Snap$ptr$Tuple$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(snapshot)) &&
+      valid$Snap$Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(snapshot)) &&
+      valid$Snap$Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(snapshot))))
+  }
+  
+  axiom Snap$struct$m_collections$$vec$$Vec$$$validity_axiom_bottom_up_alternative {
+    (forall f$ptr: Snap$ptr$Tuple$, f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$] ::
+      { valid$Snap$struct$m_collections$$vec$$Vec$(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)), valid$Snap$ptr$Tuple$(f$ptr), valid$Snap$Usize(f$len),
+      valid$Snap$Usize(f$cap) }
+      valid$Snap$struct$m_collections$$vec$$Vec$(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)) ==
+      (!(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr))), constructor$Snap$Usize$(0))) ||
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr))), constructor$Snap$Usize$(18446744073709551615)))) &&
+      (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr))), cast$Isize$Usize(constructor$Snap$Isize$(9223372036854775807)))) &&
+      (!destructor$Snap$Bool$$value(constructor$Snap$Bool$(destructor$Snap$ptr$Tuple$$$address(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr))) ==
+      null_address$())) &&
+      (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)), destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)))) &&
+      (!destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(0),
+      constructor$Snap$Usize$(0))) ?
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr)) ==
+        constructor$Snap$Usize$(18446744073709551615) &&
+        valid$Snap$ptr$Tuple$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr))) :
+        destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr)), constructor$Snap$Usize$(0))) ==>
+        valid$Snap$ptr$Tuple$(destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr))) &&
+        !(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr))), constructor$Snap$Usize$(0))) ||
+        destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+        destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+        f$len, f$cap, $f$ptr))), constructor$Snap$Usize$(18446744073709551615)))))))) &&
+      valid$Snap$ptr$Tuple$(f$ptr) &&
+      valid$Snap$Usize(f$len) &&
+      valid$Snap$Usize(f$cap)))
+  }
+  
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$f$ptr {
+    (forall f$ptr: Snap$ptr$Tuple$, f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$] ::
+      { constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr, f$len, f$cap,
+      $f$ptr) }
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)) ==
+      f$ptr)
+  }
+  
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$f$len {
+    (forall f$ptr: Snap$ptr$Tuple$, f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$] ::
+      { constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr, f$len, f$cap,
+      $f$ptr) }
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)) ==
+      f$len)
+  }
+  
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$f$cap {
+    (forall f$ptr: Snap$ptr$Tuple$, f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$] ::
+      { constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr, f$len, f$cap,
+      $f$ptr) }
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)) ==
+      f$cap)
+  }
+  
+  axiom constructor$Snap$struct$m_collections$$vec$$Vec$$$bottom_up_injectivity_axiom$$f$ptr {
+    (forall f$ptr: Snap$ptr$Tuple$, f$len: Snap$Usize, f$cap: Snap$Usize, $f$ptr: Seq[Snap$Tuple$] ::
+      { constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr, f$len, f$cap,
+      $f$ptr) }
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$$f$ptr(constructor$Snap$struct$m_collections$$vec$$Vec$$(f$ptr,
+      f$len, f$cap, $f$ptr)) ==
+      $f$ptr)
+  }
+}
+
+domain ComputeAddress  {
+  
+  function address_is_non_aliased(address: Address): Bool 
+}
+
+function MemoryBlock$bytes(address: Address, size: Snap$Usize): Bytes
+  requires acc(MemoryBlock(address, size), wildcard)
+
+
+function snap_current_frac_ref$Tuple$(place: PlaceOption, address: Address,
+  reference_lifetime: Lifetime): Snap$Tuple$
+  requires acc(FracRef$Tuple$(place, address, reference_lifetime), wildcard)
+  ensures valid$Snap$Tuple$(result)
+  ensures (unfolding acc(FracRef$Tuple$(place, address, reference_lifetime), wildcard) in
+      true)
+
+
+function snap_current_frac_ref$Usize(place: PlaceOption, address: Address, reference_lifetime: Lifetime): Snap$Usize
+  requires acc(FracRef$Usize(place, address, reference_lifetime), wildcard)
+  ensures valid$Snap$Usize(result)
+
+
+function snap_current_frac_ref$ptr$Tuple$(place: PlaceOption, address: Address,
+  reference_lifetime: Lifetime): Snap$ptr$Tuple$
+  requires acc(FracRef$ptr$Tuple$(place, address, reference_lifetime), wildcard)
+  ensures valid$Snap$ptr$Tuple$(result)
+
+
+function snap_current_frac_ref$struct$m_collections$$vec$$Vec$(place: PlaceOption,
+  address: Address, reference_lifetime: Lifetime): Snap$struct$m_collections$$vec$$Vec$
+  requires acc(FracRef$struct$m_collections$$vec$$Vec$(place, address, reference_lifetime), wildcard)
+  ensures valid$Snap$struct$m_collections$$vec$$Vec$(result)
+  ensures (unfolding acc(FracRef$struct$m_collections$$vec$$Vec$(place, address,
+      reference_lifetime), wildcard) in
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(result) ==
+      snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(result) ==
+      snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(result) ==
+      snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime))
+  ensures (unfolding acc(FracRef$struct$m_collections$$vec$$Vec$(place, address,
+      reference_lifetime), wildcard) in
+      result ==
+      constructor$Snap$struct$m_collections$$vec$$Vec$$(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime),
+      snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime),
+      snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime),
+      snap_frac_ref_range_aliased$ptr$Tuple$(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime),
+      constructor$Snap$Usize$(0), snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime),
+      reference_lifetime)))
+
+
+function snap_frac_ref_range_aliased$ptr$Tuple$(address: Snap$ptr$Tuple$, start_index: Snap$Usize,
+  end_index: Snap$Usize, lifetime: Lifetime): Seq[Snap$Tuple$]
+  requires (forall element_address: Address ::
+      { FracRef$Tuple$(place_option_none(), element_address, lifetime) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(address),
+      destructor$Snap$Usize$$value(start_index), destructor$Snap$Usize$$value(end_index),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(FracRef$Tuple$(place_option_none(), element_address, lifetime), wildcard))
+  ensures |result| ==
+    destructor$Snap$Usize$$value(end_index) -
+    destructor$Snap$Usize$$value(start_index)
+  ensures (forall index: Int ::
+      { offset_address$(destructor$Snap$ptr$Tuple$$$address(address), add_wrapper$(destructor$Snap$Usize$$value(start_index),
+      index), constructor$Snap$Usize$(0)) }
+      { result[index] }
+      0 <= index && index < |result| ==>
+      snap_current_frac_ref$Tuple$(place_option_none(), offset_address$(destructor$Snap$ptr$Tuple$$$address(address),
+      add_wrapper$(destructor$Snap$Usize$$value(start_index), index), constructor$Snap$Usize$(0)),
+      lifetime) ==
+      result[index])
+
+
+function snap_owned_non_aliased$Tuple$(place: PlaceOption, address: Address): Snap$Tuple$
+  requires acc(OwnedNonAliased$Tuple$(place, address), wildcard)
+  ensures valid$Snap$Tuple$(result)
+  ensures (unfolding acc(OwnedNonAliased$Tuple$(place, address), wildcard) in
+      true)
+
+
+function snap_owned_non_aliased$Usize(place: PlaceOption, address: Address): Snap$Usize
+  requires acc(OwnedNonAliased$Usize(place, address), wildcard)
+  ensures valid$Snap$Usize(result)
+  ensures (unfolding acc(OwnedNonAliased$Usize(place, address), wildcard) in
+      MemoryBlock$bytes(address, Size$Usize$()) == to_bytes$Usize(result))
+
+
+function snap_owned_non_aliased$ptr$Tuple$(place: PlaceOption, address: Address): Snap$ptr$Tuple$
+  requires acc(OwnedNonAliased$ptr$Tuple$(place, address), wildcard)
+  ensures valid$Snap$ptr$Tuple$(result)
+  ensures (unfolding acc(OwnedNonAliased$ptr$Tuple$(place, address), wildcard) in
+      MemoryBlock$bytes(address, Size$ptr$Tuple$$()) ==
+      to_bytes$ptr$Tuple$(result))
+
+
+function snap_owned_non_aliased$ref$Shared$struct$m_collections$$vec$$Vec$(place: PlaceOption,
+  address: Address, lft_3$alive: Bool, lft_3: Lifetime): Snap$ref$Shared$struct$m_collections$$vec$$Vec$
+  requires acc(OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place,
+    address, lft_3$alive, lft_3), wildcard)
+  ensures valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(result)
+  ensures (unfolding acc(OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place,
+      address, lft_3$alive, lft_3), wildcard) in
+      MemoryBlock$bytes(address, Size$ref$Shared$struct$m_collections$$vec$$Vec$$()) ==
+      to_bytes$ptr$struct$m_collections$$vec$$Vec$(constructor$Snap$ptr$struct$m_collections$$vec$$Vec$$(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(result))))
+  ensures (unfolding acc(OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place,
+      address, lft_3$alive, lft_3), wildcard) in
+      lft_3$alive ==>
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$target_current(result) ==
+      snap_current_frac_ref$struct$m_collections$$vec$$Vec$(deref_reference_place(place),
+      destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(result),
+      lft_3))
+
+
+function snap_owned_non_aliased$struct$m_collections$$vec$$Vec$(place: PlaceOption,
+  address: Address): Snap$struct$m_collections$$vec$$Vec$
+  requires acc(OwnedNonAliased$struct$m_collections$$vec$$Vec$(place, address), wildcard)
+  ensures valid$Snap$struct$m_collections$$vec$$Vec$(result)
+  ensures (unfolding acc(OwnedNonAliased$struct$m_collections$$vec$$Vec$(place,
+      address), wildcard) in
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$ptr(result) ==
+      snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address)) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$len(result) ==
+      snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address)) &&
+      destructor$Snap$struct$m_collections$$vec$$Vec$$$f$cap(result) ==
+      snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)))
+  ensures (unfolding acc(OwnedNonAliased$struct$m_collections$$vec$$Vec$(place,
+      address), wildcard) in
+      result ==
+      constructor$Snap$struct$m_collections$$vec$$Vec$$(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address)), snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address)), snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)), snap_owned_range_aliased$ptr$Tuple$(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address)), constructor$Snap$Usize$(0),
+      snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address)))))
+
+
+function snap_owned_range_aliased$ptr$Tuple$(address: Snap$ptr$Tuple$, start_index: Snap$Usize,
+  end_index: Snap$Usize): Seq[Snap$Tuple$]
+  requires (forall element_address: Address ::
+      { OwnedNonAliased$Tuple$(place_option_none(), element_address) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(address),
+      destructor$Snap$Usize$$value(start_index), destructor$Snap$Usize$$value(end_index),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(OwnedNonAliased$Tuple$(place_option_none(), element_address), wildcard))
+  ensures |result| ==
+    destructor$Snap$Usize$$value(end_index) -
+    destructor$Snap$Usize$$value(start_index)
+  ensures (forall index: Int ::
+      { offset_address$(destructor$Snap$ptr$Tuple$$$address(address), add_wrapper$(destructor$Snap$Usize$$value(start_index),
+      index), constructor$Snap$Usize$(0)) }
+      { result[index] }
+      0 <= index && index < |result| ==>
+      snap_owned_non_aliased$Tuple$(place_option_none(), offset_address$(destructor$Snap$ptr$Tuple$$$address(address),
+      add_wrapper$(destructor$Snap$Usize$$value(start_index), index), constructor$Snap$Usize$(0))) ==
+      result[index])
+
+
+@qpresource()
+predicate FracRef$ptr$Tuple$(place: PlaceOption, address: Address, reference_lifetime: Lifetime) 
+
+@qpresource()
+predicate FracRef$Usize(place: PlaceOption, address: Address, reference_lifetime: Lifetime) 
+
+@qpresource()
+predicate FracRef$Tuple$(place: PlaceOption, address: Address, reference_lifetime: Lifetime) {
+  true
+}
+
+@qpresource()
+predicate FracRef$struct$m_collections$$vec$$Vec$(place: PlaceOption, address: Address,
+  reference_lifetime: Lifetime) {
+  acc(FracRef$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime), write) &&
+  acc(FracRef$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime), write) &&
+  acc(FracRef$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime), write) &&
+  (!(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+  constructor$Snap$Usize$(0))) ||
+  destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+  constructor$Snap$Usize$(18446744073709551615)))) &&
+  (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+  cast$Isize$Usize(constructor$Snap$Isize$(9223372036854775807)))) &&
+  (!destructor$Snap$Bool$$value(constructor$Snap$Bool$(destructor$Snap$ptr$Tuple$$$address(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime)) ==
+  null_address$())) &&
+  (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime),
+  snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime))) &&
+  (!destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(0),
+  constructor$Snap$Usize$(0))) ?
+    snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime) ==
+    constructor$Snap$Usize$(18446744073709551615) &&
+    ((forall element_address: Address ::
+      { FracRef$Tuple$(place_option_none(), element_address, reference_lifetime) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(0)), destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime)),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(FracRef$Tuple$(place_option_none(), element_address, reference_lifetime), write)) &&
+    (forall element_address: Address ::
+      { MemoryBlock(element_address, constructor$Snap$Usize$(0)) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(MemoryBlock(element_address, constructor$Snap$Usize$(0)), write))) :
+    destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime),
+    constructor$Snap$Usize$(0))) ==>
+    (forall element_address: Address ::
+      { FracRef$Tuple$(place_option_none(), element_address, reference_lifetime) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(0)), destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime)),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(FracRef$Tuple$(place_option_none(), element_address, reference_lifetime), write)) &&
+    ((forall element_address: Address ::
+      { MemoryBlock(element_address, constructor$Snap$Usize$(0)) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_current_frac_ref$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address), reference_lifetime)),
+      destructor$Snap$Usize$$value(snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+      constructor$Snap$Usize$(0), element_address) ==>
+      acc(MemoryBlock(element_address, constructor$Snap$Usize$(0)), write)) &&
+    !(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+    snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+    constructor$Snap$Usize$(0))) ||
+    destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+    snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address), reference_lifetime)),
+    constructor$Snap$Usize$(18446744073709551615))))))))))
+}
+
+@qpresource()
+predicate OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place: PlaceOption,
+  address: Address, lft_3$alive: Bool, lft_3: Lifetime) {
+  acc(MemoryBlock(address, Size$ref$Shared$struct$m_collections$$vec$$Vec$$()), write) &&
+  (lft_3$alive ==>
+  acc(FracRef$struct$m_collections$$vec$$Vec$(deref_reference_place(place),
+  destructor$Snap$ptr$struct$m_collections$$vec$$Vec$$$address(from_bytes$ptr$struct$m_collections$$vec$$Vec$(MemoryBlock$bytes(address,
+  Size$ref$Shared$struct$m_collections$$vec$$Vec$$()))), lft_3), write))
+}
+
+@qpresource()
+predicate OwnedNonAliased$ptr$Tuple$(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, Size$ptr$Tuple$$()), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$Tuple$(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, PaddingSize$Tuple$$()), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$Usize(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, Size$Usize$()), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$struct$m_collections$$vec$$Vec$(place: PlaceOption,
+  address: Address) {
+  acc(MemoryBlock(address, PaddingSize$struct$m_collections$$vec$$Vec$$()), write) &&
+  acc(OwnedNonAliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address)), write) &&
+  acc(OwnedNonAliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$len(address)), write) &&
+  acc(OwnedNonAliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)), write) &&
+  (!(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(0))) ||
+  destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(18446744073709551615)))) &&
+  (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+  snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), cast$Isize$Usize(constructor$Snap$Isize$(9223372036854775807)))) &&
+  (!destructor$Snap$Bool$$value(constructor$Snap$Bool$(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))) ==
+  null_address$())) &&
+  (destructor$Snap$Bool$$value(constructor$Snap$Bool$LeCmp_Usize(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$len(address)), snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+  field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)))) &&
+  (!destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(constructor$Snap$Usize$(0),
+  constructor$Snap$Usize$(0))) ?
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)) ==
+    constructor$Snap$Usize$(18446744073709551615) &&
+    ((forall element_address: Address ::
+      { OwnedNonAliased$Tuple$(place_option_none(), element_address) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))), destructor$Snap$Usize$$value(constructor$Snap$Usize$(0)),
+      destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address))), constructor$Snap$Usize$(0),
+      element_address) ==>
+      acc(OwnedNonAliased$Tuple$(place_option_none(), element_address), write)) &&
+    (forall element_address: Address ::
+      { MemoryBlock(element_address, constructor$Snap$Usize$(0)) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))), destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address))), destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(0),
+      element_address) ==>
+      acc(MemoryBlock(element_address, constructor$Snap$Usize$(0)), write))) :
+    destructor$Snap$Bool$$value(constructor$Snap$Bool$NeCmp_Usize(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)), constructor$Snap$Usize$(0))) ==>
+    (forall element_address: Address ::
+      { OwnedNonAliased$Tuple$(place_option_none(), element_address) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))), destructor$Snap$Usize$$value(constructor$Snap$Usize$(0)),
+      destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address))), constructor$Snap$Usize$(0),
+      element_address) ==>
+      acc(OwnedNonAliased$Tuple$(place_option_none(), element_address), write)) &&
+    ((forall element_address: Address ::
+      { MemoryBlock(element_address, constructor$Snap$Usize$(0)) }
+      address_range_contains$(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))), destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$len(address))), destructor$Snap$Usize$$value(snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+      field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(0),
+      element_address) ==>
+      acc(MemoryBlock(element_address, constructor$Snap$Usize$(0)), write)) &&
+    (!(destructor$Snap$Bool$$value(constructor$Snap$Bool$LtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(0))) ||
+    destructor$Snap$Bool$$value(constructor$Snap$Bool$GtCmp_Usize(constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address))), constructor$Snap$Usize$(18446744073709551615)))) &&
+    acc(MemoryBlockHeapDrop(destructor$Snap$ptr$Tuple$$$address(snap_owned_non_aliased$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(address))), constructor$Snap$Usize$Mul_Usize(constructor$Snap$Usize$(0),
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(place),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(address)))), write))))))))
+}
+
+@qpresource()
+predicate CloseFracRef$Usize(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, current_snapshot: Snap$Usize, owned_perm: Perm) 
+
+@qpresource()
+predicate DeadLifetimeToken(lifetime: Lifetime) 
+
+predicate LifetimeToken(lifetime: Lifetime) 
+
+@qpresource()
+predicate MemoryBlock(address: Address, size: Snap$Usize) 
+
+@qpresource()
+predicate MemoryBlockHeapDrop(address: Address, size: Snap$Usize) 
+
+method m_collections$$vec$$Vec$$capacity$MemorySafetyWithFunctional$Regular()
+{
+  var _0$address$snapshot$0: Address
+  var _0$snapshot$1: Snap$Usize
+  var _1$address$snapshot$0: Address
+  var _1$snapshot$0: Snap$ref$Shared$struct$m_collections$$vec$$Vec$
+  var bw0$snapshot$0: Lifetime
+  var bw1$snapshot$0: Lifetime
+  var bw2$snapshot$0: Lifetime
+  var end_label$marker$snapshot$0: Bool
+  var end_label$marker$snapshot$1: Bool
+  var label_bb0$marker$snapshot$0: Bool
+  var label_bb0$marker$snapshot$1: Bool
+  var label_entry$marker$snapshot$0: Bool
+  var label_entry$marker$snapshot$1: Bool
+  var lft_0$snapshot$1: Lifetime
+  var lft_1$snapshot$1: Lifetime
+  var lft_2$snapshot$1: Lifetime
+  var lft_3$alive$snapshot$0: Bool
+  var lft_3$snapshot$1: Lifetime
+  var lifetime_token_perm_amount$0$snapshot$0: Perm
+  var return_label$marker$snapshot$0: Bool
+  var return_label$marker$snapshot$1: Bool
+  var start_label$marker$snapshot$0: Bool
+  var start_label$marker$snapshot$1: Bool
+  var termination_var$1$snapshot$1: Snap$Unbounded
+  var tmp_frac_ref_perm$2$snapshot$0: Perm
+  label start_label
+  inhale lft_3$alive$snapshot$0
+  inhale !start_label$marker$snapshot$0
+  inhale !label_entry$marker$snapshot$0
+  inhale !label_bb0$marker$snapshot$0
+  inhale !return_label$marker$snapshot$0
+  inhale !end_label$marker$snapshot$0
+  inhale start_label$marker$snapshot$1
+  inhale basic_block_marker$start_label$marker()
+  // Lifetime preconditions.
+  inhale lifetime_token_perm_amount$0$snapshot$0 > none
+  inhale lifetime_token_perm_amount$0$snapshot$0 < write
+  inhale acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  inhale acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  inhale acc(LifetimeToken(bw2$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  lft_0$snapshot$1 := lft_tok_sep_take$1(bw0$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  lft_1$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  lft_2$snapshot$1 := lft_tok_sep_take$3(bw0$snapshot$0, bw1$snapshot$0, bw2$snapshot$0,
+    lifetime_token_perm_amount$0$snapshot$0 / 10)
+  lft_3$snapshot$1 := lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  // Allocate the parameters.
+  inhale acc(OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place_option_some(_1$place()),
+    _1$address$snapshot$0, lft_3$alive$snapshot$0, lft_3$snapshot$1), write) &&
+    _1$snapshot$0 ==
+    snap_owned_non_aliased$ref$Shared$struct$m_collections$$vec$$Vec$(place_option_some(_1$place()),
+    _1$address$snapshot$0, lft_3$alive$snapshot$0, lft_3$snapshot$1) &&
+    valid$Snap$ref$Shared$struct$m_collections$$vec$$Vec$(_1$snapshot$0)
+  // Assume functional preconditions.
+  inhale true
+  inhale termination_var$1$snapshot$1 ==
+    constructor$Snap$Unbounded$(destructor$Snap$I64$$value(constructor$Snap$I64$(1)))
+  // Allocate the return place.
+  inhale acc(MemoryBlock(_0$address$snapshot$0, Size$Usize$()), write)
+  // Allocate implicitly allocated statements.
+  goto label_entry
+  label label_entry
+  inhale label_entry$marker$snapshot$1
+  inhale basic_block_marker$label_entry$marker()
+  goto label_bb0
+  label label_bb0
+  inhale label_bb0$marker$snapshot$1
+  inhale basic_block_marker$label_bb0$marker()
+  // Prepare lifetimes for statement mid bb0[0]
+  // bb0[0] _0 = ((*_1).2: usize)
+  unfold acc(OwnedNonAliased$ref$Shared$struct$m_collections$$vec$$Vec$(place_option_some(_1$place()),
+    _1$address$snapshot$0, lft_3$alive$snapshot$0, lft_3$snapshot$1), write)
+  unfold acc(FracRef$struct$m_collections$$vec$$Vec$(deref_reference_place(place_option_some(_1$place())),
+    destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0),
+    lft_3$snapshot$1), write)
+  tmp_frac_ref_perm$2$snapshot$0 := frac_bor_atomic_acc$Usize(lft_3$snapshot$1,
+    lifetime_token_perm_amount$0$snapshot$0 / 10, field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    snap_current_frac_ref$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    lft_3$snapshot$1))
+  inhale _0$snapshot$1 ==
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)))
+  copy_place$Usize(place_option_some(_0$place()), _0$address$snapshot$0, field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0))),
+    tmp_frac_ref_perm$2$snapshot$0)
+  close_frac_ref$Usize(lft_3$snapshot$1, lifetime_token_perm_amount$0$snapshot$0 /
+    10, field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    snap_owned_non_aliased$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0))),
+    tmp_frac_ref_perm$2$snapshot$0)
+  exhale acc(FracRef$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$cap(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$cap(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    lft_3$snapshot$1), write)
+  exhale acc(FracRef$Usize(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$len(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$len(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    lft_3$snapshot$1), write)
+  exhale acc(FracRef$ptr$Tuple$(field_placeoption$$struct$m_collections$$vec$$Vec$$$f$ptr(deref_reference_place(place_option_some(_1$place()))),
+    field_address$$struct$m_collections$$vec$$Vec$$$f$ptr(destructor$Snap$ref$Shared$struct$m_collections$$vec$$Vec$$$address(_1$snapshot$0)),
+    lft_3$snapshot$1), write)
+  // Prepare lifetimes for statement mid bb0[1]
+  // bb0[1] return
+  goto return_label
+  label return_label
+  inhale return_label$marker$snapshot$1
+  inhale basic_block_marker$return_label$marker()
+  // Assert functional postconditions.
+  exhale true
+  // Deallocate the parameters.
+  exhale acc(MemoryBlock(_1$address$snapshot$0, Size$ref$Shared$struct$m_collections$$vec$$Vec$$()), write)
+  // Deallocate the return place.
+  exhale acc(OwnedNonAliased$Usize(place_option_some(_0$place()), _0$address$snapshot$0), write) &&
+    _0$snapshot$1 ==
+    snap_owned_non_aliased$Usize(place_option_some(_0$place()), _0$address$snapshot$0) &&
+    valid$Snap$Usize(_0$snapshot$1)
+  goto end_label
+  label end_label
+  inhale end_label$marker$snapshot$1
+  inhale basic_block_marker$end_label$marker()
+  // Lifetime postconditions.
+  lft_tok_sep_return$1(lft_0$snapshot$1, bw0$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  lft_tok_sep_return$2(lft_1$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  lft_tok_sep_return$3(lft_2$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, bw2$snapshot$0,
+    lifetime_token_perm_amount$0$snapshot$0 / 10)
+  lft_tok_sep_return$2(lft_3$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, lifetime_token_perm_amount$0$snapshot$0 /
+    10)
+  exhale acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  exhale acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  exhale acc(LifetimeToken(bw2$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  goto end_of_method
+  label end_of_method
+}
+
+method close_frac_ref$Usize(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, current_snapshot: Snap$Usize, owned_perm: Perm)
+  requires none < lifetime_perm && lifetime_perm < write
+  requires none < owned_perm && owned_perm < write
+  requires acc(CloseFracRef$Usize(lifetime, lifetime_perm, place, address, current_snapshot,
+    owned_perm), write)
+  requires acc(OwnedNonAliased$Usize(place, address), owned_perm)
+  ensures acc(LifetimeToken(lifetime), lifetime_perm)
+  ensures acc(FracRef$Usize(place, address, lifetime), write) &&
+    current_snapshot ==
+    snap_current_frac_ref$Usize(place, address, lifetime)
+
+
+method copy_place$Usize(target_place: PlaceOption, target_address: Address,
+  source_place: PlaceOption, source_address: Address, source_snapshot: Snap$Usize,
+  source_permission_amount: Perm)
+  requires none < source_permission_amount
+  requires acc(MemoryBlock(target_address, Size$Usize$()), write)
+  requires acc(OwnedNonAliased$Usize(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Usize(source_place, source_address)
+  ensures acc(OwnedNonAliased$Usize(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Usize(source_place, source_address)
+  ensures acc(OwnedNonAliased$Usize(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Usize(target_place, target_address)
+  ensures valid$Snap$Usize(source_snapshot)
+{
+  unfold acc(OwnedNonAliased$Usize(source_place, source_address), source_permission_amount)
+  memory_copy$Usize(source_address, target_address, source_permission_amount)
+  fold acc(OwnedNonAliased$Usize(target_place, target_address), write)
+  fold acc(OwnedNonAliased$Usize(source_place, source_address), source_permission_amount)
+}
+
+method frac_bor_atomic_acc$Usize(lifetime: Lifetime, lifetime_perm: Perm, place: PlaceOption,
+  address: Address, current_snapshot: Snap$Usize)
+  returns (owned_perm: Perm)
+  requires none < lifetime_perm && lifetime_perm < write
+  requires acc(LifetimeToken(lifetime), lifetime_perm)
+  requires acc(FracRef$Usize(place, address, lifetime), write) &&
+    current_snapshot ==
+    snap_current_frac_ref$Usize(place, address, lifetime)
+  ensures none < owned_perm && owned_perm < write
+  ensures acc(OwnedNonAliased$Usize(place, address), owned_perm) &&
+    old(snap_current_frac_ref$Usize(place, address, lifetime)) ==
+    snap_owned_non_aliased$Usize(place, address)
+  ensures acc(CloseFracRef$Usize(lifetime, lifetime_perm, place, address, current_snapshot,
+    owned_perm), write)
+
+
+method lft_tok_sep_return$1(lft: Lifetime, lft_1: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+
+
+method lft_tok_sep_return$2(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1, lft_2))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft_2), rd_perm)
+
+
+method lft_tok_sep_return$3(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  lft_3: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1, lft_2, lft_3))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft_2), rd_perm)
+  ensures acc(LifetimeToken(lft_3), rd_perm)
+
+
+method lft_tok_sep_take$1(lft_1: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1))
+
+
+method lft_tok_sep_take$2(lft_1: Lifetime, lft_2: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  requires acc(LifetimeToken(lft_2), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1, lft_2))
+
+
+method lft_tok_sep_take$3(lft_1: Lifetime, lft_2: Lifetime, lft_3: Lifetime,
+  rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  requires acc(LifetimeToken(lft_2), rd_perm)
+  requires acc(LifetimeToken(lft_3), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1, lft_2, lft_3))
+
+
+method memory_copy$Usize(source_address: Address, target_address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(target_address, Size$Usize$()), write)
+  requires acc(MemoryBlock(source_address, Size$Usize$()), permission_amount)
+  ensures acc(MemoryBlock(target_address, Size$Usize$()), write)
+  ensures acc(MemoryBlock(source_address, Size$Usize$()), permission_amount)
+  ensures MemoryBlock$bytes(source_address, Size$Usize$()) ==
+    old(MemoryBlock$bytes(source_address, Size$Usize$()))
+  ensures MemoryBlock$bytes(target_address, Size$Usize$()) ==
+    MemoryBlock$bytes(source_address, Size$Usize$())

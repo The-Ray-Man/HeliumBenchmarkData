@@ -1,0 +1,1065 @@
+domain Address  {
+  
+  
+}
+
+domain Bytes  {
+  
+  
+}
+
+domain FunctionGas  {
+  
+  function function_gas_level$(_0: FunctionGas): FunctionGas 
+  
+  function function_no_gas$(): FunctionGas 
+}
+
+domain Lifetime  {
+  
+  function included(_0: Lifetime, _1: Lifetime): Bool 
+  
+  function intersect(_0: Set[Lifetime]): Lifetime 
+  
+  axiom included_in_itself$ {
+    (forall lft: Lifetime :: { included(lft, lft) } included(lft, lft))
+  }
+  
+  axiom included_intersect$1 {
+    (forall lft_1: Set[Lifetime], lft_2: Set[Lifetime] ::
+      { included(intersect(lft_1), intersect(lft_2)) }
+      included(intersect(lft_1), intersect(lft_2)) == (lft_2 subset lft_1))
+  }
+  
+  axiom included_intersect$2 {
+    (forall lft_1: Set[Lifetime], lft_2: Lifetime ::
+      { included(intersect(lft_1), lft_2) }
+      included(intersect(lft_1), lft_2) == (lft_2 in lft_1))
+  }
+  
+  axiom intersect_singleton$ {
+    (forall lft: Lifetime ::
+      { intersect(Set(lft)) }
+      intersect(Set(lft)) == lft)
+  }
+}
+
+domain MarkerCalls  {
+  
+  function basic_block_marker$start_label$marker(): Bool 
+  
+  function basic_block_marker$label_entry$marker(): Bool 
+  
+  function basic_block_marker$label_bb0$marker(): Bool 
+  
+  function basic_block_marker$label_bb1$marker(): Bool 
+  
+  function basic_block_marker$label_2_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb2$marker(): Bool 
+  
+  function basic_block_marker$label_bb3$marker(): Bool 
+  
+  function basic_block_marker$return_label$marker(): Bool 
+  
+  function basic_block_marker$label_1_custom$marker(): Bool 
+  
+  function basic_block_marker$label_bb4$marker(): Bool 
+  
+  function basic_block_marker$label_bb5$marker(): Bool 
+  
+  function basic_block_marker$resume_panic_label$marker(): Bool 
+  
+  function basic_block_marker$end_label$marker(): Bool 
+}
+
+domain Place  {
+  
+  unique function _1$place(): Place 
+  
+  unique function _3$place(): Place 
+  
+  unique function _2$place(): Place 
+  
+  unique function _5$place(): Place 
+  
+  unique function _4$place(): Place 
+  
+  unique function _0$place(): Place 
+}
+
+domain PlaceOption  {
+  
+  function place_option_some(_0: Place): PlaceOption 
+}
+
+domain Size  {
+  
+  function Size$Map$U32$U32$(): Snap$Usize 
+  
+  function PaddingSize$Tuple$$(): Snap$Usize 
+  
+  function Size$Never$$(): Snap$Usize 
+  
+  axiom Size$Map$U32$U32$$valid {
+    valid$Snap$Usize(Size$Map$U32$U32$())
+  }
+  
+  axiom PaddingSize$Tuple$$$valid {
+    valid$Snap$Usize(PaddingSize$Tuple$$())
+  }
+  
+  axiom Size$Never$$$valid {
+    valid$Snap$Usize(Size$Never$$())
+  }
+}
+
+domain Snap$Bool  {
+  
+  function constructor$Snap$Bool$(value: Bool): Snap$Bool 
+  
+  function destructor$Snap$Bool$$value(value: Snap$Bool): Bool 
+  
+  function snapshot_equality$Snap$Bool$(left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Bool(_0: Snap$Bool): Bool 
+  
+  function to_bytes$Bool(snapshot: Snap$Bool): Bytes 
+  
+  function from_bytes$Bool(bytes: Bytes): Snap$Bool 
+  
+  axiom constructor$Snap$Bool$$top_down_injectivity_axiom {
+    (forall value: Snap$Bool ::
+      { valid$Snap$Bool(value) }
+      { constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)) }
+      valid$Snap$Bool(value) ==>
+      value == constructor$Snap$Bool$(destructor$Snap$Bool$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Bool$$snapshot_equality_axiom {
+    (forall left: Snap$Bool, right: Snap$Bool, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      snapshot_equality$Snap$Bool$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Bool$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Bool$(left, right, gas$) ==
+      (destructor$Snap$Bool$$value(left) ==
+      destructor$Snap$Bool$$value(right))))
+  }
+  
+  axiom Snap$Bool$$validity_axiom_bottom_up_alternative {
+    (forall value: Bool ::
+      { valid$Snap$Bool(constructor$Snap$Bool$(value)) }
+      valid$Snap$Bool(constructor$Snap$Bool$(value)))
+  }
+  
+  axiom constructor$Snap$Bool$$bottom_up_injectivity_axiom$value {
+    (forall value: Bool ::
+      { constructor$Snap$Bool$(value) }
+      destructor$Snap$Bool$$value(constructor$Snap$Bool$(value)) == value)
+  }
+  
+  axiom Snap$Bool$Bool$to_bytes_injective {
+    (forall snapshot: Snap$Bool ::
+      { to_bytes$Bool(snapshot) }
+      snapshot == from_bytes$Bool(to_bytes$Bool(snapshot)))
+  }
+}
+
+domain Snap$Map$U32$U32  {
+  
+  function to_bytes$Map$U32$U32(snapshot: Map[Snap$U32,Snap$U32]): Bytes 
+  
+  function from_bytes$Map$U32$U32(bytes: Bytes): Map[Snap$U32,Snap$U32] 
+  
+  function valid$Snap$Map$U32$U32(_0: Map[Snap$U32,Snap$U32]): Bool 
+  
+  axiom Snap$Map$U32$U32$Map$U32$U32$to_bytes_injective {
+    (forall snapshot: Map[Snap$U32,Snap$U32] ::
+      { to_bytes$Map$U32$U32(snapshot) }
+      snapshot == from_bytes$Map$U32$U32(to_bytes$Map$U32$U32(snapshot)))
+  }
+}
+
+domain Snap$Never$  {
+  
+  function constructor$Snap$Never$$(): Snap$Never$ 
+  
+  function snapshot_equality$Snap$Never$$(left: Snap$Never$, right: Snap$Never$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Never$(_0: Snap$Never$): Bool 
+  
+  axiom constructor$Snap$Never$$$top_down_injectivity_axiom {
+    (forall value: Snap$Never$ ::
+      { valid$Snap$Never$(value) }
+      valid$Snap$Never$(value) ==> value == constructor$Snap$Never$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Never$$$snapshot_equality_axiom {
+    (forall left: Snap$Never$, right: Snap$Never$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Never$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Never$$(left, right, gas$) ==
+      snapshot_equality$Snap$Never$$(left, right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$Never$$(left, right, gas$) == (left == right))
+  }
+  
+  axiom Snap$Never$$validity_axiom_bottom_up_alternative_no_parameters {
+    !valid$Snap$Never$(constructor$Snap$Never$$())
+  }
+}
+
+domain Snap$Tuple$  {
+  
+  function constructor$Snap$Tuple$$(): Snap$Tuple$ 
+  
+  function snapshot_equality$Snap$Tuple$$(left: Snap$Tuple$, right: Snap$Tuple$,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Tuple$(_0: Snap$Tuple$): Bool 
+  
+  function to_bytes$Tuple$(snapshot: Snap$Tuple$): Bytes 
+  
+  axiom constructor$Snap$Tuple$$$top_down_injectivity_axiom {
+    (forall value: Snap$Tuple$ ::
+      { valid$Snap$Tuple$(value) }
+      valid$Snap$Tuple$(value) ==> value == constructor$Snap$Tuple$$())
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Tuple$$$snapshot_equality_axiom {
+    (forall left: Snap$Tuple$, right: Snap$Tuple$, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) ==
+      snapshot_equality$Snap$Tuple$$(left, right, function_gas_level$(gas$)) &&
+      snapshot_equality$Snap$Tuple$$(left, right, gas$) == (left == right))
+  }
+  
+  axiom Snap$Tuple$$validity_axiom_bottom_up_alternative_no_parameters {
+    valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  }
+}
+
+domain Snap$U32  {
+  
+  function constructor$Snap$U32$(value: Int): Snap$U32 
+  
+  function destructor$Snap$U32$$value(value: Snap$U32): Int 
+  
+  function snapshot_equality$Snap$U32$(left: Snap$U32, right: Snap$U32, gas$: FunctionGas): Bool 
+  
+  function valid$Snap$U32(_0: Snap$U32): Bool 
+  
+  function to_bytes$U32(snapshot: Snap$U32): Bytes 
+  
+  function from_bytes$U32(bytes: Bytes): Snap$U32 
+  
+  axiom constructor$Snap$U32$$top_down_injectivity_axiom {
+    (forall value: Snap$U32 ::
+      { valid$Snap$U32(value) }
+      { constructor$Snap$U32$(destructor$Snap$U32$$value(value)) }
+      valid$Snap$U32(value) ==>
+      value == constructor$Snap$U32$(destructor$Snap$U32$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$U32$$snapshot_equality_axiom {
+    (forall left: Snap$U32, right: Snap$U32, gas$: FunctionGas ::
+      { snapshot_equality$Snap$U32$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$U32$(left, right, gas$) ==
+      snapshot_equality$Snap$U32$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$U32$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$U32$(left, right, gas$) ==
+      (destructor$Snap$U32$$value(left) ==
+      destructor$Snap$U32$$value(right))))
+  }
+  
+  axiom Snap$U32$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$U32(constructor$Snap$U32$(value)) }
+      valid$Snap$U32(constructor$Snap$U32$(value)) ==
+      (0 <= value && value <= 4294967295))
+  }
+  
+  axiom constructor$Snap$U32$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$U32$(value) }
+      destructor$Snap$U32$$value(constructor$Snap$U32$(value)) == value)
+  }
+  
+  axiom Snap$U32$U32$to_bytes_injective {
+    (forall snapshot: Snap$U32 ::
+      { to_bytes$U32(snapshot) }
+      snapshot == from_bytes$U32(to_bytes$U32(snapshot)))
+  }
+}
+
+domain Snap$Usize  {
+  
+  function constructor$Snap$Usize$(value: Int): Snap$Usize 
+  
+  function destructor$Snap$Usize$$value(value: Snap$Usize): Int 
+  
+  function snapshot_equality$Snap$Usize$(left: Snap$Usize, right: Snap$Usize,
+  gas$: FunctionGas): Bool 
+  
+  function valid$Snap$Usize(_0: Snap$Usize): Bool 
+  
+  axiom constructor$Snap$Usize$$top_down_injectivity_axiom {
+    (forall value: Snap$Usize ::
+      { valid$Snap$Usize(value) }
+      { constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)) }
+      valid$Snap$Usize(value) ==>
+      value == constructor$Snap$Usize$(destructor$Snap$Usize$$value(value)))
+  }
+  
+  // Used to trigger extensionality for snapshots that contain Viper sequences.
+  axiom constructor$Snap$Usize$$snapshot_equality_axiom {
+    (forall left: Snap$Usize, right: Snap$Usize, gas$: FunctionGas ::
+      { snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) }
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      snapshot_equality$Snap$Usize$(left, right, function_gas_level$(gas$)) &&
+      (snapshot_equality$Snap$Usize$(left, right, gas$) == (left == right) &&
+      snapshot_equality$Snap$Usize$(left, right, gas$) ==
+      (destructor$Snap$Usize$$value(left) ==
+      destructor$Snap$Usize$$value(right))))
+  }
+  
+  axiom Snap$Usize$$validity_axiom_bottom_up_alternative {
+    (forall value: Int ::
+      { valid$Snap$Usize(constructor$Snap$Usize$(value)) }
+      valid$Snap$Usize(constructor$Snap$Usize$(value)) ==
+      (0 <= value && value <= 18446744073709551615))
+  }
+  
+  axiom constructor$Snap$Usize$$bottom_up_injectivity_axiom$value {
+    (forall value: Int ::
+      { constructor$Snap$Usize$(value) }
+      destructor$Snap$Usize$$value(constructor$Snap$Usize$(value)) == value)
+  }
+}
+
+domain ComputeAddress  {
+  
+  function address_is_non_aliased(address: Address): Bool 
+}
+
+function MemoryBlock$bytes(address: Address, size: Snap$Usize): Bytes
+  requires acc(MemoryBlock(address, size), wildcard)
+
+
+function snap_owned_non_aliased$Bool(place: PlaceOption, address: Address): Snap$Bool
+  requires acc(OwnedNonAliased$Bool(place, address), wildcard)
+  ensures valid$Snap$Bool(result)
+  ensures (unfolding acc(OwnedNonAliased$Bool(place, address), wildcard) in
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(1)) ==
+      to_bytes$Bool(result))
+
+
+function snap_owned_non_aliased$Map$U32$U32(place: PlaceOption, address: Address): Map[Snap$U32,Snap$U32]
+  requires acc(OwnedNonAliased$Map$U32$U32(place, address), wildcard)
+  ensures valid$Snap$Map$U32$U32(result)
+  ensures (unfolding acc(OwnedNonAliased$Map$U32$U32(place, address), wildcard) in
+      MemoryBlock$bytes(address, Size$Map$U32$U32$()) ==
+      to_bytes$Map$U32$U32(result))
+
+
+function snap_owned_non_aliased$Tuple$(place: PlaceOption, address: Address): Snap$Tuple$
+  requires acc(OwnedNonAliased$Tuple$(place, address), wildcard)
+  ensures valid$Snap$Tuple$(result)
+  ensures (unfolding acc(OwnedNonAliased$Tuple$(place, address), wildcard) in
+      true)
+
+
+function snap_owned_non_aliased$U32(place: PlaceOption, address: Address): Snap$U32
+  requires acc(OwnedNonAliased$U32(place, address), wildcard)
+  ensures valid$Snap$U32(result)
+  ensures (unfolding acc(OwnedNonAliased$U32(place, address), wildcard) in
+      MemoryBlock$bytes(address, constructor$Snap$Usize$(4)) ==
+      to_bytes$U32(result))
+
+
+@qpresource()
+predicate OwnedNonAliased$Map$U32$U32(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, Size$Map$U32$U32$()), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$Bool(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, constructor$Snap$Usize$(1)), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$U32(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, constructor$Snap$Usize$(4)), write)
+}
+
+@qpresource()
+predicate OwnedNonAliased$Tuple$(place: PlaceOption, address: Address) {
+  acc(MemoryBlock(address, PaddingSize$Tuple$$()), write)
+}
+
+@qpresource()
+predicate DeadLifetimeToken(lifetime: Lifetime) 
+
+predicate LifetimeToken(lifetime: Lifetime) 
+
+@qpresource()
+predicate MemoryBlock(address: Address, size: Snap$Usize) 
+
+@qpresource()
+predicate MemoryBlockStackDrop(address: Address, size: Snap$Usize) 
+
+method m_test5$MemorySafety$Regular()
+{
+  var _0$snapshot$0: Snap$Tuple$
+  var _0$snapshot$1: Snap$Tuple$
+  var _0$snapshot$2: Snap$Tuple$
+  var _1$snapshot$0: Map[Snap$U32,Snap$U32]
+  var _2$snapshot$0: Snap$Bool
+  var _3$snapshot$1: Map[Snap$U32,Snap$U32]
+  var _4$snapshot$0: Snap$U32
+  var _5$snapshot$0: Map[Snap$U32,Snap$U32]
+  var _5$snapshot$1: Map[Snap$U32,Snap$U32]
+  var _5$snapshot$2: Map[Snap$U32,Snap$U32]
+  var bw0$snapshot$0: Lifetime
+  var bw1$snapshot$0: Lifetime
+  var end_label$marker$snapshot$0: Bool
+  var end_label$marker$snapshot$1: Bool
+  var label_1_custom$marker$snapshot$0: Bool
+  var label_1_custom$marker$snapshot$1: Bool
+  var label_1_custom$marker$snapshot$2: Bool
+  var label_2_custom$marker$snapshot$0: Bool
+  var label_2_custom$marker$snapshot$1: Bool
+  var label_2_custom$marker$snapshot$2: Bool
+  var label_bb0$marker$snapshot$0: Bool
+  var label_bb0$marker$snapshot$1: Bool
+  var label_bb1$marker$snapshot$0: Bool
+  var label_bb1$marker$snapshot$1: Bool
+  var label_bb2$marker$snapshot$0: Bool
+  var label_bb2$marker$snapshot$1: Bool
+  var label_bb2$marker$snapshot$2: Bool
+  var label_bb3$marker$snapshot$0: Bool
+  var label_bb3$marker$snapshot$1: Bool
+  var label_bb3$marker$snapshot$2: Bool
+  var label_bb4$marker$snapshot$0: Bool
+  var label_bb4$marker$snapshot$1: Bool
+  var label_bb4$marker$snapshot$2: Bool
+  var label_bb5$marker$snapshot$0: Bool
+  var label_bb5$marker$snapshot$1: Bool
+  var label_bb5$marker$snapshot$2: Bool
+  var label_entry$marker$snapshot$0: Bool
+  var label_entry$marker$snapshot$1: Bool
+  var lft_0$snapshot$1: Lifetime
+  var lft_1$snapshot$1: Lifetime
+  var lifetime_token_perm_amount$0$snapshot$0: Perm
+  var resume_panic_label$marker$snapshot$0: Bool
+  var resume_panic_label$marker$snapshot$1: Bool
+  var resume_panic_label$marker$snapshot$2: Bool
+  var return_label$marker$snapshot$0: Bool
+  var return_label$marker$snapshot$1: Bool
+  var return_label$marker$snapshot$2: Bool
+  var start_label$marker$snapshot$0: Bool
+  var start_label$marker$snapshot$1: Bool
+  var non_deterministic_jump$0: Int
+  var snapshot$OwnedNonAliased$Map$U32$U32$0: Map[Snap$U32,Snap$U32]
+  var snapshot$OwnedNonAliased$Map$U32$U32$4: Map[Snap$U32,Snap$U32]
+  var snapshot$OwnedNonAliased$Map$U32$U32$5: Map[Snap$U32,Snap$U32]
+  var snapshot$OwnedNonAliased$Bool$7: Snap$Bool
+  var snapshot$OwnedNonAliased$Map$U32$U32$10: Map[Snap$U32,Snap$U32]
+  var snapshot$OwnedNonAliased$Map$U32$U32$11: Map[Snap$U32,Snap$U32]
+  var snapshot$OwnedNonAliased$U32$13: Snap$U32
+  var snapshot$OwnedNonAliased$Tuple$$14: Snap$Tuple$
+  var permission$OwnedNonAliased$Map$U32$U32$0: Perm
+  var permission$MemoryBlock$1: Perm
+  var permission$MemoryBlock$2: Perm
+  var permission$MemoryBlockStackDrop$3: Perm
+  var permission$MemoryBlock$4: Perm
+  var permission$MemoryBlockStackDrop$5: Perm
+  var permission$MemoryBlock$6: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$7: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$8: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$9: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$10: Perm
+  var permission$MemoryBlock$11: Perm
+  var permission$MemoryBlock$12: Perm
+  var permission$OwnedNonAliased$Bool$13: Perm
+  var permission$MemoryBlock$14: Perm
+  var permission$MemoryBlockStackDrop$15: Perm
+  var permission$MemoryBlock$16: Perm
+  var permission$MemoryBlockStackDrop$17: Perm
+  var permission$MemoryBlock$18: Perm
+  var permission$MemoryBlockStackDrop$19: Perm
+  var permission$MemoryBlock$20: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$21: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$22: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$23: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$24: Perm
+  var permission$MemoryBlock$25: Perm
+  var permission$MemoryBlock$26: Perm
+  var permission$OwnedNonAliased$U32$27: Perm
+  var permission$MemoryBlock$28: Perm
+  var permission$MemoryBlockStackDrop$29: Perm
+  var permission$MemoryBlock$30: Perm
+  var permission$OwnedNonAliased$Tuple$$31: Perm
+  var permission$OwnedNonAliased$U32$32: Perm
+  var permission$MemoryBlock$33: Perm
+  var permission$MemoryBlock$34: Perm
+  var permission$MemoryBlockStackDrop$35: Perm
+  var permission$OwnedNonAliased$Bool$36: Perm
+  var permission$MemoryBlock$37: Perm
+  var permission$MemoryBlock$38: Perm
+  var permission$MemoryBlockStackDrop$39: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$40: Perm
+  var permission$MemoryBlock$41: Perm
+  var permission$MemoryBlock$42: Perm
+  var permission$OwnedNonAliased$Tuple$$43: Perm
+  var permission$MemoryBlock$44: Perm
+  var permission$MemoryBlockStackDrop$45: Perm
+  var permission$OwnedNonAliased$Bool$46: Perm
+  var permission$OwnedNonAliased$Map$U32$U32$47: Perm
+  var permission$MemoryBlock$48: Perm
+  var permission$MemoryBlockStackDrop$49: Perm
+  label start_label
+  // Executing block: label start_label
+  inhale !start_label$marker$snapshot$0
+  inhale !label_entry$marker$snapshot$0
+  inhale !label_bb0$marker$snapshot$0
+  inhale !label_bb1$marker$snapshot$0
+  inhale !label_2_custom$marker$snapshot$0
+  inhale !label_bb2$marker$snapshot$0
+  inhale !label_bb3$marker$snapshot$0
+  inhale !return_label$marker$snapshot$0
+  inhale !label_1_custom$marker$snapshot$0
+  inhale !label_bb4$marker$snapshot$0
+  inhale !label_bb5$marker$snapshot$0
+  inhale !resume_panic_label$marker$snapshot$0
+  inhale !end_label$marker$snapshot$0
+  inhale start_label$marker$snapshot$1
+  inhale basic_block_marker$start_label$marker()
+  // Lifetime preconditions.
+  inhale lifetime_token_perm_amount$0$snapshot$0 > none
+  inhale lifetime_token_perm_amount$0$snapshot$0 < write
+  // inhale acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  assert lifetime_token_perm_amount$0$snapshot$0 >= none
+  // inhale acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  assert lifetime_token_perm_amount$0$snapshot$0 >= none
+  // lft_0$snapshot$1 := call lft_tok_sep_take$1(bw0$snapshot$0, (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 7
+  // exhale acc(LifetimeToken(bw0$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 7 >=
+    none
+  // inhale acc(LifetimeToken(lft_0$snapshot$1), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 7 >= none
+  inhale lft_0$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  // lft_1$snapshot$1 := call lft_tok_sep_take$2(bw0$snapshot$0, bw1$snapshot$0, (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 7
+  // exhale acc(LifetimeToken(bw0$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 7 -
+    lifetime_token_perm_amount$0$snapshot$0 / 7 >=
+    none
+  // exhale acc(LifetimeToken(bw1$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 -
+    lifetime_token_perm_amount$0$snapshot$0 / 7 >=
+    none
+  // inhale acc(LifetimeToken(lft_1$snapshot$1), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 7 >= none
+  inhale lft_1$snapshot$1 == intersect(Set(bw0$snapshot$0, bw1$snapshot$0))
+  // Allocate the parameters.
+  // inhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Map$U32$U32$0 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Map$U32$U32$0: Map(D(Snap$U32) -> D(Snap$U32)) old_permission=permission$OwnedNonAliased$Map$U32$U32$0: Perm
+  inhale _1$snapshot$0 == snapshot$OwnedNonAliased$Map$U32$U32$0
+  inhale valid$Snap$Map$U32$U32(_1$snapshot$0)
+  // Assume functional preconditions.
+  inhale true
+  // Allocate the return place.
+  // inhale acc(MemoryBlock(_0$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(0)), 1)
+  inhale permission$MemoryBlock$1 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$1: D(Bytes) old_permission=permission$MemoryBlock$1: Perm
+  // Allocate implicitly allocated statements.
+  // Merged in block: label label_entry
+  inhale label_entry$marker$snapshot$1
+  inhale basic_block_marker$label_entry$marker()
+  // Merged in block: label label_bb0
+  inhale label_bb0$marker$snapshot$1
+  inhale basic_block_marker$label_bb0$marker()
+  // Prepare lifetimes for statement mid bb0[0]
+  // bb0[0] StorageLive(_2)
+  // inhale acc(MemoryBlock(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  inhale permission$MemoryBlock$2 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$2: D(Bytes) old_permission=permission$MemoryBlock$2: Perm
+  // inhale acc(MemoryBlockStackDrop(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  inhale permission$MemoryBlockStackDrop$3 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=NoSnapshot old_permission=permission$MemoryBlockStackDrop$3: Perm
+  // Prepare lifetimes for statement start bb0[1]
+  // Prepare lifetimes for statement mid bb0[1]
+  // bb0[1] StorageLive(_3)
+  // inhale acc(MemoryBlock(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlock$4 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$3: D(Bytes) old_permission=permission$MemoryBlock$4: Perm
+  // inhale acc(MemoryBlockStackDrop(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlockStackDrop$5 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=NoSnapshot old_permission=permission$MemoryBlockStackDrop$5: Perm
+  // Prepare lifetimes for statement start bb0[2]
+  // Prepare lifetimes for statement mid bb0[2]
+  // bb0[2] _3 = _1
+  inhale _3$snapshot$1 == snapshot$OwnedNonAliased$Map$U32$U32$0
+  //  := call copy_place$Map$U32$U32(PlaceOption::place_option_some(Place::_3$place()), _3$address$snapshot$0, PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0, snap_owned_non_aliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  exhale none < write
+  // exhale acc(MemoryBlock(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlock$4 == write
+  inhale permission$MemoryBlock$6 == none
+  // exhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Map$U32$U32$0 == write
+  inhale permission$OwnedNonAliased$Map$U32$U32$7 == none
+  exhale snapshot$OwnedNonAliased$Map$U32$U32$0 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$0
+  // inhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Map$U32$U32$8 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Map$U32$U32$4: Map(D(Snap$U32) -> D(Snap$U32)) old_permission=permission$OwnedNonAliased$Map$U32$U32$8: Perm
+  inhale snapshot$OwnedNonAliased$Map$U32$U32$0 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$4
+  // inhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_3$place()), _3$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Map$U32$U32$9 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Map$U32$U32$5: Map(D(Snap$U32) -> D(Snap$U32)) old_permission=permission$OwnedNonAliased$Map$U32$U32$9: Perm
+  inhale snapshot$OwnedNonAliased$Map$U32$U32$0 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$5
+  inhale valid$Snap$Map$U32$U32(snapshot$OwnedNonAliased$Map$U32$U32$0)
+  // Prepare lifetimes for statement mid bb0[3]
+  // bb0[3] _2 = prusti_contracts::Map::<u32, u32>::contains(move _3, const 2_u32) -> [return: bb1, unwind: bb5]
+  //  := call consume$Move$Map$U32$U32(PlaceOption::place_option_some(Place::_3$place()), _3$address$snapshot$0, snap_owned_non_aliased$Map$U32$U32(PlaceOption::place_option_some(Place::_3$place()), _3$address$snapshot$0))
+  // exhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_3$place()), _3$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Map$U32$U32$9 == write
+  inhale permission$OwnedNonAliased$Map$U32$U32$10 == none
+  exhale snapshot$OwnedNonAliased$Map$U32$U32$5 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$5
+  exhale valid$Snap$Map$U32$U32(snapshot$OwnedNonAliased$Map$U32$U32$5)
+  // inhale acc(MemoryBlock(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlock$11 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$6: D(Bytes) old_permission=permission$MemoryBlock$11: Perm
+  //  := call consume$Constant$U32(Snap$U32::constructor$Snap$U32$(2))
+  exhale valid$Snap$U32(constructor$Snap$U32$(2))
+  inhale true
+  // exhale acc(MemoryBlock(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  assert permission$MemoryBlock$2 == write
+  inhale permission$MemoryBlock$12 == none
+  // inhale acc(OwnedNonAliased$Bool(PlaceOption::place_option_some(Place::_2$place()), _2$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Bool$13 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Bool$7: D(Snap$Bool) old_permission=permission$OwnedNonAliased$Bool$13: Perm
+  inhale _2$snapshot$0 == snapshot$OwnedNonAliased$Bool$7
+  inhale valid$Snap$Bool(_2$snapshot$0)
+  inhale _2$snapshot$0 ==
+    constructor$Snap$Bool$((constructor$Snap$U32$(2) in _3$snapshot$1))
+  // Prepare lifetimes for block bb1
+  // Merged in block: label label_bb1
+  inhale label_bb1$marker$snapshot$1
+  inhale basic_block_marker$label_bb1$marker()
+  // Prepare lifetimes for statement mid bb1[0]
+  // bb1[0] StorageDead(_3)
+  // exhale acc(MemoryBlock(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlock$11 == write
+  inhale permission$MemoryBlock$14 == none
+  // exhale acc(MemoryBlockStackDrop(_3$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlockStackDrop$5 == write
+  inhale permission$MemoryBlockStackDrop$15 == none
+  // Prepare lifetimes for statement mid bb1[1]
+  // bb1[1] switchInt(move _2) -> [0: bb4, otherwise: bb2]
+  inhale non_deterministic_jump$0 == 0 || non_deterministic_jump$0 == 1
+  if (non_deterministic_jump$0 == 0) {
+    goto label_1_custom
+  }
+  if (non_deterministic_jump$0 == 1) {
+    goto label_2_custom
+  }
+  assert false
+  label label_2_custom
+  // Executing block: label label_2_custom
+  inhale destructor$Snap$Bool$$value(_2$snapshot$0)
+  inhale label_2_custom$marker$snapshot$1
+  inhale basic_block_marker$label_2_custom$marker()
+  // Prepare lifetimes for block bb2
+  // Merged in block: label label_bb2
+  inhale label_bb2$marker$snapshot$1
+  inhale basic_block_marker$label_bb2$marker()
+  // Prepare lifetimes for statement mid bb2[0]
+  // bb2[0] StorageLive(_4)
+  // inhale acc(MemoryBlock(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  inhale permission$MemoryBlock$16 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$8: D(Bytes) old_permission=permission$MemoryBlock$16: Perm
+  // inhale acc(MemoryBlockStackDrop(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  inhale permission$MemoryBlockStackDrop$17 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=NoSnapshot old_permission=permission$MemoryBlockStackDrop$17: Perm
+  // Prepare lifetimes for statement start bb2[1]
+  // Prepare lifetimes for statement mid bb2[1]
+  // bb2[1] StorageLive(_5)
+  // inhale acc(MemoryBlock(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlock$18 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$9: D(Bytes) old_permission=permission$MemoryBlock$18: Perm
+  // inhale acc(MemoryBlockStackDrop(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlockStackDrop$19 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=NoSnapshot old_permission=permission$MemoryBlockStackDrop$19: Perm
+  // Prepare lifetimes for statement start bb2[2]
+  // Prepare lifetimes for statement mid bb2[2]
+  // bb2[2] _5 = _1
+  inhale _5$snapshot$1 == snapshot$OwnedNonAliased$Map$U32$U32$4
+  //  := call copy_place$Map$U32$U32(PlaceOption::place_option_some(Place::_5$place()), _5$address$snapshot$0, PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0, snap_owned_non_aliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  exhale none < write
+  // exhale acc(MemoryBlock(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlock$18 == write
+  inhale permission$MemoryBlock$20 == none
+  // exhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Map$U32$U32$8 == write
+  inhale permission$OwnedNonAliased$Map$U32$U32$21 == none
+  exhale snapshot$OwnedNonAliased$Map$U32$U32$4 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$4
+  // inhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Map$U32$U32$22 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Map$U32$U32$10: Map(D(Snap$U32) -> D(Snap$U32)) old_permission=permission$OwnedNonAliased$Map$U32$U32$22: Perm
+  inhale snapshot$OwnedNonAliased$Map$U32$U32$4 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$10
+  // inhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_5$place()), _5$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Map$U32$U32$23 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Map$U32$U32$11: Map(D(Snap$U32) -> D(Snap$U32)) old_permission=permission$OwnedNonAliased$Map$U32$U32$23: Perm
+  inhale snapshot$OwnedNonAliased$Map$U32$U32$4 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$11
+  inhale valid$Snap$Map$U32$U32(snapshot$OwnedNonAliased$Map$U32$U32$4)
+  // Prepare lifetimes for statement mid bb2[3]
+  // bb2[3] _4 = prusti_contracts::Map::<u32, u32>::lookup(move _5, const 2_u32) -> [return: bb3, unwind: bb5]
+  //  := call consume$Move$Map$U32$U32(PlaceOption::place_option_some(Place::_5$place()), _5$address$snapshot$0, snap_owned_non_aliased$Map$U32$U32(PlaceOption::place_option_some(Place::_5$place()), _5$address$snapshot$0))
+  // exhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_5$place()), _5$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Map$U32$U32$23 == write
+  inhale permission$OwnedNonAliased$Map$U32$U32$24 == none
+  exhale snapshot$OwnedNonAliased$Map$U32$U32$11 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$11
+  exhale valid$Snap$Map$U32$U32(snapshot$OwnedNonAliased$Map$U32$U32$11)
+  // inhale acc(MemoryBlock(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlock$25 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$12: D(Bytes) old_permission=permission$MemoryBlock$25: Perm
+  //  := call consume$Constant$U32(Snap$U32::constructor$Snap$U32$(2))
+  exhale valid$Snap$U32(constructor$Snap$U32$(2))
+  inhale true
+  // exhale acc(MemoryBlock(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  assert permission$MemoryBlock$16 == write
+  inhale permission$MemoryBlock$26 == none
+  // inhale acc(OwnedNonAliased$U32(PlaceOption::place_option_some(Place::_4$place()), _4$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$U32$27 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$U32$13: D(Snap$U32) old_permission=permission$OwnedNonAliased$U32$27: Perm
+  inhale _4$snapshot$0 == snapshot$OwnedNonAliased$U32$13
+  inhale valid$Snap$U32(_4$snapshot$0)
+  inhale _4$snapshot$0 == _5$snapshot$1[constructor$Snap$U32$(2)]
+  // Prepare lifetimes for block bb3
+  // Merged in block: label label_bb3
+  inhale label_bb3$marker$snapshot$1
+  inhale basic_block_marker$label_bb3$marker()
+  // Prepare lifetimes for statement mid bb3[0]
+  // bb3[0] StorageDead(_5)
+  // exhale acc(MemoryBlock(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlock$25 == write
+  inhale permission$MemoryBlock$28 == none
+  // exhale acc(MemoryBlockStackDrop(_5$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlockStackDrop$19 == write
+  inhale permission$MemoryBlockStackDrop$29 == none
+  // Prepare lifetimes for statement start bb3[1]
+  // Prepare lifetimes for statement mid bb3[1]
+  // bb3[1] FakeRead(ForLet(None), _4)
+  // encode_statement: not encoded
+  // Prepare lifetimes for statement start bb3[2]
+  // Prepare lifetimes for statement mid bb3[2]
+  // bb3[2] _0 = const ()
+  //  := call write_place_constant$Tuple$(PlaceOption::place_option_some(Place::_0$place()), _0$address$snapshot$0, Snap$Tuple$::constructor$Snap$Tuple$$())
+  // exhale acc(MemoryBlock(_0$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(0)), 1)
+  assert permission$MemoryBlock$1 == write
+  inhale permission$MemoryBlock$30 == none
+  exhale valid$Snap$Tuple$(constructor$Snap$Tuple$$())
+  // inhale acc(OwnedNonAliased$Tuple$(PlaceOption::place_option_some(Place::_0$place()), _0$address$snapshot$0), 1)
+  inhale permission$OwnedNonAliased$Tuple$$31 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$OwnedNonAliased$Tuple$$14: D(Snap$Tuple$) old_permission=permission$OwnedNonAliased$Tuple$$31: Perm
+  inhale constructor$Snap$Tuple$$() == snapshot$OwnedNonAliased$Tuple$$14
+  inhale _0$snapshot$1 == constructor$Snap$Tuple$$()
+  // Prepare lifetimes for statement start bb3[3]
+  // Prepare lifetimes for statement mid bb3[3]
+  // bb3[3] StorageDead(_4)
+  //  := call into_memory_block$U32(PlaceOption::place_option_some(Place::_4$place()), _4$address$snapshot$0, snap_owned_non_aliased$U32(PlaceOption::place_option_some(Place::_4$place()), _4$address$snapshot$0))
+  // exhale acc(OwnedNonAliased$U32(PlaceOption::place_option_some(Place::_4$place()), _4$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$U32$27 == write
+  inhale permission$OwnedNonAliased$U32$32 == none
+  exhale snapshot$OwnedNonAliased$U32$13 == snapshot$OwnedNonAliased$U32$13
+  // inhale acc(MemoryBlock(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  inhale permission$MemoryBlock$33 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$15: D(Bytes) old_permission=permission$MemoryBlock$33: Perm
+  // exhale acc(MemoryBlock(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  assert permission$MemoryBlock$33 == write
+  inhale permission$MemoryBlock$34 == none
+  // exhale acc(MemoryBlockStackDrop(_4$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(4)), 1)
+  assert permission$MemoryBlockStackDrop$17 == write
+  inhale permission$MemoryBlockStackDrop$35 == none
+  // Prepare lifetimes for statement start bb3[4]
+  // Prepare lifetimes for statement mid bb3[4]
+  // bb3[4] StorageDead(_2)
+  //  := call into_memory_block$Bool(PlaceOption::place_option_some(Place::_2$place()), _2$address$snapshot$0, snap_owned_non_aliased$Bool(PlaceOption::place_option_some(Place::_2$place()), _2$address$snapshot$0))
+  // exhale acc(OwnedNonAliased$Bool(PlaceOption::place_option_some(Place::_2$place()), _2$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Bool$13 == write
+  inhale permission$OwnedNonAliased$Bool$36 == none
+  exhale snapshot$OwnedNonAliased$Bool$7 == snapshot$OwnedNonAliased$Bool$7
+  // inhale acc(MemoryBlock(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  inhale permission$MemoryBlock$37 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$16: D(Bytes) old_permission=permission$MemoryBlock$37: Perm
+  // exhale acc(MemoryBlock(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  assert permission$MemoryBlock$37 == write
+  inhale permission$MemoryBlock$38 == none
+  // exhale acc(MemoryBlockStackDrop(_2$address$snapshot$0, Snap$Usize::constructor$Snap$Usize$(1)), 1)
+  assert permission$MemoryBlockStackDrop$3 == write
+  inhale permission$MemoryBlockStackDrop$39 == none
+  // Prepare lifetimes for statement mid bb3[5]
+  // bb3[5] return
+  // Merged in block: label return_label
+  inhale return_label$marker$snapshot$1
+  inhale basic_block_marker$return_label$marker()
+  // Assert functional postconditions.
+  exhale true
+  // Deallocate the parameters.
+  //  := call into_memory_block$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0, snap_owned_non_aliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0))
+  // exhale acc(OwnedNonAliased$Map$U32$U32(PlaceOption::place_option_some(Place::_1$place()), _1$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Map$U32$U32$22 == write
+  inhale permission$OwnedNonAliased$Map$U32$U32$40 == none
+  exhale snapshot$OwnedNonAliased$Map$U32$U32$10 ==
+    snapshot$OwnedNonAliased$Map$U32$U32$10
+  // inhale acc(MemoryBlock(_1$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  inhale permission$MemoryBlock$41 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$17: D(Bytes) old_permission=permission$MemoryBlock$41: Perm
+  // exhale acc(MemoryBlock(_1$address$snapshot$0, Size::Size$Map$U32$U32$()), 1)
+  assert permission$MemoryBlock$41 == write
+  inhale permission$MemoryBlock$42 == none
+  // Deallocate the return place.
+  // exhale acc(OwnedNonAliased$Tuple$(PlaceOption::place_option_some(Place::_0$place()), _0$address$snapshot$0), 1)
+  assert permission$OwnedNonAliased$Tuple$$31 == write
+  inhale permission$OwnedNonAliased$Tuple$$43 == none
+  exhale _0$snapshot$1 == snapshot$OwnedNonAliased$Tuple$$14
+  exhale valid$Snap$Tuple$(_0$snapshot$1)
+  // Merged in block: label label__from__return_label__to__end_label
+  inhale _0$snapshot$2 == _0$snapshot$1
+  inhale _5$snapshot$2 == _5$snapshot$1
+  inhale label_1_custom$marker$snapshot$2 ==
+    label_1_custom$marker$snapshot$0
+  inhale label_2_custom$marker$snapshot$2 ==
+    label_2_custom$marker$snapshot$1
+  inhale label_bb2$marker$snapshot$2 == label_bb2$marker$snapshot$1
+  inhale label_bb3$marker$snapshot$2 == label_bb3$marker$snapshot$1
+  inhale label_bb4$marker$snapshot$2 == label_bb4$marker$snapshot$0
+  inhale label_bb5$marker$snapshot$2 == label_bb5$marker$snapshot$0
+  inhale resume_panic_label$marker$snapshot$2 ==
+    resume_panic_label$marker$snapshot$0
+  inhale return_label$marker$snapshot$2 == return_label$marker$snapshot$1
+  goto edge_block_label_2_custom__end_label
+  label label_1_custom
+  // Executing block: label label_1_custom
+  inhale !destructor$Snap$Bool$$value(_2$snapshot$0)
+  inhale label_1_custom$marker$snapshot$1
+  inhale basic_block_marker$label_1_custom$marker()
+  // Prepare lifetimes for block bb4
+  // Merged in block: label label_bb4
+  inhale label_bb4$marker$snapshot$1
+  inhale basic_block_marker$label_bb4$marker()
+  // Prepare lifetimes for statement mid bb4[0]
+  // bb4[0] StorageLive(_7)
+  // inhale acc(MemoryBlock(_7$address$snapshot$0, Size::Size$Never$$()), 1)
+  inhale permission$MemoryBlock$44 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=snapshot$MemoryBlock$18: D(Bytes) old_permission=permission$MemoryBlock$44: Perm
+  // inhale acc(MemoryBlockStackDrop(_7$address$snapshot$0, Size::Size$Never$$()), 1)
+  inhale permission$MemoryBlockStackDrop$45 == write
+  // inhaling fresh non-aliased predicate instance: snapshot=NoSnapshot old_permission=permission$MemoryBlockStackDrop$45: Perm
+  // Prepare lifetimes for statement mid bb4[1]
+  // bb4[1] _7 = core::panicking::panic(const "internal error: entered unreachable code") -> bb5
+  // Merged in block: label label_bb5
+  inhale label_bb5$marker$snapshot$1
+  inhale basic_block_marker$label_bb5$marker()
+  // Prepare lifetimes for statement mid bb5[0]
+  // bb5[0] resume
+  // Merged in block: label resume_panic_label
+  inhale resume_panic_label$marker$snapshot$1
+  inhale basic_block_marker$resume_panic_label$marker()
+  // Assert panic postconditions.
+  exhale true
+  // Merged in block: label label__from__resume_panic_label__to__end_label
+  inhale _0$snapshot$2 == _0$snapshot$0
+  inhale _5$snapshot$2 == _5$snapshot$0
+  inhale label_1_custom$marker$snapshot$2 ==
+    label_1_custom$marker$snapshot$1
+  inhale label_2_custom$marker$snapshot$2 ==
+    label_2_custom$marker$snapshot$0
+  inhale label_bb2$marker$snapshot$2 == label_bb2$marker$snapshot$0
+  inhale label_bb3$marker$snapshot$2 == label_bb3$marker$snapshot$0
+  inhale label_bb4$marker$snapshot$2 == label_bb4$marker$snapshot$1
+  inhale label_bb5$marker$snapshot$2 == label_bb5$marker$snapshot$1
+  inhale resume_panic_label$marker$snapshot$2 ==
+    resume_panic_label$marker$snapshot$1
+  inhale return_label$marker$snapshot$2 == return_label$marker$snapshot$0
+  goto edge_block_label_1_custom__end_label
+  label edge_block_label_2_custom__end_label
+  inhale permission$OwnedNonAliased$Bool$46 == none
+  inhale permission$OwnedNonAliased$Map$U32$U32$47 == none
+  inhale permission$MemoryBlock$48 == none
+  inhale permission$MemoryBlockStackDrop$49 == none
+  goto end_label
+  label edge_block_label_1_custom__end_label
+  inhale permission$OwnedNonAliased$Bool$46 ==
+    permission$OwnedNonAliased$Bool$13
+  inhale permission$OwnedNonAliased$Map$U32$U32$47 ==
+    permission$OwnedNonAliased$Map$U32$U32$8
+  inhale permission$MemoryBlock$48 == permission$MemoryBlock$1
+  inhale permission$MemoryBlockStackDrop$49 ==
+    permission$MemoryBlockStackDrop$3
+  goto end_label
+  label end_label
+  // Executing block: label end_label
+  inhale end_label$marker$snapshot$1
+  inhale basic_block_marker$end_label$marker()
+  // Lifetime postconditions.
+  //  := call lft_tok_sep_return$1(lft_0$snapshot$1, bw0$snapshot$0, (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 7
+  // exhale acc(LifetimeToken(lft_0$snapshot$1), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale lft_0$snapshot$1 == intersect(Set(bw0$snapshot$0))
+  // inhale acc(LifetimeToken(bw0$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 7 >= none
+  //  := call lft_tok_sep_return$2(lft_1$snapshot$1, bw0$snapshot$0, bw1$snapshot$0, (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale none < lifetime_token_perm_amount$0$snapshot$0 / 7
+  // exhale acc(LifetimeToken(lft_1$snapshot$1), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  exhale lft_1$snapshot$1 == intersect(Set(bw0$snapshot$0, bw1$snapshot$0))
+  // inhale acc(LifetimeToken(bw0$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 7 >= none
+  // inhale acc(LifetimeToken(bw1$snapshot$0), (lifetime_token_perm_amount$0$snapshot$0) Div (7))
+  assert lifetime_token_perm_amount$0$snapshot$0 / 7 >= none
+  // exhale acc(LifetimeToken(bw0$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  // exhale acc(LifetimeToken(bw1$snapshot$0), lifetime_token_perm_amount$0$snapshot$0)
+  goto end_of_method
+  label end_of_method
+}
+
+method consume$Constant$U32(operand1_value: Snap$U32)
+  requires valid$Snap$U32(operand1_value)
+
+
+method consume$Move$Map$U32$U32(operand1_place: PlaceOption, operand1_root_address: Address,
+  operand1_value: Map[Snap$U32,Snap$U32])
+  requires acc(OwnedNonAliased$Map$U32$U32(operand1_place, operand1_root_address), write) &&
+    operand1_value ==
+    snap_owned_non_aliased$Map$U32$U32(operand1_place, operand1_root_address)
+  requires valid$Snap$Map$U32$U32(operand1_value)
+  ensures acc(MemoryBlock(operand1_root_address, Size$Map$U32$U32$()), write)
+
+
+method copy_place$Map$U32$U32(target_place: PlaceOption, target_address: Address,
+  source_place: PlaceOption, source_address: Address, source_snapshot: Map[Snap$U32,Snap$U32],
+  source_permission_amount: Perm)
+  requires none < source_permission_amount
+  requires acc(MemoryBlock(target_address, Size$Map$U32$U32$()), write)
+  requires acc(OwnedNonAliased$Map$U32$U32(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Map$U32$U32(source_place, source_address)
+  ensures acc(OwnedNonAliased$Map$U32$U32(source_place, source_address), source_permission_amount) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Map$U32$U32(source_place, source_address)
+  ensures acc(OwnedNonAliased$Map$U32$U32(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Map$U32$U32(target_place, target_address)
+  ensures valid$Snap$Map$U32$U32(source_snapshot)
+{
+  unfold acc(OwnedNonAliased$Map$U32$U32(source_place, source_address), source_permission_amount)
+  memory_copy$Map$U32$U32(source_address, target_address, source_permission_amount)
+  fold acc(OwnedNonAliased$Map$U32$U32(target_place, target_address), write)
+  fold acc(OwnedNonAliased$Map$U32$U32(source_place, source_address), source_permission_amount)
+}
+
+method into_memory_block$Bool(place: PlaceOption, address: Address, snapshot: Snap$Bool)
+  requires acc(OwnedNonAliased$Bool(place, address), write) &&
+    snapshot == snap_owned_non_aliased$Bool(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(1)), write)
+{
+  unfold acc(OwnedNonAliased$Bool(place, address), write)
+}
+
+method into_memory_block$Map$U32$U32(place: PlaceOption, address: Address, snapshot: Map[Snap$U32,Snap$U32])
+  requires acc(OwnedNonAliased$Map$U32$U32(place, address), write) &&
+    snapshot == snap_owned_non_aliased$Map$U32$U32(place, address)
+  ensures acc(MemoryBlock(address, Size$Map$U32$U32$()), write)
+{
+  unfold acc(OwnedNonAliased$Map$U32$U32(place, address), write)
+}
+
+method into_memory_block$U32(place: PlaceOption, address: Address, snapshot: Snap$U32)
+  requires acc(OwnedNonAliased$U32(place, address), write) &&
+    snapshot == snap_owned_non_aliased$U32(place, address)
+  ensures acc(MemoryBlock(address, constructor$Snap$Usize$(4)), write)
+{
+  unfold acc(OwnedNonAliased$U32(place, address), write)
+}
+
+method lft_tok_sep_return$1(lft: Lifetime, lft_1: Lifetime, rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+
+
+method lft_tok_sep_return$2(lft: Lifetime, lft_1: Lifetime, lft_2: Lifetime,
+  rd_perm: Perm)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft), rd_perm)
+  requires lft == intersect(Set(lft_1, lft_2))
+  ensures acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft_2), rd_perm)
+
+
+method lft_tok_sep_take$1(lft_1: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1))
+
+
+method lft_tok_sep_take$2(lft_1: Lifetime, lft_2: Lifetime, rd_perm: Perm)
+  returns (lft: Lifetime)
+  requires none < rd_perm
+  requires acc(LifetimeToken(lft_1), rd_perm)
+  requires acc(LifetimeToken(lft_2), rd_perm)
+  ensures acc(LifetimeToken(lft), rd_perm)
+  ensures lft == intersect(Set(lft_1, lft_2))
+
+
+method memory_block_split$Tuple$(address: Address, permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(address, constructor$Snap$Usize$(0)), write)
+  ensures acc(MemoryBlock(address, PaddingSize$Tuple$$()), permission_amount)
+  ensures true
+
+
+method memory_copy$Map$U32$U32(source_address: Address, target_address: Address,
+  permission_amount: Perm)
+  requires none < permission_amount
+  requires acc(MemoryBlock(target_address, Size$Map$U32$U32$()), write)
+  requires acc(MemoryBlock(source_address, Size$Map$U32$U32$()), permission_amount)
+  ensures acc(MemoryBlock(target_address, Size$Map$U32$U32$()), write)
+  ensures acc(MemoryBlock(source_address, Size$Map$U32$U32$()), permission_amount)
+  ensures MemoryBlock$bytes(source_address, Size$Map$U32$U32$()) ==
+    old(MemoryBlock$bytes(source_address, Size$Map$U32$U32$()))
+  ensures MemoryBlock$bytes(target_address, Size$Map$U32$U32$()) ==
+    MemoryBlock$bytes(source_address, Size$Map$U32$U32$())
+
+
+method write_place_constant$Tuple$(target_place: PlaceOption, target_address: Address,
+  source_snapshot: Snap$Tuple$)
+  requires acc(MemoryBlock(target_address, constructor$Snap$Usize$(0)), write)
+  requires valid$Snap$Tuple$(source_snapshot)
+  ensures acc(OwnedNonAliased$Tuple$(target_place, target_address), write) &&
+    source_snapshot ==
+    snap_owned_non_aliased$Tuple$(target_place, target_address)
+{
+  memory_block_split$Tuple$(target_address, write)
+  fold acc(OwnedNonAliased$Tuple$(target_place, target_address), write)
+}

@@ -1,0 +1,1651 @@
+domain String  {
+  
+  function strLen(id: Int): Int 
+  
+  function strConcat(l: Int, r: Int): Int 
+  
+  unique function stringLit(): Int 
+  
+  axiom {
+    (forall l: Int, r: Int ::
+      { strLen(strConcat(l, r)) }
+      strLen(strConcat(l, r)) == strLen(l) + strLen(r))
+  }
+  
+  axiom {
+    (forall str: Int :: { strLen(str) } 0 <= strLen(str))
+  }
+  
+  axiom {
+    strLen(stringLit()) == 0
+  }
+}
+
+domain Pred_S0  {
+  
+  function Pred_S0_make_3(x0: Seq[Pred_S0], x1: Seq[Perm]): Pred_S0 
+  
+  function Pred_S0_make_2(): Pred_S0 
+  
+  function Pred_S0_make_1(x0: Ref, x1: Slice[Ref]): Pred_S0 
+  
+  function Pred_S0_make_0(x0: Ref, x1: Int): Pred_S0 
+  
+  function Pred_S0_default(): Pred_S0 
+}
+
+domain Types  {
+  
+  function empty_interface_Types(): Types 
+  
+  unique function empty_interface_Types_tag(): Int 
+  
+  function behavioral_subtype_Types(l: Types, r: Types): Bool 
+  
+  function nil_Types(): Types 
+  
+  unique function nil_Types_tag(): Int 
+  
+  function comparableType_Types(t: Types): Bool 
+  
+  function tag_Types(t: Types): Int 
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, empty_interface_Types()) }
+      behavioral_subtype_Types(a, empty_interface_Types()))
+  }
+  
+  axiom {
+    (forall a: Types ::
+      { behavioral_subtype_Types(a, a) }
+      behavioral_subtype_Types(a, a))
+  }
+  
+  axiom {
+    (forall a: Types, b: Types, c: Types ::
+      { behavioral_subtype_Types(a, b), behavioral_subtype_Types(b, c) }
+      behavioral_subtype_Types(a, b) && behavioral_subtype_Types(b, c) ==>
+      behavioral_subtype_Types(a, c))
+  }
+  
+  axiom {
+    comparableType_Types(empty_interface_Types()) == false
+  }
+  
+  axiom {
+    tag_Types(empty_interface_Types()) == empty_interface_Types_tag()
+  }
+  
+  axiom {
+    comparableType_Types(nil_Types()) == true
+  }
+  
+  axiom {
+    tag_Types(nil_Types()) == nil_Types_tag()
+  }
+}
+
+domain Emb_1_Intint$$$_S_$$$  {
+  
+  
+}
+
+domain Emb_3_Intuint32$$$_S_$$$  {
+  
+  
+}
+
+domain Emb_3_Intuint32$$$$_E_$$$  {
+  
+  
+}
+
+domain ShStruct2[T0, T1]  {
+  
+  function ShStructrev0of2(v0: T0): ShStruct2[T0, T1] 
+  
+  function ShStructrev1of2(v1: T1): ShStruct2[T0, T1] 
+  
+  function ShStructget0of2(x: ShStruct2[T0, T1]): T0 
+  
+  function ShStructget1of2(x: ShStruct2[T0, T1]): T1 
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1], y: ShStruct2[T0, T1] ::
+      { (eq(x, y): Bool) }
+      (eq(x, y): Bool) ==
+      ((ShStructget0of2(x): T0) == (ShStructget0of2(y): T0) &&
+      (ShStructget1of2(x): T1) == (ShStructget1of2(y): T1)))
+  }
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1] ::
+      { (ShStructget0of2(x): T0) }
+      (ShStructrev0of2((ShStructget0of2(x): T0)): ShStruct2[T0, T1]) == x)
+  }
+  
+  axiom {
+    (forall x: ShStruct2[T0, T1] ::
+      { (ShStructget1of2(x): T1) }
+      (ShStructrev1of2((ShStructget1of2(x): T1)): ShStruct2[T0, T1]) == x)
+  }
+}
+
+domain ShStruct1[T0]  {
+  
+  function ShStructrev0of1(v0: T0): ShStruct1[T0] 
+  
+  function ShStructget0of1(x: ShStruct1[T0]): T0 
+  
+  axiom {
+    (forall x: ShStruct1[T0], y: ShStruct1[T0] ::
+      { (eq(x, y): Bool) }
+      (eq(x, y): Bool) ==
+      ((ShStructget0of1(x): T0) == (ShStructget0of1(y): T0)))
+  }
+  
+  axiom {
+    (forall x: ShStruct1[T0] ::
+      { (ShStructget0of1(x): T0) }
+      (ShStructrev0of1((ShStructget0of1(x): T0)): ShStruct1[T0]) == x)
+  }
+}
+
+domain Equality[T]  {
+  
+  function eq(l: T, r: T): Bool 
+  
+  axiom {
+    (forall l: T, r: T ::
+      { (eq(l, r): Bool) }
+      (eq(l, r): Bool) == (l == r))
+  }
+}
+
+domain Tuple2[T0, T1]  {
+  
+  function tuple2(t0: T0, t1: T1): Tuple2[T0, T1] 
+  
+  function get0of2(p: Tuple2[T0, T1]): T0 
+  
+  function get1of2(p: Tuple2[T0, T1]): T1 
+  
+  axiom getter_over_tuple2 {
+    (forall t0: T0, t1: T1 ::
+      { (tuple2(t0, t1): Tuple2[T0, T1]) }
+      (get0of2((tuple2(t0, t1): Tuple2[T0, T1])): T0) == t0 &&
+      (get1of2((tuple2(t0, t1): Tuple2[T0, T1])): T1) == t1)
+  }
+  
+  axiom tuple2_over_getter {
+    (forall p: Tuple2[T0, T1] ::
+      { (get0of2(p): T0) }
+      { (get1of2(p): T1) }
+      (tuple2((get0of2(p): T0), (get1of2(p): T1)): Tuple2[T0, T1]) == p)
+  }
+}
+
+domain Tuple1[T0]  {
+  
+  function tuple1(t0: T0): Tuple1[T0] 
+  
+  function get0of1(p: Tuple1[T0]): T0 
+  
+  axiom getter_over_tuple1 {
+    (forall t0: T0 ::
+      { (tuple1(t0): Tuple1[T0]) }
+      (get0of1((tuple1(t0): Tuple1[T0])): T0) == t0)
+  }
+  
+  axiom tuple1_over_getter {
+    (forall p: Tuple1[T0] ::
+      { (get0of1(p): T0) }
+      (tuple1((get0of1(p): T0)): Tuple1[T0]) == p)
+  }
+}
+
+domain Slice[T]  {
+  
+  function sarray(s: Slice[T]): ShArray[T] 
+  
+  function soffset(s: Slice[T]): Int 
+  
+  function slen(s: Slice[T]): Int 
+  
+  function scap(s: Slice[T]): Int 
+  
+  function smake(a: ShArray[T], o: Int, l: Int, c: Int): Slice[T] 
+  
+  axiom {
+    (forall s: Slice[T] :: { (soffset(s): Int) } 0 <= (soffset(s): Int))
+  }
+  
+  axiom {
+    (forall s: Slice[T] :: { (slen(s): Int) } 0 <= (slen(s): Int))
+  }
+  
+  axiom {
+    (forall s: Slice[T] ::
+      { (slen(s): Int) }
+      { (scap(s): Int) }
+      (slen(s): Int) <= (scap(s): Int))
+  }
+  
+  axiom {
+    (forall s: Slice[T] ::
+      { (soffset(s): Int), (scap(s): Int) }
+      { (ShArraylen((sarray(s): ShArray[T])): Int) }
+      (soffset(s): Int) + (scap(s): Int) <=
+      (ShArraylen((sarray(s): ShArray[T])): Int))
+  }
+  
+  axiom {
+    (forall s: Slice[T] ::
+      { (sarray(s): ShArray[T]) }
+      { (soffset(s): Int) }
+      { (slen(s): Int) }
+      { (scap(s): Int) }
+      s ==
+      (smake((sarray(s): ShArray[T]), (soffset(s): Int), (slen(s): Int), (scap(s): Int)): Slice[T]))
+  }
+  
+  axiom deconstructor_over_constructor_array {
+    (forall a: ShArray[T], o: Int, l: Int, c: Int ::
+      { (sarray((smake(a, o, l, c): Slice[T])): ShArray[T]) }
+      0 <= o && (0 <= l && (l <= c && o + c <= (ShArraylen(a): Int))) ==>
+      (sarray((smake(a, o, l, c): Slice[T])): ShArray[T]) == a)
+  }
+  
+  axiom deconstructor_over_constructor_offset {
+    (forall a: ShArray[T], o: Int, l: Int, c: Int ::
+      { (soffset((smake(a, o, l, c): Slice[T])): Int) }
+      0 <= o && (0 <= l && (l <= c && o + c <= (ShArraylen(a): Int))) ==>
+      (soffset((smake(a, o, l, c): Slice[T])): Int) == o)
+  }
+  
+  axiom deconstructor_over_constructor_len {
+    (forall a: ShArray[T], o: Int, l: Int, c: Int ::
+      { (slen((smake(a, o, l, c): Slice[T])): Int) }
+      0 <= o && (0 <= l && (l <= c && o + c <= (ShArraylen(a): Int))) ==>
+      (slen((smake(a, o, l, c): Slice[T])): Int) == l)
+  }
+  
+  axiom deconstructor_over_constructor_cap {
+    (forall a: ShArray[T], o: Int, l: Int, c: Int ::
+      { (scap((smake(a, o, l, c): Slice[T])): Int) }
+      0 <= o && (0 <= l && (l <= c && o + c <= (ShArraylen(a): Int))) ==>
+      (scap((smake(a, o, l, c): Slice[T])): Int) == c)
+  }
+}
+
+domain ShArray[T]  {
+  
+  function ShArrayloc(a: ShArray[T], i: Int): T 
+  
+  function ShArraylen(a: ShArray[T]): Int 
+  
+  function ShArrayfirst(r: T): ShArray[T] 
+  
+  function ShArraysecond(r: T): Int 
+  
+  axiom {
+    (forall a: ShArray[T], i: Int ::
+      { (ShArrayloc(a, i): T) }
+      0 <= i && i < (ShArraylen(a): Int) ==>
+      (ShArrayfirst((ShArrayloc(a, i): T)): ShArray[T]) == a &&
+      (ShArraysecond((ShArrayloc(a, i): T)): Int) == i)
+  }
+  
+  axiom {
+    (forall a: ShArray[T] ::
+      { (ShArraylen(a): Int) }
+      (ShArraylen(a): Int) >= 0)
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+field Intint$$$$_E_$$$: Int
+
+field PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$: ShStruct2[Ref, Ref]
+
+field PointerIntint$$$_S_$$$$$$$_E_$$$: Ref
+
+field Intint32$$$$_E_$$$: Int
+
+field Intuint32$$$$_E_$$$: Int
+
+// decreases _
+function sliceDefault_Intint$$$_S_$$$(): Slice[Ref]
+  ensures (soffset(result): Int) == 0
+  ensures (slen(result): Int) == 0
+  ensures (scap(result): Int) == 0
+  ensures (sarray(result): ShArray[Ref]) ==
+    unbox_Emb_1_Intint$$$_S_$$$_ShArray_Ref(box_Emb_1_Intint$$$_S_$$$_ShArray_Ref(arrayNil_1_Intint$$$_S_$$$()))
+
+
+// decreases _
+function ssliceFromSlice_Ref(s: Slice[Ref], i: Int, j: Int): Slice[Ref]
+  requires 0 <= i
+  requires i <= j
+  requires j <= (scap(s): Int)
+  ensures (soffset(result): Int) == (soffset(s): Int) + i
+  ensures (slen(result): Int) == j - i
+  ensures (scap(result): Int) == (scap(s): Int) - i
+  ensures (sarray(result): ShArray[Ref]) == (sarray(s): ShArray[Ref])
+
+
+// decreases _
+function sfullSliceFromSlice_Ref(s: Slice[Ref], i: Int, j: Int, k: Int): Slice[Ref]
+  requires 0 <= i
+  requires i <= j
+  requires j <= k
+  requires k <= (scap(s): Int)
+  ensures (soffset(result): Int) == (soffset(s): Int) + i
+  ensures (slen(result): Int) == j - i
+  ensures (scap(result): Int) == k - i
+  ensures (sarray(result): ShArray[Ref]) == (sarray(s): ShArray[Ref])
+
+
+// decreases _
+function sfullSliceFromArray_Ref(a: ShArray[Ref], i: Int, j: Int, k: Int): Slice[Ref]
+  requires 0 <= i
+  requires i <= j
+  requires j <= k
+  requires k <= (ShArraylen(a): Int)
+  ensures (soffset(result): Int) == i
+  ensures (slen(result): Int) == j - i
+  ensures (scap(result): Int) == k - i
+  ensures (sarray(result): ShArray[Ref]) == a
+
+
+function sconstruct_Ref(a: ShArray[Ref], offset: Int, len: Int, cap: Int): Slice[Ref]
+  requires 0 <= offset
+  requires 0 <= len
+  requires len <= cap
+  requires offset + cap <= (ShArraylen(a): Int)
+  ensures (sarray(result): ShArray[Ref]) == a
+  ensures (soffset(result): Int) == offset
+  ensures (slen(result): Int) == len
+  ensures (scap(result): Int) == cap
+
+
+function arrayDefault_3_Intuint32$$$$_E_$$$(): Emb_3_Intuint32$$$$_E_$$$
+  ensures |unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(result)| == 3
+  ensures (forall idx: Int ::
+      { unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(result)[idx] }
+      0 <= idx && idx < 3 ==>
+      unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(result)[idx] == 0)
+
+
+// decreases _
+function arrayNil_1_Intint$$$_S_$$$(): ShArray[Ref]
+  ensures (ShArraylen(result): Int) == 1
+  ensures (forall idx: Int ::
+      { (ShArrayloc(result, idx): Ref) }
+      (ShArrayloc(result, idx): Ref) == null)
+
+
+// decreases _
+function arrayNil_3_Intuint32$$$_S_$$$(): ShArray[Ref]
+  ensures (ShArraylen(result): Int) == 1
+  ensures (forall idx: Int ::
+      { (ShArrayloc(result, idx): Ref) }
+      (ShArrayloc(result, idx): Ref) == null)
+
+
+// decreases _
+function box_Emb_1_Intint$$$_S_$$$_ShArray_Ref(x: ShArray[Ref]): Emb_1_Intint$$$_S_$$$
+  requires (ShArraylen(x): Int) == 1 || x == arrayNil_1_Intint$$$_S_$$$()
+  ensures unbox_Emb_1_Intint$$$_S_$$$_ShArray_Ref(result) == x
+
+
+// decreases _
+function unbox_Emb_1_Intint$$$_S_$$$_ShArray_Ref(y: Emb_1_Intint$$$_S_$$$): ShArray[Ref]
+  ensures (ShArraylen(result): Int) == 1 ||
+    result == arrayNil_1_Intint$$$_S_$$$()
+  ensures box_Emb_1_Intint$$$_S_$$$_ShArray_Ref(result) == y
+
+
+// decreases _
+function box_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(x: ShArray[Ref]): Emb_3_Intuint32$$$_S_$$$
+  requires (ShArraylen(x): Int) == 3 ||
+    x == arrayNil_3_Intuint32$$$_S_$$$()
+  ensures unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(result) == x
+
+
+// decreases _
+function unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(y: Emb_3_Intuint32$$$_S_$$$): ShArray[Ref]
+  ensures (ShArraylen(result): Int) == 3 ||
+    result == arrayNil_3_Intuint32$$$_S_$$$()
+  ensures box_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(result) == y
+
+
+// decreases _
+function box_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(x: Seq[Int]): Emb_3_Intuint32$$$$_E_$$$
+  requires |x| == 3
+  ensures unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(result) == x
+
+
+// decreases _
+function unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(y: Emb_3_Intuint32$$$$_E_$$$): Seq[Int]
+  ensures |result| == 3
+  ensures box_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(result) == y
+
+
+// decreases _
+function shStructDefault_$stateA_Intint32$$$_S_$$$_stemaA_Intuint32$$$_S_$$$$(): ShStruct2[Ref, Ref]
+  ensures (ShStructget0of2(result): Ref) == null &&
+    (ShStructget1of2(result): Ref) == null
+
+
+// decreases _
+function shStructDefault_$sumA_PointerIntint$$$_S_$$$$$$_S_$$$_mA_PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$_S_$$$$(): ShStruct2[Ref, Ref]
+  ensures (ShStructget0of2(result): Ref) == null &&
+    (ShStructget1of2(result): Ref) == null
+
+
+// decreases _
+function shStructDefault_$state1A_Array3Intuint32$$$_S_$$$$$$_S_$$$$(): ShStruct1[Emb_3_Intuint32$$$_S_$$$]
+  ensures (ShStructget0of1(result): Emb_3_Intuint32$$$_S_$$$) ==
+    box_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(arrayNil_3_Intuint32$$$_S_$$$())
+
+
+function sadd(left: Int, right: Int): Int
+  ensures result == left + right
+{
+  left + right
+}
+
+function Sum_37d1251d_F(s_V0: Slice[Ref]): Int
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(s_V0): Int) ==>
+      acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, wildcard))
+{
+  ((slen(s_V0): Int) == 0 ?
+    0 :
+    (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int), (slen(s_V0): Int) -
+    1)): Ref).Intint$$$$_E_$$$ +
+    Sum_37d1251d_F(ssliceFromSlice_Ref(s_V0, 0, (slen(s_V0): Int) - 1)))
+}
+
+function GhostSum_37d1251d_F(s_V0: Slice[Ref]): Int
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(s_V0): Int) ==>
+      acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, wildcard))
+{
+  ((slen(s_V0): Int) == 0 ?
+    0 :
+    (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int), (slen(s_V0): Int) -
+    1)): Ref).Intint$$$$_E_$$$ +
+    GhostSum_37d1251d_F(ssliceFromSlice_Ref(s_V0, 0, (slen(s_V0): Int) - 1)))
+}
+
+// decreases 
+function IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types]): Bool
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), wildcard)
+
+
+function LockInv_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref]): Pred_S0
+  requires acc(LockP_40249c7a_PMMutex(m_V0), wildcard)
+
+
+function WaitMode_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$]): Bool
+  requires acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), wildcard)
+
+
+predicate PredTrue_BF() {
+  true
+}
+
+predicate eval_Pred_S0(p: Pred_S0) 
+
+predicate AccInv_37d1251d_F(x_V0: Ref, seenSlice_V0: Slice[Ref]) {
+  acc(x_V0.Intint$$$$_E_$$$, write) &&
+  (forall i_V1: Int ::
+    { (ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+    i_V1)): Ref) }
+    0 <= i_V1 && i_V1 < (slen(seenSlice_V0): Int) ==>
+    acc((ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+    i_V1)): Ref).Intint$$$$_E_$$$, 1 / 2)) &&
+  GhostSum_37d1251d_F(seenSlice_V0) == x_V0.Intint$$$$_E_$$$
+}
+
+predicate locHasVal_37d1251d_F(loc_V0: Ref, val_V0: Int) {
+  acc(loc_V0.Intint$$$$_E_$$$, 1 / 2) && loc_V0.Intint$$$$_E_$$$ == val_V0
+}
+
+predicate ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types]) 
+
+predicate LockP_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref]) 
+
+predicate UnlockP_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref]) 
+
+predicate WaitGroupP_40249c7a_PMWaitGroup(wg_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$]) 
+
+predicate WaitGroupStarted_40249c7a_PMWaitGroup(wg_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$]) 
+
+predicate UnitDebt_40249c7a_PMWaitGroup(wg_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  p_V0: Pred_S0) 
+
+predicate Token_40249c7a_PMWaitGroup(wg_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  t_V0: Pred_S0) 
+
+predicate TokenById_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  P_V0: Pred_S0, i_V0: Int) {
+  acc(Token_40249c7a_PMWaitGroup(g_V0, P_V0), write)
+}
+
+predicate InjEval_40249c7a_F(P_V0: Pred_S0, i_V0: Int) {
+  acc(eval_Pred_S0(P_V0), write)
+}
+
+predicate CollectFractions_40249c7a_F(P_V0: Seq[Pred_S0], perms_V0: Seq[Perm]) {
+  |P_V0| == |perms_V0| &&
+  (forall i_V1: Int, j_V1: Int ::
+    { P_V0[i_V1], P_V0[j_V1] }
+    0 <= i_V1 && i_V1 < j_V1 && j_V1 < |P_V0| ==>
+    !(P_V0[i_V1] == P_V0[j_V1])) &&
+  ((forall i_V2: Int ::
+    { perms_V0[i_V2] }
+    0 <= i_V2 && i_V2 < |P_V0| ==> perms_V0[i_V2] >= 0 / 1) &&
+  (forall i_V2: Int ::
+    { P_V0[i_V2] }
+    { perms_V0[i_V2] }
+    0 <= i_V2 && i_V2 < |P_V0| ==>
+    acc(eval_Pred_S0(P_V0[i_V2]), perms_V0[i_V2])))
+}
+
+method ParallelSum_37d1251d_F(s_V0: Slice[Ref]) returns (res_V0: Int)
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(s_V0): Int) ==>
+      acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, write))
+  ensures res_V0 == old(Sum_37d1251d_F(s_V0))
+{
+  inhale res_V0 == 0
+  
+  // decl s_V0_CN0: []int@°°, res_V0_CN1: int°°
+  {
+    var res_V0_CN1: Int
+    var s_V0_CN0: Slice[Ref]
+    
+    
+    
+    // init s_V0_CN0
+    inhale s_V0_CN0 == sliceDefault_Intint$$$_S_$$$()
+    
+    // init res_V0_CN1
+    inhale res_V0_CN1 == 0
+    
+    // s_V0_CN0 = s_V0
+    s_V0_CN0 := s_V0
+    
+    // decl count_V2: int@@, N3: *Mutex_40249c7a_T@°°, m_V2: *Mutex_40249c7a_T@°°, N4: *Accum_37d1251d_T@°°, c_V2: *Accum_37d1251d_T@°°, N5: []int@°°, seenSlice_V2: []int@°°, N6: *WaitGroup_40249c7a_T@°°, w_V2: *WaitGroup_40249c7a_T@°°, n_V2: int°°, tokens_V2: seq[pred()°]°°
+    {
+      var tokens_V2: Seq[Pred_S0]
+      var n_V2: Int
+      var w_V2: ShStruct1[Emb_3_Intuint32$$$_S_$$$]
+      var N6: ShStruct1[Emb_3_Intuint32$$$_S_$$$]
+      var seenSlice_V2: Slice[Ref]
+      var N5: Slice[Ref]
+      var c_V2: ShStruct2[Ref, Ref]
+      var N4: ShStruct2[Ref, Ref]
+      var m_V2: ShStruct2[Ref, Ref]
+      var N3: ShStruct2[Ref, Ref]
+      var count_V2: Ref
+      
+      // if(len(s_V0_CN0) == 0) {...} else {...}
+      if ((slen(s_V0_CN0): Int) == 0) {
+        
+        // decl 
+        
+        // res_V0_CN1 = 0
+        res_V0_CN1 := 0
+        
+        // return
+        goto returnLabel
+      }
+      
+      // init count_V2
+      inhale acc(count_V2.Intint$$$$_E_$$$, write) &&
+        (count_V2.Intint$$$$_E_$$$ == 0 && !(count_V2 == null))
+      
+      // count_V2 = 0
+      count_V2.Intint$$$$_E_$$$ := 0
+      
+      // N3 = new(Mutex_40249c7a_T°{dflt[int32°], dflt[uint32°]})
+      {
+        var fn$$0: ShStruct2[Ref, Ref]
+        inhale (let fn$$1 ==
+            (fn$$0) in
+            acc((ShStructget0of2(fn$$1): Ref).Intint32$$$$_E_$$$, write) &&
+            acc((ShStructget1of2(fn$$1): Ref).Intuint32$$$$_E_$$$, write)) &&
+          (let fn$$2 ==
+            (fn$$0) in
+            (let fn$$3 ==
+              ((tuple2(0, 0): Tuple2[Int, Int])) in
+              (ShStructget0of2(fn$$2): Ref).Intint32$$$$_E_$$$ ==
+              (get0of2(fn$$3): Int) &&
+              (ShStructget1of2(fn$$2): Ref).Intuint32$$$$_E_$$$ ==
+              (get1of2(fn$$3): Int)))
+        N3 := fn$$0
+      }
+      
+      // init m_V2
+      inhale m_V2 ==
+        shStructDefault_$stateA_Intint32$$$_S_$$$_stemaA_Intuint32$$$_S_$$$$()
+      
+      // m_V2 = N3
+      m_V2 := N3
+      
+      // N4 = new(Accum_37d1251d_T°{&count_V2, m_V2})
+      {
+        var fn$$4: ShStruct2[Ref, Ref]
+        inhale (let fn$$5 ==
+            (fn$$4) in
+            acc((ShStructget0of2(fn$$5): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, write) &&
+            acc((ShStructget1of2(fn$$5): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, write)) &&
+          (let fn$$6 ==
+            (fn$$4) in
+            (let fn$$7 ==
+              ((tuple2(count_V2, m_V2): Tuple2[Ref, ShStruct2[Ref, Ref]])) in
+              (ShStructget0of2(fn$$6): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$ ==
+              (get0of2(fn$$7): Ref) &&
+              (ShStructget1of2(fn$$6): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$ ==
+              (get1of2(fn$$7): ShStruct2[Ref, Ref])))
+        N4 := fn$$4
+      }
+      
+      // init c_V2
+      inhale c_V2 ==
+        shStructDefault_$sumA_PointerIntint$$$_S_$$$$$$_S_$$$_mA_PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$_S_$$$$()
+      
+      // c_V2 = N4
+      c_V2 := N4
+      
+      // N5 = make([]int@°, len(s_V0_CN0))
+      {
+        var fn$$8: Slice[Ref]
+        exhale 0 <= (slen(s_V0_CN0): Int) && 0 <= (slen(s_V0_CN0): Int) &&
+          (slen(s_V0_CN0): Int) <= (slen(s_V0_CN0): Int)
+        inhale (forall fn$$9: Int ::
+            { (ShArrayloc((sarray(fn$$8): ShArray[Ref]), sadd((soffset(fn$$8): Int),
+            fn$$9)): Ref) }
+            0 <= fn$$9 && fn$$9 < (scap(fn$$8): Int) ==>
+            acc((ShArrayloc((sarray(fn$$8): ShArray[Ref]), sadd((soffset(fn$$8): Int),
+            fn$$9)): Ref).Intint$$$$_E_$$$, write))
+        inhale (scap(fn$$8): Int) == (slen(s_V0_CN0): Int)
+        inhale (slen(fn$$8): Int) == (slen(s_V0_CN0): Int)
+        inhale (forall fn$$10: Int ::
+            { (ShArrayloc((sarray(fn$$8): ShArray[Ref]), sadd((soffset(fn$$8): Int),
+            fn$$10)): Ref) }
+            0 <= fn$$10 && fn$$10 < (slen(s_V0_CN0): Int) ==>
+            (ShArrayloc((sarray(fn$$8): ShArray[Ref]), sadd((soffset(fn$$8): Int),
+            fn$$10)): Ref).Intint$$$$_E_$$$ ==
+            0)
+        N5 := fn$$8
+      }
+      
+      // init seenSlice_V2
+      inhale seenSlice_V2 == sliceDefault_Intint$$$_S_$$$()
+      
+      // seenSlice_V2 = N5
+      seenSlice_V2 := N5
+      
+      // c_V2Init(seenSlice_V2)
+      Init_37d1251d_PMAccum(c_V2, seenSlice_V2)
+      
+      // N6 = new(WaitGroup_40249c7a_T°{dflt[[3]uint32°°]})
+      {
+        var fn$$11: ShStruct1[Emb_3_Intuint32$$$_S_$$$]
+        inhale (let fn$$12 ==
+            (fn$$11) in
+            (forall fn$$13: Int ::
+              { (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref((ShStructget0of1(fn$$12): Emb_3_Intuint32$$$_S_$$$)),
+              fn$$13): Ref) }
+              0 <= fn$$13 && fn$$13 < 3 ==>
+              acc((ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref((ShStructget0of1(fn$$12): Emb_3_Intuint32$$$_S_$$$)),
+              fn$$13): Ref).Intuint32$$$$_E_$$$, write))) &&
+          (let fn$$14 ==
+            (fn$$11) in
+            (let fn$$15 ==
+              ((tuple1(arrayDefault_3_Intuint32$$$$_E_$$$()): Tuple1[Emb_3_Intuint32$$$$_E_$$$])) in
+              (let fn$$16 ==
+                ((ShStructget0of1(fn$$14): Emb_3_Intuint32$$$_S_$$$)) in
+                (let fn$$17 ==
+                  ((get0of1(fn$$15): Emb_3_Intuint32$$$$_E_$$$)) in
+                  (forall fn$$18: Int ::
+                    { (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(fn$$16),
+                    fn$$18): Ref) }
+                    { unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(fn$$17)[fn$$18] }
+                    0 <= fn$$18 && fn$$18 < 3 ==>
+                    (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(fn$$16),
+                    fn$$18): Ref).Intuint32$$$$_E_$$$ ==
+                    unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(fn$$17)[fn$$18])))))
+        N6 := fn$$11
+      }
+      
+      // init w_V2
+      inhale w_V2 ==
+        shStructDefault_$state1A_Array3Intuint32$$$_S_$$$$$$_S_$$$$()
+      
+      // w_V2 = N6
+      w_V2 := N6
+      
+      // w_V2Init()
+      Init_40249c7a_PMWaitGroup(w_V2)
+      
+      // init n_V2
+      inhale n_V2 == 0
+      
+      // n_V2 = len(s_V0_CN0)
+      n_V2 := (slen(s_V0_CN0): Int)
+      
+      // init tokens_V2
+      inhale tokens_V2 == Seq[Pred_S0]()
+      
+      // tokens_V2 = seq[pred()°] { }
+      tokens_V2 := Seq[Pred_S0]()
+      
+      // decl i_V3: int°°, L$17$1$Break
+      {
+        var i_V3: Int
+        
+        // init i_V3
+        inhale i_V3 == 0
+        
+        // i_V3 = 0
+        i_V3 := 0
+        
+        // while(i_V3 < n_V2)
+// invariant 0 <= i_V3 && i_V3 <= n_V2
+// invariant len(tokens_V2) == i_V3
+// invariant i_V3 == 0 ==> acc(w_V2.WaitGroupP())
+// invariant i_V3 > 0 ==> acc(w_V2.WaitGroupP(), 1/2) && acc(w_V2.WaitGroupStarted(), 1/2)
+// invariant forall i_V4: int° :: {  } 0 <= i_V4 && i_V4 < len(s_V0_CN0) ==> acc(s_V0_CN0[i_V4], 1/2)
+// invariant forall j_V5: int° :: {  } 0 <= j_V5 && j_V5 < i_V3 ==> tokens_V2[j_V5] == locHasVal_37d1251d_F{&seenSlice_V2[j_V5], s_V0_CN0[j_V5]}
+// invariant forall j_V6: int° :: {  } 0 <= j_V6 && j_V6 < i_V3 ==> acc(w_V2.TokenById(tokens_V2[j_V6], j_V6))
+// invariant !w_V2.WaitMode()
+// invariant acc(*c_V2, _)
+// invariant acc(*c_V2.mA.LockP(), _) && *c_V2.mA.LockInv() == AccInv_37d1251d_F{*c_V2.sumA, seenSlice_V2}
+// invariant forall j_V7: int° :: {  } i_V3 <= j_V7 && j_V7 < n_V2 ==> acc(seenSlice_V2[j_V7], 1/2)
+// invariant forall j_V8: int° :: {  } i_V3 <= j_V8 && j_V8 < n_V2 ==> seenSlice_V2[j_V8] == 0
+
+        
+        while (i_V3 < n_V2)
+          invariant 0 <= i_V3 && i_V3 <= n_V2
+          invariant |tokens_V2| == i_V3
+          invariant i_V3 == 0 ==>
+            acc(WaitGroupP_40249c7a_PMWaitGroup(w_V2), write)
+          invariant i_V3 > 0 ==>
+            acc(WaitGroupP_40249c7a_PMWaitGroup(w_V2), 1 / 2) &&
+            acc(WaitGroupStarted_40249c7a_PMWaitGroup(w_V2), 1 / 2)
+          invariant (forall i_V4: Int ::
+              { (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              i_V4)): Ref) }
+              0 <= i_V4 && i_V4 < (slen(s_V0_CN0): Int) ==>
+              acc((ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              i_V4)): Ref).Intint$$$$_E_$$$, 1 / 2))
+          invariant (forall j_V5: Int ::
+              { tokens_V2[j_V5] }
+              { Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), j_V5)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), j_V5)): Ref).Intint$$$$_E_$$$) }
+              0 <= j_V5 && j_V5 < i_V3 ==>
+              tokens_V2[j_V5] ==
+              Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), j_V5)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), j_V5)): Ref).Intint$$$$_E_$$$))
+          invariant (forall j_V6: Int ::
+              { tokens_V2[j_V6] }
+              0 <= j_V6 && j_V6 < i_V3 ==>
+              acc(TokenById_40249c7a_PMWaitGroup(w_V2, tokens_V2[j_V6], j_V6), write))
+          invariant !WaitMode_40249c7a_PMWaitGroup(w_V2)
+          invariant (let fn$$19 ==
+              (c_V2) in
+              acc((ShStructget0of2(fn$$19): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, wildcard) &&
+              acc((ShStructget1of2(fn$$19): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, wildcard))
+          invariant acc(LockP_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$), wildcard) &&
+            LockInv_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$) ==
+            Pred_S0_make_1((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+            seenSlice_V2)
+          invariant (forall j_V7: Int ::
+              { (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V7)): Ref) }
+              i_V3 <= j_V7 && j_V7 < n_V2 ==>
+              acc((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V7)): Ref).Intint$$$$_E_$$$, 1 / 2))
+          invariant (forall j_V8: Int ::
+              { (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V8)): Ref) }
+              i_V3 <= j_V8 && j_V8 < n_V2 ==>
+              (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V8)): Ref).Intint$$$$_E_$$$ ==
+              0) 
+        {
+          
+          // decl L$17$1$Continue
+          {
+            
+            // decl 
+            
+            // w_V2Add(1, 1/2, PredTrue_BF{})
+            Add_40249c7a_PMWaitGroup(w_V2, 1, 1 / 2, Pred_S0_make_2())
+            
+            // if(i_V3 == 0) {...} else {...}
+            if (i_V3 == 0) {
+              
+              // decl 
+              
+              // w_V2Start(1/2, PredTrue_BF{})
+              Start_40249c7a_PMWaitGroup(w_V2, 1 / 2, Pred_S0_make_2())
+            }
+            
+            // tokens_V2 = tokens_V2 ++ seq[pred()°] { 0:locHasVal_37d1251d_F{&seenSlice_V2[i_V3], s_V0_CN0[i_V3]} }
+            tokens_V2 := tokens_V2 ++
+              Seq(Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), i_V3)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), i_V3)): Ref).Intint$$$$_E_$$$))
+            
+            // w_V2GenerateTokenAndDebt(tokens_V2[i_V3])
+            GenerateTokenAndDebt_40249c7a_PMWaitGroup(w_V2, tokens_V2[i_V3])
+            
+            // fold acc(w_V2.TokenById(tokens_V2[i_V3], i_V3))
+            fold acc(TokenById_40249c7a_PMWaitGroup(w_V2, tokens_V2[i_V3], i_V3), write)
+            
+            // go worker_37d1251d_F(w_V2, c_V2, s_V0_CN0[i_V3], seenSlice_V2, i_V3)
+            exhale (let fn$$20 ==
+                (c_V2) in
+                acc((ShStructget0of2(fn$$20): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, wildcard) &&
+                acc((ShStructget1of2(fn$$20): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, wildcard)) &&
+              (acc((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              i_V3)): Ref).Intint$$$$_E_$$$, 1 / 2) &&
+              (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              i_V3)): Ref).Intint$$$$_E_$$$ ==
+              0) &&
+              (acc(LockP_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$), wildcard) &&
+              LockInv_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$) ==
+              Pred_S0_make_1((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+              seenSlice_V2)) &&
+              (0 <= i_V3 && i_V3 < (slen(seenSlice_V2): Int)) &&
+              acc(UnitDebt_40249c7a_PMWaitGroup(w_V2, Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), i_V3)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), i_V3)): Ref).Intint$$$$_E_$$$)), write)
+            
+            // L$17$1$Continue
+            label L$17$1$Continue
+            
+            // i_V3 = i_V3 + 1
+            i_V3 := i_V3 + 1
+          }
+          if (i_V3 < n_V2) {
+          }
+          
+        }
+        
+        // L$17$1$Break
+        label L$17$1$Break
+      }
+      
+      // w_V2SetWaitMode(1/2, 1/2)
+      SetWaitMode_40249c7a_PMWaitGroup(w_V2, 1 / 2, 1 / 2)
+      
+      // w_V2Wait(1/1, tokens_V2)
+      Wait_40249c7a_PMWaitGroup(w_V2, 1 / 1, tokens_V2)
+      
+      // decl 
+      
+      // decl i_V9: int°°, L$46$2$Break
+      {
+        var i_V9: Int
+        
+        // init i_V9
+        inhale i_V9 == 0
+        
+        // i_V9 = 0
+        i_V9 := 0
+        
+        // while(i_V9 < n_V2)
+// invariant 0 <= i_V9 && i_V9 <= n_V2
+// invariant forall j_V10: int° :: {  } 0 <= j_V10 && j_V10 < n_V2 ==> acc(s_V0_CN0[j_V10], 1/2)
+// invariant forall j_V11: int° :: {  } 0 <= j_V11 && j_V11 < n_V2 ==> tokens_V2[j_V11] == locHasVal_37d1251d_F{&seenSlice_V2[j_V11], s_V0_CN0[j_V11]}
+// invariant forall j_V12: int° :: {  } 0 <= j_V12 && j_V12 < n_V2 ==> j_V12 < i_V9 ==> acc(seenSlice_V2[j_V12], 1/2) && seenSlice_V2[j_V12] == s_V0_CN0[j_V12] && !j_V12 < i_V9 ==> acc(InjEval_40249c7a_F(tokens_V2[j_V12], j_V12))
+
+        
+        while (i_V9 < n_V2)
+          invariant 0 <= i_V9 && i_V9 <= n_V2
+          invariant (forall j_V10: Int ::
+              { (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              j_V10)): Ref) }
+              0 <= j_V10 && j_V10 < n_V2 ==>
+              acc((ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              j_V10)): Ref).Intint$$$$_E_$$$, 1 / 2))
+          invariant (forall j_V11: Int ::
+              { tokens_V2[j_V11] }
+              { Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), j_V11)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), j_V11)): Ref).Intint$$$$_E_$$$) }
+              0 <= j_V11 && j_V11 < n_V2 ==>
+              tokens_V2[j_V11] ==
+              Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), j_V11)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), j_V11)): Ref).Intint$$$$_E_$$$))
+          invariant (forall j_V12: Int ::
+              { (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V12)): Ref) }
+              0 <= j_V12 && j_V12 < n_V2 && j_V12 < i_V9 ==>
+              acc((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V12)): Ref).Intint$$$$_E_$$$, 1 / 2)) &&
+            (forall j_V12: Int ::
+              { (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V12)): Ref) }
+              { (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              j_V12)): Ref) }
+              0 <= j_V12 && j_V12 < n_V2 && j_V12 < i_V9 ==>
+              (ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]), sadd((soffset(seenSlice_V2): Int),
+              j_V12)): Ref).Intint$$$$_E_$$$ ==
+              (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+              j_V12)): Ref).Intint$$$$_E_$$$) &&
+            (forall j_V12: Int ::
+              { tokens_V2[j_V12] }
+              0 <= j_V12 && j_V12 < n_V2 && !(j_V12 < i_V9) ==>
+              acc(InjEval_40249c7a_F(tokens_V2[j_V12], j_V12), write)) 
+        {
+          
+          // decl L$46$2$Continue
+          {
+            
+            // decl 
+            
+            // unfold acc(InjEval_40249c7a_F(tokens_V2[i_V9], i_V9))
+            unfold acc(InjEval_40249c7a_F(tokens_V2[i_V9], i_V9), write)
+            
+            // unfold acc(locHasVal_37d1251d_F{&seenSlice_V2[i_V9], s_V0_CN0[i_V9]}(), write)
+            exhale acc(eval_Pred_S0(Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), i_V9)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), i_V9)): Ref).Intint$$$$_E_$$$)), write)
+            inhale acc(locHasVal_37d1251d_F((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), i_V9)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), i_V9)): Ref).Intint$$$$_E_$$$), write)
+            unfold acc(locHasVal_37d1251d_F((ShArrayloc((sarray(seenSlice_V2): ShArray[Ref]),
+              sadd((soffset(seenSlice_V2): Int), i_V9)): Ref), (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+              sadd((soffset(s_V0_CN0): Int), i_V9)): Ref).Intint$$$$_E_$$$), write)
+            
+            // L$46$2$Continue
+            label L$46$2$Continue
+            
+            // i_V9 = i_V9 + 1
+            i_V9 := i_V9 + 1
+          }
+          if (i_V9 < n_V2) {
+          }
+          
+        }
+        
+        // L$46$2$Break
+        label L$46$2$Break
+      }
+      
+      // *c_V2.mALock()
+      Lock_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$)
+      
+      // unfold acc(AccInv_37d1251d_F{*c_V2.sumA, seenSlice_V2}(), write)
+      exhale acc(eval_Pred_S0(Pred_S0_make_1((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2)), write)
+      inhale acc(AccInv_37d1251d_F((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2), write)
+      unfold acc(AccInv_37d1251d_F((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2), write)
+      
+      // res_V0_CN1 = **c_V2.sumA
+      res_V0_CN1 := (ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$.Intint$$$$_E_$$$
+      
+      // fold acc(AccInv_37d1251d_F{*c_V2.sumA, seenSlice_V2}(), write)
+      fold acc(AccInv_37d1251d_F((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2), write)
+      exhale acc(AccInv_37d1251d_F((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2), write)
+      inhale acc(eval_Pred_S0(Pred_S0_make_1((ShStructget0of2(c_V2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+        seenSlice_V2)), write)
+      
+      // *c_V2.mAUnlock()
+      Unlock_40249c7a_PMMutex((ShStructget1of2(c_V2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$)
+      
+      // sumExtensional_37d1251d_F(s_V0_CN0, seenSlice_V2)
+      sumExtensional_37d1251d_F(s_V0_CN0, seenSlice_V2)
+      
+      // res_V0_CN1 = res_V0_CN1
+      res_V0_CN1 := res_V0_CN1
+      
+      // return
+      goto returnLabel
+    }
+    label returnLabel
+    
+    // res_V0 = res_V0_CN1
+    res_V0 := res_V0_CN1
+  }
+}
+
+method worker_37d1251d_F(w_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$], accum_V0: ShStruct2[Ref, Ref],
+  val_V0: Int, seenSlice_V0: Slice[Ref], pos_V0: Int)
+  requires (let fn$$0 ==
+      (accum_V0) in
+      acc((ShStructget0of2(fn$$0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, wildcard) &&
+      acc((ShStructget1of2(fn$$0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, wildcard))
+  requires acc((ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$, 1 / 2) &&
+    (ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$ ==
+    0
+  requires acc(LockP_40249c7a_PMMutex((ShStructget1of2(accum_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$), wildcard) &&
+    LockInv_40249c7a_PMMutex((ShStructget1of2(accum_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$) ==
+    Pred_S0_make_1((ShStructget0of2(accum_V0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+    seenSlice_V0)
+  requires 0 <= pos_V0 && pos_V0 < (slen(seenSlice_V0): Int)
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(w_V0, Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]),
+    sadd((soffset(seenSlice_V0): Int), pos_V0)): Ref), val_V0)), write)
+{
+  
+  // decl w_V0_CN0: *WaitGroup_40249c7a_T@°°, accum_V0_CN1: *Accum_37d1251d_T@°°, val_V0_CN2: int°°, seenSlice_V0_CN3: []int@°°, pos_V0_CN4: int°°
+  {
+    var pos_V0_CN4: Int
+    var seenSlice_V0_CN3: Slice[Ref]
+    var val_V0_CN2: Int
+    var accum_V0_CN1: ShStruct2[Ref, Ref]
+    var w_V0_CN0: ShStruct1[Emb_3_Intuint32$$$_S_$$$]
+    
+    
+    
+    // init w_V0_CN0
+    inhale w_V0_CN0 ==
+      shStructDefault_$state1A_Array3Intuint32$$$_S_$$$$$$_S_$$$$()
+    
+    // init accum_V0_CN1
+    inhale accum_V0_CN1 ==
+      shStructDefault_$sumA_PointerIntint$$$_S_$$$$$$_S_$$$_mA_PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init val_V0_CN2
+    inhale val_V0_CN2 == 0
+    
+    // init seenSlice_V0_CN3
+    inhale seenSlice_V0_CN3 == sliceDefault_Intint$$$_S_$$$()
+    
+    // init pos_V0_CN4
+    inhale pos_V0_CN4 == 0
+    
+    // w_V0_CN0 = w_V0
+    w_V0_CN0 := w_V0
+    
+    // accum_V0_CN1 = accum_V0
+    accum_V0_CN1 := accum_V0
+    
+    // val_V0_CN2 = val_V0
+    val_V0_CN2 := val_V0
+    
+    // seenSlice_V0_CN3 = seenSlice_V0
+    seenSlice_V0_CN3 := seenSlice_V0
+    
+    // pos_V0_CN4 = pos_V0
+    pos_V0_CN4 := pos_V0
+    
+    // decl 
+    
+    // *accum_V0_CN1.mALock()
+    Lock_40249c7a_PMMutex((ShStructget1of2(accum_V0_CN1): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$)
+    
+    // unfold acc(AccInv_37d1251d_F{*accum_V0_CN1.sumA, seenSlice_V0_CN3}(), write)
+    exhale acc(eval_Pred_S0(Pred_S0_make_1((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3)), write)
+    inhale acc(AccInv_37d1251d_F((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3), write)
+    unfold acc(AccInv_37d1251d_F((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3), write)
+    
+    // **accum_V0_CN1.sumA = **accum_V0_CN1.sumA + val_V0_CN2
+    (ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$.Intint$$$$_E_$$$ := (ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$.Intint$$$$_E_$$$ +
+      val_V0_CN2
+    
+    // update_37d1251d_F(seenSlice_V0_CN3, pos_V0_CN4, val_V0_CN2)
+    update_37d1251d_F(seenSlice_V0_CN3, pos_V0_CN4, val_V0_CN2)
+    
+    // fold acc(AccInv_37d1251d_F{*accum_V0_CN1.sumA, seenSlice_V0_CN3}(), write)
+    fold acc(AccInv_37d1251d_F((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3), write)
+    exhale acc(AccInv_37d1251d_F((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3), write)
+    inhale acc(eval_Pred_S0(Pred_S0_make_1((ShStructget0of2(accum_V0_CN1): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN3)), write)
+    
+    // *accum_V0_CN1.mAUnlock()
+    Unlock_40249c7a_PMMutex((ShStructget1of2(accum_V0_CN1): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$)
+    
+    // fold acc(locHasVal_37d1251d_F{&seenSlice_V0_CN3[pos_V0_CN4], val_V0_CN2}(), write)
+    fold acc(locHasVal_37d1251d_F((ShArrayloc((sarray(seenSlice_V0_CN3): ShArray[Ref]),
+      sadd((soffset(seenSlice_V0_CN3): Int), pos_V0_CN4)): Ref), val_V0_CN2), write)
+    exhale acc(locHasVal_37d1251d_F((ShArrayloc((sarray(seenSlice_V0_CN3): ShArray[Ref]),
+      sadd((soffset(seenSlice_V0_CN3): Int), pos_V0_CN4)): Ref), val_V0_CN2), write)
+    inhale acc(eval_Pred_S0(Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V0_CN3): ShArray[Ref]),
+      sadd((soffset(seenSlice_V0_CN3): Int), pos_V0_CN4)): Ref), val_V0_CN2)), write)
+    
+    // w_V0_CN0PayDebt(locHasVal_37d1251d_F{&seenSlice_V0_CN3[pos_V0_CN4], val_V0_CN2})
+    PayDebt_40249c7a_PMWaitGroup(w_V0_CN0, Pred_S0_make_0((ShArrayloc((sarray(seenSlice_V0_CN3): ShArray[Ref]),
+      sadd((soffset(seenSlice_V0_CN3): Int), pos_V0_CN4)): Ref), val_V0_CN2))
+    
+    // w_V0_CN0Done()
+    Done_40249c7a_PMWaitGroup(w_V0_CN0)
+    label returnLabel
+  }
+}
+
+method Init_37d1251d_PMAccum(c_V0: ShStruct2[Ref, Ref], seenSlice_V0: Slice[Ref])
+  requires (let fn$$0 ==
+      (c_V0) in
+      acc((ShStructget0of2(fn$$0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, write) &&
+      acc((ShStructget1of2(fn$$0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, write)) &&
+    acc((ShStructget0of2(c_V0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$.Intint$$$$_E_$$$, write) &&
+    (let fn$$1 ==
+      ((ShStructget1of2(c_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$) in
+      acc((ShStructget0of2(fn$$1): Ref).Intint32$$$$_E_$$$, write) &&
+      acc((ShStructget1of2(fn$$1): Ref).Intuint32$$$$_E_$$$, write)) &&
+    (ShStructget0of2((ShStructget1of2(c_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$): Ref).Intint32$$$$_E_$$$ ==
+    0 &&
+    (ShStructget1of2((ShStructget1of2(c_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$): Ref).Intuint32$$$$_E_$$$ ==
+    0
+  requires (ShStructget0of2(c_V0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$.Intint$$$$_E_$$$ ==
+    0
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(seenSlice_V0): Int) ==>
+      acc((ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, 1 / 2))
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(seenSlice_V0): Int) ==>
+      (ShArrayloc((sarray(seenSlice_V0): ShArray[Ref]), sadd((soffset(seenSlice_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$ ==
+      0)
+  ensures (let fn$$2 ==
+      (c_V0) in
+      acc((ShStructget0of2(fn$$2): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$, write) &&
+      acc((ShStructget1of2(fn$$2): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$, write)) &&
+    acc(LockP_40249c7a_PMMutex((ShStructget1of2(c_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$), write) &&
+    LockInv_40249c7a_PMMutex((ShStructget1of2(c_V0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$) ==
+    Pred_S0_make_1((ShStructget0of2(c_V0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+    seenSlice_V0)
+{
+  
+  // decl c_V0_CN0: *Accum_37d1251d_T@°°, seenSlice_V0_CN1: []int@°°
+  {
+    var seenSlice_V0_CN1: Slice[Ref]
+    var c_V0_CN0: ShStruct2[Ref, Ref]
+    
+    
+    
+    // init c_V0_CN0
+    inhale c_V0_CN0 ==
+      shStructDefault_$sumA_PointerIntint$$$_S_$$$$$$_S_$$$_mA_PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$_S_$$$$()
+    
+    // init seenSlice_V0_CN1
+    inhale seenSlice_V0_CN1 == sliceDefault_Intint$$$_S_$$$()
+    
+    // c_V0_CN0 = c_V0
+    c_V0_CN0 := c_V0
+    
+    // seenSlice_V0_CN1 = seenSlice_V0
+    seenSlice_V0_CN1 := seenSlice_V0
+    
+    // decl 
+    
+    // assume GhostSum_37d1251d_F(seenSlice_V0_CN1) == 0
+    inhale GhostSum_37d1251d_F(seenSlice_V0_CN1) == 0
+    
+    // fold acc(AccInv_37d1251d_F{*c_V0_CN0.sumA, seenSlice_V0_CN1}(), write)
+    fold acc(AccInv_37d1251d_F((ShStructget0of2(c_V0_CN0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN1), write)
+    exhale acc(AccInv_37d1251d_F((ShStructget0of2(c_V0_CN0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN1), write)
+    inhale acc(eval_Pred_S0(Pred_S0_make_1((ShStructget0of2(c_V0_CN0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN1)), write)
+    
+    // *c_V0_CN0.mASetInv(AccInv_37d1251d_F{*c_V0_CN0.sumA, seenSlice_V0_CN1})
+    SetInv_40249c7a_PMMutex((ShStructget1of2(c_V0_CN0): Ref).PointerDefinedMutex_40249c7a_T$$$_S_$$$$$$$_E_$$$,
+      Pred_S0_make_1((ShStructget0of2(c_V0_CN0): Ref).PointerIntint$$$_S_$$$$$$$_E_$$$,
+      seenSlice_V0_CN1))
+    label returnLabel
+  }
+}
+
+method sumExtensional_37d1251d_F(a_V0: Slice[Ref], b_V0: Slice[Ref])
+  requires (slen(a_V0): Int) == (slen(b_V0): Int)
+  requires (forall j_V1: Int ::
+      { (ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int),
+      j_V1)): Ref) }
+      0 <= j_V1 && j_V1 < (slen(a_V0): Int) ==>
+      acc((ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int),
+      j_V1)): Ref).Intint$$$$_E_$$$, 1 / 2))
+  requires (forall j_V2: Int ::
+      { (ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int),
+      j_V2)): Ref) }
+      0 <= j_V2 && j_V2 < (slen(b_V0): Int) ==>
+      acc((ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int),
+      j_V2)): Ref).Intint$$$$_E_$$$, 1 / 4)) &&
+    (forall j_V2: Int ::
+      { (ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int),
+      j_V2)): Ref) }
+      { (ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int),
+      j_V2)): Ref) }
+      0 <= j_V2 && j_V2 < (slen(b_V0): Int) ==>
+      (ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int), j_V2)): Ref).Intint$$$$_E_$$$ ==
+      (ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int), j_V2)): Ref).Intint$$$$_E_$$$)
+  ensures old(Sum_37d1251d_F(a_V0) - GhostSum_37d1251d_F(b_V0)) == 0
+  ensures (forall j_V1: Int ::
+      { (ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int),
+      j_V1)): Ref) }
+      0 <= j_V1 && j_V1 < (slen(a_V0): Int) ==>
+      acc((ShArrayloc((sarray(a_V0): ShArray[Ref]), sadd((soffset(a_V0): Int),
+      j_V1)): Ref).Intint$$$$_E_$$$, 1 / 2))
+  ensures (forall j_V3: Int ::
+      { (ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int),
+      j_V3)): Ref) }
+      0 <= j_V3 && j_V3 < (slen(b_V0): Int) ==>
+      acc((ShArrayloc((sarray(b_V0): ShArray[Ref]), sadd((soffset(b_V0): Int),
+      j_V3)): Ref).Intint$$$$_E_$$$, 1 / 4))
+{
+  
+  // decl a_V0_CN0: []int@°°, b_V0_CN1: []int@°°
+  {
+    var b_V0_CN1: Slice[Ref]
+    var a_V0_CN0: Slice[Ref]
+    
+    
+    
+    // init a_V0_CN0
+    inhale a_V0_CN0 == sliceDefault_Intint$$$_S_$$$()
+    
+    // init b_V0_CN1
+    inhale b_V0_CN1 == sliceDefault_Intint$$$_S_$$$()
+    
+    // a_V0_CN0 = a_V0
+    a_V0_CN0 := a_V0
+    
+    // b_V0_CN1 = b_V0
+    b_V0_CN1 := b_V0
+    
+    // decl 
+    
+    // if(len(a_V0_CN0) != 0) {...} else {...}
+    if (!((slen(a_V0_CN0): Int) == 0)) {
+      
+      // decl 
+      
+      // sumExtensional_37d1251d_F(a_V0_CN0[0:len(a_V0_CN0) - 1], b_V0_CN1[0:len(b_V0_CN1) - 1])
+      sumExtensional_37d1251d_F(ssliceFromSlice_Ref(a_V0_CN0, 0, (slen(a_V0_CN0): Int) -
+        1), ssliceFromSlice_Ref(b_V0_CN1, 0, (slen(b_V0_CN1): Int) - 1))
+    }
+    label returnLabel
+  }
+}
+
+method update_37d1251d_F(s_V0: Slice[Ref], pos_V0: Int, val_V0: Int)
+  requires (forall i_V1: Int ::
+      { (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(s_V0): Int) ==>
+      acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, 1 / 4))
+  requires acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$, 3 / 4)
+  requires 0 <= pos_V0 && pos_V0 < (slen(s_V0): Int)
+  ensures (forall i_V1: Int ::
+      { (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref) }
+      0 <= i_V1 && i_V1 < (slen(s_V0): Int) ==>
+      acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+      i_V1)): Ref).Intint$$$$_E_$$$, 1 / 4))
+  ensures acc((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$, 3 / 4)
+  ensures GhostSum_37d1251d_F(s_V0) ==
+    old(GhostSum_37d1251d_F(s_V0)) + val_V0
+  ensures (ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$ ==
+    old((ShArrayloc((sarray(s_V0): ShArray[Ref]), sadd((soffset(s_V0): Int),
+    pos_V0)): Ref).Intint$$$$_E_$$$) +
+    val_V0
+{
+  
+  // decl s_V0_CN0: []int@°°, pos_V0_CN1: int°°, val_V0_CN2: int°°
+  {
+    var val_V0_CN2: Int
+    var pos_V0_CN1: Int
+    var s_V0_CN0: Slice[Ref]
+    
+    
+    
+    // init s_V0_CN0
+    inhale s_V0_CN0 == sliceDefault_Intint$$$_S_$$$()
+    
+    // init pos_V0_CN1
+    inhale pos_V0_CN1 == 0
+    
+    // init val_V0_CN2
+    inhale val_V0_CN2 == 0
+    
+    // s_V0_CN0 = s_V0
+    s_V0_CN0 := s_V0
+    
+    // pos_V0_CN1 = pos_V0
+    pos_V0_CN1 := pos_V0
+    
+    // val_V0_CN2 = val_V0
+    val_V0_CN2 := val_V0
+    
+    // decl 
+    
+    // if(pos_V0_CN1 == len(s_V0_CN0) - 1) {...} else {...}
+    if (pos_V0_CN1 == (slen(s_V0_CN0): Int) - 1) {
+      
+      // decl 
+      
+      // s_V0_CN0[pos_V0_CN1] = s_V0_CN0[pos_V0_CN1] + val_V0_CN2
+      (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]), sadd((soffset(s_V0_CN0): Int),
+      pos_V0_CN1)): Ref).Intint$$$$_E_$$$ := (ShArrayloc((sarray(s_V0_CN0): ShArray[Ref]),
+        sadd((soffset(s_V0_CN0): Int), pos_V0_CN1)): Ref).Intint$$$$_E_$$$ +
+        val_V0_CN2
+    } else {
+      
+      // decl 
+      
+      // update_37d1251d_F(s_V0_CN0[0:len(s_V0_CN0) - 1], pos_V0_CN1, val_V0_CN2)
+      update_37d1251d_F(ssliceFromSlice_Ref(s_V0_CN0, 0, (slen(s_V0_CN0): Int) -
+        1), pos_V0_CN1, val_V0_CN2)
+    }
+    label returnLabel
+  }
+}
+
+method $IMPORTS_37d1251d_37d1251d()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_37d1251d_40249c7a()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method $IMPORTS_37d1251d_bffb141e()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+// decreases 
+method $INIT_37d1251d_5ded9007()
+{
+  
+  // decl 
+  {
+    
+    
+    label returnLabel
+  }
+}
+
+method panic_bffb141e_F(v_V0: Tuple2[Ref, Types])
+  requires false
+
+
+// decreases 
+method Error_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types])
+  returns (P0_PO0: Int)
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+
+
+// decreases 
+method Duplicate_bffb141e_SY$c04328b0_bffb141e_(thisItf: Tuple2[Ref, Types])
+  requires !(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))
+  requires acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+  ensures IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e_(thisItf) ==>
+    acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), write)
+
+
+method Lock_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref])
+  requires acc(LockP_40249c7a_PMMutex(m_V0), wildcard)
+  ensures acc(LockP_40249c7a_PMMutex(m_V0), write) &&
+    acc(UnlockP_40249c7a_PMMutex(m_V0), write) &&
+    acc(eval_Pred_S0(LockInv_40249c7a_PMMutex(m_V0)), write)
+
+
+// decreases _
+method Unlock_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref])
+  requires acc(LockP_40249c7a_PMMutex(m_V0), wildcard) &&
+    acc(UnlockP_40249c7a_PMMutex(m_V0), write) &&
+    acc(eval_Pred_S0(LockInv_40249c7a_PMMutex(m_V0)), write)
+  ensures acc(LockP_40249c7a_PMMutex(m_V0), write)
+
+
+// decreases 
+method SetInv_40249c7a_PMMutex(m_V0: ShStruct2[Ref, Ref], inv_V0: Pred_S0)
+  requires acc(eval_Pred_S0(inv_V0), write) &&
+    (let fn$$0 ==
+      (m_V0) in
+      acc((ShStructget0of2(fn$$0): Ref).Intint32$$$$_E_$$$, write) &&
+      acc((ShStructget1of2(fn$$0): Ref).Intuint32$$$$_E_$$$, write)) &&
+    (let fn$$1 ==
+      (m_V0) in
+      (let fn$$2 ==
+        ((tuple2(0, 0): Tuple2[Int, Int])) in
+        (ShStructget0of2(fn$$1): Ref).Intint32$$$$_E_$$$ ==
+        (get0of2(fn$$2): Int) &&
+        (ShStructget1of2(fn$$1): Ref).Intuint32$$$$_E_$$$ ==
+        (get1of2(fn$$2): Int)))
+  ensures acc(LockP_40249c7a_PMMutex(m_V0), write) &&
+    LockInv_40249c7a_PMMutex(m_V0) == inv_V0
+
+
+// decreases _
+method Add_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$], n_V0: Int,
+  p_V0: Perm, P_V0: Pred_S0)
+  requires p_V0 >= 0 / 1
+  requires n_V0 > 0 && p_V0 > 0 / 1 ==>
+    acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0) &&
+    !WaitMode_40249c7a_PMWaitGroup(g_V0)
+  requires n_V0 > 0 && p_V0 == 0 / 1 ==>
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, P_V0), write)
+  requires n_V0 < 0 ==>
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), (0 - n_V0) /
+    1)
+  ensures n_V0 > 0 && p_V0 > 0 / 1 ==>
+    acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0)
+  ensures n_V0 > 0 && p_V0 == 0 / 1 ==>
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, P_V0), write)
+  ensures n_V0 > 0 ==>
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), n_V0 / 1)
+  ensures n_V0 > 0 && p_V0 > 0 / 1 ==>
+    WaitMode_40249c7a_PMWaitGroup(g_V0) ==
+    old(WaitMode_40249c7a_PMWaitGroup(g_V0))
+
+
+// decreases _
+method Done_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$])
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), write)
+
+
+method Wait_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  p_V0: Perm, P_V0: Seq[Pred_S0])
+  requires p_V0 > 0 / 1
+  requires acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0)
+  requires WaitMode_40249c7a_PMWaitGroup(g_V0)
+  requires (forall i_V1: Int ::
+      { P_V0[i_V1] }
+      0 <= i_V1 && i_V1 < |P_V0| ==>
+      acc(TokenById_40249c7a_PMWaitGroup(g_V0, P_V0[i_V1], i_V1), write))
+  ensures (forall i_V2: Int ::
+      { P_V0[i_V2] }
+      0 <= i_V2 && i_V2 < |P_V0| ==>
+      acc(InjEval_40249c7a_F(P_V0[i_V2], i_V2), write))
+  ensures acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0)
+
+
+// decreases 
+method Init_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$])
+  requires (let fn$$0 ==
+      (g_V0) in
+      (forall fn$$1: Int ::
+        { (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref((ShStructget0of1(fn$$0): Emb_3_Intuint32$$$_S_$$$)),
+        fn$$1): Ref) }
+        0 <= fn$$1 && fn$$1 < 3 ==>
+        acc((ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref((ShStructget0of1(fn$$0): Emb_3_Intuint32$$$_S_$$$)),
+        fn$$1): Ref).Intuint32$$$$_E_$$$, write))) &&
+    (let fn$$2 ==
+      (g_V0) in
+      (let fn$$3 ==
+        ((tuple1(arrayDefault_3_Intuint32$$$$_E_$$$()): Tuple1[Emb_3_Intuint32$$$$_E_$$$])) in
+        (let fn$$4 ==
+          ((ShStructget0of1(fn$$2): Emb_3_Intuint32$$$_S_$$$)) in
+          (let fn$$5 ==
+            ((get0of1(fn$$3): Emb_3_Intuint32$$$$_E_$$$)) in
+            (forall fn$$6: Int ::
+              { (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(fn$$4),
+              fn$$6): Ref) }
+              { unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(fn$$5)[fn$$6] }
+              0 <= fn$$6 && fn$$6 < 3 ==>
+              (ShArrayloc(unbox_Emb_3_Intuint32$$$_S_$$$_ShArray_Ref(fn$$4),
+              fn$$6): Ref).Intuint32$$$$_E_$$$ ==
+              unbox_Emb_3_Intuint32$$$$_E_$$$_Seq_Int(fn$$5)[fn$$6])))))
+  ensures acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), write) &&
+    !WaitMode_40249c7a_PMWaitGroup(g_V0)
+
+
+method UnsetWaitMode_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$])
+  requires acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), write)
+  ensures acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), write) &&
+    !WaitMode_40249c7a_PMWaitGroup(g_V0)
+
+
+// decreases 
+method Start_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  p_V0: Perm, P_V0: Pred_S0)
+  requires p_V0 > 0 / 1
+  requires acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0)
+  requires !WaitMode_40249c7a_PMWaitGroup(g_V0) &&
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, P_V0), write)
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, P_V0), write) &&
+    acc(WaitGroupStarted_40249c7a_PMWaitGroup(g_V0), p_V0)
+
+
+// decreases 
+method SetWaitMode_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  p_V0: Perm, q_V0: Perm)
+  requires p_V0 >= 0 / 1
+  requires q_V0 > 0 / 1
+  requires p_V0 + q_V0 == 1 / 1
+  requires acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), p_V0)
+  requires acc(WaitGroupStarted_40249c7a_PMWaitGroup(g_V0), q_V0)
+  ensures acc(WaitGroupP_40249c7a_PMWaitGroup(g_V0), write) &&
+    WaitMode_40249c7a_PMWaitGroup(g_V0)
+
+
+// decreases 
+method PayDebt_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  P_V0: Pred_S0)
+  requires acc(eval_Pred_S0(P_V0), write) &&
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, P_V0), write)
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), write)
+
+
+// decreases 
+method GenerateTokenAndDebt_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  R_V0: Pred_S0)
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), write)
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, R_V0), write) &&
+    acc(Token_40249c7a_PMWaitGroup(g_V0, R_V0), write)
+
+
+method GenerateToken_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  R_V0: Pred_S0)
+  requires acc(eval_Pred_S0(R_V0), write)
+  ensures acc(Token_40249c7a_PMWaitGroup(g_V0, R_V0), write)
+
+
+method SplitSequence_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  P_V0: Seq[Pred_S0], Q_V0: Seq[Pred_S0], permsP_V0: Seq[Perm], permsQ_V0: Seq[Perm])
+  requires |P_V0| == |permsP_V0|
+  requires |Q_V0| == |permsQ_V0|
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(P_V0 ++
+    Q_V0, permsP_V0 ++ permsQ_V0)), write)
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), write)
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(P_V0, permsP_V0)), write) &&
+    acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(Q_V0, permsQ_V0)), write)
+
+
+method SplitFractions_40249c7a_PMWaitGroup(g_V0: ShStruct1[Emb_3_Intuint32$$$_S_$$$],
+  P_V0: Seq[Pred_S0], permsP_V0: Seq[Perm], permsQ_V0: Seq[Perm], permsR_V0: Seq[Perm])
+  requires |P_V0| == |permsP_V0|
+  requires |P_V0| == |permsQ_V0|
+  requires |P_V0| == |permsR_V0|
+  requires (forall i_V1: Int ::
+      { permsP_V0[i_V1] }
+      0 <= i_V1 && i_V1 < |P_V0| ==> permsP_V0[i_V1] >= 0 / 1)
+  requires (forall i_V2: Int ::
+      { permsQ_V0[i_V2] }
+      0 <= i_V2 && i_V2 < |P_V0| ==> permsQ_V0[i_V2] >= 0 / 1)
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(P_V0, permsR_V0)), write)
+  requires acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_2()), write)
+  requires (forall i_V3: Int ::
+      { permsP_V0[i_V3] }
+      { permsQ_V0[i_V3] }
+      { permsR_V0[i_V3] }
+      0 <= i_V3 && i_V3 < |P_V0| ==>
+      permsP_V0[i_V3] + permsQ_V0[i_V3] == permsR_V0[i_V3])
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(P_V0, permsP_V0)), write)
+  ensures acc(UnitDebt_40249c7a_PMWaitGroup(g_V0, Pred_S0_make_3(P_V0, permsQ_V0)), write)
+
+
+// decreases 
+method IsDuplicableMem_bffb141e_SY$c04328b0_bffb141e__pres_termination_proof(thisItf: Tuple2[Ref, Types])
+{
+  var $condInEx: Bool
+  if (!(thisItf == (tuple2(null, nil_Types()): Tuple2[Ref, Types]))) {
+    inhale acc(ErrorMem_bffb141e_SY$c04328b0_bffb141e_(thisItf), wildcard)
+  }
+}

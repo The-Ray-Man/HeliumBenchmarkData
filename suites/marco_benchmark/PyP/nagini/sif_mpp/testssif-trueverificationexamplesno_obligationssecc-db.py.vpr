@@ -1,0 +1,3284 @@
+domain PyType  {
+  
+  function extends_(sub: PyType, super: PyType): Bool 
+  
+  function issubtype(sub: PyType, super: PyType): Bool 
+  
+  function isnotsubtype(sub: PyType, super: PyType): Bool 
+  
+  function tuple_args(t: PyType): Seq[PyType] 
+  
+  function typeof(obj: Ref): PyType 
+  
+  function get_basic(t: PyType): PyType 
+  
+  function union_type_1(arg_1: PyType): PyType 
+  
+  function union_type_2(arg_1: PyType, arg_2: PyType): PyType 
+  
+  function union_type_3(arg_1: PyType, arg_2: PyType, arg_3: PyType): PyType 
+  
+  function union_type_4(arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType): PyType 
+  
+  unique function object(): PyType 
+  
+  unique function list_basic(): PyType 
+  
+  function list(arg0: PyType): PyType 
+  
+  function list_arg(typ: PyType, index: Int): PyType 
+  
+  unique function set_basic(): PyType 
+  
+  function set(arg0: PyType): PyType 
+  
+  function set_arg(typ: PyType, index: Int): PyType 
+  
+  unique function dict_basic(): PyType 
+  
+  function dict(arg0: PyType, arg1: PyType): PyType 
+  
+  function dict_arg(typ: PyType, index: Int): PyType 
+  
+  unique function int(): PyType 
+  
+  unique function float(): PyType 
+  
+  unique function bool(): PyType 
+  
+  unique function NoneType(): PyType 
+  
+  unique function Exception(): PyType 
+  
+  unique function ConnectionRefusedError(): PyType 
+  
+  unique function traceback(): PyType 
+  
+  unique function str(): PyType 
+  
+  unique function bytes(): PyType 
+  
+  unique function tuple_basic(): PyType 
+  
+  function tuple(args: Seq[PyType]): PyType 
+  
+  function tuple_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSeq_basic(): PyType 
+  
+  function PSeq(arg0: PyType): PyType 
+  
+  function PSeq_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PSet_basic(): PyType 
+  
+  function PSet(arg0: PyType): PyType 
+  
+  function PSet_arg(typ: PyType, index: Int): PyType 
+  
+  unique function PMultiset_basic(): PyType 
+  
+  function PMultiset(arg0: PyType): PyType 
+  
+  function PMultiset_arg(typ: PyType, index: Int): PyType 
+  
+  unique function slice(): PyType 
+  
+  unique function range_0(): PyType 
+  
+  unique function Iterator_basic(): PyType 
+  
+  function Iterator(arg0: PyType): PyType 
+  
+  function Iterator_arg(typ: PyType, index: Int): PyType 
+  
+  unique function Thread_0(): PyType 
+  
+  unique function LevelType(): PyType 
+  
+  unique function type(): PyType 
+  
+  unique function Place(): PyType 
+  
+  unique function __prim__Seq_type(): PyType 
+  
+  unique function Elem(): PyType 
+  
+  axiom issubtype_transitivity {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), issubtype(middle, super) }
+      issubtype(sub, middle) && issubtype(middle, super) ==>
+      issubtype(sub, super))
+  }
+  
+  axiom issubtype_reflexivity {
+    (forall type_: PyType ::
+      { issubtype(type_, type_) }
+      issubtype(type_, type_))
+  }
+  
+  axiom extends_implies_subtype {
+    (forall sub: PyType, sub2: PyType ::
+      { extends_(sub, sub2) }
+      extends_(sub, sub2) ==> issubtype(sub, sub2))
+  }
+  
+  axiom null_nonetype {
+    (forall r: Ref ::
+      { typeof(r) }
+      issubtype(typeof(r), NoneType()) == (r == null))
+  }
+  
+  axiom issubtype_object {
+    (forall type_: PyType ::
+      { issubtype(type_, object()) }
+      issubtype(type_, object()))
+  }
+  
+  axiom issubtype_exclusion {
+    (forall sub: PyType, sub2: PyType, super: PyType ::
+      { extends_(sub, super), extends_(sub2, super) }
+      extends_(sub, super) && extends_(sub2, super) && sub != sub2 ==>
+      isnotsubtype(sub, sub2) && isnotsubtype(sub2, sub))
+  }
+  
+  axiom issubtype_exclusion_2 {
+    (forall sub: PyType, super: PyType ::
+      { issubtype(sub, super) }
+      { issubtype(super, sub) }
+      issubtype(sub, super) && sub != super ==> !issubtype(super, sub))
+  }
+  
+  axiom issubtype_exclusion_propagation {
+    (forall sub: PyType, middle: PyType, super: PyType ::
+      { issubtype(sub, middle), isnotsubtype(middle, super) }
+      issubtype(sub, middle) && isnotsubtype(middle, super) ==>
+      !issubtype(sub, super))
+  }
+  
+  axiom tuple_arg_def {
+    (forall seq: Seq[PyType], i: Int, Z: PyType ::
+      { tuple(seq), tuple_arg(Z, i) }
+      issubtype(Z, tuple(seq)) ==> issubtype(tuple_arg(Z, i), seq[i]))
+  }
+  
+  axiom tuple_args_def {
+    (forall seq: Seq[PyType], Z: PyType ::
+      { issubtype(Z, tuple(seq)) }
+      issubtype(Z, tuple(seq)) ==> |tuple_args(Z)| == |seq|)
+  }
+  
+  axiom tuple_self_subtype {
+    (forall seq1: Seq[PyType], seq2: Seq[PyType] ::seq1 != seq2 &&
+      |seq1| == |seq2| &&
+      (forall i: Int ::i >= 0 && i < |seq1| ==> issubtype(seq1[i], seq2[i])) ==>
+      issubtype(tuple(seq1), tuple(seq2)))
+  }
+  
+  axiom union_subtype_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(X, union_type_1(arg_1)) }
+      issubtype(X, union_type_1(arg_1)) == (false || issubtype(X, arg_1)))
+  }
+  
+  axiom union_subtype_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(X, union_type_2(arg_1, arg_2)) }
+      issubtype(X, union_type_2(arg_1, arg_2)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2)))
+  }
+  
+  axiom union_subtype_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(X, union_type_3(arg_1, arg_2, arg_3)) }
+      issubtype(X, union_type_3(arg_1, arg_2, arg_3)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3)))
+  }
+  
+  axiom union_subtype_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) }
+      issubtype(X, union_type_4(arg_1, arg_2, arg_3, arg_4)) ==
+      (false || issubtype(X, arg_1) || issubtype(X, arg_2) ||
+      issubtype(X, arg_3) ||
+      issubtype(X, arg_4)))
+  }
+  
+  axiom subtype_union_1 {
+    (forall arg_1: PyType, X: PyType ::
+      { issubtype(union_type_1(arg_1), X) }
+      issubtype(union_type_1(arg_1), X) == (true && issubtype(arg_1, X)))
+  }
+  
+  axiom subtype_union_2 {
+    (forall arg_1: PyType, arg_2: PyType, X: PyType ::
+      { issubtype(union_type_2(arg_1, arg_2), X) }
+      issubtype(union_type_2(arg_1, arg_2), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X)))
+  }
+  
+  axiom subtype_union_3 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, X: PyType ::
+      { issubtype(union_type_3(arg_1, arg_2, arg_3), X) }
+      issubtype(union_type_3(arg_1, arg_2, arg_3), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X)))
+  }
+  
+  axiom subtype_union_4 {
+    (forall arg_1: PyType, arg_2: PyType, arg_3: PyType, arg_4: PyType, X: PyType ::
+      { issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) }
+      issubtype(union_type_4(arg_1, arg_2, arg_3, arg_4), X) ==
+      (true && issubtype(arg_1, X) && issubtype(arg_2, X) &&
+      issubtype(arg_3, X) &&
+      issubtype(arg_4, X)))
+  }
+  
+  axiom subtype_list {
+    (forall var0: PyType ::
+      { list(var0) }
+      extends_(list(var0), object()) &&
+      get_basic(list(var0)) == list_basic())
+  }
+  
+  axiom list_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { list(arg0), list_arg(Z, 0) }
+      issubtype(Z, list(arg0)) ==> list_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_set {
+    (forall var0: PyType ::
+      { set(var0) }
+      extends_(set(var0), object()) && get_basic(set(var0)) == set_basic())
+  }
+  
+  axiom set_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { set(arg0), set_arg(Z, 0) }
+      issubtype(Z, set(arg0)) ==> set_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_dict {
+    (forall var0: PyType, var1: PyType ::
+      { dict(var0, var1) }
+      extends_(dict(var0, var1), object()) &&
+      get_basic(dict(var0, var1)) == dict_basic())
+  }
+  
+  axiom dict_args0 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 0) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 0) == arg0)
+  }
+  
+  axiom dict_args1 {
+    (forall Z: PyType, arg0: PyType, arg1: PyType ::
+      { dict(arg0, arg1), dict_arg(Z, 1) }
+      issubtype(Z, dict(arg0, arg1)) ==> dict_arg(Z, 1) == arg1)
+  }
+  
+  axiom subtype_int {
+    extends_(int(), float()) && get_basic(int()) == int()
+  }
+  
+  axiom subtype_float {
+    extends_(float(), object()) && get_basic(float()) == float()
+  }
+  
+  axiom subtype_bool {
+    extends_(bool(), int()) && get_basic(bool()) == bool()
+  }
+  
+  axiom subtype_NoneType {
+    extends_(NoneType(), object()) && get_basic(NoneType()) == NoneType()
+  }
+  
+  axiom subtype_Exception {
+    extends_(Exception(), object()) &&
+    get_basic(Exception()) == Exception()
+  }
+  
+  axiom subtype_ConnectionRefusedError {
+    extends_(ConnectionRefusedError(), Exception()) &&
+    get_basic(ConnectionRefusedError()) == ConnectionRefusedError()
+  }
+  
+  axiom subtype_traceback {
+    extends_(traceback(), object()) &&
+    get_basic(traceback()) == traceback()
+  }
+  
+  axiom subtype_str {
+    extends_(str(), object()) && get_basic(str()) == str()
+  }
+  
+  axiom subtype_bytes {
+    extends_(bytes(), object()) && get_basic(bytes()) == bytes()
+  }
+  
+  axiom subtype_tuple {
+    (forall args: Seq[PyType] ::
+      { tuple(args) }
+      ((forall e: PyType ::(e in args) ==> e == object()) ==>
+      extends_(tuple(args), object())) &&
+      get_basic(tuple(args)) == tuple_basic())
+  }
+  
+  axiom subtype_PSeq {
+    (forall var0: PyType ::
+      { PSeq(var0) }
+      extends_(PSeq(var0), object()) &&
+      get_basic(PSeq(var0)) == PSeq_basic())
+  }
+  
+  axiom PSeq_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSeq(arg0), PSeq_arg(Z, 0) }
+      issubtype(Z, PSeq(arg0)) ==> PSeq_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PSet {
+    (forall var0: PyType ::
+      { PSet(var0) }
+      extends_(PSet(var0), object()) &&
+      get_basic(PSet(var0)) == PSet_basic())
+  }
+  
+  axiom PSet_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PSet(arg0), PSet_arg(Z, 0) }
+      issubtype(Z, PSet(arg0)) ==> PSet_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_PMultiset {
+    (forall var0: PyType ::
+      { PMultiset(var0) }
+      extends_(PMultiset(var0), object()) &&
+      get_basic(PMultiset(var0)) == PMultiset_basic())
+  }
+  
+  axiom PMultiset_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { PMultiset(arg0), PMultiset_arg(Z, 0) }
+      issubtype(Z, PMultiset(arg0)) ==> PMultiset_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_slice {
+    extends_(slice(), object()) && get_basic(slice()) == slice()
+  }
+  
+  axiom subtype_range_0 {
+    extends_(range_0(), object()) && get_basic(range_0()) == range_0()
+  }
+  
+  axiom subtype_Iterator {
+    (forall var0: PyType ::
+      { Iterator(var0) }
+      extends_(Iterator(var0), object()) &&
+      get_basic(Iterator(var0)) == Iterator_basic())
+  }
+  
+  axiom Iterator_args0 {
+    (forall Z: PyType, arg0: PyType ::
+      { Iterator(arg0), Iterator_arg(Z, 0) }
+      issubtype(Z, Iterator(arg0)) ==> Iterator_arg(Z, 0) == arg0)
+  }
+  
+  axiom subtype_Thread_0 {
+    extends_(Thread_0(), object()) && get_basic(Thread_0()) == Thread_0()
+  }
+  
+  axiom subtype_LevelType {
+    extends_(LevelType(), object()) &&
+    get_basic(LevelType()) == LevelType()
+  }
+  
+  axiom subtype_type {
+    extends_(type(), object()) && get_basic(type()) == type()
+  }
+  
+  axiom subtype_Place {
+    extends_(Place(), object()) && get_basic(Place()) == Place()
+  }
+  
+  axiom subtype___prim__Seq_type {
+    extends_(__prim__Seq_type(), object()) &&
+    get_basic(__prim__Seq_type()) == __prim__Seq_type()
+  }
+  
+  axiom subtype_Elem {
+    extends_(Elem(), object()) && get_basic(Elem()) == Elem()
+  }
+}
+
+domain SIFDomain[T]  {
+  
+  function Low(x: T): Bool 
+  
+  function LowEvent(): Bool 
+}
+
+domain _list_ce_helper  {
+  
+  function seq_ref_length(___s: Seq[Ref]): Int 
+  
+  function seq_ref_index(___s: Seq[Ref], i: Int): Ref 
+  
+  axiom relate_length {
+    (forall ___s: Seq[Ref] :: { |___s| } |___s| == seq_ref_length(___s))
+  }
+  
+  axiom relate_index {
+    (forall ___s: Seq[Ref], ___i: Int ::
+      { ___s[___i] }
+      ___s[___i] == seq_ref_index(___s, ___i))
+  }
+}
+
+domain Measure$  {
+  
+  function Measure$create(guard: Bool, key: Ref, value: Int): Measure$ 
+  
+  function Measure$guard(m: Measure$): Bool 
+  
+  function Measure$key(m: Measure$): Ref 
+  
+  function Measure$value(m: Measure$): Int 
+  
+  axiom Measure$A0 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$guard(Measure$create(g, k, v)) }
+      Measure$guard(Measure$create(g, k, v)) == g)
+  }
+  
+  axiom Measure$A1 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$key(Measure$create(g, k, v)) }
+      Measure$key(Measure$create(g, k, v)) == k)
+  }
+  
+  axiom Measure$A2 {
+    (forall g: Bool, k: Ref, v: Int ::
+      { Measure$value(Measure$create(g, k, v)) }
+      Measure$value(Measure$create(g, k, v)) == v)
+  }
+}
+
+domain __MSHelper[T$]  {
+  
+  function __toMS(s: Seq[T$]): Multiset[T$] 
+  
+  axiom __toMS_def_1 {
+    (__toMS(Seq[T$]()): Multiset[T$]) == Multiset[T$]()
+  }
+  
+  axiom __toMS_def_2 {
+    (forall __t: T$ ::
+      { (__toMS(Seq(__t)): Multiset[T$]) }
+      (__toMS(Seq(__t)): Multiset[T$]) == Multiset(__t))
+  }
+  
+  axiom __toMS_def_3 {
+    (forall __ss1: Seq[T$], __ss2: Seq[T$] ::
+      { (__toMS(__ss1 ++ __ss2): Multiset[T$]) }
+      (__toMS(__ss1 ++ __ss2): Multiset[T$]) ==
+      ((__toMS(__ss1): Multiset[T$]) union (__toMS(__ss2): Multiset[T$])))
+  }
+  
+  axiom __toMS_def_4 {
+    (forall __ss1: Seq[T$] ::
+      { (__toMS(__ss1): Multiset[T$]) }
+      |(__toMS(__ss1): Multiset[T$])| == |__ss1|)
+  }
+}
+
+domain _Name  {
+  
+  function _combine(n1: _Name, n2: _Name): _Name 
+  
+  function _single(n: Int): _Name 
+  
+  function _get_combined_prefix(n: _Name): _Name 
+  
+  function _get_combined_name(n: _Name): _Name 
+  
+  function _get_value(n: _Name): Int 
+  
+  function _name_type(n: _Name): Bool 
+  
+  function _is_single(n: _Name): Bool 
+  
+  function _is_combined(n: _Name): Bool 
+  
+  axiom decompose_single {
+    (forall i: Int :: { _single(i) } _get_value(_single(i)) == i)
+  }
+  
+  axiom compose_single {
+    (forall n: _Name ::
+      { _get_value(n) }
+      _is_single(n) ==> n == _single(_get_value(n)))
+  }
+  
+  axiom type_of_single {
+    (forall i: Int :: { _single(i) } _name_type(_single(i)))
+  }
+  
+  axiom decompose_combined {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      _get_combined_prefix(_combine(n1, n2)) == n1 &&
+      _get_combined_name(_combine(n1, n2)) == n2)
+  }
+  
+  axiom compose_combined {
+    (forall n: _Name ::
+      { _get_combined_prefix(n) }
+      { _get_combined_name(n) }
+      _is_combined(n) ==>
+      n == _combine(_get_combined_prefix(n), _get_combined_name(n)))
+  }
+  
+  axiom type_of_composed {
+    (forall n1: _Name, n2: _Name ::
+      { _combine(n1, n2) }
+      !_name_type(_combine(n1, n2)))
+  }
+  
+  axiom type_is_single {
+    (forall n: _Name :: { _name_type(n) } _name_type(n) == _is_single(n))
+  }
+  
+  axiom type_is_combined {
+    (forall n: _Name ::
+      { _name_type(n) }
+      !_name_type(n) == _is_combined(n))
+  }
+}
+
+domain IntWellFoundedOrder  {
+  
+  axiom integer_ax_dec {
+    (forall int1: Int, int2: Int ::
+      { (decreasing(int1, int2): Bool) }
+      int1 < int2 ==> (decreasing(int1, int2): Bool))
+  }
+  
+  axiom integer_ax_bound {
+    (forall int1: Int ::
+      { (bounded(int1): Bool) }
+      int1 >= 0 ==> (bounded(int1): Bool))
+  }
+}
+
+domain PredicateInstancesWellFoundedOrder  {
+  
+  axiom predicate_instances_ax_dec {
+    (forall l1: PredicateInstance, l2: PredicateInstance ::
+      { nestedPredicates(l1, l2) }
+      (decreasing(l1, l2): Bool) == nestedPredicates(l1, l2))
+  }
+  
+  axiom predicate_instances_ax_bound {
+    (forall l1: PredicateInstance ::
+      { (bounded(l1): Bool) }
+      (bounded(l1): Bool))
+  }
+}
+
+domain WellFoundedOrder[T]  {
+  
+  function decreasing(arg1: T, arg2: T): Bool 
+  
+  function bounded(arg1: T): Bool 
+}
+
+domain PredicateInstancesNestedRelation  {
+  
+  function nestedPredicates(l1: PredicateInstance, l2: PredicateInstance): Bool 
+  
+  axiom nestedTrans {
+    (forall l1: PredicateInstance, l2: PredicateInstance, l3: PredicateInstance ::
+      { nestedPredicates(l1, l2), nestedPredicates(l2, l3) }
+      nestedPredicates(l1, l2) && nestedPredicates(l2, l3) ==>
+      nestedPredicates(l1, l3))
+  }
+  
+  axiom nestedReflex {
+    (forall l1: PredicateInstance ::!nestedPredicates(l1, l1))
+  }
+}
+
+domain PredicateInstance  {
+  
+  
+}
+
+field _val: Ref
+
+field _valp: Ref
+
+field __container: Ref
+
+field __containerp: Ref
+
+field __iter_index: Int
+
+field __iter_indexp: Int
+
+field __previous: Seq[Ref]
+
+field __previousp: Seq[Ref]
+
+field list_acc: Seq[Ref]
+
+field list_accp: Seq[Ref]
+
+field set_acc: Set[Ref]
+
+field set_accp: Set[Ref]
+
+field dict_acc: Map[Ref,Ref]
+
+field dict_accp: Map[Ref,Ref]
+
+field Measure$acc: Seq[Ref]
+
+field Measure$accp: Seq[Ref]
+
+field MustReleaseBounded: Int
+
+field MustReleaseBoundedp: Int
+
+field MustReleaseUnbounded: Int
+
+field MustReleaseUnboundedp: Int
+
+field Elem_key: Ref
+
+field Elem_keyp: Ref
+
+field Elem_value: Ref
+
+field Elem_valuep: Ref
+
+function _isDefined(id: Int): Bool
+
+
+function _checkDefined(val: Ref, id: Int): Ref
+  requires _isDefined(id)
+{
+  val
+}
+
+function __file__(): Ref
+
+
+function __name__(): Ref
+
+
+function SUCCESS(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(0)
+{
+  __prim__int___box__(0)
+}
+
+function FAILURE(): Ref
+  ensures issubtype(typeof(result), int())
+  ensures result == __prim__int___box__(1)
+{
+  __prim__int___box__(1)
+}
+
+function __prim__int___box__(prim: Int): Ref
+  decreases _
+  ensures typeof(result) == int()
+  ensures int___unbox__(result) == prim
+
+
+function int___unbox__(box: Ref): Int
+  decreases _
+  requires issubtype(typeof(box), int())
+  ensures !issubtype(typeof(box), bool()) ==>
+    __prim__int___box__(result) == box
+  ensures issubtype(typeof(box), bool()) ==>
+    __prim__bool___box__(result != 0) == box
+
+
+function __prim__bool___box__(prim: Bool): Ref
+  decreases _
+  ensures typeof(result) == bool()
+  ensures bool___unbox__(result) == prim
+  ensures int___unbox__(result) == (prim ? 1 : 0)
+
+
+function bool___unbox__(box: Ref): Bool
+  decreases _
+  requires issubtype(typeof(box), bool())
+  ensures __prim__bool___box__(result) == box
+
+
+function int___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), int())
+  requires issubtype(typeof(other), int())
+{
+  int___unbox__(self) == int___unbox__(other)
+}
+
+function int___ge__(self: Int, other: Int): Bool
+  decreases _
+{
+  self >= other
+}
+
+function int___gt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self > other
+}
+
+function int___le__(self: Int, other: Int): Bool
+  decreases _
+{
+  self <= other
+}
+
+function int___lt__(self: Int, other: Int): Bool
+  decreases _
+{
+  self < other
+}
+
+function int___add__(self: Int, other: Int): Int
+  decreases _
+{
+  self + other
+}
+
+function int___sub__(self: Int, other: Int): Int
+  decreases _
+{
+  self - other
+}
+
+function int___floordiv__(self: Int, other: Int): Int
+  decreases _
+  requires other != 0
+{
+  self / other
+}
+
+function list___len__(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_acc, wildcard)
+{
+  |self.list_acc|
+}
+
+function list___len___0(self: Ref): Int
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires acc(self.list_accp, wildcard)
+{
+  |self.list_accp|
+}
+
+function list___getitem__(self: Ref, key: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_acc, wildcard)
+  requires (let ln ==
+      (list___len__(self)) in
+      (int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln) &&
+      (int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_acc[int___unbox__(key)] :
+      self.list_acc[list___len__(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+
+
+function list___getitem___0(self: Ref, key: Ref): Ref
+  decreases _
+  requires issubtype(typeof(self), list(list_arg(typeof(self), 0)))
+  requires issubtype(typeof(key), int())
+  requires acc(self.list_accp, wildcard)
+  requires (let ln ==
+      (list___len___0(self)) in
+      (int___unbox__(key) < 0 ==> int___unbox__(key) >= -ln) &&
+      (int___unbox__(key) >= 0 ==> int___unbox__(key) < ln))
+  ensures result ==
+    (int___unbox__(key) >= 0 ?
+      self.list_accp[int___unbox__(key)] :
+      self.list_accp[list___len___0(self) + int___unbox__(key)])
+  ensures issubtype(typeof(result), list_arg(typeof(self), 0))
+
+
+function Level(r: Ref): Perm
+  decreases _
+
+
+function str___len__(self: Ref): Int
+  decreases _
+  ensures result >= 0
+
+
+function str___val__(self: Ref): Int
+  decreases _
+
+
+function str___create__(len: Int, value: Int): Ref
+  decreases _
+  ensures str___len__(result) == len
+  ensures str___val__(result) == value
+  ensures typeof(result) == str()
+
+
+function str___eq__(self: Ref, other: Ref): Bool
+  decreases _
+  requires issubtype(typeof(self), str())
+  ensures (str___val__(self) == str___val__(other)) == result
+  ensures result ==> str___len__(self) == str___len__(other)
+
+
+function tuple___val__(self: Ref): Seq[Ref]
+  decreases _
+
+
+function tuple___create2__(arg0: Ref, arg1: Ref, t0: PyType, t1: PyType, ctr: Int): Ref
+  decreases _
+  requires issubtype(typeof(arg0), t0)
+  requires issubtype(typeof(arg1), t1)
+  ensures result != null
+  ensures typeof(result) == tuple(Seq(t0, t1))
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple_args(typeof(result)) == Seq(t0, t1)
+  ensures tuple___val__(result) == Seq(arg0, arg1)
+  ensures tuple___len__(result) == 2 &&
+    (tuple___getitem__(result, 0) == arg0 &&
+    tuple___getitem__(result, 1) == arg1)
+
+
+function tuple___len__(self: Ref): Int
+  decreases _
+  ensures result == |tuple_args(typeof(self))|
+  ensures result == |tuple___val__(self)|
+
+
+function tuple___getitem__(self: Ref, key: Int): Ref
+  decreases _
+  requires (let ln ==
+      (tuple___len__(self)) in
+      (key >= 0 ==> key < ln) && (key < 0 ==> key >= -ln))
+  ensures key >= 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), key))
+  ensures key < 0 ==>
+    issubtype(typeof(result), tuple_arg(typeof(self), tuple___len__(self) +
+    key))
+  ensures key >= 0 ==> result == tuple___val__(self)[key]
+  ensures key < 0 ==>
+    result == tuple___val__(self)[tuple___len__(self) + key]
+
+
+predicate _MaySet(rec: Ref, id: Int) 
+
+predicate _MaySet_0(rec: Ref, id: Int) 
+
+method lookup(p1: Bool, p2: Bool, elems: Ref, elems_9: Ref, key_1: Ref, key_1_0: Ref)
+  returns (_res: Ref, _res_0: Ref)
+  requires (p1 ==> issubtype(typeof(elems), list(Elem()))) &&
+    (p2 ==> issubtype(typeof(elems_9), list(Elem())))
+  requires (p1 ==> issubtype(typeof(key_1), int())) &&
+    (p2 ==> issubtype(typeof(key_1_0), int()))
+  requires (p1 ==> acc(elems.list_acc, write)) &&
+    (p2 ==> acc(elems_9.list_accp, write))
+  requires (p1 && p2 ==>
+    __prim__int___box__(list___len__(elems)) ==
+    __prim__int___box__(list___len___0(elems_9))) &&
+    (p1 && p2 ==> key_1 == key_1_0)
+  requires (p1 ==> true) && (p2 ==> true) &&
+    ((p1 ==>
+    (forall lambda25_25$i: Ref ::
+      { list___getitem__(elems, lambda25_25$i) }
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len__(elems))) ==>
+      acc(list___getitem__(elems, lambda25_25$i).Elem_key, write))) &&
+    (p2 ==>
+    (forall lambda25_25$i: Ref ::
+      { list___getitem___0(elems_9, lambda25_25$i) }
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len___0(elems_9))) ==>
+      acc(list___getitem___0(elems_9, lambda25_25$i).Elem_keyp, write)))) &&
+    (forall lambda25_25$i: Ref ::
+      { list___getitem__(elems, lambda25_25$i) }
+      { list___getitem___0(elems_9, lambda25_25$i) }
+      (p1 ==>
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len__(elems))) ==>
+      issubtype(typeof(list___getitem__(elems, lambda25_25$i).Elem_key), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len___0(elems_9))) ==>
+      issubtype(typeof(list___getitem___0(elems_9, lambda25_25$i).Elem_keyp),
+      int()))) &&
+    ((p1 ==>
+    (forall lambda25_25$i: Ref ::
+      { list___getitem__(elems, lambda25_25$i) }
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len__(elems))) ==>
+      acc(list___getitem__(elems, lambda25_25$i).Elem_value, write))) &&
+    (p2 ==>
+    (forall lambda25_25$i: Ref ::
+      { list___getitem___0(elems_9, lambda25_25$i) }
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len___0(elems_9))) ==>
+      acc(list___getitem___0(elems_9, lambda25_25$i).Elem_valuep, write)))) &&
+    (forall lambda25_25$i: Ref ::
+      { list___getitem__(elems, lambda25_25$i) }
+      { list___getitem___0(elems_9, lambda25_25$i) }
+      (p1 ==>
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len__(elems))) ==>
+      issubtype(typeof(list___getitem__(elems, lambda25_25$i).Elem_value), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda25_25$i), int()) &&
+      issubtype(typeof(lambda25_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda25_25$i), 0) &&
+      int___lt__(int___unbox__(lambda25_25$i), list___len___0(elems_9))) ==>
+      issubtype(typeof(list___getitem___0(elems_9, lambda25_25$i).Elem_valuep),
+      int()))) &&
+    (forall lambda25_25$i: Ref ::
+      { list___getitem__(elems, lambda25_25$i) }
+      { list___getitem___0(elems_9, lambda25_25$i) }
+      (p1 ==> issubtype(typeof(lambda25_25$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda25_25$i), int())) &&
+      ((p1 ==> issubtype(typeof(lambda25_25$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda25_25$i), int()))) &&
+      ((p1 ==> int___ge__(int___unbox__(lambda25_25$i), 0)) &&
+      (p2 ==> int___ge__(int___unbox__(lambda25_25$i), 0)) &&
+      ((p1 ==>
+      int___lt__(int___unbox__(lambda25_25$i), list___len__(elems))) &&
+      (p2 ==>
+      int___lt__(int___unbox__(lambda25_25$i), list___len___0(elems_9))))) ==>
+      (p1 && p2 ==>
+      list___getitem__(elems, lambda25_25$i).Elem_key ==
+      list___getitem___0(elems_9, lambda25_25$i).Elem_keyp) &&
+      ((p1 ==> list___getitem__(elems, lambda25_25$i).Elem_key == key_1) &&
+      (p2 ==>
+      list___getitem___0(elems_9, lambda25_25$i).Elem_keyp == key_1_0) ==>
+      p1 && p2 ==>
+      list___getitem__(elems, lambda25_25$i).Elem_value ==
+      list___getitem___0(elems_9, lambda25_25$i).Elem_valuep))
+  ensures (p1 ==> issubtype(typeof(_res), tuple(Seq(int(), int())))) &&
+    (p2 ==> issubtype(typeof(_res_0), tuple(Seq(int(), int()))))
+  ensures (p1 ==> acc(elems.list_acc, write)) &&
+    (p2 ==> acc(elems_9.list_accp, write))
+  ensures (p1 ==> true) && (p2 ==> true) &&
+    ((p1 ==>
+    (forall lambda27_24$i: Ref ::
+      { list___getitem__(elems, lambda27_24$i) }
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len__(elems))) ==>
+      acc(list___getitem__(elems, lambda27_24$i).Elem_key, write))) &&
+    (p2 ==>
+    (forall lambda27_24$i: Ref ::
+      { list___getitem___0(elems_9, lambda27_24$i) }
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len___0(elems_9))) ==>
+      acc(list___getitem___0(elems_9, lambda27_24$i).Elem_keyp, write)))) &&
+    (forall lambda27_24$i: Ref ::
+      { list___getitem__(elems, lambda27_24$i) }
+      { list___getitem___0(elems_9, lambda27_24$i) }
+      (p1 ==>
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len__(elems))) ==>
+      issubtype(typeof(list___getitem__(elems, lambda27_24$i).Elem_key), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len___0(elems_9))) ==>
+      issubtype(typeof(list___getitem___0(elems_9, lambda27_24$i).Elem_keyp),
+      int()))) &&
+    ((p1 ==>
+    (forall lambda27_24$i: Ref ::
+      { list___getitem__(elems, lambda27_24$i) }
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len__(elems))) ==>
+      acc(list___getitem__(elems, lambda27_24$i).Elem_value, write))) &&
+    (p2 ==>
+    (forall lambda27_24$i: Ref ::
+      { list___getitem___0(elems_9, lambda27_24$i) }
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len___0(elems_9))) ==>
+      acc(list___getitem___0(elems_9, lambda27_24$i).Elem_valuep, write)))) &&
+    (forall lambda27_24$i: Ref ::
+      { list___getitem__(elems, lambda27_24$i) }
+      { list___getitem___0(elems_9, lambda27_24$i) }
+      (p1 ==>
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len__(elems))) ==>
+      issubtype(typeof(list___getitem__(elems, lambda27_24$i).Elem_value), int())) &&
+      (p2 ==>
+      issubtype(typeof(lambda27_24$i), int()) &&
+      issubtype(typeof(lambda27_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda27_24$i), 0) &&
+      int___lt__(int___unbox__(lambda27_24$i), list___len___0(elems_9))) ==>
+      issubtype(typeof(list___getitem___0(elems_9, lambda27_24$i).Elem_valuep),
+      int()))) &&
+    (forall lambda27_24$i: Ref ::
+      { list___getitem__(elems, lambda27_24$i) }
+      { list___getitem___0(elems_9, lambda27_24$i) }
+      (p1 ==> issubtype(typeof(lambda27_24$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda27_24$i), int())) &&
+      ((p1 ==> issubtype(typeof(lambda27_24$i), int())) &&
+      (p2 ==> issubtype(typeof(lambda27_24$i), int()))) &&
+      ((p1 ==> int___ge__(int___unbox__(lambda27_24$i), 0)) &&
+      (p2 ==> int___ge__(int___unbox__(lambda27_24$i), 0)) &&
+      ((p1 ==>
+      int___lt__(int___unbox__(lambda27_24$i), list___len__(elems))) &&
+      (p2 ==>
+      int___lt__(int___unbox__(lambda27_24$i), list___len___0(elems_9))))) ==>
+      (p1 && p2 ==>
+      list___getitem__(elems, lambda27_24$i).Elem_key ==
+      list___getitem___0(elems_9, lambda27_24$i).Elem_keyp) &&
+      ((p1 ==> list___getitem__(elems, lambda27_24$i).Elem_key == key_1) &&
+      (p2 ==>
+      list___getitem___0(elems_9, lambda27_24$i).Elem_keyp == key_1_0) ==>
+      p1 && p2 ==>
+      list___getitem__(elems, lambda27_24$i).Elem_value ==
+      list___getitem___0(elems_9, lambda27_24$i).Elem_valuep))
+  ensures (p1 ==> int___eq__(tuple___getitem__(_res, 0), SUCCESS())) &&
+    (p2 ==> int___eq__(tuple___getitem__(_res_0, 0), SUCCESS())) ==>
+    p1 && p2 ==> tuple___getitem__(_res, 1) == tuple___getitem__(_res_0, 1)
+  ensures (p1 ==>
+    int___eq__(tuple___getitem__(_res, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res, 1), __prim__int___box__(-1))) &&
+    (p2 ==>
+    int___eq__(tuple___getitem__(_res_0, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res_0, 1), __prim__int___box__(-1)))
+  ensures (p1 ==>
+    int___eq__(tuple___getitem__(_res, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res, 0), FAILURE())) &&
+    (p2 ==>
+    int___eq__(tuple___getitem__(_res_0, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res_0, 0), FAILURE()))
+{
+  var ret1: Bool
+  var ret2: Bool
+  inhale p1
+  ret1 := false
+  ret2 := false
+  {
+    var _err: Ref
+    var _err_0: Ref
+    var i: Ref
+    var i_2: Ref
+    var elems_4: Ref
+    var elems_4_0: Ref
+    var key_6: Ref
+    var key_6_0: Ref
+    var _loop_check_before: Bool
+    var _loop_check_before_2: Bool
+    var _loop_termination_flag: Bool
+    var _loop_termination_flag_2: Bool
+    var _loop_original_must_terminate: Perm
+    var _loop_original_must_terminate_2: Perm
+    var _residue_161: Perm
+    var _residue_161_0: Perm
+    if (p1 && !ret1) {
+      _res := null
+      _err := null
+      elems_4 := elems
+      key_6 := key_1
+      i := __prim__int___box__(0)
+      inhale _isDefined(105)
+    }
+    if (p2 && !ret2) {
+      _res_0 := null
+      _err_0 := null
+      elems_4_0 := elems_9
+      key_6_0 := key_1_0
+      i_2 := __prim__int___box__(0)
+      inhale true
+    }
+    {
+      var bypass1: Bool
+      var bypass2: Bool
+      var tmp1: Bool
+      var tmp2: Bool
+      var tmp1_0: Ref
+      var tmp2_0: Ref
+      var oldret1: Bool
+      var oldret2: Bool
+      var p1_0: Bool
+      var p2_0: Bool
+      bypass1 := !(p1 && !ret1)
+      bypass2 := !(p2 && !ret2)
+      if (bypass1) {
+        tmp1 := ret1
+        tmp1_0 := i
+      }
+      if (bypass2) {
+        tmp2 := ret2
+        tmp2_0 := i_2
+      }
+      oldret1 := ret1
+      oldret2 := ret2
+      while (p1 && !ret1 && !bypass1 &&
+      int___lt__(int___unbox__(_checkDefined(i, 105)), list___len__(elems_4)) ||
+      p2 && !ret2 && !bypass2 &&
+      int___lt__(int___unbox__(i_2), list___len___0(elems_4_0)))
+        invariant (p1 && !bypass1 ==> issubtype(typeof(i), int())) &&
+          (p2 && !bypass2 ==> issubtype(typeof(i_2), int()))
+        invariant (p1 && !bypass1 ==> acc(elems_4.list_acc, write)) &&
+          (p2 && !bypass2 ==> acc(elems_4_0.list_accp, write)) &&
+          (p1 && !bypass1 && (p2 && !bypass2) ==>
+          __prim__int___box__(list___len__(elems_4)) ==
+          __prim__int___box__(list___len___0(elems_4_0)))
+        invariant (p1 && !bypass1 && (p2 && !bypass2) ==>
+          _checkDefined(i, 105) == i_2) &&
+          (p1 && !bypass1 && (p2 && !bypass2) ==> !ret1 == !ret2)
+        invariant (p1 && !bypass1 ==>
+          int___ge__(int___unbox__(_checkDefined(i, 105)), 0)) &&
+          (p2 && !bypass2 ==> int___ge__(int___unbox__(i_2), 0)) &&
+          ((p1 && !bypass1 ==>
+          int___le__(int___unbox__(_checkDefined(i, 105)), list___len__(elems_4))) &&
+          (p2 && !bypass2 ==>
+          int___le__(int___unbox__(i_2), list___len___0(elems_4_0))))
+        invariant true &&
+          ((p1 && !bypass1 ==>
+          (forall lambda37_30$j: Ref ::
+            { list___getitem__(elems_4, lambda37_30$j) }
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len__(elems_4))) ==>
+            acc(list___getitem__(elems_4, lambda37_30$j).Elem_key, write))) &&
+          (p2 && !bypass2 ==>
+          (forall lambda37_30$j: Ref ::
+            { list___getitem___0(elems_4_0, lambda37_30$j) }
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len___0(elems_4_0))) ==>
+            acc(list___getitem___0(elems_4_0, lambda37_30$j).Elem_keyp, write)))) &&
+          (forall lambda37_30$j: Ref ::
+            { list___getitem__(elems_4, lambda37_30$j) }
+            { list___getitem___0(elems_4_0, lambda37_30$j) }
+            (p1 && !bypass1 ==>
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len__(elems_4))) ==>
+            issubtype(typeof(list___getitem__(elems_4, lambda37_30$j).Elem_key),
+            int())) &&
+            (p2 && !bypass2 ==>
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len___0(elems_4_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_4_0, lambda37_30$j).Elem_keyp),
+            int()))) &&
+          ((p1 && !bypass1 ==>
+          (forall lambda37_30$j: Ref ::
+            { list___getitem__(elems_4, lambda37_30$j) }
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len__(elems_4))) ==>
+            acc(list___getitem__(elems_4, lambda37_30$j).Elem_value, write))) &&
+          (p2 && !bypass2 ==>
+          (forall lambda37_30$j: Ref ::
+            { list___getitem___0(elems_4_0, lambda37_30$j) }
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len___0(elems_4_0))) ==>
+            acc(list___getitem___0(elems_4_0, lambda37_30$j).Elem_valuep, write)))) &&
+          (forall lambda37_30$j: Ref ::
+            { list___getitem__(elems_4, lambda37_30$j) }
+            { list___getitem___0(elems_4_0, lambda37_30$j) }
+            (p1 && !bypass1 ==>
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len__(elems_4))) ==>
+            issubtype(typeof(list___getitem__(elems_4, lambda37_30$j).Elem_value),
+            int())) &&
+            (p2 && !bypass2 ==>
+            issubtype(typeof(lambda37_30$j), int()) &&
+            issubtype(typeof(lambda37_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda37_30$j), 0) &&
+            int___lt__(int___unbox__(lambda37_30$j), list___len___0(elems_4_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_4_0, lambda37_30$j).Elem_valuep),
+            int()))) &&
+          (forall lambda37_30$j: Ref ::
+            { list___getitem__(elems_4, lambda37_30$j) }
+            { list___getitem___0(elems_4_0, lambda37_30$j) }
+            (p1 && !bypass1 ==> issubtype(typeof(lambda37_30$j), int())) &&
+            (p2 && !bypass2 ==> issubtype(typeof(lambda37_30$j), int())) &&
+            ((p1 && !bypass1 ==> issubtype(typeof(lambda37_30$j), int())) &&
+            (p2 && !bypass2 ==> issubtype(typeof(lambda37_30$j), int()))) &&
+            ((p1 && !bypass1 ==>
+            int___ge__(int___unbox__(lambda37_30$j), 0)) &&
+            (p2 && !bypass2 ==> int___ge__(int___unbox__(lambda37_30$j), 0)) &&
+            ((p1 && !bypass1 ==>
+            int___lt__(int___unbox__(lambda37_30$j), list___len__(elems_4))) &&
+            (p2 && !bypass2 ==>
+            int___lt__(int___unbox__(lambda37_30$j), list___len___0(elems_4_0))))) ==>
+            (p1 && !bypass1 && (p2 && !bypass2) ==>
+            list___getitem__(elems_4, lambda37_30$j).Elem_key ==
+            list___getitem___0(elems_4_0, lambda37_30$j).Elem_keyp) &&
+            ((p1 && !bypass1 ==>
+            list___getitem__(elems_4, lambda37_30$j).Elem_key == key_6) &&
+            (p2 && !bypass2 ==>
+            list___getitem___0(elems_4_0, lambda37_30$j).Elem_keyp ==
+            key_6_0) ==>
+            p1 && !bypass1 && (p2 && !bypass2) ==>
+            list___getitem__(elems_4, lambda37_30$j).Elem_value ==
+            list___getitem___0(elems_4_0, lambda37_30$j).Elem_valuep))
+        invariant bypass1 ==> tmp1 == ret1
+        invariant bypass1 ==> tmp1_0 == i
+        invariant bypass2 ==> tmp2 == ret2
+        invariant bypass2 ==> tmp2_0 == i_2 
+      {
+        p1_0 := p1 && !ret1 &&
+          int___lt__(int___unbox__(_checkDefined(i, 105)), list___len__(elems_4))
+        p2_0 := p2 && !ret2 &&
+          int___lt__(int___unbox__(i_2), list___len___0(elems_4_0))
+        {
+          var p1_1: Bool
+          var p2_1: Bool
+          var p3: Bool
+          var p4: Bool
+          p1_1 := p1_0 && !ret1 &&
+            list___getitem__(elems_4, _checkDefined(i, 105)).Elem_key ==
+            key_6
+          p2_1 := p2_0 && !ret2 &&
+            list___getitem___0(elems_4_0, i_2).Elem_keyp == key_6_0
+          p3 := p1_0 && !ret1 &&
+            !(list___getitem__(elems_4, _checkDefined(i, 105)).Elem_key ==
+            key_6)
+          p4 := p2_0 && !ret2 &&
+            !(list___getitem___0(elems_4_0, i_2).Elem_keyp == key_6_0)
+          if (p1_1 && !ret1) {
+            _res := tuple___create2__(SUCCESS(), list___getitem__(elems_4, _checkDefined(i,
+              105)).Elem_value, int(), int(), 0)
+            ret1 := true
+          }
+          if (p2_1 && !ret2) {
+            _res_0 := tuple___create2__(SUCCESS(), list___getitem___0(elems_4_0,
+              i_2).Elem_valuep, int(), int(), 0)
+            ret2 := true
+          }
+        }
+        if (p1_0 && !ret1) {
+          i := __prim__int___box__(int___add__(int___unbox__(i), 1))
+          inhale _isDefined(105)
+        }
+        if (p2_0 && !ret2) {
+          i_2 := __prim__int___box__(int___add__(int___unbox__(i_2), 1))
+          inhale true
+        }
+      }
+      // Loop Reconstruction.
+  
+      if (!bypass1 && ret1 || !bypass2 && ret2) {
+        ret1 := oldret1
+        ret2 := oldret2
+        inhale p1 && !ret1 ==>
+          int___lt__(int___unbox__(_checkDefined(i, 105)), list___len__(elems_4))
+        inhale p2 && !ret1 ==>
+          int___lt__(int___unbox__(i_2), list___len___0(elems_4_0))
+        p1_0 := p1 && !ret1 &&
+          int___lt__(int___unbox__(_checkDefined(i, 105)), list___len__(elems_4))
+        p2_0 := p2 && !ret2 &&
+          int___lt__(int___unbox__(i_2), list___len___0(elems_4_0))
+        {
+          var p1_1: Bool
+          var p2_1: Bool
+          var p3: Bool
+          var p4: Bool
+          p1_1 := p1_0 && !ret1 &&
+            list___getitem__(elems_4, _checkDefined(i, 105)).Elem_key ==
+            key_6
+          p2_1 := p2_0 && !ret2 &&
+            list___getitem___0(elems_4_0, i_2).Elem_keyp == key_6_0
+          p3 := p1_0 && !ret1 &&
+            !(list___getitem__(elems_4, _checkDefined(i, 105)).Elem_key ==
+            key_6)
+          p4 := p2_0 && !ret2 &&
+            !(list___getitem___0(elems_4_0, i_2).Elem_keyp == key_6_0)
+          if (p1_1 && !ret1) {
+            _res := tuple___create2__(SUCCESS(), list___getitem__(elems_4, _checkDefined(i,
+              105)).Elem_value, int(), int(), 0)
+            ret1 := true
+          }
+          if (p2_1 && !ret2) {
+            _res_0 := tuple___create2__(SUCCESS(), list___getitem___0(elems_4_0,
+              i_2).Elem_valuep, int(), int(), 0)
+            ret2 := true
+          }
+        }
+        if (p1_0 && !ret1) {
+          i := __prim__int___box__(int___add__(int___unbox__(i), 1))
+          inhale _isDefined(105)
+        }
+        if (p2_0 && !ret2) {
+          i_2 := __prim__int___box__(int___add__(int___unbox__(i_2), 1))
+          inhale true
+        }
+        inhale !p1_0 || !!ret1
+        inhale !p2_0 || !!ret2
+      }
+    }
+    if (p1 && !ret1) {
+      _res := null
+      _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(), int(),
+        1)
+      ret1 := true
+    }
+    if (p2 && !ret2) {
+      _res_0 := null
+      _res_0 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+        int(), 1)
+      ret2 := true
+    }
+    exhale true
+  }
+}
+
+method binsearch(p1_2: Bool, p2_2: Bool, elems_0: Ref, elems_0_0: Ref, from_: Ref,
+  from__3: Ref, l: Ref, l_3: Ref, key_2: Ref, key_2_0: Ref)
+  returns (_res: Ref, _res_1: Ref)
+  requires (p1_2 ==> issubtype(typeof(elems_0), list(Elem()))) &&
+    (p2_2 ==> issubtype(typeof(elems_0_0), list(Elem())))
+  requires (p1_2 ==> issubtype(typeof(from_), int())) &&
+    (p2_2 ==> issubtype(typeof(from__3), int()))
+  requires (p1_2 ==> issubtype(typeof(l), int())) &&
+    (p2_2 ==> issubtype(typeof(l_3), int()))
+  requires (p1_2 ==> issubtype(typeof(key_2), int())) &&
+    (p2_2 ==> issubtype(typeof(key_2_0), int()))
+  requires (p1_2 ==> acc(elems_0.list_acc, write)) &&
+    (p2_2 ==> acc(elems_0_0.list_accp, write))
+  requires (p1_2 && p2_2 ==> l == l_3) &&
+    ((p1_2 && p2_2 ==> key_2 == key_2_0) &&
+    (p1_2 && p2_2 ==> from_ == from__3))
+  requires (p1_2 ==> int___le__(0, int___unbox__(from_))) &&
+    (p2_2 ==> int___le__(0, int___unbox__(from__3))) &&
+    ((p1_2 ==>
+    int___le__(int___add__(int___unbox__(from_), int___unbox__(l)), list___len__(elems_0))) &&
+    (p2_2 ==>
+    int___le__(int___add__(int___unbox__(from__3), int___unbox__(l_3)), list___len___0(elems_0_0))))
+  requires (p1_2 ==> true) && (p2_2 ==> true) &&
+    ((p1_2 ==>
+    (forall lambda49_25$i: Ref ::
+      { list___getitem__(elems_0, lambda49_25$i) }
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len__(elems_0))) ==>
+      acc(list___getitem__(elems_0, lambda49_25$i).Elem_key, write))) &&
+    (p2_2 ==>
+    (forall lambda49_25$i: Ref ::
+      { list___getitem___0(elems_0_0, lambda49_25$i) }
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len___0(elems_0_0))) ==>
+      acc(list___getitem___0(elems_0_0, lambda49_25$i).Elem_keyp, write)))) &&
+    (forall lambda49_25$i: Ref ::
+      { list___getitem__(elems_0, lambda49_25$i) }
+      { list___getitem___0(elems_0_0, lambda49_25$i) }
+      (p1_2 ==>
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len__(elems_0))) ==>
+      issubtype(typeof(list___getitem__(elems_0, lambda49_25$i).Elem_key), int())) &&
+      (p2_2 ==>
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len___0(elems_0_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_0_0, lambda49_25$i).Elem_keyp),
+      int()))) &&
+    ((p1_2 ==>
+    (forall lambda49_25$i: Ref ::
+      { list___getitem__(elems_0, lambda49_25$i) }
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len__(elems_0))) ==>
+      acc(list___getitem__(elems_0, lambda49_25$i).Elem_value, write))) &&
+    (p2_2 ==>
+    (forall lambda49_25$i: Ref ::
+      { list___getitem___0(elems_0_0, lambda49_25$i) }
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len___0(elems_0_0))) ==>
+      acc(list___getitem___0(elems_0_0, lambda49_25$i).Elem_valuep, write)))) &&
+    (forall lambda49_25$i: Ref ::
+      { list___getitem__(elems_0, lambda49_25$i) }
+      { list___getitem___0(elems_0_0, lambda49_25$i) }
+      (p1_2 ==>
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len__(elems_0))) ==>
+      issubtype(typeof(list___getitem__(elems_0, lambda49_25$i).Elem_value),
+      int())) &&
+      (p2_2 ==>
+      issubtype(typeof(lambda49_25$i), int()) &&
+      issubtype(typeof(lambda49_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda49_25$i), 0) &&
+      int___lt__(int___unbox__(lambda49_25$i), list___len___0(elems_0_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_0_0, lambda49_25$i).Elem_valuep),
+      int()))) &&
+    (forall lambda49_25$i: Ref ::
+      { list___getitem__(elems_0, lambda49_25$i) }
+      { list___getitem___0(elems_0_0, lambda49_25$i) }
+      (p1_2 ==> issubtype(typeof(lambda49_25$i), int())) &&
+      (p2_2 ==> issubtype(typeof(lambda49_25$i), int())) &&
+      ((p1_2 ==> issubtype(typeof(lambda49_25$i), int())) &&
+      (p2_2 ==> issubtype(typeof(lambda49_25$i), int()))) &&
+      ((p1_2 ==> int___ge__(int___unbox__(lambda49_25$i), 0)) &&
+      (p2_2 ==> int___ge__(int___unbox__(lambda49_25$i), 0)) &&
+      ((p1_2 ==>
+      int___lt__(int___unbox__(lambda49_25$i), list___len__(elems_0))) &&
+      (p2_2 ==>
+      int___lt__(int___unbox__(lambda49_25$i), list___len___0(elems_0_0))))) ==>
+      (p1_2 && p2_2 ==>
+      list___getitem__(elems_0, lambda49_25$i).Elem_key ==
+      list___getitem___0(elems_0_0, lambda49_25$i).Elem_keyp) &&
+      ((p1_2 ==> list___getitem__(elems_0, lambda49_25$i).Elem_key == key_2) &&
+      (p2_2 ==>
+      list___getitem___0(elems_0_0, lambda49_25$i).Elem_keyp == key_2_0) ==>
+      p1_2 && p2_2 ==>
+      list___getitem__(elems_0, lambda49_25$i).Elem_value ==
+      list___getitem___0(elems_0_0, lambda49_25$i).Elem_valuep))
+  ensures (p1_2 ==> issubtype(typeof(_res), tuple(Seq(int(), int())))) &&
+    (p2_2 ==> issubtype(typeof(_res_1), tuple(Seq(int(), int()))))
+  ensures (p1_2 ==> acc(elems_0.list_acc, write)) &&
+    (p2_2 ==> acc(elems_0_0.list_accp, write))
+  ensures (p1_2 ==> true) && (p2_2 ==> true) &&
+    ((p1_2 ==>
+    (forall lambda51_24$i: Ref ::
+      { list___getitem__(elems_0, lambda51_24$i) }
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len__(elems_0))) ==>
+      acc(list___getitem__(elems_0, lambda51_24$i).Elem_key, write))) &&
+    (p2_2 ==>
+    (forall lambda51_24$i: Ref ::
+      { list___getitem___0(elems_0_0, lambda51_24$i) }
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len___0(elems_0_0))) ==>
+      acc(list___getitem___0(elems_0_0, lambda51_24$i).Elem_keyp, write)))) &&
+    (forall lambda51_24$i: Ref ::
+      { list___getitem__(elems_0, lambda51_24$i) }
+      { list___getitem___0(elems_0_0, lambda51_24$i) }
+      (p1_2 ==>
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len__(elems_0))) ==>
+      issubtype(typeof(list___getitem__(elems_0, lambda51_24$i).Elem_key), int())) &&
+      (p2_2 ==>
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len___0(elems_0_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_0_0, lambda51_24$i).Elem_keyp),
+      int()))) &&
+    ((p1_2 ==>
+    (forall lambda51_24$i: Ref ::
+      { list___getitem__(elems_0, lambda51_24$i) }
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len__(elems_0))) ==>
+      acc(list___getitem__(elems_0, lambda51_24$i).Elem_value, write))) &&
+    (p2_2 ==>
+    (forall lambda51_24$i: Ref ::
+      { list___getitem___0(elems_0_0, lambda51_24$i) }
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len___0(elems_0_0))) ==>
+      acc(list___getitem___0(elems_0_0, lambda51_24$i).Elem_valuep, write)))) &&
+    (forall lambda51_24$i: Ref ::
+      { list___getitem__(elems_0, lambda51_24$i) }
+      { list___getitem___0(elems_0_0, lambda51_24$i) }
+      (p1_2 ==>
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len__(elems_0))) ==>
+      issubtype(typeof(list___getitem__(elems_0, lambda51_24$i).Elem_value),
+      int())) &&
+      (p2_2 ==>
+      issubtype(typeof(lambda51_24$i), int()) &&
+      issubtype(typeof(lambda51_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda51_24$i), 0) &&
+      int___lt__(int___unbox__(lambda51_24$i), list___len___0(elems_0_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_0_0, lambda51_24$i).Elem_valuep),
+      int()))) &&
+    (forall lambda51_24$i: Ref ::
+      { list___getitem__(elems_0, lambda51_24$i) }
+      { list___getitem___0(elems_0_0, lambda51_24$i) }
+      (p1_2 ==> issubtype(typeof(lambda51_24$i), int())) &&
+      (p2_2 ==> issubtype(typeof(lambda51_24$i), int())) &&
+      ((p1_2 ==> issubtype(typeof(lambda51_24$i), int())) &&
+      (p2_2 ==> issubtype(typeof(lambda51_24$i), int()))) &&
+      ((p1_2 ==> int___ge__(int___unbox__(lambda51_24$i), 0)) &&
+      (p2_2 ==> int___ge__(int___unbox__(lambda51_24$i), 0)) &&
+      ((p1_2 ==>
+      int___lt__(int___unbox__(lambda51_24$i), list___len__(elems_0))) &&
+      (p2_2 ==>
+      int___lt__(int___unbox__(lambda51_24$i), list___len___0(elems_0_0))))) ==>
+      (p1_2 && p2_2 ==>
+      list___getitem__(elems_0, lambda51_24$i).Elem_key ==
+      list___getitem___0(elems_0_0, lambda51_24$i).Elem_keyp) &&
+      ((p1_2 ==> list___getitem__(elems_0, lambda51_24$i).Elem_key == key_2) &&
+      (p2_2 ==>
+      list___getitem___0(elems_0_0, lambda51_24$i).Elem_keyp == key_2_0) ==>
+      p1_2 && p2_2 ==>
+      list___getitem__(elems_0, lambda51_24$i).Elem_value ==
+      list___getitem___0(elems_0_0, lambda51_24$i).Elem_valuep))
+  ensures (p1_2 ==> int___eq__(tuple___getitem__(_res, 0), SUCCESS())) &&
+    (p2_2 ==> int___eq__(tuple___getitem__(_res_1, 0), SUCCESS())) ==>
+    p1_2 && p2_2 ==>
+    tuple___getitem__(_res, 1) == tuple___getitem__(_res_1, 1)
+  ensures (p1_2 ==>
+    int___eq__(tuple___getitem__(_res, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res, 1), __prim__int___box__(-1))) &&
+    (p2_2 ==>
+    int___eq__(tuple___getitem__(_res_1, 0), FAILURE()) ==>
+    int___eq__(tuple___getitem__(_res_1, 1), __prim__int___box__(-1)))
+  ensures (p1_2 ==>
+    int___eq__(tuple___getitem__(_res, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res, 0), FAILURE())) &&
+    (p2_2 ==>
+    int___eq__(tuple___getitem__(_res_1, 0), SUCCESS()) ||
+    int___eq__(tuple___getitem__(_res_1, 0), FAILURE()))
+{
+  var ret1_0: Bool
+  var ret2_0: Bool
+  inhale p1_2
+  ret1_0 := false
+  ret2_0 := false
+  {
+    var _err: Ref
+    var _err_1: Ref
+    var mid: Ref
+    var mid_0: Ref
+    var e: Ref
+    var e_1: Ref
+    var k: Ref
+    var k_0: Ref
+    var elems_5: Ref
+    var elems_5_0: Ref
+    var from__1: Ref
+    var from__1_0: Ref
+    var l_1: Ref
+    var l_1_0: Ref
+    var key_7: Ref
+    var key_7_0: Ref
+    var binsearch_res: Ref
+    var binsearch_res_1: Ref
+    var binsearch_res_0: Ref
+    var binsearch_res_0_0: Ref
+    if (p1_2 && !ret1_0) {
+      _res := null
+      _err := null
+      elems_5 := elems_0
+      from__1 := from_
+      l_1 := l
+      key_7 := key_2
+    }
+    if (p2_2 && !ret2_0) {
+      _res_1 := null
+      _err_1 := null
+      elems_5_0 := elems_0_0
+      from__1_0 := from__3
+      l_1_0 := l_3
+      key_7_0 := key_2_0
+    }
+    {
+      var p1_3: Bool
+      var p2_3: Bool
+      var p3_0: Bool
+      var p4_0: Bool
+      p1_3 := p1_2 && !ret1_0 && int___le__(int___unbox__(l_1), 0)
+      p2_3 := p2_2 && !ret2_0 && int___le__(int___unbox__(l_1_0), 0)
+      p3_0 := p1_2 && !ret1_0 && !int___le__(int___unbox__(l_1), 0)
+      p4_0 := p2_2 && !ret2_0 && !int___le__(int___unbox__(l_1_0), 0)
+      if (p1_3 && !ret1_0) {
+        _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+          int(), 2)
+        ret1_0 := true
+      }
+      if (p2_3 && !ret2_0) {
+        _res_1 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+          int(), 2)
+        ret2_0 := true
+      }
+    }
+    if (p1_2 && !ret1_0) {
+      mid := __prim__int___box__(int___floordiv__(int___unbox__(l_1), 2))
+      inhale _isDefined(6580589)
+      e := list___getitem__(elems_5, __prim__int___box__(int___add__(int___unbox__(from__1),
+        int___unbox__(_checkDefined(mid, 6580589)))))
+      inhale _isDefined(101)
+      k := _checkDefined(e, 101).Elem_key
+      inhale _isDefined(107)
+    }
+    if (p2_2 && !ret2_0) {
+      mid_0 := __prim__int___box__(int___floordiv__(int___unbox__(l_1_0), 2))
+      inhale true
+      e_1 := list___getitem___0(elems_5_0, __prim__int___box__(int___add__(int___unbox__(from__1_0),
+        int___unbox__(mid_0))))
+      inhale true
+      k_0 := e_1.Elem_keyp
+      inhale true
+    }
+    {
+      var p1_4: Bool
+      var p2_4: Bool
+      var p3_1: Bool
+      var p4_1: Bool
+      p1_4 := p1_2 && !ret1_0 && _checkDefined(k, 107) == key_7
+      p2_4 := p2_2 && !ret2_0 && k_0 == key_7_0
+      p3_1 := p1_2 && !ret1_0 && !(_checkDefined(k, 107) == key_7)
+      p4_1 := p2_2 && !ret2_0 && !(k_0 == key_7_0)
+      if (p1_4 && !ret1_0) {
+        _res := tuple___create2__(SUCCESS(), list___getitem__(elems_5, __prim__int___box__(int___add__(int___unbox__(from__1),
+          int___unbox__(_checkDefined(mid, 6580589))))).Elem_value, int(), int(),
+          3)
+        ret1_0 := true
+      }
+      if (p2_4 && !ret2_0) {
+        _res_1 := tuple___create2__(SUCCESS(), list___getitem___0(elems_5_0,
+          __prim__int___box__(int___add__(int___unbox__(from__1_0), int___unbox__(mid_0)))).Elem_valuep,
+          int(), int(), 3)
+        ret2_0 := true
+      }
+      {
+        var p1_5: Bool
+        var p2_5: Bool
+        var p3_2: Bool
+        var p4_2: Bool
+        p1_5 := p3_1 && !ret1_0 && int___eq__(l_1, __prim__int___box__(1))
+        p2_5 := p4_1 && !ret2_0 &&
+          int___eq__(l_1_0, __prim__int___box__(1))
+        p3_2 := p3_1 && !ret1_0 && !int___eq__(l_1, __prim__int___box__(1))
+        p4_2 := p4_1 && !ret2_0 &&
+          !int___eq__(l_1_0, __prim__int___box__(1))
+        if (p1_5 && !ret1_0) {
+          _res := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+            int(), 4)
+          ret1_0 := true
+        }
+        if (p2_5 && !ret2_0) {
+          _res_1 := tuple___create2__(FAILURE(), __prim__int___box__(-1), int(),
+            int(), 4)
+          ret2_0 := true
+        }
+      }
+      {
+        var p1_6: Bool
+        var p2_6: Bool
+        var p3_3: Bool
+        var p4_3: Bool
+        p1_6 := p3_1 && !ret1_0 &&
+          int___gt__(int___unbox__(_checkDefined(k, 107)), int___unbox__(key_7))
+        p2_6 := p4_1 && !ret2_0 &&
+          int___gt__(int___unbox__(k_0), int___unbox__(key_7_0))
+        p3_3 := p3_1 && !ret1_0 &&
+          !int___gt__(int___unbox__(_checkDefined(k, 107)), int___unbox__(key_7))
+        p4_3 := p4_1 && !ret2_0 &&
+          !int___gt__(int___unbox__(k_0), int___unbox__(key_7_0))
+        // Method call: binsearch
+  
+        if (p1_6 && !ret1_0 || p2_6 && !ret2_0) {
+          var tmp1_1: Ref
+          var tmp2_1: Ref
+          var tmp1_2: Ref
+          var tmp2_2: Ref
+          var tmp1_3: Ref
+          var tmp2_3: Ref
+          var tmp1_4: Ref
+          var tmp2_4: Ref
+          var tmp1_5: Ref
+          var tmp2_5: Ref
+          if (p1_6 && !ret1_0) {
+            tmp1_1 := elems_5
+            tmp1_2 := from__1
+            tmp1_3 := __prim__int___box__(int___sub__(int___unbox__(_checkDefined(mid,
+              6580589)), 1))
+            tmp1_4 := key_7
+          }
+          if (p2_6 && !ret2_0) {
+            tmp2_1 := elems_5_0
+            tmp2_2 := from__1_0
+            tmp2_3 := __prim__int___box__(int___sub__(int___unbox__(mid_0),
+              1))
+            tmp2_4 := key_7_0
+          }
+          tmp1_5, tmp2_5 := binsearch(p1_6 && !ret1_0, p2_6 && !ret2_0, tmp1_1,
+            tmp2_1, tmp1_2, tmp2_2, tmp1_3, tmp2_3, tmp1_4, tmp2_4)
+          if (p1_6 && !ret1_0) {
+            binsearch_res := tmp1_5
+          }
+          if (p2_6 && !ret2_0) {
+            binsearch_res_1 := tmp2_5
+          }
+        }
+        if (p1_6 && !ret1_0) {
+          _res := binsearch_res
+          ret1_0 := true
+        }
+        if (p2_6 && !ret2_0) {
+          _res_1 := binsearch_res_1
+          ret2_0 := true
+        }
+        // Method call: binsearch
+  
+        if (p3_3 && !ret1_0 || p4_3 && !ret2_0) {
+          var tmp1_6: Ref
+          var tmp2_6: Ref
+          var tmp1_7: Ref
+          var tmp2_7: Ref
+          var tmp1_8: Ref
+          var tmp2_8: Ref
+          var tmp1_9: Ref
+          var tmp2_9: Ref
+          var tmp1_10: Ref
+          var tmp2_10: Ref
+          if (p3_3 && !ret1_0) {
+            tmp1_6 := elems_5
+            tmp1_7 := __prim__int___box__(int___add__(int___add__(int___unbox__(from__1),
+              int___unbox__(_checkDefined(mid, 6580589))), 1))
+            tmp1_8 := __prim__int___box__(int___sub__(int___unbox__(l_1), int___add__(int___unbox__(_checkDefined(mid,
+              6580589)), 1)))
+            tmp1_9 := key_7
+          }
+          if (p4_3 && !ret2_0) {
+            tmp2_6 := elems_5_0
+            tmp2_7 := __prim__int___box__(int___add__(int___add__(int___unbox__(from__1_0),
+              int___unbox__(mid_0)), 1))
+            tmp2_8 := __prim__int___box__(int___sub__(int___unbox__(l_1_0),
+              int___add__(int___unbox__(mid_0), 1)))
+            tmp2_9 := key_7_0
+          }
+          tmp1_10, tmp2_10 := binsearch(p3_3 && !ret1_0, p4_3 && !ret2_0, tmp1_6,
+            tmp2_6, tmp1_7, tmp2_7, tmp1_8, tmp2_8, tmp1_9, tmp2_9)
+          if (p3_3 && !ret1_0) {
+            binsearch_res_0 := tmp1_10
+          }
+          if (p4_3 && !ret2_0) {
+            binsearch_res_0_0 := tmp2_10
+          }
+        }
+        if (p3_3 && !ret1_0) {
+          _res := binsearch_res_0
+          ret1_0 := true
+        }
+        if (p4_3 && !ret2_0) {
+          _res_1 := binsearch_res_0_0
+          ret2_0 := true
+        }
+      }
+    }
+    exhale true
+  }
+}
+
+method sum_all(p1_7: Bool, p2_7: Bool, elems_1: Ref, elems_1_0: Ref, key_3: Ref,
+  key_3_0: Ref)
+  returns (_res: Ref, _res_2: Ref)
+  requires (p1_7 ==> issubtype(typeof(elems_1), list(Elem()))) &&
+    (p2_7 ==> issubtype(typeof(elems_1_0), list(Elem())))
+  requires (p1_7 ==> issubtype(typeof(key_3), int())) &&
+    (p2_7 ==> issubtype(typeof(key_3_0), int()))
+  requires (p1_7 ==> acc(elems_1.list_acc, write)) &&
+    (p2_7 ==> acc(elems_1_0.list_accp, write))
+  requires (p1_7 && p2_7 ==>
+    __prim__int___box__(list___len__(elems_1)) ==
+    __prim__int___box__(list___len___0(elems_1_0))) &&
+    (p1_7 && p2_7 ==> key_3 == key_3_0)
+  requires (p1_7 ==> true) && (p2_7 ==> true) &&
+    ((p1_7 ==>
+    (forall lambda77_25$i: Ref ::
+      { list___getitem__(elems_1, lambda77_25$i) }
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len__(elems_1))) ==>
+      acc(list___getitem__(elems_1, lambda77_25$i).Elem_key, write))) &&
+    (p2_7 ==>
+    (forall lambda77_25$i: Ref ::
+      { list___getitem___0(elems_1_0, lambda77_25$i) }
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len___0(elems_1_0))) ==>
+      acc(list___getitem___0(elems_1_0, lambda77_25$i).Elem_keyp, write)))) &&
+    (forall lambda77_25$i: Ref ::
+      { list___getitem__(elems_1, lambda77_25$i) }
+      { list___getitem___0(elems_1_0, lambda77_25$i) }
+      (p1_7 ==>
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len__(elems_1))) ==>
+      issubtype(typeof(list___getitem__(elems_1, lambda77_25$i).Elem_key), int())) &&
+      (p2_7 ==>
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len___0(elems_1_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_1_0, lambda77_25$i).Elem_keyp),
+      int()))) &&
+    ((p1_7 ==>
+    (forall lambda77_25$i: Ref ::
+      { list___getitem__(elems_1, lambda77_25$i) }
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len__(elems_1))) ==>
+      acc(list___getitem__(elems_1, lambda77_25$i).Elem_value, write))) &&
+    (p2_7 ==>
+    (forall lambda77_25$i: Ref ::
+      { list___getitem___0(elems_1_0, lambda77_25$i) }
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len___0(elems_1_0))) ==>
+      acc(list___getitem___0(elems_1_0, lambda77_25$i).Elem_valuep, write)))) &&
+    (forall lambda77_25$i: Ref ::
+      { list___getitem__(elems_1, lambda77_25$i) }
+      { list___getitem___0(elems_1_0, lambda77_25$i) }
+      (p1_7 ==>
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len__(elems_1))) ==>
+      issubtype(typeof(list___getitem__(elems_1, lambda77_25$i).Elem_value),
+      int())) &&
+      (p2_7 ==>
+      issubtype(typeof(lambda77_25$i), int()) &&
+      issubtype(typeof(lambda77_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda77_25$i), 0) &&
+      int___lt__(int___unbox__(lambda77_25$i), list___len___0(elems_1_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_1_0, lambda77_25$i).Elem_valuep),
+      int()))) &&
+    (forall lambda77_25$i: Ref ::
+      { list___getitem__(elems_1, lambda77_25$i) }
+      { list___getitem___0(elems_1_0, lambda77_25$i) }
+      (p1_7 ==> issubtype(typeof(lambda77_25$i), int())) &&
+      (p2_7 ==> issubtype(typeof(lambda77_25$i), int())) &&
+      ((p1_7 ==> issubtype(typeof(lambda77_25$i), int())) &&
+      (p2_7 ==> issubtype(typeof(lambda77_25$i), int()))) &&
+      ((p1_7 ==> int___ge__(int___unbox__(lambda77_25$i), 0)) &&
+      (p2_7 ==> int___ge__(int___unbox__(lambda77_25$i), 0)) &&
+      ((p1_7 ==>
+      int___lt__(int___unbox__(lambda77_25$i), list___len__(elems_1))) &&
+      (p2_7 ==>
+      int___lt__(int___unbox__(lambda77_25$i), list___len___0(elems_1_0))))) ==>
+      (p1_7 && p2_7 ==>
+      list___getitem__(elems_1, lambda77_25$i).Elem_key ==
+      list___getitem___0(elems_1_0, lambda77_25$i).Elem_keyp) &&
+      ((p1_7 ==> list___getitem__(elems_1, lambda77_25$i).Elem_key == key_3) &&
+      (p2_7 ==>
+      list___getitem___0(elems_1_0, lambda77_25$i).Elem_keyp == key_3_0) ==>
+      p1_7 && p2_7 ==>
+      list___getitem__(elems_1, lambda77_25$i).Elem_value ==
+      list___getitem___0(elems_1_0, lambda77_25$i).Elem_valuep))
+  ensures (p1_7 ==> issubtype(typeof(_res), int())) &&
+    (p2_7 ==> issubtype(typeof(_res_2), int()))
+  ensures (p1_7 ==> acc(elems_1.list_acc, write)) &&
+    (p2_7 ==> acc(elems_1_0.list_accp, write))
+  ensures (p1_7 ==> true) && (p2_7 ==> true) &&
+    ((p1_7 ==>
+    (forall lambda79_24$i: Ref ::
+      { list___getitem__(elems_1, lambda79_24$i) }
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len__(elems_1))) ==>
+      acc(list___getitem__(elems_1, lambda79_24$i).Elem_key, write))) &&
+    (p2_7 ==>
+    (forall lambda79_24$i: Ref ::
+      { list___getitem___0(elems_1_0, lambda79_24$i) }
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len___0(elems_1_0))) ==>
+      acc(list___getitem___0(elems_1_0, lambda79_24$i).Elem_keyp, write)))) &&
+    (forall lambda79_24$i: Ref ::
+      { list___getitem__(elems_1, lambda79_24$i) }
+      { list___getitem___0(elems_1_0, lambda79_24$i) }
+      (p1_7 ==>
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len__(elems_1))) ==>
+      issubtype(typeof(list___getitem__(elems_1, lambda79_24$i).Elem_key), int())) &&
+      (p2_7 ==>
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len___0(elems_1_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_1_0, lambda79_24$i).Elem_keyp),
+      int()))) &&
+    ((p1_7 ==>
+    (forall lambda79_24$i: Ref ::
+      { list___getitem__(elems_1, lambda79_24$i) }
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len__(elems_1))) ==>
+      acc(list___getitem__(elems_1, lambda79_24$i).Elem_value, write))) &&
+    (p2_7 ==>
+    (forall lambda79_24$i: Ref ::
+      { list___getitem___0(elems_1_0, lambda79_24$i) }
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len___0(elems_1_0))) ==>
+      acc(list___getitem___0(elems_1_0, lambda79_24$i).Elem_valuep, write)))) &&
+    (forall lambda79_24$i: Ref ::
+      { list___getitem__(elems_1, lambda79_24$i) }
+      { list___getitem___0(elems_1_0, lambda79_24$i) }
+      (p1_7 ==>
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len__(elems_1))) ==>
+      issubtype(typeof(list___getitem__(elems_1, lambda79_24$i).Elem_value),
+      int())) &&
+      (p2_7 ==>
+      issubtype(typeof(lambda79_24$i), int()) &&
+      issubtype(typeof(lambda79_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda79_24$i), 0) &&
+      int___lt__(int___unbox__(lambda79_24$i), list___len___0(elems_1_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_1_0, lambda79_24$i).Elem_valuep),
+      int()))) &&
+    (forall lambda79_24$i: Ref ::
+      { list___getitem__(elems_1, lambda79_24$i) }
+      { list___getitem___0(elems_1_0, lambda79_24$i) }
+      (p1_7 ==> issubtype(typeof(lambda79_24$i), int())) &&
+      (p2_7 ==> issubtype(typeof(lambda79_24$i), int())) &&
+      ((p1_7 ==> issubtype(typeof(lambda79_24$i), int())) &&
+      (p2_7 ==> issubtype(typeof(lambda79_24$i), int()))) &&
+      ((p1_7 ==> int___ge__(int___unbox__(lambda79_24$i), 0)) &&
+      (p2_7 ==> int___ge__(int___unbox__(lambda79_24$i), 0)) &&
+      ((p1_7 ==>
+      int___lt__(int___unbox__(lambda79_24$i), list___len__(elems_1))) &&
+      (p2_7 ==>
+      int___lt__(int___unbox__(lambda79_24$i), list___len___0(elems_1_0))))) ==>
+      (p1_7 && p2_7 ==>
+      list___getitem__(elems_1, lambda79_24$i).Elem_key ==
+      list___getitem___0(elems_1_0, lambda79_24$i).Elem_keyp) &&
+      ((p1_7 ==> list___getitem__(elems_1, lambda79_24$i).Elem_key == key_3) &&
+      (p2_7 ==>
+      list___getitem___0(elems_1_0, lambda79_24$i).Elem_keyp == key_3_0) ==>
+      p1_7 && p2_7 ==>
+      list___getitem__(elems_1, lambda79_24$i).Elem_value ==
+      list___getitem___0(elems_1_0, lambda79_24$i).Elem_valuep))
+  ensures p1_7 && p2_7 ==> _res == _res_2
+{
+  var ret1_1: Bool
+  var ret2_1: Bool
+  inhale p1_7
+  ret1_1 := false
+  ret2_1 := false
+  {
+    var _err: Ref
+    var _err_2: Ref
+    var sum: Ref
+    var sum_0: Ref
+    var i_0: Ref
+    var i_0_0: Ref
+    var elems_6: Ref
+    var elems_6_0: Ref
+    var key_8: Ref
+    var key_8_0: Ref
+    var _loop_check_before_0: Bool
+    var _loop_check_before_0_0: Bool
+    var _loop_termination_flag_0: Bool
+    var _loop_termination_flag_0_0: Bool
+    var _loop_original_must_terminate_0: Perm
+    var _loop_original_must_terminate_0_0: Perm
+    var _residue_162: Perm
+    var _residue_162_0: Perm
+    if (p1_7 && !ret1_1) {
+      _res := null
+      _err := null
+      elems_6 := elems_1
+      key_8 := key_3
+      sum := __prim__int___box__(0)
+      inhale _isDefined(7173491)
+      i_0 := __prim__int___box__(0)
+      inhale _isDefined(3170153)
+    }
+    if (p2_7 && !ret2_1) {
+      _res_2 := null
+      _err_2 := null
+      elems_6_0 := elems_1_0
+      key_8_0 := key_3_0
+      sum_0 := __prim__int___box__(0)
+      inhale true
+      i_0_0 := __prim__int___box__(0)
+      inhale true
+    }
+    {
+      var bypass1_0: Bool
+      var bypass2_0: Bool
+      var tmp1_11: Ref
+      var tmp2_11: Ref
+      var tmp1_12: Ref
+      var tmp2_12: Ref
+      var p1_8: Bool
+      var p2_8: Bool
+      bypass1_0 := !(p1_7 && !ret1_1)
+      bypass2_0 := !(p2_7 && !ret2_1)
+      if (bypass1_0) {
+        tmp1_11 := sum
+        tmp1_12 := i_0
+      }
+      if (bypass2_0) {
+        tmp2_11 := sum_0
+        tmp2_12 := i_0_0
+      }
+      while (p1_7 && !ret1_1 && !bypass1_0 &&
+      int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), list___len__(elems_6)) ||
+      p2_7 && !ret2_1 && !bypass2_0 &&
+      int___lt__(int___unbox__(i_0_0), list___len___0(elems_6_0)))
+        invariant (p1_7 && !bypass1_0 ==> issubtype(typeof(sum), int())) &&
+          (p2_7 && !bypass2_0 ==> issubtype(typeof(sum_0), int()))
+        invariant (p1_7 && !bypass1_0 ==> issubtype(typeof(i_0), int())) &&
+          (p2_7 && !bypass2_0 ==> issubtype(typeof(i_0_0), int()))
+        invariant (p1_7 && !bypass1_0 ==> acc(elems_6.list_acc, write)) &&
+          (p2_7 && !bypass2_0 ==> acc(elems_6_0.list_accp, write)) &&
+          (p1_7 && !bypass1_0 && (p2_7 && !bypass2_0) ==>
+          __prim__int___box__(list___len__(elems_6)) ==
+          __prim__int___box__(list___len___0(elems_6_0)))
+        invariant (p1_7 && !bypass1_0 ==>
+          int___ge__(int___unbox__(_checkDefined(i_0, 3170153)), 0)) &&
+          (p2_7 && !bypass2_0 ==> int___ge__(int___unbox__(i_0_0), 0)) &&
+          ((p1_7 && !bypass1_0 ==>
+          int___le__(int___unbox__(_checkDefined(i_0, 3170153)), list___len__(elems_6))) &&
+          (p2_7 && !bypass2_0 ==>
+          int___le__(int___unbox__(i_0_0), list___len___0(elems_6_0))))
+        invariant (p1_7 && !bypass1_0 && (p2_7 && !bypass2_0) ==>
+          _checkDefined(sum, 7173491) == sum_0) &&
+          (p1_7 && !bypass1_0 && (p2_7 && !bypass2_0) ==>
+          _checkDefined(i_0, 3170153) == i_0_0)
+        invariant true &&
+          ((p1_7 && !bypass1_0 ==>
+          (forall lambda88_30$j: Ref ::
+            { list___getitem__(elems_6, lambda88_30$j) }
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len__(elems_6))) ==>
+            acc(list___getitem__(elems_6, lambda88_30$j).Elem_key, write))) &&
+          (p2_7 && !bypass2_0 ==>
+          (forall lambda88_30$j: Ref ::
+            { list___getitem___0(elems_6_0, lambda88_30$j) }
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len___0(elems_6_0))) ==>
+            acc(list___getitem___0(elems_6_0, lambda88_30$j).Elem_keyp, write)))) &&
+          (forall lambda88_30$j: Ref ::
+            { list___getitem__(elems_6, lambda88_30$j) }
+            { list___getitem___0(elems_6_0, lambda88_30$j) }
+            (p1_7 && !bypass1_0 ==>
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len__(elems_6))) ==>
+            issubtype(typeof(list___getitem__(elems_6, lambda88_30$j).Elem_key),
+            int())) &&
+            (p2_7 && !bypass2_0 ==>
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len___0(elems_6_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_6_0, lambda88_30$j).Elem_keyp),
+            int()))) &&
+          ((p1_7 && !bypass1_0 ==>
+          (forall lambda88_30$j: Ref ::
+            { list___getitem__(elems_6, lambda88_30$j) }
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len__(elems_6))) ==>
+            acc(list___getitem__(elems_6, lambda88_30$j).Elem_value, write))) &&
+          (p2_7 && !bypass2_0 ==>
+          (forall lambda88_30$j: Ref ::
+            { list___getitem___0(elems_6_0, lambda88_30$j) }
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len___0(elems_6_0))) ==>
+            acc(list___getitem___0(elems_6_0, lambda88_30$j).Elem_valuep, write)))) &&
+          (forall lambda88_30$j: Ref ::
+            { list___getitem__(elems_6, lambda88_30$j) }
+            { list___getitem___0(elems_6_0, lambda88_30$j) }
+            (p1_7 && !bypass1_0 ==>
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len__(elems_6))) ==>
+            issubtype(typeof(list___getitem__(elems_6, lambda88_30$j).Elem_value),
+            int())) &&
+            (p2_7 && !bypass2_0 ==>
+            issubtype(typeof(lambda88_30$j), int()) &&
+            issubtype(typeof(lambda88_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda88_30$j), 0) &&
+            int___lt__(int___unbox__(lambda88_30$j), list___len___0(elems_6_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_6_0, lambda88_30$j).Elem_valuep),
+            int()))) &&
+          (forall lambda88_30$j: Ref ::
+            { list___getitem__(elems_6, lambda88_30$j) }
+            { list___getitem___0(elems_6_0, lambda88_30$j) }
+            (p1_7 && !bypass1_0 ==> issubtype(typeof(lambda88_30$j), int())) &&
+            (p2_7 && !bypass2_0 ==> issubtype(typeof(lambda88_30$j), int())) &&
+            ((p1_7 && !bypass1_0 ==>
+            issubtype(typeof(lambda88_30$j), int())) &&
+            (p2_7 && !bypass2_0 ==> issubtype(typeof(lambda88_30$j), int()))) &&
+            ((p1_7 && !bypass1_0 ==>
+            int___ge__(int___unbox__(lambda88_30$j), 0)) &&
+            (p2_7 && !bypass2_0 ==>
+            int___ge__(int___unbox__(lambda88_30$j), 0)) &&
+            ((p1_7 && !bypass1_0 ==>
+            int___lt__(int___unbox__(lambda88_30$j), list___len__(elems_6))) &&
+            (p2_7 && !bypass2_0 ==>
+            int___lt__(int___unbox__(lambda88_30$j), list___len___0(elems_6_0))))) ==>
+            (p1_7 && !bypass1_0 && (p2_7 && !bypass2_0) ==>
+            list___getitem__(elems_6, lambda88_30$j).Elem_key ==
+            list___getitem___0(elems_6_0, lambda88_30$j).Elem_keyp) &&
+            ((p1_7 && !bypass1_0 ==>
+            list___getitem__(elems_6, lambda88_30$j).Elem_key == key_8) &&
+            (p2_7 && !bypass2_0 ==>
+            list___getitem___0(elems_6_0, lambda88_30$j).Elem_keyp ==
+            key_8_0) ==>
+            p1_7 && !bypass1_0 && (p2_7 && !bypass2_0) ==>
+            list___getitem__(elems_6, lambda88_30$j).Elem_value ==
+            list___getitem___0(elems_6_0, lambda88_30$j).Elem_valuep))
+        invariant bypass1_0 ==> tmp1_11 == sum
+        invariant bypass1_0 ==> tmp1_12 == i_0
+        invariant bypass2_0 ==> tmp2_11 == sum_0
+        invariant bypass2_0 ==> tmp2_12 == i_0_0 
+      {
+        p1_8 := p1_7 && !ret1_1 &&
+          int___lt__(int___unbox__(_checkDefined(i_0, 3170153)), list___len__(elems_6))
+        p2_8 := p2_7 && !ret2_1 &&
+          int___lt__(int___unbox__(i_0_0), list___len___0(elems_6_0))
+        {
+          var p1_9: Bool
+          var p2_9: Bool
+          var p3_4: Bool
+          var p4_4: Bool
+          p1_9 := p1_8 && !ret1_1 &&
+            list___getitem__(elems_6, _checkDefined(i_0, 3170153)).Elem_key ==
+            key_8
+          p2_9 := p2_8 && !ret2_1 &&
+            list___getitem___0(elems_6_0, i_0_0).Elem_keyp == key_8_0
+          p3_4 := p1_8 && !ret1_1 &&
+            !(list___getitem__(elems_6, _checkDefined(i_0, 3170153)).Elem_key ==
+            key_8)
+          p4_4 := p2_8 && !ret2_1 &&
+            !(list___getitem___0(elems_6_0, i_0_0).Elem_keyp == key_8_0)
+          if (p1_9 && !ret1_1) {
+            sum := __prim__int___box__(int___add__(int___unbox__(sum), int___unbox__(list___getitem__(elems_6,
+              _checkDefined(i_0, 3170153)).Elem_value)))
+            inhale _isDefined(7173491)
+          }
+          if (p2_9 && !ret2_1) {
+            sum_0 := __prim__int___box__(int___add__(int___unbox__(sum_0), int___unbox__(list___getitem___0(elems_6_0,
+              i_0_0).Elem_valuep)))
+            inhale true
+          }
+        }
+        if (p1_8 && !ret1_1) {
+          i_0 := __prim__int___box__(int___add__(int___unbox__(i_0), 1))
+          inhale _isDefined(3170153)
+        }
+        if (p2_8 && !ret2_1) {
+          i_0_0 := __prim__int___box__(int___add__(int___unbox__(i_0_0), 1))
+          inhale true
+        }
+      }
+    }
+    if (p1_7 && !ret1_1) {
+      _res := null
+      _res := _checkDefined(sum, 7173491)
+      ret1_1 := true
+    }
+    if (p2_7 && !ret2_1) {
+      _res_2 := null
+      _res_2 := sum_0
+      ret2_1 := true
+    }
+    exhale true
+  }
+}
+
+method sum_all_rec(p1_10: Bool, p2_10: Bool, elems_2: Ref, elems_2_0: Ref, from__0: Ref,
+  from__0_0: Ref, l_0: Ref, l_0_0: Ref, key_4: Ref, key_4_0: Ref, init: Ref,
+  init_1: Ref)
+  returns (_res: Ref, _res_3: Ref)
+  requires (p1_10 ==> issubtype(typeof(elems_2), list(Elem()))) &&
+    (p2_10 ==> issubtype(typeof(elems_2_0), list(Elem())))
+  requires (p1_10 ==> issubtype(typeof(from__0), int())) &&
+    (p2_10 ==> issubtype(typeof(from__0_0), int()))
+  requires (p1_10 ==> issubtype(typeof(l_0), int())) &&
+    (p2_10 ==> issubtype(typeof(l_0_0), int()))
+  requires (p1_10 ==> issubtype(typeof(key_4), int())) &&
+    (p2_10 ==> issubtype(typeof(key_4_0), int()))
+  requires (p1_10 ==> issubtype(typeof(init), int())) &&
+    (p2_10 ==> issubtype(typeof(init_1), int()))
+  requires (p1_10 ==> acc(elems_2.list_acc, write)) &&
+    (p2_10 ==> acc(elems_2_0.list_accp, write))
+  requires (p1_10 && p2_10 ==> l_0 == l_0_0) &&
+    ((p1_10 && p2_10 ==> key_4 == key_4_0) &&
+    ((p1_10 && p2_10 ==> from__0 == from__0_0) &&
+    (p1_10 && p2_10 ==> init == init_1)))
+  requires (p1_10 ==> int___le__(0, int___unbox__(from__0))) &&
+    (p2_10 ==> int___le__(0, int___unbox__(from__0_0))) &&
+    ((p1_10 ==>
+    int___le__(int___add__(int___unbox__(from__0), int___unbox__(l_0)), list___len__(elems_2))) &&
+    (p2_10 ==>
+    int___le__(int___add__(int___unbox__(from__0_0), int___unbox__(l_0_0)),
+    list___len___0(elems_2_0))))
+  requires (p1_10 ==> true) && (p2_10 ==> true) &&
+    ((p1_10 ==>
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len__(elems_2))) ==>
+      acc(list___getitem__(elems_2, lambda100_25$i).Elem_key, write))) &&
+    (p2_10 ==>
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len___0(elems_2_0))) ==>
+      acc(list___getitem___0(elems_2_0, lambda100_25$i).Elem_keyp, write)))) &&
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      { issubtype(typeof(lambda100_25$i), int()) }
+      (p1_10 ==>
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len__(elems_2))) ==>
+      issubtype(typeof(list___getitem__(elems_2, lambda100_25$i).Elem_key),
+      int())) &&
+      (p2_10 ==>
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len___0(elems_2_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_2_0, lambda100_25$i).Elem_keyp),
+      int()))) &&
+    ((p1_10 ==>
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len__(elems_2))) ==>
+      acc(list___getitem__(elems_2, lambda100_25$i).Elem_value, write))) &&
+    (p2_10 ==>
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len___0(elems_2_0))) ==>
+      acc(list___getitem___0(elems_2_0, lambda100_25$i).Elem_valuep, write)))) &&
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      { issubtype(typeof(lambda100_25$i), int()) }
+      (p1_10 ==>
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len__(elems_2))) ==>
+      issubtype(typeof(list___getitem__(elems_2, lambda100_25$i).Elem_value),
+      int())) &&
+      (p2_10 ==>
+      issubtype(typeof(lambda100_25$i), int()) &&
+      issubtype(typeof(lambda100_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda100_25$i), 0) &&
+      int___lt__(int___unbox__(lambda100_25$i), list___len___0(elems_2_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_2_0, lambda100_25$i).Elem_valuep),
+      int()))) &&
+    (forall lambda100_25$i: Ref ::
+      { issubtype(typeof(lambda100_25$i), int()) }
+      { issubtype(typeof(lambda100_25$i), int()) }
+      (p1_10 ==> issubtype(typeof(lambda100_25$i), int())) &&
+      (p2_10 ==> issubtype(typeof(lambda100_25$i), int())) &&
+      ((p1_10 ==> issubtype(typeof(lambda100_25$i), int())) &&
+      (p2_10 ==> issubtype(typeof(lambda100_25$i), int()))) &&
+      ((p1_10 ==> int___ge__(int___unbox__(lambda100_25$i), 0)) &&
+      (p2_10 ==> int___ge__(int___unbox__(lambda100_25$i), 0)) &&
+      ((p1_10 ==>
+      int___lt__(int___unbox__(lambda100_25$i), list___len__(elems_2))) &&
+      (p2_10 ==>
+      int___lt__(int___unbox__(lambda100_25$i), list___len___0(elems_2_0))))) ==>
+      (p1_10 && p2_10 ==>
+      list___getitem__(elems_2, lambda100_25$i).Elem_key ==
+      list___getitem___0(elems_2_0, lambda100_25$i).Elem_keyp) &&
+      ((p1_10 ==>
+      list___getitem__(elems_2, lambda100_25$i).Elem_key == key_4) &&
+      (p2_10 ==>
+      list___getitem___0(elems_2_0, lambda100_25$i).Elem_keyp == key_4_0) ==>
+      p1_10 && p2_10 ==>
+      list___getitem__(elems_2, lambda100_25$i).Elem_value ==
+      list___getitem___0(elems_2_0, lambda100_25$i).Elem_valuep))
+  ensures (p1_10 ==> issubtype(typeof(_res), int())) &&
+    (p2_10 ==> issubtype(typeof(_res_3), int()))
+  ensures (p1_10 ==> acc(elems_2.list_acc, write)) &&
+    (p2_10 ==> acc(elems_2_0.list_accp, write))
+  ensures (p1_10 ==> true) && (p2_10 ==> true) &&
+    ((p1_10 ==>
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len__(elems_2))) ==>
+      acc(list___getitem__(elems_2, lambda102_24$i).Elem_key, write))) &&
+    (p2_10 ==>
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len___0(elems_2_0))) ==>
+      acc(list___getitem___0(elems_2_0, lambda102_24$i).Elem_keyp, write)))) &&
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      { issubtype(typeof(lambda102_24$i), int()) }
+      (p1_10 ==>
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len__(elems_2))) ==>
+      issubtype(typeof(list___getitem__(elems_2, lambda102_24$i).Elem_key),
+      int())) &&
+      (p2_10 ==>
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len___0(elems_2_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_2_0, lambda102_24$i).Elem_keyp),
+      int()))) &&
+    ((p1_10 ==>
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len__(elems_2))) ==>
+      acc(list___getitem__(elems_2, lambda102_24$i).Elem_value, write))) &&
+    (p2_10 ==>
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len___0(elems_2_0))) ==>
+      acc(list___getitem___0(elems_2_0, lambda102_24$i).Elem_valuep, write)))) &&
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      { issubtype(typeof(lambda102_24$i), int()) }
+      (p1_10 ==>
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len__(elems_2))) ==>
+      issubtype(typeof(list___getitem__(elems_2, lambda102_24$i).Elem_value),
+      int())) &&
+      (p2_10 ==>
+      issubtype(typeof(lambda102_24$i), int()) &&
+      issubtype(typeof(lambda102_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda102_24$i), 0) &&
+      int___lt__(int___unbox__(lambda102_24$i), list___len___0(elems_2_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_2_0, lambda102_24$i).Elem_valuep),
+      int()))) &&
+    (forall lambda102_24$i: Ref ::
+      { issubtype(typeof(lambda102_24$i), int()) }
+      { issubtype(typeof(lambda102_24$i), int()) }
+      (p1_10 ==> issubtype(typeof(lambda102_24$i), int())) &&
+      (p2_10 ==> issubtype(typeof(lambda102_24$i), int())) &&
+      ((p1_10 ==> issubtype(typeof(lambda102_24$i), int())) &&
+      (p2_10 ==> issubtype(typeof(lambda102_24$i), int()))) &&
+      ((p1_10 ==> int___ge__(int___unbox__(lambda102_24$i), 0)) &&
+      (p2_10 ==> int___ge__(int___unbox__(lambda102_24$i), 0)) &&
+      ((p1_10 ==>
+      int___lt__(int___unbox__(lambda102_24$i), list___len__(elems_2))) &&
+      (p2_10 ==>
+      int___lt__(int___unbox__(lambda102_24$i), list___len___0(elems_2_0))))) ==>
+      (p1_10 && p2_10 ==>
+      list___getitem__(elems_2, lambda102_24$i).Elem_key ==
+      list___getitem___0(elems_2_0, lambda102_24$i).Elem_keyp) &&
+      ((p1_10 ==>
+      list___getitem__(elems_2, lambda102_24$i).Elem_key == key_4) &&
+      (p2_10 ==>
+      list___getitem___0(elems_2_0, lambda102_24$i).Elem_keyp == key_4_0) ==>
+      p1_10 && p2_10 ==>
+      list___getitem__(elems_2, lambda102_24$i).Elem_value ==
+      list___getitem___0(elems_2_0, lambda102_24$i).Elem_valuep))
+  ensures p1_10 && p2_10 ==> _res == _res_3
+{
+  var ret1_2: Bool
+  var ret2_2: Bool
+  inhale p1_10
+  ret1_2 := false
+  ret2_2 := false
+  {
+    var _err: Ref
+    var _err_3: Ref
+    var e_0: Ref
+    var e_0_0: Ref
+    var elems_7: Ref
+    var elems_7_0: Ref
+    var from__2: Ref
+    var from__2_0: Ref
+    var l_2: Ref
+    var l_2_0: Ref
+    var key_9: Ref
+    var key_9_0: Ref
+    var init_0: Ref
+    var init_0_0: Ref
+    var sum_all_rec_res: Ref
+    var sum_all_rec_res_1: Ref
+    var sum_all_rec_res_0: Ref
+    var sum_all_rec_res_0_0: Ref
+    if (p1_10 && !ret1_2) {
+      _res := null
+      _err := null
+      elems_7 := elems_2
+      from__2 := from__0
+      l_2 := l_0
+      key_9 := key_4
+      init_0 := init
+    }
+    if (p2_10 && !ret2_2) {
+      _res_3 := null
+      _err_3 := null
+      elems_7_0 := elems_2_0
+      from__2_0 := from__0_0
+      l_2_0 := l_0_0
+      key_9_0 := key_4_0
+      init_0_0 := init_1
+    }
+    {
+      var p1_11: Bool
+      var p2_11: Bool
+      var p3_5: Bool
+      var p4_5: Bool
+      p1_11 := p1_10 && !ret1_2 && int___gt__(int___unbox__(l_2), 0)
+      p2_11 := p2_10 && !ret2_2 && int___gt__(int___unbox__(l_2_0), 0)
+      p3_5 := p1_10 && !ret1_2 && !int___gt__(int___unbox__(l_2), 0)
+      p4_5 := p2_10 && !ret2_2 && !int___gt__(int___unbox__(l_2_0), 0)
+      if (p1_11 && !ret1_2) {
+        e_0 := list___getitem__(elems_7, from__2)
+        inhale _isDefined(3170149)
+      }
+      if (p2_11 && !ret2_2) {
+        e_0_0 := list___getitem___0(elems_7_0, from__2_0)
+        inhale true
+      }
+      {
+        var p1_12: Bool
+        var p2_12: Bool
+        var p3_6: Bool
+        var p4_6: Bool
+        p1_12 := p1_11 && !ret1_2 &&
+          _checkDefined(e_0, 3170149).Elem_key == key_9
+        p2_12 := p2_11 && !ret2_2 && e_0_0.Elem_keyp == key_9_0
+        p3_6 := p1_11 && !ret1_2 &&
+          !(_checkDefined(e_0, 3170149).Elem_key == key_9)
+        p4_6 := p2_11 && !ret2_2 && !(e_0_0.Elem_keyp == key_9_0)
+        // Method call: sum_all_rec
+  
+        if (p1_12 && !ret1_2 || p2_12 && !ret2_2) {
+          var tmp1_13: Ref
+          var tmp2_13: Ref
+          var tmp1_14: Ref
+          var tmp2_14: Ref
+          var tmp1_15: Ref
+          var tmp2_15: Ref
+          var tmp1_16: Ref
+          var tmp2_16: Ref
+          var tmp1_17: Ref
+          var tmp2_17: Ref
+          var tmp1_18: Ref
+          var tmp2_18: Ref
+          if (p1_12 && !ret1_2) {
+            tmp1_13 := elems_7
+            tmp1_14 := __prim__int___box__(int___add__(int___unbox__(from__2),
+              1))
+            tmp1_15 := __prim__int___box__(int___sub__(int___unbox__(l_2), 1))
+            tmp1_16 := key_9
+            tmp1_17 := __prim__int___box__(int___add__(int___unbox__(init_0),
+              int___unbox__(_checkDefined(e_0, 3170149).Elem_value)))
+          }
+          if (p2_12 && !ret2_2) {
+            tmp2_13 := elems_7_0
+            tmp2_14 := __prim__int___box__(int___add__(int___unbox__(from__2_0),
+              1))
+            tmp2_15 := __prim__int___box__(int___sub__(int___unbox__(l_2_0),
+              1))
+            tmp2_16 := key_9_0
+            tmp2_17 := __prim__int___box__(int___add__(int___unbox__(init_0_0),
+              int___unbox__(e_0_0.Elem_valuep)))
+          }
+          tmp1_18, tmp2_18 := sum_all_rec(p1_12 && !ret1_2, p2_12 &&
+            !ret2_2, tmp1_13, tmp2_13, tmp1_14, tmp2_14, tmp1_15, tmp2_15, tmp1_16,
+            tmp2_16, tmp1_17, tmp2_17)
+          if (p1_12 && !ret1_2) {
+            sum_all_rec_res := tmp1_18
+          }
+          if (p2_12 && !ret2_2) {
+            sum_all_rec_res_1 := tmp2_18
+          }
+        }
+        if (p1_12 && !ret1_2) {
+          _res := sum_all_rec_res
+          ret1_2 := true
+        }
+        if (p2_12 && !ret2_2) {
+          _res_3 := sum_all_rec_res_1
+          ret2_2 := true
+        }
+        // Method call: sum_all_rec
+  
+        if (p3_6 && !ret1_2 || p4_6 && !ret2_2) {
+          var tmp1_19: Ref
+          var tmp2_19: Ref
+          var tmp1_20: Ref
+          var tmp2_20: Ref
+          var tmp1_21: Ref
+          var tmp2_21: Ref
+          var tmp1_22: Ref
+          var tmp2_22: Ref
+          var tmp1_23: Ref
+          var tmp2_23: Ref
+          var tmp1_24: Ref
+          var tmp2_24: Ref
+          if (p3_6 && !ret1_2) {
+            tmp1_19 := elems_7
+            tmp1_20 := __prim__int___box__(int___add__(int___unbox__(from__2),
+              1))
+            tmp1_21 := __prim__int___box__(int___sub__(int___unbox__(l_2), 1))
+            tmp1_22 := key_9
+            tmp1_23 := init_0
+          }
+          if (p4_6 && !ret2_2) {
+            tmp2_19 := elems_7_0
+            tmp2_20 := __prim__int___box__(int___add__(int___unbox__(from__2_0),
+              1))
+            tmp2_21 := __prim__int___box__(int___sub__(int___unbox__(l_2_0),
+              1))
+            tmp2_22 := key_9_0
+            tmp2_23 := init_0_0
+          }
+          tmp1_24, tmp2_24 := sum_all_rec(p3_6 && !ret1_2, p4_6 && !ret2_2,
+            tmp1_19, tmp2_19, tmp1_20, tmp2_20, tmp1_21, tmp2_21, tmp1_22, tmp2_22,
+            tmp1_23, tmp2_23)
+          if (p3_6 && !ret1_2) {
+            sum_all_rec_res_0 := tmp1_24
+          }
+          if (p4_6 && !ret2_2) {
+            sum_all_rec_res_0_0 := tmp2_24
+          }
+        }
+        if (p3_6 && !ret1_2) {
+          _res := sum_all_rec_res_0
+          ret1_2 := true
+        }
+        if (p4_6 && !ret2_2) {
+          _res_3 := sum_all_rec_res_0_0
+          ret2_2 := true
+        }
+      }
+      if (p3_5 && !ret1_2) {
+        _res := init_0
+        ret1_2 := true
+      }
+      if (p4_5 && !ret2_2) {
+        _res_3 := init_0_0
+        ret2_2 := true
+      }
+    }
+    exhale true
+  }
+}
+
+method remove_all(p1_13: Bool, p2_13: Bool, elems_3: Ref, elems_3_0: Ref, key_5: Ref,
+  key_5_0: Ref)
+  requires (p1_13 ==> issubtype(typeof(elems_3), list(Elem()))) &&
+    (p2_13 ==> issubtype(typeof(elems_3_0), list(Elem())))
+  requires (p1_13 ==> issubtype(typeof(key_5), int())) &&
+    (p2_13 ==> issubtype(typeof(key_5_0), int()))
+  requires (p1_13 ==> acc(elems_3.list_acc, write)) &&
+    (p2_13 ==> acc(elems_3_0.list_accp, write))
+  requires (p1_13 && p2_13 ==>
+    __prim__int___box__(list___len__(elems_3)) ==
+    __prim__int___box__(list___len___0(elems_3_0))) &&
+    (p1_13 && p2_13 ==> key_5 == key_5_0)
+  requires (p1_13 ==> true) && (p2_13 ==> true) &&
+    ((p1_13 ==>
+    (forall lambda118_25$i: Ref ::
+      { list___getitem__(elems_3, lambda118_25$i) }
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len__(elems_3))) ==>
+      acc(list___getitem__(elems_3, lambda118_25$i).Elem_key, write))) &&
+    (p2_13 ==>
+    (forall lambda118_25$i: Ref ::
+      { list___getitem___0(elems_3_0, lambda118_25$i) }
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len___0(elems_3_0))) ==>
+      acc(list___getitem___0(elems_3_0, lambda118_25$i).Elem_keyp, write)))) &&
+    (forall lambda118_25$i: Ref ::
+      { list___getitem__(elems_3, lambda118_25$i) }
+      { list___getitem___0(elems_3_0, lambda118_25$i) }
+      (p1_13 ==>
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len__(elems_3))) ==>
+      issubtype(typeof(list___getitem__(elems_3, lambda118_25$i).Elem_key),
+      int())) &&
+      (p2_13 ==>
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len___0(elems_3_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_3_0, lambda118_25$i).Elem_keyp),
+      int()))) &&
+    ((p1_13 ==>
+    (forall lambda118_25$i: Ref ::
+      { list___getitem__(elems_3, lambda118_25$i) }
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len__(elems_3))) ==>
+      acc(list___getitem__(elems_3, lambda118_25$i).Elem_value, write))) &&
+    (p2_13 ==>
+    (forall lambda118_25$i: Ref ::
+      { list___getitem___0(elems_3_0, lambda118_25$i) }
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len___0(elems_3_0))) ==>
+      acc(list___getitem___0(elems_3_0, lambda118_25$i).Elem_valuep, write)))) &&
+    (forall lambda118_25$i: Ref ::
+      { list___getitem__(elems_3, lambda118_25$i) }
+      { list___getitem___0(elems_3_0, lambda118_25$i) }
+      (p1_13 ==>
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len__(elems_3))) ==>
+      issubtype(typeof(list___getitem__(elems_3, lambda118_25$i).Elem_value),
+      int())) &&
+      (p2_13 ==>
+      issubtype(typeof(lambda118_25$i), int()) &&
+      issubtype(typeof(lambda118_25$i), int()) &&
+      (int___ge__(int___unbox__(lambda118_25$i), 0) &&
+      int___lt__(int___unbox__(lambda118_25$i), list___len___0(elems_3_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_3_0, lambda118_25$i).Elem_valuep),
+      int()))) &&
+    (forall lambda118_25$i: Ref ::
+      { list___getitem__(elems_3, lambda118_25$i) }
+      { list___getitem___0(elems_3_0, lambda118_25$i) }
+      (p1_13 ==> issubtype(typeof(lambda118_25$i), int())) &&
+      (p2_13 ==> issubtype(typeof(lambda118_25$i), int())) &&
+      ((p1_13 ==> issubtype(typeof(lambda118_25$i), int())) &&
+      (p2_13 ==> issubtype(typeof(lambda118_25$i), int()))) &&
+      ((p1_13 ==> int___ge__(int___unbox__(lambda118_25$i), 0)) &&
+      (p2_13 ==> int___ge__(int___unbox__(lambda118_25$i), 0)) &&
+      ((p1_13 ==>
+      int___lt__(int___unbox__(lambda118_25$i), list___len__(elems_3))) &&
+      (p2_13 ==>
+      int___lt__(int___unbox__(lambda118_25$i), list___len___0(elems_3_0))))) ==>
+      (p1_13 && p2_13 ==>
+      list___getitem__(elems_3, lambda118_25$i).Elem_key ==
+      list___getitem___0(elems_3_0, lambda118_25$i).Elem_keyp) &&
+      ((p1_13 ==>
+      list___getitem__(elems_3, lambda118_25$i).Elem_key == key_5) &&
+      (p2_13 ==>
+      list___getitem___0(elems_3_0, lambda118_25$i).Elem_keyp == key_5_0) ==>
+      p1_13 && p2_13 ==>
+      list___getitem__(elems_3, lambda118_25$i).Elem_value ==
+      list___getitem___0(elems_3_0, lambda118_25$i).Elem_valuep))
+  ensures (p1_13 ==> acc(elems_3.list_acc, write)) &&
+    (p2_13 ==> acc(elems_3_0.list_accp, write))
+  ensures (p1_13 ==> true) && (p2_13 ==> true) &&
+    ((p1_13 ==>
+    (forall lambda120_24$i: Ref ::
+      { list___getitem__(elems_3, lambda120_24$i) }
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len__(elems_3))) ==>
+      acc(list___getitem__(elems_3, lambda120_24$i).Elem_key, write))) &&
+    (p2_13 ==>
+    (forall lambda120_24$i: Ref ::
+      { list___getitem___0(elems_3_0, lambda120_24$i) }
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len___0(elems_3_0))) ==>
+      acc(list___getitem___0(elems_3_0, lambda120_24$i).Elem_keyp, write)))) &&
+    (forall lambda120_24$i: Ref ::
+      { list___getitem__(elems_3, lambda120_24$i) }
+      { list___getitem___0(elems_3_0, lambda120_24$i) }
+      (p1_13 ==>
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len__(elems_3))) ==>
+      issubtype(typeof(list___getitem__(elems_3, lambda120_24$i).Elem_key),
+      int())) &&
+      (p2_13 ==>
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len___0(elems_3_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_3_0, lambda120_24$i).Elem_keyp),
+      int()))) &&
+    ((p1_13 ==>
+    (forall lambda120_24$i: Ref ::
+      { list___getitem__(elems_3, lambda120_24$i) }
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len__(elems_3))) ==>
+      acc(list___getitem__(elems_3, lambda120_24$i).Elem_value, write))) &&
+    (p2_13 ==>
+    (forall lambda120_24$i: Ref ::
+      { list___getitem___0(elems_3_0, lambda120_24$i) }
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len___0(elems_3_0))) ==>
+      acc(list___getitem___0(elems_3_0, lambda120_24$i).Elem_valuep, write)))) &&
+    (forall lambda120_24$i: Ref ::
+      { list___getitem__(elems_3, lambda120_24$i) }
+      { list___getitem___0(elems_3_0, lambda120_24$i) }
+      (p1_13 ==>
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len__(elems_3))) ==>
+      issubtype(typeof(list___getitem__(elems_3, lambda120_24$i).Elem_value),
+      int())) &&
+      (p2_13 ==>
+      issubtype(typeof(lambda120_24$i), int()) &&
+      issubtype(typeof(lambda120_24$i), int()) &&
+      (int___ge__(int___unbox__(lambda120_24$i), 0) &&
+      int___lt__(int___unbox__(lambda120_24$i), list___len___0(elems_3_0))) ==>
+      issubtype(typeof(list___getitem___0(elems_3_0, lambda120_24$i).Elem_valuep),
+      int()))) &&
+    (forall lambda120_24$i: Ref ::
+      { list___getitem__(elems_3, lambda120_24$i) }
+      { list___getitem___0(elems_3_0, lambda120_24$i) }
+      (p1_13 ==> issubtype(typeof(lambda120_24$i), int())) &&
+      (p2_13 ==> issubtype(typeof(lambda120_24$i), int())) &&
+      ((p1_13 ==> issubtype(typeof(lambda120_24$i), int())) &&
+      (p2_13 ==> issubtype(typeof(lambda120_24$i), int()))) &&
+      ((p1_13 ==> int___ge__(int___unbox__(lambda120_24$i), 0)) &&
+      (p2_13 ==> int___ge__(int___unbox__(lambda120_24$i), 0)) &&
+      ((p1_13 ==>
+      int___lt__(int___unbox__(lambda120_24$i), list___len__(elems_3))) &&
+      (p2_13 ==>
+      int___lt__(int___unbox__(lambda120_24$i), list___len___0(elems_3_0))))) ==>
+      (p1_13 && p2_13 ==>
+      list___getitem__(elems_3, lambda120_24$i).Elem_key ==
+      list___getitem___0(elems_3_0, lambda120_24$i).Elem_keyp) &&
+      ((p1_13 ==>
+      list___getitem__(elems_3, lambda120_24$i).Elem_key == key_5) &&
+      (p2_13 ==>
+      list___getitem___0(elems_3_0, lambda120_24$i).Elem_keyp == key_5_0) ==>
+      p1_13 && p2_13 ==>
+      list___getitem__(elems_3, lambda120_24$i).Elem_value ==
+      list___getitem___0(elems_3_0, lambda120_24$i).Elem_valuep))
+{
+  inhale p1_13
+  {
+    var _err: Ref
+    var _err_4: Ref
+    var i_1: Ref
+    var i_1_0: Ref
+    var elems_8: Ref
+    var elems_8_0: Ref
+    var key_10: Ref
+    var key_10_0: Ref
+    var _loop_check_before_1: Bool
+    var _loop_check_before_1_0: Bool
+    var _loop_termination_flag_1: Bool
+    var _loop_termination_flag_1_0: Bool
+    var _loop_original_must_terminate_1: Perm
+    var _loop_original_must_terminate_1_0: Perm
+    var _residue_163: Perm
+    var _residue_163_0: Perm
+    if (p1_13) {
+      _err := null
+      elems_8 := elems_3
+      key_10 := key_5
+      i_1 := __prim__int___box__(0)
+      inhale _isDefined(3235689)
+    }
+    if (p2_13) {
+      _err_4 := null
+      elems_8_0 := elems_3_0
+      key_10_0 := key_5_0
+      i_1_0 := __prim__int___box__(0)
+      inhale true
+    }
+    {
+      var bypass1_1: Bool
+      var bypass2_1: Bool
+      var tmp1_25: Ref
+      var tmp2_25: Ref
+      var p1_14: Bool
+      var p2_14: Bool
+      bypass1_1 := !p1_13
+      bypass2_1 := !p2_13
+      if (bypass1_1) {
+        tmp1_25 := i_1
+      }
+      if (bypass2_1) {
+        tmp2_25 := i_1_0
+      }
+      while (p1_13 && !bypass1_1 &&
+      int___lt__(int___unbox__(_checkDefined(i_1, 3235689)), list___len__(elems_8)) ||
+      p2_13 && !bypass2_1 &&
+      int___lt__(int___unbox__(i_1_0), list___len___0(elems_8_0)))
+        invariant (p1_13 && !bypass1_1 ==> issubtype(typeof(i_1), int())) &&
+          (p2_13 && !bypass2_1 ==> issubtype(typeof(i_1_0), int()))
+        invariant (p1_13 && !bypass1_1 ==> acc(elems_8.list_acc, write)) &&
+          (p2_13 && !bypass2_1 ==> acc(elems_8_0.list_accp, write)) &&
+          (p1_13 && !bypass1_1 && (p2_13 && !bypass2_1) ==>
+          __prim__int___box__(list___len__(elems_8)) ==
+          __prim__int___box__(list___len___0(elems_8_0)))
+        invariant (p1_13 && !bypass1_1 ==>
+          int___ge__(int___unbox__(_checkDefined(i_1, 3235689)), 0)) &&
+          (p2_13 && !bypass2_1 ==> int___ge__(int___unbox__(i_1_0), 0)) &&
+          ((p1_13 && !bypass1_1 ==>
+          int___le__(int___unbox__(_checkDefined(i_1, 3235689)), list___len__(elems_8))) &&
+          (p2_13 && !bypass2_1 ==>
+          int___le__(int___unbox__(i_1_0), list___len___0(elems_8_0))))
+        invariant p1_13 && !bypass1_1 && (p2_13 && !bypass2_1) ==>
+          _checkDefined(i_1, 3235689) == i_1_0
+        invariant true &&
+          ((p1_13 && !bypass1_1 ==>
+          (forall lambda127_30$j: Ref ::
+            { list___getitem__(elems_8, lambda127_30$j) }
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len__(elems_8))) ==>
+            acc(list___getitem__(elems_8, lambda127_30$j).Elem_key, write))) &&
+          (p2_13 && !bypass2_1 ==>
+          (forall lambda127_30$j: Ref ::
+            { list___getitem___0(elems_8_0, lambda127_30$j) }
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len___0(elems_8_0))) ==>
+            acc(list___getitem___0(elems_8_0, lambda127_30$j).Elem_keyp, write)))) &&
+          (forall lambda127_30$j: Ref ::
+            { list___getitem__(elems_8, lambda127_30$j) }
+            { list___getitem___0(elems_8_0, lambda127_30$j) }
+            (p1_13 && !bypass1_1 ==>
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len__(elems_8))) ==>
+            issubtype(typeof(list___getitem__(elems_8, lambda127_30$j).Elem_key),
+            int())) &&
+            (p2_13 && !bypass2_1 ==>
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len___0(elems_8_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_8_0, lambda127_30$j).Elem_keyp),
+            int()))) &&
+          ((p1_13 && !bypass1_1 ==>
+          (forall lambda127_30$j: Ref ::
+            { list___getitem__(elems_8, lambda127_30$j) }
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len__(elems_8))) ==>
+            acc(list___getitem__(elems_8, lambda127_30$j).Elem_value, write))) &&
+          (p2_13 && !bypass2_1 ==>
+          (forall lambda127_30$j: Ref ::
+            { list___getitem___0(elems_8_0, lambda127_30$j) }
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len___0(elems_8_0))) ==>
+            acc(list___getitem___0(elems_8_0, lambda127_30$j).Elem_valuep, write)))) &&
+          (forall lambda127_30$j: Ref ::
+            { list___getitem__(elems_8, lambda127_30$j) }
+            { list___getitem___0(elems_8_0, lambda127_30$j) }
+            (p1_13 && !bypass1_1 ==>
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len__(elems_8))) ==>
+            issubtype(typeof(list___getitem__(elems_8, lambda127_30$j).Elem_value),
+            int())) &&
+            (p2_13 && !bypass2_1 ==>
+            issubtype(typeof(lambda127_30$j), int()) &&
+            issubtype(typeof(lambda127_30$j), int()) &&
+            (int___ge__(int___unbox__(lambda127_30$j), 0) &&
+            int___lt__(int___unbox__(lambda127_30$j), list___len___0(elems_8_0))) ==>
+            issubtype(typeof(list___getitem___0(elems_8_0, lambda127_30$j).Elem_valuep),
+            int()))) &&
+          (forall lambda127_30$j: Ref ::
+            { list___getitem__(elems_8, lambda127_30$j) }
+            { list___getitem___0(elems_8_0, lambda127_30$j) }
+            (p1_13 && !bypass1_1 ==>
+            issubtype(typeof(lambda127_30$j), int())) &&
+            (p2_13 && !bypass2_1 ==>
+            issubtype(typeof(lambda127_30$j), int())) &&
+            ((p1_13 && !bypass1_1 ==>
+            issubtype(typeof(lambda127_30$j), int())) &&
+            (p2_13 && !bypass2_1 ==>
+            issubtype(typeof(lambda127_30$j), int()))) &&
+            ((p1_13 && !bypass1_1 ==>
+            int___ge__(int___unbox__(lambda127_30$j), 0)) &&
+            (p2_13 && !bypass2_1 ==>
+            int___ge__(int___unbox__(lambda127_30$j), 0)) &&
+            ((p1_13 && !bypass1_1 ==>
+            int___lt__(int___unbox__(lambda127_30$j), list___len__(elems_8))) &&
+            (p2_13 && !bypass2_1 ==>
+            int___lt__(int___unbox__(lambda127_30$j), list___len___0(elems_8_0))))) ==>
+            (p1_13 && !bypass1_1 && (p2_13 && !bypass2_1) ==>
+            list___getitem__(elems_8, lambda127_30$j).Elem_key ==
+            list___getitem___0(elems_8_0, lambda127_30$j).Elem_keyp) &&
+            ((p1_13 && !bypass1_1 ==>
+            list___getitem__(elems_8, lambda127_30$j).Elem_key == key_10) &&
+            (p2_13 && !bypass2_1 ==>
+            list___getitem___0(elems_8_0, lambda127_30$j).Elem_keyp ==
+            key_10_0) ==>
+            p1_13 && !bypass1_1 && (p2_13 && !bypass2_1) ==>
+            list___getitem__(elems_8, lambda127_30$j).Elem_value ==
+            list___getitem___0(elems_8_0, lambda127_30$j).Elem_valuep))
+        invariant bypass1_1 ==> tmp1_25 == i_1
+        invariant bypass2_1 ==> tmp2_25 == i_1_0 
+      {
+        p1_14 := p1_13 &&
+          int___lt__(int___unbox__(_checkDefined(i_1, 3235689)), list___len__(elems_8))
+        p2_14 := p2_13 &&
+          int___lt__(int___unbox__(i_1_0), list___len___0(elems_8_0))
+        {
+          var p1_15: Bool
+          var p2_15: Bool
+          var p3_7: Bool
+          var p4_7: Bool
+          p1_15 := p1_14 &&
+            list___getitem__(elems_8, _checkDefined(i_1, 3235689)).Elem_key ==
+            key_10
+          p2_15 := p2_14 &&
+            list___getitem___0(elems_8_0, i_1_0).Elem_keyp == key_10_0
+          p3_7 := p1_14 &&
+            !(list___getitem__(elems_8, _checkDefined(i_1, 3235689)).Elem_key ==
+            key_10)
+          p4_7 := p2_14 &&
+            !(list___getitem___0(elems_8_0, i_1_0).Elem_keyp == key_10_0)
+          {
+            var p1_16: Bool
+            var p2_16: Bool
+            var p3_8: Bool
+            var p4_8: Bool
+            p1_16 := p1_15 &&
+              perm(_MaySet(list___getitem__(elems_8, _checkDefined(i_1, 3235689)),
+              479125093479839250607173)) >
+              none
+            p2_16 := p2_15 &&
+              perm(_MaySet_0(list___getitem___0(elems_8_0, i_1_0), 479125093479839250607173)) >
+              none
+            p3_8 := p1_15 &&
+              !(perm(_MaySet(list___getitem__(elems_8, _checkDefined(i_1, 3235689)),
+              479125093479839250607173)) >
+              none)
+            p4_8 := p2_15 &&
+              !(perm(_MaySet_0(list___getitem___0(elems_8_0, i_1_0), 479125093479839250607173)) >
+              none)
+            if (p1_16) {
+              exhale acc(_MaySet(list___getitem__(elems_8, _checkDefined(i_1,
+                3235689)), 479125093479839250607173), write)
+              inhale acc(list___getitem__(elems_8, _checkDefined(i_1, 3235689)).Elem_value, write)
+            }
+            if (p2_16) {
+              exhale acc(_MaySet_0(list___getitem___0(elems_8_0, i_1_0), 479125093479839250607173), write)
+              inhale acc(list___getitem___0(elems_8_0, i_1_0).Elem_valuep, write)
+            }
+          }
+          if (p1_15) {
+            list___getitem__(elems_8, _checkDefined(i_1, 3235689)).Elem_value := __prim__int___box__(0)
+          }
+          if (p2_15) {
+            list___getitem___0(elems_8_0, i_1_0).Elem_valuep := __prim__int___box__(0)
+          }
+        }
+        if (p1_14) {
+          i_1 := __prim__int___box__(int___add__(int___unbox__(i_1), 1))
+          inhale _isDefined(3235689)
+        }
+        if (p2_14) {
+          i_1_0 := __prim__int___box__(int___add__(int___unbox__(i_1_0), 1))
+          inhale true
+        }
+      }
+    }
+    exhale true
+  }
+}
+
+method Elem___init__(p1_17: Bool, p2_17: Bool, self: Ref, self_1: Ref, key_0: Ref,
+  key_0_0: Ref, value_0: Ref, value_0_0: Ref)
+  requires (p1_17 ==> self != null) && (p2_17 ==> self_1 != null)
+  requires (p1_17 ==> acc(_MaySet(self, 8747515908838485061), write)) &&
+    (p2_17 ==> acc(_MaySet_0(self_1, 8747515908838485061), write))
+  requires (p1_17 ==> acc(_MaySet(self, 479125093479839250607173), write)) &&
+    (p2_17 ==> acc(_MaySet_0(self_1, 479125093479839250607173), write))
+  requires (p1_17 ==> issubtype(typeof(self), Elem())) &&
+    (p2_17 ==> issubtype(typeof(self_1), Elem()))
+  requires (p1_17 ==> issubtype(typeof(key_0), int())) &&
+    (p2_17 ==> issubtype(typeof(key_0_0), int()))
+  requires (p1_17 ==> issubtype(typeof(value_0), int())) &&
+    (p2_17 ==> issubtype(typeof(value_0_0), int()))
+  requires (p1_17 ==> self != null) && (p2_17 ==> self_1 != null)
+{
+  inhale p1_17
+  {
+    var _err: Ref
+    var _err_5: Ref
+    var self_0: Ref
+    var self_0_0: Ref
+    var key_11: Ref
+    var key_11_0: Ref
+    var value_1: Ref
+    var value_1_0: Ref
+    if (p1_17) {
+      inhale typeof(self) == Elem()
+      _err := null
+      self_0 := self
+      key_11 := key_0
+      value_1 := value_0
+    }
+    if (p2_17) {
+      inhale typeof(self_1) == Elem()
+      _err_5 := null
+      self_0_0 := self_1
+      key_11_0 := key_0_0
+      value_1_0 := value_0_0
+    }
+    {
+      var p1_18: Bool
+      var p2_18: Bool
+      var p3_9: Bool
+      var p4_9: Bool
+      p1_18 := p1_17 && perm(_MaySet(self_0, 8747515908838485061)) > none
+      p2_18 := p2_17 &&
+        perm(_MaySet_0(self_0_0, 8747515908838485061)) > none
+      p3_9 := p1_17 && !(perm(_MaySet(self_0, 8747515908838485061)) > none)
+      p4_9 := p2_17 &&
+        !(perm(_MaySet_0(self_0_0, 8747515908838485061)) > none)
+      if (p1_18) {
+        exhale acc(_MaySet(self_0, 8747515908838485061), write)
+        inhale acc(self_0.Elem_key, write)
+      }
+      if (p2_18) {
+        exhale acc(_MaySet_0(self_0_0, 8747515908838485061), write)
+        inhale acc(self_0_0.Elem_keyp, write)
+      }
+    }
+    if (p1_17) {
+      self_0.Elem_key := key_11
+    }
+    if (p2_17) {
+      self_0_0.Elem_keyp := key_11_0
+    }
+    {
+      var p1_19: Bool
+      var p2_19: Bool
+      var p3_10: Bool
+      var p4_10: Bool
+      p1_19 := p1_17 &&
+        perm(_MaySet(self_0, 479125093479839250607173)) > none
+      p2_19 := p2_17 &&
+        perm(_MaySet_0(self_0_0, 479125093479839250607173)) > none
+      p3_10 := p1_17 &&
+        !(perm(_MaySet(self_0, 479125093479839250607173)) > none)
+      p4_10 := p2_17 &&
+        !(perm(_MaySet_0(self_0_0, 479125093479839250607173)) > none)
+      if (p1_19) {
+        exhale acc(_MaySet(self_0, 479125093479839250607173), write)
+        inhale acc(self_0.Elem_value, write)
+      }
+      if (p2_19) {
+        exhale acc(_MaySet_0(self_0_0, 479125093479839250607173), write)
+        inhale acc(self_0_0.Elem_valuep, write)
+      }
+    }
+    if (p1_17) {
+      self_0.Elem_value := value_1
+    }
+    if (p2_17) {
+      self_0_0.Elem_valuep := value_1_0
+    }
+    exhale true
+  }
+}
+
+method main(p1_20: Bool, p2_20: Bool)
+{
+  inhale p1_20
+  {
+    var module_defined_0: Bool
+    var module_defined_0_0: Bool
+    var module_names_0: Set[_Name]
+    var module_names_0_0: Set[_Name]
+    var _err: Ref
+    var _err_6: Ref
+    if (p1_20) {
+      module_defined_0 := true
+      module_names_0 := Set[_Name]()
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._val, 99 / 100) &&
+        issubtype(typeof(__file__()._val), str()) &&
+        issubtype(typeof(__file__()._val), str())
+      module_names_0 := (module_names_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._val, 99 / 100) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        issubtype(typeof(__name__()._val), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._val)
+      _err := null
+      module_names_0 := (module_names_0 union Set(_single(1953720652)))
+      module_names_0 := (module_names_0 union Set(_single(435611006292)))
+      module_names_0 := (module_names_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0 := (module_names_0 union Set(_single(1835363397)))
+      inhale SUCCESS() == __prim__int___box__(0)
+      module_names_0 := (module_names_0 union
+        Set(_single(23453980013319507)))
+      inhale FAILURE() == __prim__int___box__(1)
+      module_names_0 := (module_names_0 union
+        Set(_single(19512299698602310)))
+      module_names_0 := (module_names_0 union
+        Set(_single(123649615949676)))
+      module_names_0 := (module_names_0 union
+        Set(_single(1925627280711249455458)))
+      module_names_0 := (module_names_0 union
+        Set(_single(30518462953387379)))
+      module_names_0 := (module_names_0 union
+        Set(_single(120162724961432421907920243)))
+      module_names_0 := (module_names_0 union
+        Set(_single(512014844948186131162482)))
+    }
+    if (p2_20) {
+      module_defined_0_0 := true
+      module_names_0_0 := Set[_Name]()
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323072689856351)))
+      inhale acc(__file__()._valp, 99 / 100) &&
+        issubtype(typeof(__file__()._valp), str()) &&
+        issubtype(typeof(__file__()._valp), str())
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872323076851130207)))
+      inhale acc(__name__()._valp, 99 / 100) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        issubtype(typeof(__name__()._valp), str()) &&
+        str___eq__(str___create__(8, 6872332955275845471), __name__()._valp)
+      _err_6 := null
+      module_names_0_0 := (module_names_0_0 union Set(_single(1953720652)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(435611006292)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(6872339552563453791)))
+      module_names_0_0 := (module_names_0_0 union Set(_single(1835363397)))
+      inhale SUCCESS() == __prim__int___box__(0)
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(23453980013319507)))
+      inhale FAILURE() == __prim__int___box__(1)
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(19512299698602310)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(123649615949676)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(1925627280711249455458)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(30518462953387379)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(120162724961432421907920243)))
+      module_names_0_0 := (module_names_0_0 union
+        Set(_single(512014844948186131162482)))
+    }
+    exhale true
+  }
+}

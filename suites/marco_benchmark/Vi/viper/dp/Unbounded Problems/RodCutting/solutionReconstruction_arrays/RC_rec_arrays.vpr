@@ -1,0 +1,179 @@
+// This code does the exact same thing as its counterpart using sequences, nevertheless due to a matching loop in the triggers of a needed lemma, it does not verify
+
+// ONLY verifies with carbon
+// This file contains mostly the same definitions as RC_def_seq.vpr but with the Seq types replaced by IArray types.
+
+import "../../../_preambles/defs_arrays.vpr"
+
+// This defines the preconditions that are reused for all versions of the rod cutting problem when using the solution reconstruction approach.
+define preconds_solution_reconstruction_rod_cutting_arrays (prices, n) (access(prices, 0, len(prices))) &&
+(len(prices) >= n) && n >= 0 && (forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0)
+
+// This macro defines what a valid way of cutting a rod is. 
+// The sum of all the cuts must be equal to the length of the rod and all cuts must be greater than 0 and less than or equal to the length of the rod.
+define valid_cut(cut, rod_length)  (sum_rec(cut, 0) == rod_length && forall i: Int :: {slot(cut, i)} 0 <= i < len(cut) ==> slot(cut, i).val > 0 && slot(cut, i).val <= rod_length)
+
+// This macro defines what a maximum cut is, i.e. what our result schould be. 
+// To show that a cut is maximal, we compare the given cut to all possible valid cuts. 
+define max_cut(xs, n) (valid_cut(xs, n) && [forall ys: IArray :: {price(ys, prices, 0), sum_rec(ys, 0)} allperm(ys) && valid_cut(ys, n) ==> price(xs, prices, 0) >= price(ys, prices, 0), true])
+
+// This macro defines that all elements of a sequence must be greater than 0.
+define allPos(xs, start) forall i: Int :: {slot(xs, i)} start <= i < len(xs) ==> slot(xs, i).val > 0
+// This macro defines that all elements of a sequence must be less than or equal to the sum of all elements.
+define lessThanSum(xs, start) forall i: Int :: {slot(xs, i)} start <= i < len(xs) ==> slot(xs, i).val <= sum_rec(xs, start)
+
+// This macro gives writing permissions to all elements of an array arr
+define allperm(arr) forall z: Int :: {slot(arr, z)} 0 <= z < len(arr) ==> perm(slot(arr, z).val) == write
+
+// This proves that if all elements of a sequence are larger than 0, all elements must be smaller or equal the sum of all elements as well
+method allElemsLTSum (xs: IArray, p: Int) 
+    requires access(xs, p, len(xs))
+    requires 0 <= p <= len(xs)
+    requires allPos(xs, p)
+    ensures access(xs, p, len(xs))
+    ensures allPos(xs, p)
+    ensures lessThanSum(xs, p)
+    decreases len(xs) - p
+{
+    if (p != len(xs)) {
+        assert sum_rec(xs, p + 1) == sum_rec(xs, p) - slot(xs, p).val
+        allElemsLTSum(xs, p + 1)
+    }
+}
+
+// Since Viper is unable to generalize the above lemma for all possible IArrays, we need this.
+method lemma_forall_introduction()
+  ensures [forall ys: IArray :: {sum_rec(ys, 0)} allperm(ys) && allPos(ys, 0) ==> lessThanSum(ys, 0), true]
+  decreases
+{
+  var xs: IArray
+  inhale access(xs, 0, len(xs))
+
+  assume forall i: Int :: {slot(xs, i)} 0 <= i < len(xs) ==> slot(xs, i).val > 0
+  allElemsLTSum(xs, 0)
+  assert forall i: Int :: {slot(xs, i)} 0 <= i < len(xs) ==> slot(xs, i).val <= sum_rec(xs, 0)
+
+  refute forall ys: IArray :: {sum_rec(ys, 0)} allPos(ys, 0)==> lessThanSum(ys, 0) // Thus holds (but would fail, e.g. if contradictory assumptions were made)
+}
+
+// Lemma to prove if we have two arrays xs and ys where ys has one element more in front than xs but is otherwise identical
+// that the sum for ys without the first element is the same as for xs.
+method two_sums_equal(xs: IArray, ys: IArray, pointer: Int, value: Int) 
+    requires len(xs) == len(ys) + 1
+    requires 0 <= pointer <= len(ys)
+    requires half_access(xs, 0, len(xs))
+    requires half_access(ys, 0, len(ys))
+    // This has an unresolved matching loop in the triggers of the needed lemma
+    requires [forall z: Int :: {slot(xs, z)} 0 < z < len(xs) ==> slot(xs, z).val == slot(ys, z - 1).val, true]
+    // requires forall i: Int, j: Int :: {slot(xs, i), slot(xs, j)}
+    //       0 < i < len(xs) && j == i - 1
+    //   ==> slot(xs, i).val == slot(ys, j).val
+    requires slot(xs, 0).val == value
+    ensures len(xs) == len(ys) + 1
+    ensures half_access(xs, 0, len(xs))
+    ensures half_access(ys, 0, len(ys))
+    ensures [forall z: Int :: {slot(xs, z)} 0 < z < len(xs) ==> slot(xs, z).val == slot(ys, z - 1).val, true]
+    // ensures forall i: Int, j: Int :: {slot(xs, i), slot(xs, j)}
+    //       0 < i < len(xs) && j == i - 1
+    //   ==> slot(xs, i).val == slot(ys, j).val
+    ensures sum_rec(xs, pointer + 1) == sum_rec(ys, pointer)
+    ensures slot(xs, 0).val == value
+    decreases len(ys) - pointer
+{
+    if (pointer != len(ys)) {
+        two_sums_equal(xs, ys, pointer + 1, value)
+    }
+}
+
+// Given an array of cuts and an array of prices, this function calculates the price of the cuts.
+// price(cuts, prices) == sum(prices[cuts[i] - 1]) for i in range len(cuts)
+function price(cuts: IArray, values: IArray, cuts_pointer: Int): Int
+    requires access(cuts, cuts_pointer, len(cuts))
+    requires access(values, 0, len(values))
+    requires forall i: Int :: {slot(cuts, i)} cuts_pointer <= i < len(cuts) ==> 0 < slot(cuts, i).val <= len(values)
+    requires 0 <= cuts_pointer <= len(cuts)
+{
+    // As long as cuts is not empty, we add the price for the first cut in the cuts sequence (values[cuts[0] - 1]) to the price of the remaining cuts.
+    // We want to get the values' entry at cuts[0] - 1 becuase values[0] represents the value of a rod with length 1 and so on (rods with length 0 have no value).
+    cuts_pointer == len(cuts) ? 0 : slot(values, slot(cuts, cuts_pointer).val - 1).val + price(cuts, values, cuts_pointer + 1)
+}
+
+
+method rodCutting_rec(prices: IArray, n: Int) returns (res: IArray)
+    requires preconds_solution_reconstruction_rod_cutting_arrays(prices, n)
+    ensures access(prices, 0, len(prices))
+    ensures access(res, 0, len(res))
+    ensures forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0
+    ensures max_cut(res, n)
+    decreases n
+{
+    if (n == 0) {
+        var empty: IArray
+        inhale len(empty) == 0
+        inhale access(empty, 0, len(empty))
+
+        res := empty
+    } else {
+
+        var bestCuts: IArray 
+        inhale access(bestCuts, 0, len(bestCuts))
+        inhale len(bestCuts) == 1
+        slot(bestCuts, 0).val := n
+        assert sum_rec(bestCuts, 0) == slot(bestCuts, 0).val + sum_rec(bestCuts, 1)
+
+        var i: Int := 1
+        while (i <= n)
+            invariant i <= n + 1 && i >= 1
+            invariant access(prices, 0, len(prices))
+            invariant access(bestCuts, 0, len(bestCuts))
+            invariant valid_cut(bestCuts, n)
+            invariant forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0
+            // for all valid cuts for a rod of length n whose first cut is smaller than i (but larger than 0 bc no cuts of length 0 exist), 
+            // the price of the cut is less than or equal to the price of the current best cut
+            invariant [forall xs: IArray :: {sum_rec(xs, 0), price(xs, prices, 0)} 
+            allperm(xs) &&
+            valid_cut(xs, n) && 0 < slot(xs, 0).val < i ==> price(xs, prices, 0) <= price(bestCuts, prices, 0), true]
+            decreases n - i
+        {
+            var cut: IArray
+            cut := rodCutting_rec(prices, n - i)
+            var temp: Int := n - i
+            var curr_cut: IArray
+            inhale len(curr_cut) == len(cut) + 1
+            inhale access(curr_cut, 0, len(curr_cut))
+            slot(curr_cut, 0).val := i
+
+            var count: Int := 0
+
+            while (count < len(cut)) 
+                invariant access(prices, 0, len(prices))
+                invariant forall k: Int :: {slot(prices, k)} 0 <= k < len(prices) ==> slot(prices, k).val >= 0
+                invariant 0 <= count <= len(cut)
+                invariant access(curr_cut, 0, len(curr_cut))
+                invariant access(cut, 0, len(cut))
+                invariant len(curr_cut) == len(cut) + 1
+                invariant valid_cut(cut, n - i)
+                invariant forall z: Int :: {slot(cut, z)} 0 <= z < count ==> slot(curr_cut, z + 1).val == slot(cut, z).val
+                invariant slot(curr_cut, 0).val == i
+                invariant access(bestCuts, 0, len(bestCuts))
+                invariant valid_cut(bestCuts, n)
+                decreases len(cut) - count
+            {
+                slot(curr_cut, count + 1).val := slot(cut, count).val
+                count := count + 1
+            }
+
+            // assume sum_rec(curr_cut, 1) == sum_rec(cut, 0) --> needed property for verification
+            // two_sums_equal(curr_cut, cut, 0, i) --> This lemma aims to prove the above property but fails to do so due to a matching loop
+
+            if (price(curr_cut, prices, 0) > price(bestCuts, prices, 0)) {
+                bestCuts := curr_cut
+            }
+            
+            lemma_forall_introduction()
+            i := i + 1
+        }
+        res := bestCuts
+    }
+
+}

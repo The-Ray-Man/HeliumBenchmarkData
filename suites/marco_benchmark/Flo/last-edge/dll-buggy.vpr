@@ -1,0 +1,354 @@
+import "../_preambles/Maps.vpr"
+import "../_preambles/Lists.vpr"
+import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Doubly-linked list definitions -------------------- */
+
+// Multisets of Refs, used to tell each node who their predecessor is
+domain FlowDom {
+  function fd(m:Multiset[Ref]) : FlowDom
+  function ms(f : FlowDom) : Multiset[Ref]
+  axiom injective {
+      forall m:Multiset[Ref] :: {fd(m)}
+        ms(fd(m)) == m
+  }
+  axiom surjective {
+      forall f:FlowDom :: {ms(f)}
+        fd(ms(f)) == f
+  }
+
+  function fdEq(p1: FlowDom, p2: FlowDom) : Bool
+  axiom fdEqDef1 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      (forall x: Ref :: {no_match(x)} x in ms(p1) == x in ms(p2))
+      ==> fdEq(p1, p2)
+  }
+  axiom fdEqDef2 {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1, p2)}
+      fdEq(p1, p2)
+      ==> (p1 == p2)
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1, p2)}
+      ms(fdPlus(p1, p2)) == ms(p1) union ms(p2)
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    fdZero() == fd(Multiset())
+  }
+
+  // Added by frontend: same for all domains
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  function fdLeq(p1:FlowDom, p2:FlowDom) : Bool
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+}
+
+
+// The fields of a node
+field next: Ref
+field prev: Ref
+field deleted: Bool  // ghost field marking unlinked nodes
+
+define nodeSpatial(x) acc(x.next) && acc(x.prev) && acc(x.deleted)
+define hrepUnchanged(x)
+  x.next == old(x.next)
+  && x.prev == old(x.prev)
+  && x.deleted == old(x.deleted)
+
+
+// Definition of a node and good condition:
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom,FlowDom]
+  requires nodeSpatial(x)
+{
+  (!x.deleted && x.next != null && x.next == y)
+    ? constMap(fd(Multiset(x))) : constMap(fdZero())
+}
+
+define dllInv(hd, I)
+  intValid(I) && hd in dom(I)
+  // Global interface conditions
+  && (forall x: Ref :: {Iinf(I, x), x in dom(I)}
+    x in dom(I) ==> fdEq(Iinf(I, x), fdZero()))
+  // Data structure is closed
+  && (forall x: Ref :: {x in dom(I), trig_gfe(x, x.next)}
+    x in dom(I) && x.next != null && trig_gfe(x, x.next) ==> x.next in dom(I))
+  // LE flow tells us x.prev, if exists and not unlinked
+  && (forall x: Ref :: {x in dom(I), Iinf(x.intf, x)}
+    x in dom(I) ==> fdEq(Iinf(x.intf, x),
+      (x.prev != x && x.prev != null && !x.deleted ? fd(Multiset(x.prev)) : fdZero())))
+  // hd not deleted, and reachable nodes not deleted
+  && !hd.deleted
+  && (forall x: Ref :: {x in dom(I), x.deleted}
+    x in dom(I) && !fdEq(Iinf(x.intf, x), fdZero()) ==> !x.deleted)
+  // hd only non-deleted node with prev == null
+  && hd.prev == null
+  && (forall x: Ref :: {x in dom(I), x.deleted, x.prev}
+    x in dom(I) && !x.deleted && x.prev == null ==> x == hd)
+
+
+/* -------------------- Actual dll methods -------------------- */
+
+
+// Helper function to create and initialize new node
+method alloc(i: FlowDom, X: Set[Ref]) returns (x: Ref, X1: Set[Ref])
+  requires X == Set[Ref]()
+  ensures X1 == Set(x)
+  ensures forall z: Ref :: {z in X1} z in X1 ==> node(z)
+  ensures fdEq(Iinf(x.intf, x), i)
+    && (forall y: Ref :: Iout(x.intf, y) == fdZero())
+  ensures intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+{
+  x := new(*)
+  x.next := null
+  x.intf := interface(singMap(x, i, fdZero()), constMap(fdZero()), Set(x))
+  X1 := Set(x)
+  _lemma_prove_intValid(x)
+  _lemma_prove_intLeq(intCompSet(Set[Ref]()), intCompSet(Set(x)))
+}
+
+
+method traverse(hd: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires dllInv(hd, intCompSet(X))
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures dllInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  var l: Ref := hd
+  var r: Ref
+
+  _field_read(l, l.next)
+  r := l.next
+
+  var nond: Bool
+  nond := nondet()
+  while (nond && r != null)
+    invariant forall x: Ref :: {x in X} x in X ==> node(x)
+    invariant dllInv(hd, intCompSet(X))
+    invariant l in X && !l.deleted
+    invariant (r != null ==> r == l.next && r in X && !r.deleted)
+  {
+    _assume_global_invs(FP)
+
+    l := r
+
+    _field_read(l, l.next)
+    r := l.next
+
+    nond := nondet()
+  }
+
+  // Check that we can now call either insert or delete:
+  assert (forall x: Ref :: {x in X} x in X ==> node(x))
+    && dllInv(hd, intCompSet(X))
+    && l in X && !l.deleted
+  if (r != null) {
+    assert (forall x: Ref :: {x in X} x in X ==> node(x))
+      && dllInv(hd, intCompSet(X))
+      && l in X && l.next in X
+  }
+}
+
+
+method delete(hd: Ref, l: Ref, X: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires dllInv(hd, intCompSet(X))
+  requires l in X && !l.deleted && l.next in X
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures dllInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _field_read(l, l.next)
+  var n: Ref := l.next
+
+  _field_read(n, n.next)
+  var r: Ref := n.next
+
+  _make_dirty(l)
+  l.next := r;
+
+  if (r != null) {
+    _make_dirty(r)
+    r.prev := l;
+  }
+
+  _make_dirty(n)
+  n.deleted := true
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+}
+
+
+// Insert node n after an arbitrary node l in the DLL
+method insert(hd: Ref, X: Set[Ref], l: Ref) returns (X1: Set[Ref])
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires dllInv(hd, intCompSet(X))
+  requires l in X && !l.deleted
+  ensures forall x: Ref :: {x in X1} x in X1 ==> node(x)
+  ensures dllInv(hd, intCompSet(X1))
+{ 
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  var n: Ref
+  var Y: Set[Ref]
+  var Y1: Set[Ref]
+  Y := Set[Ref]()
+
+  label pre_alloc_call
+
+  n, Y1 := alloc(fdZero(), Y)
+
+  // ---- Post method call:
+
+  var FP1: Set[Ref]
+  _post_method_call(FP, FP1, Y, Y1, pre_alloc_call)
+
+  // ---- Flows set-up again after method call:
+
+  _pre_code(FP1)
+
+  // ---- Actual code:
+
+  _field_read(l, l.next)
+  var r: Ref := l.next
+
+  _make_dirty(l)
+  l.next := n
+
+  _make_dirty(n)
+  n.next := l // bug
+
+  _make_dirty(n)
+  n.prev := r // bug
+
+  _make_dirty(n)
+  n.deleted := false
+
+  if (r != null) {
+    _make_dirty(r)
+    r.prev := n
+  }
+
+  // ---- Post code sync:
+  _post_code_sync(FP1, pre_sync)
+
+  X1 := FP1
+}
+
+
+// Swap the order of n0's two successors
+method swap(hd: Ref, X: Set[Ref], n0: Ref)
+  requires forall x: Ref :: {x in X} x in X ==> node(x)
+  requires dllInv(hd, intCompSet(X))
+  requires n0 in X && n0.next in X && n0.next.next in X && n0.next.next.next in X
+    && !n0.deleted
+  ensures forall x: Ref :: {x in X} x in X ==> node(x)
+  ensures dllInv(hd, intCompSet(X))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  _field_read(n0, n0.next)
+  var n1: Ref := n0.next
+
+  _field_read(n1, n1.next)
+  var n2: Ref := n1.next
+
+  _field_read(n2, n2.next)
+  var n3: Ref := n2.next
+
+  _make_dirty(n0)
+  n0.next := n2
+
+  _make_dirty(n1)
+  n1.next := n3
+
+  _make_dirty(n2)
+  n2.next := n1
+
+  _make_dirty(n2)
+  n2.prev := n0
+
+  _make_dirty(n3)
+  n3.prev := n1
+
+  _make_dirty(n1)
+  n1.prev := n2
+
+  // ---- Post code sync:
+  _post_code_sync(FP, pre_sync)
+}

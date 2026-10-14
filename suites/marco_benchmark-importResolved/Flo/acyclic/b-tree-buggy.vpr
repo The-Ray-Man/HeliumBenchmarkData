@@ -1,0 +1,1459 @@
+// ===== begin import: Flo/_preambles/Maps.vpr =====
+domain IMap[Key,V] {
+  function select(m: IMap[Key,V], key: Key) : V
+  function store(m:IMap[Key,V], key: Key, value: V) : IMap[Key,V]
+
+  axiom select_store_same {
+    forall m: IMap[Key,V], k: Key, v: V :: {select(store(m,k,v),k)} select(store(m,k,v),k) == v
+  }
+
+  axiom select_store_diff {
+    forall m: IMap[Key,V], k1: Key, k2: Key, v : V :: {select(store(m,k1,v),k2)} {select(m,k2),store(m,k1,v)} k1 != k2 ==> select(store(m,k1,v),k2) == select(m,k2)
+  }
+
+  function MapEqual(m1: IMap[Key,V], m2: IMap[Key,V]) : Bool
+
+  axiom observationally_equal {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} (forall k:Key :: select(m1,k) == select(m2,k)) ==> MapEqual(m1,m2)
+  }
+
+  axiom extensionality {
+    forall m1: IMap[Key,V], m2: IMap[Key,V] :: {MapEqual(m1,m2)} MapEqual(m1,m2) ==> m1==m2
+  }
+
+  function constMap(v: V) : IMap[Key,V]
+
+  axiom select_const {
+    forall k: Key, v: V :: {select(constMap(v),k)} select(constMap(v),k) == v
+  }
+
+  // chaining of maps representing functions
+  function pipe(m1:IMap[V,V], m2:IMap[V,V]) : IMap[V,V]
+  axiom selectPipe 
+  {
+    forall v:V, m1:IMap[V,V], m2:IMap[V,V] :: {select(pipe(m1,m2),v)}
+      select(pipe(m1,m2),v) == select(m2,select(m1,v))
+  }
+
+  function singMap(x: Key, i: V, d: V) : IMap[Key, V]
+  axiom singMapDef1 {
+   forall x: Key, i: V, d: V :: {singMap(x, i, d)} select(singMap(x, i, d), x) == i
+  }
+  axiom singMapDef2 {
+    forall x: Key, y: Key, i: V, d: V :: {select(singMap(x, i, d), y)}
+      (y != x ==> select(singMap(x, i, d), y) == d) && (y == x ==> select(singMap(x, i, d), y) == i)
+  }
+
+  // TODO: not sure this is needed any more?
+  // TODO also create select terms for dblMap
+  function dblMap(x1: Key, i1: V, x2: Key, i2: V, d: V) : IMap[Key, V]
+  // axiom dblMapDef1 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x1) == i1
+  // }
+  // axiom dblMapDef2 {
+  //   forall x1: Key, i1: V, x2: Key, i2: V, d: V :: {dblMap(x1, i1, x2, i2, d)}
+  //     select(dblMap(x1, i1, x2, i2, d), x2) == i2
+  // }
+  axiom dblMapDef {
+    forall x1: Key, i1: V, x2: Key, i2: V, d: V, y: Key :: {select(dblMap(x1, i1, x2, i2, d), y)}
+      select(dblMap(x1, i1, x2, i2, d), y) == (y == x1? i1 : (y == x2 ? i2 : d))
+  }
+}
+// ===== end import: Flo/_preambles/Maps.vpr =====
+
+// ===== begin import: Flo/_preambles/array.vpr =====
+domain Array {
+  function array_rep(a: Array): Ref
+  function length(a: Array): Int
+  function arr_of_rep(r: Ref): Array
+
+  axiom allDiff {
+    forall a: Array :: { array_rep(a) }
+      arr_of_rep(array_rep(a)) == a
+  }
+
+  axiom lenNonneg {
+    forall a: Array :: { length(a) }
+      length(a) >= 0
+  }
+}
+
+define ARRAY(a) ARRAYPERM(a,write)
+define ARRAYPERM(a,p) forall i : Int :: 0 <= i && i < length(a) ==> acc(loc(a,i).val,p)
+
+define SLOT(a,i) loc(a,i).val
+
+
+/*
+domain Array {
+  function slot(a: Array, i: Int): Ref
+  function length(a: Array): Int
+  function first(r: Ref): Array
+  function second(r: Ref): Int
+
+  axiom all_diff {
+    forall a: Array, i: Int :: { slot(a,i) }
+      first(slot(a,i)) == a && second(slot(a,i)) == i
+  }
+
+  axiom length_nonneg {
+    forall a: Array :: { length(a) }
+      length(a) >= 0
+  }
+}
+*/
+// ===== end import: Flo/_preambles/array.vpr =====
+
+// ===== begin import: Flo/_preambles/ordered.vpr =====
+domain K {
+  function lt(x: K, y: K): Bool
+  
+  function bottom(): K
+
+  function top(): K
+
+  axiom bottomIsSmallest {
+    forall a: K :: !lt(a, bottom())
+  }
+
+  axiom topIsLargest {
+    forall a: K :: !lt(top(), a)
+  }
+
+  axiom nontrivialDomain {
+    bottom() != top()
+  }
+
+  axiom ltIrreflexive {
+    forall a: K :: !lt(a, a)
+  }
+
+  axiom ltTotal {
+    forall a: K, b: K :: !lt(a, b) || !lt(b, a)
+  }
+
+  axiom ltAntisymmetric {
+    forall a: K, b: K :: 
+      lt(a, b) || lt(b, a) || a == b
+  }
+
+  axiom ltTransitive {
+    forall a: K, b: K, c: K :: 
+      lt(a, b) && lt(b, c) ==> lt(a, c)
+  }
+
+  function le(a: K, b: K): Bool 
+  
+  axiom leDef {
+    forall a: K, b: K :: {le(a, b)} 
+      le(a, b) == (lt(a, b) || a == b)
+  }
+
+  function compare(a: K, b: K): Int
+  
+  axiom compareDef {
+    forall a: K, b: K :: {compare(a, b)} 
+      compare(a, b) == (a == b ? 0 : (lt(a, b) ? -1 : 1))
+  }
+}
+// ===== end import: Flo/_preambles/ordered.vpr =====
+
+// ===== begin import: Flo/_preambles/array-util.vpr =====
+// resolved: import "Maps.vpr"
+// resolved: import "array.vpr"
+// resolved: import "ordered.vpr"
+
+
+field val_K: IMap[Int,K]
+define array_K(a)
+  acc(array_rep(a).val_K)
+
+define acc_K(a, i)
+  acc(array_rep(a).val_K) && 0 <= i && i < length(a)
+
+define unchanged_array_K(a)
+  array_rep(a).val_K == old(array_rep(a).val_K)
+
+function map_K_of_array(a: Array): IMap[Int,K]
+  requires array_K(a)
+  ensures result == array_rep(a).val_K
+
+function read_K(a: Array, i: Int): K
+  requires acc_K(a, i)
+  ensures result == select(map_K_of_array(a), i)
+
+method write_K(a: Array, i: Int, v: K)
+  requires acc_K(a, i)
+  ensures acc_K(a, i) && map_K_of_array(a) == store(old(map_K_of_array(a)), i, v)
+
+function set_of_map_K(m: IMap[Int,K], i: Int, j: Int): Set[K] // removed postcondition (which called function recursively)
+  requires i <= j
+  ensures forall j1: Int :: i <= j1 && j1 < j ==> select(m, j1) in result
+{
+  i < j ? Set(select(m, i)) union set_of_map_K(m, i + 1, j) : Set()
+}
+/*
+method extend_right(m: IMap[Int,K], i: Int, j: Int)
+  requires i <= j
+  ensures set_of_map_K(m, i, j) union Set(select(m, j)) == set_of_map_K(m, i, j + 1)
+/*{
+  if (i < j) {
+    extend_right(m, i + 1, j);
+  }
+}*/
+
+method in_set_of_map_K_k(m: IMap[Int,K], i: Int, j: Int, k: Int)
+  requires i <= j
+  ensures i <= k && k < j ==> select(m, k) in set_of_map_K(m, i, j)
+/*{
+  if (i < j) {
+    in_set_of_map_K_k(m, i + 1, j, k);
+  }
+}*/
+
+method set_of_map_K_split(m: IMap[Int,K], i: Int, j: Int, k: Int)
+  requires i <= j && j <= k
+  ensures set_of_map_K(m, i, k) == set_of_map_K(m, i, j) union set_of_map_K(m, j, k)
+/*{
+  if (j < k) {
+    extend_right(m, i, j);
+    set_of_map_K_split(m, i, j + 1, k);
+  }
+}*/
+
+method set_of_map_K_equal(m1: IMap[Int,K], m2: IMap[Int,K], i1: Int, i2: Int, len: Int)
+  requires len >= 0
+  requires forall j: Int :: {select(m1, j)} i1 <= j && j < i1 + len ==> select(m1, j) == select(m2, j + (i2 - i1))
+  ensures set_of_map_K(m1, i1, i1 + len) == set_of_map_K(m2, i2, i2 + len)
+/*{
+  if (0 < len) {
+    set_of_map_K_equal(m1, m2, i1 + 1, i2 + 1, len - 1);
+  }
+}*/
+
+method frame_set_of_map_K(m: IMap[Int,K], i: Int, j: Int, i1: Int, k: K)
+  requires i <= j
+  ensures (i1 < i || j <= i1) ==> set_of_map_K(m, i, j) == set_of_map_K(store(m, i1, k), i, j)
+/*{
+  if (i < j) {
+    frame_set_of_map_K(m, i + 1, j, i1, k);
+  }
+}*/
+
+function sorted_Map_K_seg(m: IMap[Int,K], i: Int, j: Int): Bool
+  ensures result == (forall i1: Int, i2: Int :: {select(m, i1), select(m, i2)}
+    i <= i1 && i1 < i2 && i2 < j ==> lt(select(m, i1), select(m, i2)))
+
+
+
+method not_in_sorted_seg(m: IMap[Int,K], i: Int, j: Int, k: K)
+  requires sorted_Map_K_seg(m, i, j)
+  ensures i > j || (lt(k, select(m, i)) || lt(select(m, j - 1), k) ==> !(k in set_of_map_K(m, i, j)))
+/*{
+  if (i < j) { 
+  
+    if (lt(select(m, j - 1), k)) {
+      extend_right(m, i, j - 1);
+      //assert sorted_Map_K_seg(m, i, j - 1);
+      not_in_sorted_seg(m, i, j - 1, k);
+    } else {
+      if (lt(k, select(m, i))) {
+        not_in_sorted_seg(m, i + 1, j, k);    
+      }
+    }
+  }
+}*/
+
+function map_K_shift(m: IMap[Int,K], src: Int, dst: Int, len: Int): IMap[Int,K]
+  ensures len <= 0 ? result == m : forall i: Int :: {select(result, i)} 
+  //{select(m, i)} // matching loop: select(m,i) generates select(m, src + (i - dst))
+    select(result, i) == (i < dst || dst + len <= i ? select(m, i) : select(m, src + (i - dst)))
+
+/*ALEX: an attempt to fix the index shift matching loops..
+    (forall i: Int :: {select(result, i)} shift_left(shift_right(i,(src - dst)),(src-dst)) == i && select(result, i) == (i < dst || dst + len <= i ? select(m, i) : select(m, shift_right(i,(src - dst))))) // rebracketed this - the offset is src-dst
+    && (forall i: Int :: {select(m, i)} i < dst || dst + len <= i ==> select(result, i) == select(m, i))
+    //idea: i == j - (src-dst), then simplify
+    && (forall j : Int :: {select(m,j)} j >= src && j-src < len ==> shift_right(shift_left(j,(src - dst)),(src-dst)) == j && select(result, shift_left(j,(src - dst))) == select(m, j))
+
+domain indexShifts {
+  function shift_right(index: Int, amount: Int) : Int
+  axiom shift_right_defn {
+    forall index: Int, amount: Int :: {shift_right(index,amount)} shift_right(index,amount) == index + amount  
+  }
+  function shift_left(index: Int, amount: Int) : Int
+  axiom shift_left_defn {
+    forall index: Int, amount: Int :: {shift_left(index,amount)} shift_left(index,amount) == index - amount  
+  }
+}*/
+
+
+function map_K_copy(m1: IMap[Int,K], m2: IMap[Int,K], src: Int, dst: Int, len: Int): IMap[Int,K]
+  ensures forall i: Int :: {select(result, i)} select(result, i) == (dst <= i && i < dst + len ? select(m2, src + (i - dst)) : select(m1, i))
+
+
+define sorted_array_prefix(a, len)
+  array_K(a) && 0 <= len && len <= length(a) && sorted_Map_K_seg(map_K_of_array(a), 0, len)
+
+function set_of_array(a: Array, i: Int, j: Int): Set[K]
+  requires i <= j
+  requires array_K(a) && 0 <= i && j <= length(a)
+  ensures result == set_of_map_K(map_K_of_array(a), i, j)
+
+
+function map_K_find(m: IMap[Int,K], i: Int, j: Int, k: K): Int
+  requires i <= j
+  requires sorted_Map_K_seg(m, i, j)
+  ensures i <= result && result <= j
+  ensures select(m, result) == k || result == j || lt(k, select(m, result))
+  ensures i < result ==> lt(select(m, result - 1), k)
+  ensures result + 1 < j ==> lt(k, select(m, result + 1))
+/*{
+  i < j && lt(select(m, i), k) ? map_K_find(m, i + 1, j, k) : i
+}*/
+
+method map_K_find_content_set(m: IMap[Int,K], i: Int, j: Int, idx: Int, k: K)
+  requires i <= j
+  requires sorted_Map_K_seg(m, i, j)
+  requires idx == map_K_find(m, i, j, k)
+  ensures !(k in set_of_map_K(m, i, idx))
+  ensures idx + 1 <= j ==> !(k in set_of_map_K(m, idx + 1, j))
+/*{
+  // prove k !in set_of_map_K(a, 0, idx)
+  not_in_sorted_seg(m, i, idx, k);
+  // prove: k !in set_of_map_K(a, idx + 1, len)
+  not_in_sorted_seg(m, idx + 1, j, k);
+}*/
+
+method map_K_find_in_set(m: IMap[Int,K], i: Int, j: Int, k: K)
+  requires i <= j
+  requires sorted_Map_K_seg(m, i, j)
+  ensures k in set_of_map_K(m, i, j) ==> map_K_find(m, i, j, k) < j && select(m, map_K_find(m, i, j, k)) == k
+  ensures !(k in set_of_map_K(m, i, j)) ==> (map_K_find(m, i, j, k) == j || lt(k, select(m, map_K_find(m, i, j, k))))
+/*{
+  var idx: Int := map_K_find(m, i, j, k);
+  map_K_find_content_set(m, i, j, idx, k);
+  set_of_map_K_split(m, i, idx, j);
+}*/
+
+method map_K_insert_content_set(m: IMap[Int,K], m1: IMap[Int,K], idx: Int, k: K, len: Int, new_len: Int)
+  requires 0 <= len
+  requires sorted_Map_K_seg(m, 0, len)
+  requires idx == map_K_find(m, 0, len, k)
+  requires k in set_of_map_K(m, 0, len) ==> new_len == len && m1 == m
+  requires !(k in set_of_map_K(m, 0, len)) ==> new_len == len + 1 && m1 == store(map_K_shift(m, idx, idx + 1, len - idx), idx, k)
+  ensures set_of_map_K(m1, 0, new_len) == set_of_map_K(m, 0, len) union Set(k)
+/*{
+  if (select(m, idx) == k && idx < len) {
+    in_set_of_map_K_k(m, 0, len, idx);
+  } else {
+  
+    var ms: IMap[Int,K] := map_K_shift(m, idx, idx + 1, len - idx);
+
+    // prove set_of_map_K(m, 0, len) == set_of_map_K(ms, 0, idx) ++ set_of_array(ms, idx + 1, len + 1);
+    set_of_map_K_split(m, 0, idx, len);
+    set_of_map_K_equal(m, ms, 0, 0, idx); // ALEX: the precondition seems to enter a matching loop along with the postcondition of map_K_shift
+    set_of_map_K_equal(m, ms, idx, idx + 1, len - idx);
+    
+    // prove set_of_map_K(m1, 0, new_len) == set_of_array(ms, 0, idx) ++ {k} ++ set_of_map_K(ms, idx + 1, len + 1)
+    frame_set_of_map_K(ms, 0, idx, idx, k);
+    frame_set_of_map_K(ms, idx + 1, len + 1, idx, k);
+    map_K_find_in_set(m, 0, len, k)
+    set_of_map_K_split(m1, 0, idx, len + 1);
+    
+    if (!(k in set_of_map_K(m, 0, len))) {
+      assert m1 == store(ms, idx, k)
+    }
+  }
+}*/
+
+method map_K_delete_content_set(m: IMap[Int,K], m1: IMap[Int,K], len: Int, new_len: Int, idx: Int, k: K)
+  requires 0 <= len
+  requires sorted_Map_K_seg(m, 0, len)
+  requires idx == map_K_find(m, 0, len, k)
+  requires !(k in set_of_map_K(m, 0, len)) ==> new_len == len && m1 == m
+  requires k in set_of_map_K(m, 0, len) ==> new_len == len - 1 && m1 == map_K_shift(m, idx + 1, idx, len - (idx + 1))
+  ensures set_of_map_K(m1, 0, new_len) == set_of_map_K(m, 0, len) setminus Set(k)
+/*{
+  map_K_find_content_set(m, 0, len, idx, k);
+  set_of_map_K_split(m, 0, idx, len);
+    
+  if (idx == len || select(m, idx) != k) {
+  } else {
+    // prove: set_of_map_K(m, 0, len) -- {k} == set_of_map_K(m1, 0, idx - 1) ++ set_of_map_K(m1, idx - 1, len - 1)
+    set_of_map_K_equal(m, m1, 0, 0, idx);
+    set_of_map_K_equal(m, m1, idx + 1, idx, len - (idx + 1));
+
+    not_in_sorted_seg(m, 0, idx - 1, k);
+    not_in_sorted_seg(m, idx + 1, len, k);
+  
+    set_of_map_K_split(m1, 0, idx, len - 1);
+
+    if (!(k in set_of_map_K(m, 0, len))) {
+      assert m1 == map_K_shift(m, idx + 1, idx, len - (idx + 1))
+    }
+
+  }
+}*/
+
+method arr_init(a: Array, len: Int, k: K)
+  requires array_K(a)
+  requires 0 <= len && len <= length(a)
+  ensures array_K(a)
+  ensures forall i: Int :: {select(map_K_of_array(a), i)} 0 <= i && i < len ==> read_K(a, i) == k
+/*{
+  var i: Int := 0;
+
+  while (i < len)
+    invariant array_K(a)
+    invariant 0 <= i && i <= len && len <= length(a)
+    invariant forall j: Int :: {select(map_K_of_array(a), j)} 0 <= j && j < i ==> read_K(a, j) == k
+  {
+    write_K(a, i, k);
+    i := i + 1;
+  }
+}*/
+
+// Shift a[src..src+len] to a[dst..dst+len]
+method arr_shift(a: Array, src: Int, dst: Int, len: Int)
+  requires array_K(a)
+  requires 0 <= src && src <= src + len && src + len <= length(a) 
+  requires 0 <= dst && dst <= dst + len && dst + len <= length(a)
+  ensures array_K(a)
+  ensures map_K_of_array(a) == map_K_shift(old(map_K_of_array(a)), src, dst, len)
+/*{
+  var am: IMap[Int,K] := map_K_of_array(a);
+  if (src < dst) {
+    var i: Int := len - 1;
+    
+    while (i >= 0) 
+      invariant array_K(a)
+      invariant src < dst
+      invariant 0 <= src && src <= src + len && src + len <= length(a)
+      invariant 0 <= dst && dst <= dst + len && dst + len <= length(a)
+      invariant -1 <= i && i < len
+      invariant MapEqual(map_K_shift(am, src + i + 1, dst + i + 1, len - i - 1), map_K_of_array(a))
+    {
+      var tmp: K := read_K(a, src + i);
+      write_K(a, dst + i, tmp);
+      i := i - 1;
+    }
+  } elseif (src > dst) {
+    var i: Int := 0;
+    while (i < len)
+      invariant array_K(a)
+      invariant src > dst
+      invariant 0 <= src && src <= src + len && src + len <= length(a)
+      invariant 0 <= dst && dst <= dst + len && dst + len <= length(a)
+      invariant 0 <= i && i <= len 
+      invariant MapEqual(map_K_shift(am, src, dst, i), map_K_of_array(a))
+    {
+      var tmp: K := read_K(a, src + i);
+      write_K(a, dst + i, tmp);
+      i := i + 1;
+    }
+  }
+  assert MapEqual(map_K_of_array(a), map_K_shift(am, src, dst, len))
+}*/
+
+// Copy a[src..src+len] to b[dst..dst+len]
+method arr_copy(a: Array, b: Array, src: Int, dst: Int, len: Int)
+  requires array_K(a) && array_K(b)
+  requires 0 <= src && src <= src + len && src + len <= length(a)
+  requires 0 <= dst && dst <= dst + len && dst + len <= length(b)
+  ensures array_K(a) && array_K(b)
+  ensures map_K_of_array(a) == old(map_K_of_array(a))
+  ensures map_K_of_array(b) == map_K_copy(old(map_K_of_array(b)), map_K_of_array(a), src, dst, len)
+/*{
+  var mb: IMap[Int,K] := map_K_of_array(b);
+  var ma: IMap[Int,K] := map_K_of_array(a);
+  var i: Int := 0;
+  
+  while (i < len)
+    invariant array_K(a) && array_K(b)
+    invariant 0 <= i && i <= len
+    invariant 0 <= src && src <= src + len && src + len <= length(a)
+    invariant 0 <= dst && dst <= dst + len && dst + len <= length(b)
+    invariant map_K_of_array(a) == ma
+    invariant MapEqual(map_K_of_array(b), map_K_copy(mb, ma, src, dst, i))
+  {
+    var m1: IMap[Int,K] := map_K_of_array(b);
+    var tmp: K := read_K(a, src + i);
+    write_K(b, dst + i, tmp);
+    assert MapEqual(map_K_of_array(b), store(m1, dst + i, tmp));
+    i := i + 1;
+  }
+}*/
+
+// Find key `k` in sorted array segment `a[0..len]` using binary search
+method arr_find(a: Array, len: Int, k: K)
+  returns (found: Bool, idx: Int)
+  requires sorted_array_prefix(a, len)
+  requires 0 <= len && len <= length(a)
+  ensures sorted_array_prefix(a, len)
+  ensures map_K_of_array(a) == old(map_K_of_array(a))
+  // what we actually care about
+  ensures idx == map_K_find(map_K_of_array(a), 0, len, k)
+  ensures found == (k in set_of_map_K(map_K_of_array(a), 0, len))
+/*{
+  var am: IMap[Int,K] := map_K_of_array(a);
+  var lo: Int := 0;
+  var hi: Int := len;
+  
+  while (hi != lo)
+    invariant sorted_array_prefix(a, len)
+    invariant map_K_of_array(a) == am
+    // what we actually care about
+    invariant 0 <= lo && lo <= hi && hi <= len && len <= length(a)
+    invariant hi == len || read_K(a, lo) == k || lt(k, read_K(a, hi))
+    invariant 0 < lo ==> lt(read_K(a, lo - 1), k)
+    invariant hi < len - 1 ==> lt(k, read_K(a, hi + 1))
+  {
+    var mid: Int := (hi + lo) / 2;
+    var cmp: Int;
+    cmp := compare(k, read_K(a, mid));
+    if (cmp < 0) {
+      hi := mid;      // look in first half
+    } elseif (cmp > 0) {
+      lo := mid + 1;    // look in second half
+    } else {
+      // found it
+      hi := mid;
+      lo := mid;
+    }
+  }
+  
+  idx := lo;
+  
+  found := idx != len && le(read_K(a, lo), k)
+
+  map_K_find_in_set(map_K_of_array(a), 0, len, k);
+}*/
+
+// Given a sorted array segment `a[0..len]`,
+// insert `k` into `a[0..len+1]` while preserving sortedness.
+// If `k` is already contained in `a[0..len]`, then do not modify `a`.
+method arr_insert(a: Array, k: K, len: Int)
+  returns (idx: Int, new_len: Int)
+  requires sorted_array_prefix(a, len)
+  requires len < length(a)
+  ensures sorted_array_prefix(a, new_len)
+  ensures idx == map_K_find(old(map_K_of_array(a)), 0, len, k)
+  ensures k in set_of_map_K(old(map_K_of_array(a)), 0, len) ==> new_len == len && map_K_of_array(a) == old(map_K_of_array(a))
+  ensures !(k in set_of_map_K(old(map_K_of_array(a)), 0, len)) ==> new_len == len + 1
+            && map_K_of_array(a) == store(map_K_shift(old(map_K_of_array(a)), idx, idx + 1, len - idx), idx, k)
+  ensures read_K(a, idx) == k
+/*{
+  // find position for insertion
+  var i: Int;
+  var found: Bool;
+  found, i := arr_find(a, len, k);
+
+  map_K_find_in_set(map_K_of_array(a), 0, len, k);
+  
+  // k already in C?
+  if (found) {
+    new_len := len;
+  } else {
+  
+    arr_shift(a, i, i + 1, len - i);
+
+    var ms: IMap[Int,K] := map_K_of_array(a);
+  
+    write_K(a, i, k);
+
+    new_len := len + 1;
+
+  }
+  idx := i;
+
+}*/
+
+// Given a sorted array segment `a[0..len]`,
+// delete `k` from the segment while preserving sortedness.
+// If `k` is already contained in `a[0..len]`, then do not modify `a`.
+method arr_delete(a: Array, k: K, len: Int)
+  returns (new_len: Int, idx: Int)
+  requires sorted_array_prefix(a, len)
+  requires len <= length(a)
+  ensures sorted_array_prefix(a, new_len)
+  ensures idx == map_K_find(old(map_K_of_array(a)), 0, len, k)
+  ensures !(k in set_of_map_K(old(map_K_of_array(a)), 0, len)) ==> new_len == len && map_K_of_array(a) == old(map_K_of_array(a))
+  ensures k in set_of_map_K(old(map_K_of_array(a)), 0, len) ==> new_len == len - 1
+            && map_K_of_array(a) == map_K_shift(old(map_K_of_array(a)), idx + 1, idx, len - (idx + 1))
+/*{
+  // find position for insertion
+  var found: Bool;
+  found, idx := arr_find(a, len, k);
+
+  map_K_find_in_set(map_K_of_array(a), 0, len, k);
+  
+  // k !in C?
+  if (!found) {
+    new_len := len;
+  } else {
+  
+    // shift array entries a[i+1..len] by 1 entry to the left 
+    arr_shift(a, idx + 1, idx, len - (idx + 1));
+  
+    new_len := len - 1;
+  }
+}*/
+
+
+field val_Ref: IMap[Int,Ref]
+define array_Ref(a)
+  acc(array_rep(a).val_Ref)
+
+define acc_Ref(a, i)
+  acc(array_rep(a).val_Ref) && 0 <= i && i < length(a)
+
+
+define unchanged_array_Ref(a)
+  array_rep(a).val_Ref == old(array_rep(a).val_Ref)
+
+function map_Ref_of_array(a: Array): IMap[Int,Ref]
+  requires array_Ref(a)
+  ensures result == array_rep(a).val_Ref
+
+function read_Ref(a: Array, i: Int): Ref
+  requires acc_Ref(a, i)
+  ensures result == select(map_Ref_of_array(a), i)
+
+method write_Ref(a: Array, i: Int, v: Ref)
+  requires acc_Ref(a, i)
+  ensures acc_Ref(a, i) && map_Ref_of_array(a) == store(old(map_Ref_of_array(a)), i, v)
+
+function set_of_map_Ref(m: IMap[Int,Ref], i: Int, j: Int): Set[Ref]
+  requires i <= j
+//  ensures result == (i < j ? Set(select(m, i)) union set_of_map_Ref(m, i + 1, j) : Set())
+{
+  i < j ? Set(select(m, i)) union set_of_map_Ref(m, i + 1, j) : Set()
+}
+
+function map_Ref_shift(m: IMap[Int,Ref], src: Int, dst: Int, len: Int): IMap[Int,Ref]
+  //ensures len <= 0 ? result == m : forall i: Int :: {select(result, i)} {select(m, i)} select(result, i) == (i < dst || dst + len <= i ? select(m, i) : select(m, src + (i - dst)))
+         
+
+function map_Ref_copy(m1: IMap[Int,Ref], m2: IMap[Int,Ref], src: Int, dst: Int, len: Int): IMap[Int,Ref]
+  //ensures forall i: Int :: {select(result, i)} select(result, i) == (dst <= i && i < dst + len ? select(m2, src + (i - dst)) : select(m1, i))
+
+// Shift a[src..src+len] to a[dst..dst+len]
+method arr_shift_Ref(a: Array, src: Int, dst: Int, len: Int)
+  requires array_Ref(a)
+  requires 0 <= src && src <= src + len && src + len <= length(a) 
+  requires 0 <= dst && dst <= dst + len && dst + len <= length(a)
+  ensures array_Ref(a)
+  ensures map_Ref_of_array(a) == map_Ref_shift(old(map_Ref_of_array(a)), src, dst, len)
+/*{
+  var am: IMap[Int,Ref] := map_Ref_of_array(a);
+  if (src < dst) {
+    var i: Int := len - 1;
+    
+    while (i >= 0) 
+      invariant array_Ref(a)
+      invariant src < dst
+      invariant 0 <= src && src <= src + len && src + len <= length(a)
+      invariant 0 <= dst && dst <= dst + len && dst + len <= length(a)
+      invariant -1 <= i && i < len
+      invariant MapEqual(map_Ref_shift(am, src + i + 1, dst + i + 1, len - i - 1), map_Ref_of_array(a))
+    {
+      var tmp: Ref := read_Ref(a, src + i);
+      write_Ref(a, dst + i, tmp);
+      i := i - 1;
+    }
+  } elseif (src > dst) {
+    var i: Int := 0;
+    while (i < len)
+      invariant array_Ref(a)
+      invariant src > dst
+      invariant 0 <= src && src <= src + len && src + len <= length(a)
+      invariant 0 <= dst && dst <= dst + len && dst + len <= length(a)
+      invariant 0 <= i && i <= len 
+      invariant MapEqual(map_Ref_shift(am, src, dst, i), map_Ref_of_array(a))
+    {
+      var tmp: Ref := read_Ref(a, src + i);
+      write_Ref(a, dst + i, tmp);
+      i := i + 1;
+    }
+  }
+  assert MapEqual(map_Ref_of_array(a), map_Ref_shift(am, src, dst, len))
+}*/
+ 
+// Copy a[src..src+len] to b[dst..dst+len]
+method arr_copy_Ref(a: Array, b: Array, src: Int, dst: Int, len: Int)
+  requires array_Ref(a) && array_Ref(b)
+  requires 0 <= src && src <= src + len && src + len <= length(a)
+  requires 0 <= dst && dst <= dst + len && dst + len <= length(b)
+  ensures array_Ref(a) && array_Ref(b)
+  ensures map_Ref_of_array(a) == old(map_Ref_of_array(a))
+  ensures map_Ref_of_array(b) == map_Ref_copy(old(map_Ref_of_array(b)), map_Ref_of_array(a), src, dst, len)
+/*{
+  var mb: IMap[Int,Ref] := map_Ref_of_array(b);
+  var ma: IMap[Int,Ref] := map_Ref_of_array(a);
+  var i: Int := 0;
+  
+  while (i < len)
+    invariant array_Ref(a) && array_Ref(b)
+    invariant 0 <= i && i <= len
+    invariant 0 <= src && src <= src + len && src + len <= length(a)
+    invariant 0 <= dst && dst <= dst + len && dst + len <= length(b)
+    invariant map_Ref_of_array(a) == ma
+    invariant MapEqual(map_Ref_of_array(b), map_Ref_copy(mb, ma, src, dst, i))
+  {
+    var m1: IMap[Int,Ref] := map_Ref_of_array(b);
+    var tmp: Ref := read_Ref(a, src + i);
+    write_Ref(b, dst + i, tmp);
+    assert MapEqual(map_Ref_of_array(b), store(m1, dst + i, tmp));
+    i := i + 1;
+  }
+<<<<<<< working copy
+}*/
+// ===== end import: Flo/_preambles/array-util.vpr =====
+
+// ===== begin import: Flo/_preambles/Lists.vpr =====
+
+domain List[T] {
+  function nil() : List[T]
+  function cons(t:T, l:List[T]) : List[T]
+  // no injectivity/surjectivity needed? For now, the property below seems enough:
+
+  function remove(l:List[T], t:T) : List[T]
+
+  axiom remove_nils {
+    forall t:T :: {remove(nil(),t)} remove(nil(),t) == nil()
+  }
+
+  axiom remove_cons {
+    forall s:T, l:List[T], t:T :: {remove(cons(s,l),t)} remove(cons(s,l),t) == (s==t ? l : (cons(s,remove(l,t)) : List[T]))// note: we assume lists without duplicates / removal of first occurrence only
+  }
+
+  axiom diffconstructors {
+      forall t:T, l:List[T] :: {cons(t,l)} nil() != cons(t,l)
+  }
+}
+// ===== end import: Flo/_preambles/Lists.vpr =====
+
+// ===== begin import: Flo/_preambles/flows-new.vpr =====
+//:: IgnoreFile(/Carbon/issue/000/)
+ 
+/* -------------------- Flows library -------------------- */
+
+// Interfaces
+domain Interface {
+  // Constructor
+  function interface(i: IMap[Ref, FlowDom], o: IMap[Ref, FlowDom],
+    F: Set[Ref]) : Interface
+  // Destructors
+  function inf(I: Interface) : IMap[Ref, FlowDom] // inflow
+  function out(I: Interface) : IMap[Ref, FlowDom] // outflow
+  function dom(I: Interface) : Set[Ref] // footprint
+
+  // Validity
+  function intValid(I: Interface) : Bool
+
+  axiom interfaceDef {
+    forall i: IMap[Ref, FlowDom], o: IMap[Ref, FlowDom],
+        F: Set[Ref] :: {interface(i, o, F)}
+      inf(interface(i, o, F)) == i
+      && out(interface(i, o, F)) == o
+      && dom(interface(i, o, F)) == F
+  }
+
+  axiom injective_interface {
+    forall I: Interface :: {inf(I), out(I), dom(I)}
+      I == interface(inf(I), out(I), dom(I))
+  }
+
+  // Interface contextual extension (allows increasing domain)
+  function intLeq(I1: Interface, I2: Interface) : Bool
+
+  axiom intLeq_eq {
+    forall I: Interface :: {intLeq(I, I)} intLeq(I, I)
+  }
+  
+  axiom intLeq_implies {
+    forall I1: Interface, I2: Interface :: {intLeq(I1, I2)}
+      intLeq(I1, I2)
+      ==> intValid(I1) && intValid(I2)
+        && dom(I1) subset dom(I2)
+        && (forall n: Ref :: {Iinf(I2, n)}
+          n in dom(I1) ==> fdEq(Iinf(I1, n), Iinf(I2, n)))
+        && (forall m: Ref :: {Iout(I2, m)}
+          !(m in dom(I2)) ==> fdEq(Iout(I1, m), Iout(I2, m)))
+  }
+
+  axiom intLeq_transitive {
+    forall I1: Interface, I2: Interface, I3: Interface ::
+        {intLeq(I1, I2), intLeq(I2, I3), intLeq(I1, I3)}
+      intLeq(I1, I2) && intLeq(I2, I3) ==> intLeq(I1, I3)
+  }
+}
+
+// Macros to simplify specs
+define Iinf(I, x) select(inf(I), x)
+define Iout(I, y) select(out(I), y)
+
+// Helper lemma to prove validity of singleton interfaces
+method _lemma_prove_intValid(yy: Ref)
+  requires nodeSpatial(yy) && acc(yy.intf) && dom(yy.intf) == Set(yy)
+  // Outflow consistent with edge_fn
+  requires (forall z: Ref :: {Iout(yy.intf, z)}{edge_fn(yy, z)}
+    fdEq(Iout(yy.intf, z), select(edge_fn(yy, z),Iinf(yy.intf, yy))))
+  ensures nodeSpatial(yy) && acc(yy.intf)
+  ensures hrepUnchanged(yy) && yy.intf == old(yy.intf)
+  ensures intValid(intCompSet(Set(yy)))
+
+// Helper lemma to prove intLeq
+method _lemma_prove_intLeq(I1: Interface, I2: Interface)
+  requires dom(I1) subset dom(I2)
+  requires intValid(I1) && intValid(I2)
+  requires (forall n: Ref :: {Iinf(I2, n)}
+          n in dom(I1) ==> fdEq(Iinf(I1, n), Iinf(I2, n)))
+  requires (forall m: Ref :: {Iout(I2, m)}
+          !(m in dom(I2)) ==> fdEq(Iout(I1, m), Iout(I2, m)))
+  ensures intLeq(I1, I2)
+
+// Compute footprints after a method call
+define _compute_footprints(X, X1, Y, Y1) {
+  // // compute appropriate X1:
+  // assume forall z: Ref :: {z in X1} z in X1 ==> perm(z.intf) == 1/1
+  // assume forperm z: Ref [z.intf] :: z in X1
+  X1 := X union (Y1 setminus Y)
+}
+
+// Apply the Replacement Theorem
+define _replacement_theorem(X, X1, Y, Y1, pre) {
+  // This is an instantiation of the Replacement Theorem:
+  assume intLeq(old[pre](intCompSet(Y)), intCompSet(Y1))
+    ==> intLeq(old[pre](intCompSet(X)), intCompSet(X1))
+  // By defn of composition, new nodes' inflow given by inflow of method's footprint
+  assume forall z: Ref :: {Iinf(intCompSet(X1), z)}
+    z in (X1 setminus X) ==> Iinf(intCompSet(X1), z) == Iinf(intCompSet(Y1), z)
+}
+
+// ---- Basic elements of encoding: intf field and N predicate
+
+field intf: Interface
+
+// This is defined outside the domain as it is state-dependent
+function intCompSet(X: Set[Ref]) : Interface
+  requires forall xx: Ref :: {xx.intf} xx in X ==> acc(xx.intf)
+  ensures dom(result) == X
+  // The empty interface
+  ensures X == Set[Ref]() 
+    ==> (forall xx: Ref :: {Iinf(result, xx)} fdEq(Iinf(result, xx), fdZero()))
+  ensures X == Set[Ref]() 
+    ==> (forall xx: Ref :: {Iout(result, xx)} fdEq(Iout(result, xx), fdZero()))
+  ensures X == Set[Ref]() ==> intValid(result)
+  // The singleton interface
+  ensures forall xx: Ref :: {intCompSet(Set(xx))} X == Set(xx) && xx in X ==> result == xx.intf 
+  //ensures forall xx: Ref :: {xx in X} |X| == 1 && xx in X ==> result == xx.intf 
+  decreases _
+
+define node(x)
+  nodeSpatial(x) && acc(x.intf) && dom(x.intf) == Set(x)
+  && (forall z: Ref :: {Iout(x.intf, z)}{edge_fn(x, z)}
+    fdEq(Iout(x.intf, z), select(edge_fn(x, z),Iinf(x.intf, x))))
+
+
+// ---- Clever tricks to compute unbounded sums
+
+// Compute capacity (approximately)
+domain Cap {
+  function mapPlus(m1: IMap[FlowDom, FlowDom], m2: IMap[FlowDom, FlowDom])
+    : IMap[FlowDom, FlowDom]
+  axiom mapPlusLookup {
+    forall m1: IMap[FlowDom, FlowDom], m2: IMap[FlowDom, FlowDom], f: FlowDom ::
+        {select(mapPlus(m1, m2), f)}
+      select(mapPlus(m1, m2), f) == fdPlus(select(m1, f), select(m2, f))
+  }
+
+  function capAux(m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+    through: List[Ref]) : IMap[FlowDom, FlowDom]
+
+  axiom capDirect {
+    forall m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]] ::
+        {capAux(m, n, edges, nil())} 
+      capAux(m, n, edges, nil()) == select(select(edges, m), n)
+      //+ (m==n ? 1 : 0) // we decided against this - it can be added later
+  }
+
+  axiom capMaybeThrough {
+    forall m: Ref, n: Ref, edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+        i: Ref, rest: List[Ref] ::
+        {capAux(m, n, edges, cons(i, rest))} 
+      capAux(m, n, edges, cons(i, rest))
+      == mapPlus(capAux(m, n, edges, rest),
+          pipe(capAux(m, i, edges, rest), capAux(i, n, edges, rest)))
+  }
+}
+define cap(n0, n1, m, d) capAux(n0, n1, m, remove(remove(d, n0), n1))
+
+// The sum of outflow from a given region
+domain OutflowSum {
+  function outflowAux(n: Ref, flows: IMap[Ref, FlowDom],
+    edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]], l: List[Ref]) : FlowDom
+
+  axiom OutflowSumBase {
+    forall n: Ref, flows: IMap[Ref, FlowDom],
+        edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]] ::
+        {outflowAux(n, flows, edges, nil())} 
+      outflowAux(n, flows, edges, nil()) == fdZero()
+  }
+
+  axiom OutflowSumMaybeThrough {
+    forall n: Ref, flows: IMap[Ref, FlowDom],
+        edges: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]], m: Ref, rest: List[Ref] ::
+        {outflowAux(n, flows, edges, cons(m, rest))} 
+      outflowAux(n, flows, edges, cons(m, rest))
+        == fdPlus(outflowAux(n, flows, edges, rest),
+           select(select(select(edges, m), n), select(flows, m))) // flow(m) |> edge(m, n)
+  }
+}
+define outflowSum(n, f, e, D) outflowAux(n, f, e, remove(D, n))
+
+
+// ---- Macros for flow annotations to be automatically added:
+
+// (Re)-initialize all variables
+define _init_vars() {
+  dirty := Set[Ref]()
+  dirtyList := nil()
+  // edge_fns[n][n'] is e(n, n')
+  edge_fns := havoc_map_map_edge()
+  // edge_fns_new[n][n'] is e'(n, n')
+  edge_fns_new := havoc_map_map_edge()
+  // infs_small[n] is In.inf[n]
+  infs_small := havoc_map()
+  // infs_small_new[n] is In'.inf[n]
+  infs_small_new := havoc_map()
+  // inf_D is inflow of interface of dirty region
+  inf_D := havoc_map()
+}
+
+// Add n to the dirty region
+define _make_dirty(n0) { // could also parameterise by assigned-to variables
+  if(n0 != null && !(n0 in dirty)) {
+    dirty := dirty union Set(n0)
+    dirtyList := cons(n0, dirtyList)
+  }
+}
+
+define _set_edge_fns(edge_fns, X) {
+  assume forall x: Ref, y: Ref :: {select(select(edge_fns, x), y)}
+    x in X ==> select(select(edge_fns, x), y) == edge_fn(x, y)
+}
+
+define _set_infs_and_fms(infs_small, edge_fns_new, X) {
+  assume forall x: Ref :: {select(infs_small, x)}
+    x in dirty ==> select(infs_small, x) == Iinf(x.intf, x)
+  _set_edge_fns(edge_fns_new, X)
+}
+
+define _assume_flow_eqn(infs_small, edge_fns, inf_D) {
+  assume forall x: Ref :: {select(infs_small, x)} {select(inf_D, x)}
+    x in dirty ==> select(infs_small, x)
+      == fdPlus(select(inf_D, x), outflowSum(x, infs_small, edge_fns, dirtyList))
+}
+
+// General framework lemmas that are always true
+define _assume_global_invs(X) {
+  assume forall x: Ref :: {Iinf(x.intf, x)}
+    x in X ==> fdLeq(Iinf(intCompSet(X), x), Iinf(x.intf, x))
+  assume forall x: Ref, y: Ref :: {trig_gfe(x, y)}
+    x in X && y in X ==> fdLeq(Iout(x.intf, y), Iinf(y.intf, y))
+  // Singleton outflows are edge_fns applied to singleton inflows
+  assume forall x: Ref, y: Ref :: {Iout(x.intf, y)}
+    x in X ==> fdEq(Iout(x.intf, y), select(edge_fn(x, y), Iinf(x.intf, x)))
+}
+
+// Trigger for global flow equation
+function trig_gfe(x: Ref, y: Ref) : Bool { true }
+
+define _field_read(x, xf) {
+  assert trig_gfe(x, xf)
+}
+
+// Assume acyclic based on infs_small (i.e. actual flow), because
+// this is what is known about the pre state
+define _assume_no_cycles(infs_small, edge_fns) {
+  assume (forall x: Ref :: {select(infs_small, x)} x in dirty
+    ==> select(cap(x, x, edge_fns, dirtyList), select(infs_small, x))
+        == fdZero())
+}
+
+// Assert acyclic based on inf_D because this must be the same in the post,
+// and infs_small_new only determined by flow eqn (which is only true if acyclic)
+define _assert_no_cycles(inf_D, edge_fns_new) {
+  assert (forall x: Ref, y: Ref :: {no_match(x), no_match(y)}
+    x in dirty && y in dirty // rather asymmetrical
+    ==> fdEq(
+  select(pipe(cap(x, y, edge_fns_new, dirtyList),
+              cap(y, y, edge_fns_new, dirtyList)),
+         select(inf_D, x)),
+             fdZero()))
+}
+
+// Check path subflow preservation for dirty region
+// This is needed to guarantee that composite graph is also EA
+define _assert_path_subflow_preserved(inf_D, edge_fns, edge_fns_new) {
+  assert forall x: Ref, z: Ref, p: FlowDom ::
+      {no_match(x), no_match(z), no_match_fd(p)}
+    x in dirty && !(z in dirty) && fdLeq(p, select(inf_D, x))
+    ==> fdEq(select(cap(x, z, edge_fns, dirtyList), p),
+          select(cap(x, z, edge_fns_new, dirtyList), p))
+}
+
+define _pre_code(FP) {
+  _init_vars()
+  _assume_global_invs(FP)
+  _set_edge_fns(edge_fns, FP)
+}
+
+define _post_method_call(FP, FP1, Y, Y1, pre) {
+  _compute_footprints(FP, FP1, Y, Y1)
+  _replacement_theorem(FP, FP1, Y, Y1, pre)
+}
+
+define _post_code_sync(FP, lname) {
+  // Summarise infs and fms of singleton interfaces in dirty region
+  _set_infs_and_fms(infs_small, edge_fns_new, FP)
+
+  // Assume flow equation on pre state
+  _assume_flow_eqn(infs_small, edge_fns, inf_D)
+
+  // Assume flow equation on new state
+  _assume_flow_eqn(infs_small_new, edge_fns_new, inf_D)
+
+  {
+  // Check equivalence of flow maps
+  label lname
+  // Check node for each node in dirty and write new interface to x.intf
+  sync(dirty, dirtyList, inf_D, infs_small, infs_small_new, edge_fns, edge_fns_new)
+  _replacement_theorem(FP, FP, dirty, dirty, lname)
+  }
+}
+
+define _post_code_sync_EA(FP) {
+  // Summarise infs and fms of singleton interfaces in dirty region
+  _set_infs_and_fms(infs_small, edge_fns_new, FP)
+
+  // Assume flow equation on pre state
+  _assume_flow_eqn(infs_small, edge_fns, inf_D)
+
+  // Assume that dirty region had no cycles
+  _assume_no_cycles(infs_small, edge_fns)
+
+  // Check that dirty region has no cycles
+  _assert_no_cycles(inf_D, edge_fns_new)
+
+  // Assume flow equation on new state
+  _assume_flow_eqn(infs_small_new, edge_fns_new, inf_D)
+
+  // Check that we won't introduce any cycles in the larger graph
+  _assert_path_subflow_preserved(inf_D, edge_fns, edge_fns_new)
+  
+  {
+  // Check equivalence of flow maps
+  label pre_sync
+  // Check node for each node in dirty and write new interface to x.intf
+  sync(dirty, dirtyList, inf_D, infs_small, infs_small_new, edge_fns, edge_fns_new)
+  _replacement_theorem(FP, FP, dirty, dirty, pre_sync)
+  }
+}
+
+
+// ---- Flow-specific ghost procedures:
+
+// Sync the dirty set of nodes and update their intf fields
+// Requires the interface of dirty to be exactly equal
+method sync(dirty: Set[Ref], dirtyList: List[Ref],
+            inf_D: IMap[Ref, FlowDom],
+            infs_small: IMap[Ref, FlowDom], infs_small_new: IMap[Ref, FlowDom],
+            edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]],
+            edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]])
+
+  requires forall x1: Ref :: {x1 in dirty} x1 in dirty ==> acc(x1.intf)
+  // Check that new interface of dirty == old interface of dirty
+  // We know that dom and inf is equal by construction, so check outflow preserved:
+  requires forall z: Ref :: {no_match(z)} !(z in dirty) 
+    ==> fdEq(outflowSum(z, infs_small, edge_fns, dirtyList),
+      outflowSum(z, infs_small_new, edge_fns_new, dirtyList))
+
+  ensures forall x1: Ref :: {x1 in dirty}
+    x1 in dirty ==> acc(x1.intf) && dom(x1.intf) == Set(x1)
+  // Now x.intf contains the interface given by infs_small_new and fms_small_new
+  ensures forall x1: Ref :: {Iinf(x1.intf, x1)}
+    x1 in dirty ==> Iinf(x1.intf, x1) == select(infs_small_new, x1)
+  ensures forall x1: Ref, y1: Ref :: {Iout(x1.intf, y1)}
+    x1 in dirty ==> Iout(x1.intf, y1)
+      == select(select(select(edge_fns_new, x1), y1), Iinf(x1.intf, x1))
+  // and the interface is the same
+  ensures old(intCompSet(dirty)) == intCompSet(dirty)
+
+
+// ---- Misc util stuff:
+
+// Nondeterministic boolean value
+method nondet() returns (b: Bool)
+
+// Havoc a flow map
+method havoc_map() returns (m: IMap[Ref, FlowDom])
+method havoc_map_map() returns (m: IMap[Ref, IMap[Ref, FlowDom]])
+method havoc_map_map_edge() returns (m: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]])
+
+// Trigger that's never triggered
+domain NoMatching {
+  function no_match(r: Ref) : Bool
+  function no_match_int(x: Int) : Bool
+  function no_match_fd(d: FlowDom) : Bool
+}
+
+// Dummy term to seed triggers
+function dummy(f: FlowDom) : Bool { true }
+// ===== end import: Flo/_preambles/flows-new.vpr =====
+
+// resolved: import "../_preambles/array-util.vpr"
+// resolved: import "../_preambles/Lists.vpr"
+// resolved: import "../_preambles/Maps.vpr"
+// resolved: import "../_preambles/flows-new.vpr"
+
+
+/* -------------------- Example specific flows setup -------------------- */
+
+// Multisets of Keys
+domain FlowDom {
+  function ks(f : FlowDom) : IMap[K,Int]
+  axiom positive {
+    forall p: FlowDom, k: K :: {select(ks(p), k)} select(ks(p), k) >= 0
+  }
+
+  function fdEq(p1: FlowDom, p2:FlowDom) : Bool 
+  axiom fdEqDefImplies {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      fdEq(p1, p2) ==> p1 == p2
+  }
+  axiom fdEqDefImplied {
+    forall p1: FlowDom, p2:FlowDom :: {fdEq(p1,p2)}
+      MapEqual(ks(p1), ks(p2)) ==> fdEq(p1, p2)
+  }
+
+  function fdPlus(p1: FlowDom, p2:FlowDom) : FlowDom
+  axiom fdPlusDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)}
+        select(ks(fdPlus(p1,p2)), k) == select(ks(p1), k) + select(ks(p2), k))
+  }
+
+  function fdZero() : FlowDom
+  axiom fdZeroDef {
+    forall k: K :: {select(ks(fdZero()), k)} select(ks(fdZero()), k) == 0
+  }
+
+  // This is fixed for every flow domain! Do not modify.
+  function fdLeq(p1: FlowDom, p2:FlowDom) : Bool 
+  function fdLeqWitness(p1:FlowDom, p2:FlowDom) : FlowDom // unique, due to cancellativity
+  axiom fdLeqImplied {
+    forall p1:FlowDom, p2:FlowDom :: {fdLeq(p1,p2)} 
+      fdLeq(p1,p2) ==> fdPlus(p1,fdLeqWitness(p1,p2)) == p2
+  }
+  axiom fdLeqImplies {
+    forall p1:FlowDom, p2:FlowDom :: {fdPlus(p1,p2)}
+      fdLeqWitness(p1,fdPlus(p1,p2)) == p2 && fdLeq(p1,fdPlus(p1,p2))
+  }
+  axiom fdLeqDef {
+    forall p1: FlowDom, p2:FlowDom :: {fdLeq(p1,p2)}
+      fdLeq(p1,p2) == (forall k: K :: {select(ks(p1), k)} {select(ks(p2), k)} select(ks(p1), k) <= select(ks(p2), k))
+  }
+}
+
+define ks_of_out(x, y, k)
+  select(ks(Iout(x.intf, y)), k)
+
+define ks_of_inf(x, k)
+  select(ks(select(inf(x.intf), x)), k)
+
+// The fields of a node
+field size: Int
+field ptrs: Array
+field keys: Array
+field next: Ref
+//field rangeLb: K
+//field rangeUb: K
+field indices: IMap[Ref,Int]
+
+define nodeSpatial(x) 
+  acc(x.ptrs) && array_Ref(x.ptrs)
+  && acc(x.size) && acc(x.keys) && array_K(x.keys)
+  && acc(x.next) //&& acc(x.rangeUb) && acc(x.rangeLb)
+  && acc(x.indices)
+  && 0 <= x.size && x.size < 2*B()
+  && length(x.keys) == 2*B() && length(x.ptrs) == 2*B()
+  
+define hrepUnchanged(x)
+  true
+  //x.rangeUb == old(x.rangeUb) && x.rangeLb == old(x.rangeLb)
+  && x.ptrs == old(x.ptrs) && unchanged_array_Ref(x.ptrs)
+  && x.size == old(x.size) && x.keys == old(x.keys) && unchanged_array_K(x.keys) && x.next == old(x.next)
+  && x.indices == old(x.indices)
+
+define unchanged(x)
+  x.intf == old(x.intf) 
+  && hrepUnchanged(x)
+
+
+// Definition of a node and good condition:
+
+function B(): Int
+  ensures result > 1
+
+function edge_fn(x: Ref, y: Ref) : IMap[FlowDom, FlowDom]
+  requires nodeSpatial(x)
+  ensures 0 <= select(x.indices, y) && select(x.indices, y) <= x.size
+    ==> (forall p: FlowDom, k: K :: {select(ks(select(result, p)), k)}
+      select(ks(select(result, p)), k)
+      == ((select(x.indices, y) == 0 || le(read_K(x.keys, select(x.indices, y) - 1), k))
+          && (select(x.indices, y) == x.size && x.next == null && lt(k, top())
+              || lt(k, read_K(x.keys, select(x.indices, y))))
+          ? select(ks(p), k) : 0 ))
+  ensures select(x.indices, y) == -1
+    ==> (forall p: FlowDom, k: K :: {select(ks(select(result, p)), k)}
+      select(ks(select(result, p)), k)
+      == (x.next == y && y != null && le(read_K(x.keys, x.size), k) && lt(k, top())
+          ? select(ks(p), k) : 0 ))
+
+function contents(x: Ref): Set[K]
+  requires nodeSpatial(x)
+  ensures read_Ref(x.ptrs, 0) != null ==> result == Set[K]()
+  ensures read_Ref(x.ptrs, 0) == null ==> result == set_of_array(x.keys, 0, x.size)
+
+
+define breeNode(x, I)
+  node(x)
+  // Keys are sorted
+  && sorted_Map_K_seg(map_K_of_array(x.keys), 0, x.size)
+  // Keys are in the range
+  //&& (forall j: Int :: {read_K(x.keys, j)} 0 <= j && (x.next == null && j < x.size || x.next != null && j <= x.size)
+  //     ==> le(x.rangeLb, read_K(x.keys, j)) && lt(read_K(x.keys, j), x.rangeUb))
+  // All outgoing pointers are distinct
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size
+       ==> x != read_Ref(x.ptrs, j))
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size
+       ==> read_Ref(x.ptrs, j) != x.next)
+  && (forall j1: Int, j2: Int :: {read_Ref(x.ptrs, j1), read_Ref(x.ptrs, j2)} read_Ref(x.ptrs, 0) != null && 0 <= j1 && j1 < j2 && j2 <= x.size
+       ==> read_Ref(x.ptrs, j1) != read_Ref(x.ptrs, j2))
+  // x.indices stores indices of outgoing pointers 
+  && (forall y: Ref :: {select(x.indices, y)} 0 <= select(x.indices, y) && select(x.indices, y) <= x.size 
+       ==> read_Ref(x.ptrs, select(x.indices, y)) == y)
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size 
+    ==> select(x.indices, read_Ref(x.ptrs, j)) == j)
+  && (read_Ref(x.ptrs, 0) == null ==> (forall y: Ref :: {select(x.indices, y)} select(x.indices, y) == -1))
+  && select(x.indices, x.next) == -1
+  && select(x.indices, x) == -1
+  // Internal nodes don't point to null
+  && (forall j: Int :: {read_Ref(x.ptrs, j)} read_Ref(x.ptrs, 0) != null && 0 <= j && j <= x.size ==> read_Ref(x.ptrs, j) != null)
+  // -- The good state conditions:
+  // Contents subsetof keyset
+  && (forall k: K :: k in contents(x) ==> select(ks(Iinf(I, x)), k) >= 1)
+  && (forall k: K, y: Ref :: 
+    !(k in contents(x)) || select(ks(Iout(I, y)), k) == 0)
+  // Edgesets are disjoint
+  && (forall k: K, y: Ref, z: Ref :: y == z
+      || select(ks(Iout(I, y)), k) == 0
+      || select(ks(Iout(I, z)), k) == 0)
+
+
+/* -------------------- Actual code -------------------- */
+
+
+method keyset_implies_leaf(x: Ref, key: K, i: Int)
+  requires breeNode(x, x.intf)
+  requires i <= x.size
+  requires lt(key, top())
+  requires ks_of_inf(x, key) == 1 && (forall y: Ref :: ks_of_out(x, y, key) == 0)
+  requires (i <= 0 || le(read_K(x.keys, i - 1), key)) && 0 <= i && i <= x.size
+  ensures breeNode(x, x.intf) && unchanged(x)
+  ensures read_Ref(x.ptrs, 0) == null  // x is a leaf
+{
+  if (read_Ref(x.ptrs, 0) != null && i < x.size && !lt(key, read_K(x.keys, i))) {
+    keyset_implies_leaf(x, key, i + 1)
+  } else {
+    assert read_Ref(x.ptrs, 0) != null ==> 
+       ks_of_out(x, read_Ref(x.ptrs, i), key) == ((select(x.indices, read_Ref(x.ptrs, i)) == 0 || le(read_K(x.keys, select(x.indices, read_Ref(x.ptrs, i)) - 1), key)) &&
+        (select(x.indices, read_Ref(x.ptrs, i)) == x.size && x.next == null && lt(key, top()) || lt(key, read_K(x.keys, select(x.indices, read_Ref(x.ptrs, i))))) ? 1 : 0 )
+    assert read_Ref(x.ptrs, 0) != null ==> 
+      (select(x.indices, read_Ref(x.ptrs, i)) == 0 || le(read_K(x.keys, i - 1), key))
+    assert ks_of_out(x, x.next, key) == 0
+  }
+}
+
+
+/** member */
+method member(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(intCompSet(X), old(intCompSet(X)))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> (contents(n) == old(contents(n)) && (res == (key in contents(n))))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0);
+
+  var idx: Int;
+  res, idx := arr_find(n.keys, n.size + 1 /* bug */, key);
+
+  succ := true
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+
+/** delete */
+method delete(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) setminus Set(key) && res == (key in old(contents(n)))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0)
+
+  var m: IMap[Int, K] := map_K_of_array(n.keys)
+  var old_size: Int := n.size
+  var new_size: Int
+  var idx: Int
+
+  _make_dirty(n)
+  new_size, idx := arr_delete(n.keys, key, n.size - 1 /* bug */)
+
+  map_K_delete_content_set(m, map_K_of_array(n.keys), n.size, new_size, idx, key)
+
+  var m1: IMap[Int, K] := map_K_of_array(n.keys)
+
+  write_K(n.keys, new_size, read_K(n.keys, n.size))
+  set_of_map_K_equal(m1, map_K_of_array(n.keys), 0, 0, new_size)
+
+  _make_dirty(n)
+  n.size := new_size
+  
+  succ := true
+  res := new_size != old_size
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}
+
+/** insert */
+method insert(n: Ref, X: Set[Ref], key: K)
+  returns (succ: Bool, res: Bool)
+  requires X == Set(n)
+  requires breeNode(n, n.intf)
+  requires lt(key, top())
+  requires ks_of_inf(n, key) == 1 && (forall y: Ref :: ks_of_out(n, y, key) == 0)
+  ensures breeNode(n, n.intf)
+  ensures intLeq(old(intCompSet(X)), intCompSet(X))
+  // decisiveOpSpec(n, Ix1, res, k):
+  ensures succ ==> contents(n) == old(contents(n)) union Set(key) && res == !(key in old(contents(n)))
+{
+  // ---- Flows set-up:
+  var FP : Set[Ref] := X
+
+  var nn : Ref
+  var dirty : Set[Ref]
+  var dirtyList : List[Ref]
+
+  var edge_fns: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+  var edge_fns_new: IMap[Ref, IMap[Ref, IMap[FlowDom, FlowDom]]]
+
+  var infs_small: IMap[Ref, FlowDom]
+  var infs_small_new: IMap[Ref, FlowDom]
+  var inf_D: IMap[Ref, FlowDom]
+
+  _pre_code(FP)
+
+  // ---- Actual code:
+
+  keyset_implies_leaf(n, key, 0)
+
+  if (n.size < 2*B() - 1) {
+    var m0: IMap[Int, K] := map_K_of_array(n.keys)
+    if (n.next != null) {
+      _make_dirty(n)
+      write_K(n.keys, n.size + 1, read_K(n.keys, n.size))
+      set_of_map_K_equal(m0, map_K_of_array(n.keys), 0, 0, n.size)
+    } else {
+      _make_dirty(n)
+      write_K(n.keys, n.size + 1, top())
+      set_of_map_K_equal(m0, map_K_of_array(n.keys), 0, 0, n.size)
+    }
+    var m: IMap[Int, K] := map_K_of_array(n.keys) 
+    var old_size: Int := n.size
+
+    label upd
+
+    var idx: Int
+    var new_size: Int 
+    _make_dirty(n)
+    idx, new_size := arr_insert(n.keys, key, n.size)
+    _make_dirty(n)
+    // bug:
+    //n.size := new_size
+
+    map_K_insert_content_set(m, map_K_of_array(n.keys), idx, key, old_size, new_size)
+
+    succ := true
+    res := old_size != new_size    
+
+  } else {
+    succ := false
+    res := false
+  }
+
+  // ---- Post code sync:
+  _post_code_sync_EA(FP)
+}

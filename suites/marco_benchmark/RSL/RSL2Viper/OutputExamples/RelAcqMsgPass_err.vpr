@@ -1,0 +1,186 @@
+domain parallelHeaps {
+  
+  function up(x: Ref): Ref
+  
+  function down(x: Ref): Ref
+  
+  function up_inv(x: Ref): Ref
+  
+  function down_inv(x: Ref): Ref
+  
+  function temp(x: Ref): Ref
+  
+  function temp_inv(x: Ref): Ref
+  
+  function heap(x: Ref): Int
+  
+  function is_ghost(x: Ref): Bool
+  
+  axiom inv_up {
+    (forall r: Ref :: { up(r) } up_inv(up(r)) == r && (is_ghost(r) ? up(r) == r : heap(up(r)) == heap(r) + 1))
+  }
+  
+  axiom inv_up_inv {
+    (forall r: Ref :: { up_inv(r) } up(up_inv(r)) == r && (is_ghost(r) ? up_inv(r) == r : heap(up_inv(r)) == heap(r) - 1))
+  }
+  
+  axiom inv_down {
+    (forall r: Ref :: { down(r) } down_inv(down(r)) == r && (is_ghost(r) ? down(r) == r : heap(down(r)) == heap(r) - 1))
+  }
+  
+  axiom inv_down_inv {
+    (forall r: Ref :: { down_inv(r) } down(down_inv(r)) == r && (is_ghost(r) ? down_inv(r) == r : heap(down_inv(r)) == heap(r) + 1))
+  }
+  
+  axiom inv_temp {
+    (forall r: Ref :: { temp(r) } temp_inv(temp(r)) == r && (is_ghost(r) ? temp(r) == r : heap(temp(r)) == heap(r) - 3))
+  }
+  
+  axiom inv_temp_inv {
+    (forall r: Ref :: { temp_inv(r) } temp(temp_inv(r)) == r && (is_ghost(r) ? temp_inv(r) == r : heap(temp_inv(r)) == heap(r) + 3))
+  }
+}
+
+field val: Int
+
+field init: Bool
+
+field rel: Int
+
+field acq: Bool
+
+function AcqConjunctTrigger(x: Ref, idx: Int): Bool 
+{
+  true
+}
+
+function valsRead(x: Ref, index: Int): Set[Int]
+  requires acc(AcqConjunct(x, index), write) 
+
+
+predicate AcqConjunct(x: Ref, idx: Int) 
+
+method havocedInt() returns (x: Int)
+{
+  inhale false
+}
+
+method havocedBool() returns (x: Bool)
+{
+  inhale false
+}
+
+method havocedRefSet() returns (x: Set[Ref])
+{
+  inhale false
+}
+
+method havocedIntSet() returns (x: Set[Int])
+{
+  inhale false
+}
+
+method outerscope() returns (Result: Int)
+  requires true
+  ensures true
+{
+  var tmp: Int
+  var a: Ref
+  var c: Ref
+  // allocNonAtomic(a)
+  a := new()
+  inhale !is_ghost(a) && heap(a) == 0
+  inhale acc(a.init, write) && (acc(a.val, write) && !a.init)
+  // Translation of c := alloc(((v==0)?True:(acc(a)&&(*a==7))))_AR
+  // allocAtomic(c,0,Set(0),false)
+  c := new()
+  inhale !is_ghost(c) && heap(c) == 0
+  inhale acc(c.rel, wildcard) && c.rel == 0 && (acc(c.acq, wildcard) && c.acq == true && (acc(AcqConjunct(c, 0), write) && valsRead(c, 0) == Set[Int]()))
+  // Translation of [c]_Rel := 0
+  // atomicWrite(c,0,true)
+  assert acc(c.rel, wildcard)
+  if (c.rel == 0) {
+    exhale (0 == 0 ? true : acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 7)
+  }
+  inhale acc(c.init, wildcard)
+  // Translation of t1 := fork(thread1)
+  label fork_t1
+  exhale acc(a.init, write) && (acc(a.val, write) && !a.init) && (acc(c.rel, wildcard) && c.rel == 0)
+  // Translation of t2 := fork(thread2)
+  label fork_t2
+  exhale acc(c.acq, wildcard) && c.acq == true && (acc(AcqConjunct(c, 0), write) && valsRead(c, 0) == Set[Int]()) && acc(c.init, wildcard)
+  // Translation of tmp := join(t1)
+  tmp := havocedInt()
+  inhale acc(c.rel, wildcard) && c.rel == 0
+  // Translation of tmp := join(t2)
+  tmp := havocedInt()
+  inhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 8
+  exhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 9
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
+
+method thread1(c: Ref, a: Ref) returns (Result: Int)
+  requires acc(a.init, write) && (acc(a.val, write) && !a.init) && (acc(c.rel, wildcard) && c.rel == 0)
+  requires !is_ghost(c) && heap(c) == 0
+  requires !is_ghost(a) && heap(a) == 0
+  ensures true
+{
+  // Translation of [a]_NA := 7
+  a.val := 7
+  a.init := true
+  // Translation of [c]_Rel := 1
+  // atomicWrite(c,1,true)
+  assert acc(c.rel, wildcard)
+  if (c.rel == 0) {
+    exhale (1 == 0 ? true : acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 7)
+  }
+  inhale acc(c.init, wildcard)
+  exhale acc(c.rel, wildcard) && c.rel == 0
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
+
+method thread2(c: Ref, a: Ref) returns (Result: Int)
+  requires acc(c.acq, wildcard) && c.acq == true && (acc(AcqConjunct(c, 0), write) && valsRead(c, 0) == Set[Int]()) && acc(c.init, wildcard)
+  requires !is_ghost(c) && heap(c) == 0
+  requires !is_ghost(a) && heap(a) == 0
+  ensures true
+{
+  var b: Int
+  var tmp: Int
+  var tmpintSet: Set[Int]
+  // waitOnAtomicRead(c,0,true)
+  tmpintSet := havocedIntSet()
+  assert acc(c.init, wildcard) && acc(c.acq, wildcard)
+  tmp := havocedInt()
+  if (c.acq) {
+    if (perm(AcqConjunct(c, 0)) >= write && AcqConjunctTrigger(c, 0) && (false || !((tmp in valsRead(c, 0))))) {
+      tmpintSet := valsRead(c, 0)
+      exhale acc(AcqConjunct(c, 0), write)
+      assert perm(AcqConjunct(c, 0)) == none
+      inhale acc(AcqConjunct(c, 0), write) && valsRead(c, 0) == tmpintSet union Set(tmp)
+      inhale (tmp == 0 ? true : acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 7)
+    }
+  }
+  if (tmp == 0) {
+    assert acc(c.init, wildcard) && acc(c.acq, wildcard)
+    tmp := havocedInt()
+    if (c.acq) {
+      if (perm(AcqConjunct(c, 0)) >= write && AcqConjunctTrigger(c, 0) && (false || !((tmp in valsRead(c, 0))))) {
+        tmpintSet := valsRead(c, 0)
+        exhale acc(AcqConjunct(c, 0), write)
+        assert perm(AcqConjunct(c, 0)) == none
+        inhale acc(AcqConjunct(c, 0), write) && valsRead(c, 0) == tmpintSet union Set(tmp)
+        inhale (tmp == 0 ? true : acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 7)
+      }
+    }
+    inhale tmp != 0
+  }
+  // Translation of b := [a]_NA
+  assert acc(a.init, write) && a.init
+  b := a.val
+  // Translation of [a]_NA := (b+1)
+  a.val := b + 1
+  a.init := true
+  exhale acc(a.val, write) && (acc(a.init, write) && a.init) && a.val == 8
+  exhale (forperm NonLeakingCheckVar: Ref [NonLeakingCheckVar.val]  :: false)
+}
