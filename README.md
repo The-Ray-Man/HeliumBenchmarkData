@@ -21,13 +21,22 @@ docker compose up -d
 
 `db/schema.sql` is applied when the Postgres volume is first created. After changing the schema, recreate the database (this deletes all results) and regenerate the entities:
 
-Results are stored as Parquet files in `data/`, one per run and table (`data/<table>/<run_id>.parquet`), which are the source of truth and are not committed. Grafana reads them through an in-memory DuckDB, so adding new runs while Grafana is running is fine; they show up on the next query. The same files can be queried directly with DuckDB:
-
-```sql
-SELECT suite, family, test, median(wall_s) AS median_s, max(egraph_nodes_peak) AS nodes
-FROM 'data/helium_runs/*.parquet'
-WHERE status = 'VERIFIED'
-GROUP BY ALL ORDER BY median_s DESC;
+```bash
+docker compose down -v && docker compose up -d
+cd runner
+sea-orm-cli generate entity -u postgres://helium:helium@localhost:5432/helium_bench -o db-generated/src --lib --with-copy-enums
 ```
 
-`docker compose down -v` deletes Grafana's state (users, UI-made dashboards) and the downloaded plugin, but not `data/`.
+The CLI's major version must match the `sea-orm` dependency (`cargo install sea-orm-cli@2.0.4`).
+
+Example query:
+
+```sql
+SELECT suite, family, test, percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS median_s,
+       max(egraph_nodes_peak) AS nodes
+FROM helium_runs
+WHERE status = 'VERIFIED'
+GROUP BY suite, family, test ORDER BY median_s DESC;
+```
+
+`docker compose down -v` deletes all results, Grafana's state (users, UI-made dashboards) and the database.
