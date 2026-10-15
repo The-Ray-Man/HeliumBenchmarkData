@@ -1,20 +1,9 @@
--- Results schema for the Helium benchmark suites (DuckDB).
+-- Results schema for the Helium benchmark suites (PostgreSQL).
 --
--- Storage: Parquet files under data/ are the source of truth, one file per
--- benchmark run and table:
---
---   data/rust_metrics/<run_id>.parquet
---   data/viper_metrics/<run_id>.parquet
---   data/helium_runs/<run_id>.parquet
---   data/silicon_runs/<run_id>.parquet
---   data/rustc_runs/<run_id>.parquet
---
--- Whatever writes results creates these tables (e.g. in an in-memory DuckDB,
--- so every row is checked against the types below) and copies them out to
--- Parquet. Grafana reads the Parquet files through views of the same name (see
--- grafana/provisioning/datasources/duckdb.yaml); nothing holds a lock on a
--- shared database file. Parquet has no enum type, so status columns are stored
--- as text there and cast back by those views.
+-- Applied by the postgres container on first start (mounted into
+-- /docker-entrypoint-initdb.d, see compose.yaml). The Rust structs in
+-- runner/db-generated are generated from the live database with sea-orm-cli,
+-- so regenerate them after changing this file (see README).
 
 
 -- Outcome of one backend on one file. When members (methods) disagree, the
@@ -41,9 +30,10 @@ CREATE TYPE run_status AS ENUM
 --   ... JOIN viper_metrics USING (vpr_sha256)
 --
 -- Files are re-measured in every run; `measured_at` / `metrics_commit` tell
--- measurements by a changed metrics extractor apart (the Grafana views keep
--- the latest one per hash). Derived values such as the Viper/Rust size ratio
--- (viper_metrics.loc / rust_metrics.loc) are left to queries.
+-- measurements by a changed metrics extractor apart (the *_metrics_latest
+-- views below keep the latest one per hash). Derived values such as the
+-- Viper/Rust size ratio (viper_metrics.loc / rust_metrics.loc) are left to
+-- queries.
 
 CREATE TABLE rust_metrics (
     rs_sha256               VARCHAR     NOT NULL,  -- sha256 of the .rs file
@@ -58,7 +48,7 @@ CREATE TABLE rust_metrics (
 
     -- summed over all functions (NULL when the file has none)
     fn_loc                  INTEGER,               -- lines inside function bodies
-    paths                   DOUBLE,                -- control-flow paths; exponential, so not an integer type
+    paths                   DOUBLE PRECISION,      -- control-flow paths; exponential, so not an integer type
     stmts                   INTEGER,
     exprs                   INTEGER,
     loops                   INTEGER,
@@ -157,28 +147,33 @@ CREATE TABLE viper_metrics (
 --
 -- All three tables start with the same common columns, in the same order:
 --
---   run_id          VARCHAR      benchmark run, e.g. 2026-10-06_bd5a136f97a5
---   started_at      TIMESTAMPTZ  when the benchmark run started
---   host            VARCHAR      machine it ran on
---   suite           VARCHAR      location of the file as of this run
---   family          VARCHAR      (NULL for suites without a family level)
---   test            VARCHAR      path below the family dir, no extension (e.g. acyclic/dll)
---   vpr_sha256      VARCHAR      join viper_metrics USING (vpr_sha256)
---   rs_sha256       VARCHAR      join rust_metrics USING (rs_sha256); NULL for Viper-only files
---   backend_version VARCHAR      Helium: commit under test; Silicon/rustc: version string
---   iteration       INTEGER      0-based timed iteration
---   status          run_status   outcome, see the enum above
---   timeout_s       DOUBLE       timeout the backend ran under
---   wall_s          DOUBLE       wall-clock time measured by the harness
---   peak_rss_mb     DOUBLE       peak resident memory
---   message         VARCHAR      crash / error output, if any
---   meta            JSON         anything else: harness settings, backend arguments, ...
+--   run_id          VARCHAR          benchmark run, e.g. 2026-10-06_bd5a136f97a5
+--   started_at      TIMESTAMPTZ      when the benchmark run started
+--   host            VARCHAR          machine it ran on
+--   suite           VARCHAR          location of the file as of this run
+--   family          VARCHAR          (NULL for suites without a family level)
+--   test            VARCHAR          path below the family dir, no extension (e.g. acyclic/dll)
+--   vpr_sha256      VARCHAR          join viper_metrics USING (vpr_sha256)
+--   rs_sha256       VARCHAR          join rust_metrics USING (rs_sha256); NULL for Viper-only files
+--   backend_version VARCHAR          Helium: commit under test; Silicon/rustc: version string
+--   iteration       INTEGER          0-based timed iteration
+--   status          run_status       outcome, see the enum above
+--   timeout_s       DOUBLE PRECISION timeout the backend ran under
+--   wall_s          DOUBLE PRECISION wall-clock time measured by the harness
+--   peak_rss_mb     DOUBLE PRECISION peak resident memory
+--   message         VARCHAR          crash / error output, if any
+--   meta            JSONB            anything else: harness settings, backend arguments, ...
 --
--- Run-level context is repeated on every row; Parquet's dictionary encoding
--- makes that cheap and keeps queries join-free. Scaling knobs are not stored:
--- they follow from family + test via the family's pattern in suites/suite.json.
+-- Run-level context is repeated on every row, which keeps queries join-free.
+-- Scaling knobs are not stored: they follow from family + test via the
+-- family's pattern in suites/suite.json.
+--
+-- `id` is a surrogate key (SeaORM entities need a primary key, and `family`
+-- is nullable so the natural key cannot be one); the natural key is the
+-- UNIQUE constraint, with NULL families comparing equal.
 
 CREATE TABLE helium_runs (
+    id                  BIGINT        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     run_id              VARCHAR       NOT NULL,
     started_at          TIMESTAMPTZ   NOT NULL,
     host                VARCHAR,
@@ -190,14 +185,14 @@ CREATE TABLE helium_runs (
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
-    timeout_s           DOUBLE,
-    wall_s              DOUBLE,
-    peak_rss_mb         DOUBLE,
+    timeout_s           DOUBLE PRECISION,
+    wall_s              DOUBLE PRECISION,
+    peak_rss_mb         DOUBLE PRECISION,
     message             VARCHAR,
-    meta                JSON,
+    meta                JSONB,
 
-    dirty               BOOLEAN,               -- built from uncommitted changes on top of backend_version
-    self_s              DOUBLE,                -- total time Helium reports for itself
+    dirty               BOOLEAN,                   -- built from uncommitted changes on top of backend_version
+    self_s              DOUBLE PRECISION,          -- total time Helium reports for itself
 
     -- members (methods) by outcome
     members_ok          INTEGER,
@@ -207,24 +202,24 @@ CREATE TABLE helium_runs (
     members_error       INTEGER,
 
     -- phases, seconds
-    parse_s             DOUBLE,
-    macros_s            DOUBLE,
-    idents_s            DOUBLE,
-    disambiguate_s      DOUBLE,
-    globals_s           DOUBLE,
-    typecheck_s         DOUBLE,
-    analyze_s           DOUBLE,
-    translate_s         DOUBLE,
-    verify_s            DOUBLE,
+    parse_s             DOUBLE PRECISION,
+    macros_s            DOUBLE PRECISION,
+    idents_s            DOUBLE PRECISION,
+    disambiguate_s      DOUBLE PRECISION,
+    globals_s           DOUBLE PRECISION,
+    typecheck_s         DOUBLE PRECISION,
+    analyze_s           DOUBLE PRECISION,
+    translate_s         DOUBLE PRECISION,
+    verify_s            DOUBLE PRECISION,
 
     -- verifier time breakdown, seconds
-    search_s            DOUBLE,                -- rule search
-    apply_s             DOUBLE,                -- rule application
-    rebuild_s           DOUBLE,                -- e-graph rebuilding
-    ground_s            DOUBLE,                -- graph work by kind: ground graph
-    scratch_s           DOUBLE,                --   scratch graphs
-    probe_s             DOUBLE,                --   probes
-    scratch_clone_s     DOUBLE,                --   cloning scratch graphs
+    search_s            DOUBLE PRECISION,          -- rule search
+    apply_s             DOUBLE PRECISION,          -- rule application
+    rebuild_s           DOUBLE PRECISION,          -- e-graph rebuilding
+    ground_s            DOUBLE PRECISION,          -- graph work by kind: ground graph
+    scratch_s           DOUBLE PRECISION,          --   scratch graphs
+    probe_s             DOUBLE PRECISION,          --   probes
+    scratch_clone_s     DOUBLE PRECISION,          --   cloning scratch graphs
 
     -- verifier counters
     saturations                 BIGINT,
@@ -252,13 +247,14 @@ CREATE TABLE helium_runs (
     prove_ite_decompose         BIGINT,
 
     -- keyed by rule name, so the key set changes with the rule set
-    per_rule            JSON,                  -- {"<rule>": applications, ...}
-    rule_timing         JSON,                  -- {"<rule>": {"search": s, "apply": s}, ...} (slowest rules)
+    per_rule            JSONB,                     -- {"<rule>": applications, ...}
+    rule_timing         JSONB,                     -- {"<rule>": {"search": s, "apply": s}, ...} (slowest rules)
 
-    UNIQUE (run_id, suite, family, test, iteration)
+    UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );
 
 CREATE TABLE silicon_runs (
+    id                  BIGINT        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     run_id              VARCHAR       NOT NULL,
     started_at          TIMESTAMPTZ   NOT NULL,
     host                VARCHAR,
@@ -270,22 +266,23 @@ CREATE TABLE silicon_runs (
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
-    timeout_s           DOUBLE,
-    wall_s              DOUBLE,
-    peak_rss_mb         DOUBLE,
+    timeout_s           DOUBLE PRECISION,
+    wall_s              DOUBLE PRECISION,
+    peak_rss_mb         DOUBLE PRECISION,
     message             VARCHAR,
-    meta                JSON,
+    meta                JSONB,
 
-    verify_s            DOUBLE,                -- verification time Silicon reports
-    cached              BOOLEAN,               -- result reused from the harness cache, not re-run
-    error_count         INTEGER,               -- verification errors reported
-    failed_members      INTEGER,               -- members with at least one error
-    errors              JSON,                  -- [{"member": .., "line": .., "message": ..}, ...]
+    verify_s            DOUBLE PRECISION,          -- verification time Silicon reports
+    cached              BOOLEAN,                   -- result reused from the harness cache, not re-run
+    error_count         INTEGER,                   -- verification errors reported
+    failed_members      INTEGER,                   -- members with at least one error
+    errors              JSONB,                     -- [{"member": .., "line": .., "message": ..}, ...]
 
-    UNIQUE (run_id, suite, family, test, iteration)
+    UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );
 
 CREATE TABLE rustc_runs (
+    id                  BIGINT        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     run_id              VARCHAR       NOT NULL,
     started_at          TIMESTAMPTZ   NOT NULL,
     host                VARCHAR,
@@ -297,15 +294,23 @@ CREATE TABLE rustc_runs (
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
-    timeout_s           DOUBLE,
-    wall_s              DOUBLE,                -- `cargo check` wall time
-    peak_rss_mb         DOUBLE,
+    timeout_s           DOUBLE PRECISION,
+    wall_s              DOUBLE PRECISION,          -- `cargo check` wall time
+    peak_rss_mb         DOUBLE PRECISION,
     message             VARCHAR,
-    meta                JSON,
+    meta                JSONB,
 
-    self_s              DOUBLE,                -- total of `-Z time-passes`
-    phases              JSON,                  -- {"<pass>": s, ...}; the pass set changes between rustc versions
+    self_s              DOUBLE PRECISION,          -- total of `-Z time-passes`
+    phases              JSONB,                     -- {"<pass>": s, ...}; the pass set changes between rustc versions
 
-    UNIQUE (run_id, suite, family, test, iteration)
+    UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );
 
+
+-- Latest measurement per file (the tables keep every measurement).
+CREATE VIEW rust_metrics_latest AS
+    SELECT DISTINCT ON (rs_sha256) * FROM rust_metrics
+    ORDER BY rs_sha256, measured_at DESC;
+CREATE VIEW viper_metrics_latest AS
+    SELECT DISTINCT ON (vpr_sha256) * FROM viper_metrics
+    ORDER BY vpr_sha256, measured_at DESC;
