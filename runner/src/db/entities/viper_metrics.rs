@@ -44,12 +44,20 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::benchmarks::Entity")]
+    Benchmarks,
     #[sea_orm(has_many = "super::helium_runs::Entity")]
     HeliumRuns,
     #[sea_orm(has_many = "super::rust_metrics::Entity")]
     RustMetrics,
     #[sea_orm(has_many = "super::silicon_runs::Entity")]
     SiliconRuns,
+}
+
+impl Related<super::benchmarks::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Benchmarks.def()
+    }
 }
 
 impl Related<super::helium_runs::Entity> for Entity {

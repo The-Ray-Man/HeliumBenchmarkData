@@ -27,6 +27,7 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
     let status = db::queries::benchmark_metrics_status(con, &benchmark).await?;
     // The Rust row links to the Viper file; taken before `status.viper` moves.
     let vpr_sha256 = status.viper.as_ref().map(|v| v.sha256.clone());
+    let rs_sha256 = status.rust.as_ref().map(|r| r.sha256.clone());
 
     match status.viper {
         None => {}
@@ -56,7 +57,7 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
             MetricsAction::Insert | MetricsAction::Update(_) => {
                 let active = db::rust_metrics::ActiveModel {
                     rs_sha256: Set(data.sha256),
-                    vpr_sha256: Set(vpr_sha256),
+                    vpr_sha256: Set(vpr_sha256.clone()),
                     measured_at: Set(chrono::Utc::now().fixed_offset()),
                     ..(analyze_rust(benchmark.rust.unwrap())?).into()
                 };
@@ -69,6 +70,17 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
             MetricsAction::UpToDate => {}
         }
     }
+
+    // Both metrics rows exist now, so the benchmark can point to them.
+    db::upserts::upsert_benchmark(
+        con,
+        &benchmark.suite,
+        benchmark.family.as_deref(),
+        &benchmark.test,
+        vpr_sha256,
+        rs_sha256,
+    )
+    .await?;
 
     Ok(())
 }

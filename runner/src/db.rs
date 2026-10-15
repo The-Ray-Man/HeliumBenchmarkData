@@ -5,12 +5,14 @@
 //!   `db::rustc_runs` works as well as `db::entities::rustc_runs`.
 //! - [`connection`]: connecting to the database.
 //! - [`queries`]: lookups of file metrics.
+//! - [`upserts`]: writes that insert or overwrite a row.
 
 pub mod connection;
 // Generated: not every entity or prelude item is used by the runner.
 #[allow(dead_code, unused_imports)]
 pub mod entities;
 pub mod queries;
+pub mod upserts;
 
 pub use entities::*;
 

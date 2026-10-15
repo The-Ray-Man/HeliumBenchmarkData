@@ -1,0 +1,1191 @@
+{
+  "uid": "helium-benchmark-stats",
+  "title": "Benchmark statistics",
+  "description": "Distributions of the static file metrics (viper_metrics, rust_metrics).",
+  "tags": [
+    "helium",
+    "metrics"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "suite",
+        "label": "Suite",
+        "description": "Suites from the benchmarks table. All also covers files recorded before that table existed.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT DISTINCT suite FROM benchmarks ORDER BY 1",
+        "definition": "SELECT DISTINCT suite FROM benchmarks ORDER BY 1",
+        "multi": true,
+        "includeAll": true,
+        "allValue": "'__all'",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "refresh": 1,
+        "sort": 1,
+        "options": []
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "row",
+      "id": 1,
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 2,
+      "title": "Viper files",
+      "description": "Distinct .vpr files (by content hash) with metrics.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) FROM viper_metrics WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 3,
+      "title": "Rust files",
+      "description": "Distinct .rs files (by content hash) with metrics.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#e0743f"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 4,
+      "title": "Rust files with a Viper encoding",
+      "description": "Rust files whose metrics row links to the .vpr Prusti produced.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(vpr_sha256) FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2bb3a3"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 5,
+      "title": "Viper lines of code",
+      "description": "Lines of code over all Viper files.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT coalesce(sum(loc), 0) FROM viper_metrics WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 6,
+      "title": "Rust lines of code",
+      "description": "Lines of code over all Rust files.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT coalesce(sum(loc), 0) FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#e0743f"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "id": 7,
+      "title": "Runs recorded",
+      "description": "Rows in helium_runs, silicon_runs and rustc_runs together.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT (SELECT count(*) FROM helium_runs WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring}))) + (SELECT count(*) FROM silicon_runs WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring}))) + (SELECT count(*) FROM rustc_runs WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#94a3b8"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 8,
+      "title": "Viper files",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "id": 9,
+      "title": "Viper metrics per file",
+      "description": "Each row is one viper_metrics column, summarised over all Viper files: min, quartiles, mean, standard deviation, 95th percentile, max and total.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT s.label AS \"Metric\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Min\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Min\", 'FM999G999G999G999G990') END AS \"Min\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P25\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P25\", 'FM999G999G999G999G990D0') END AS \"P25\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Median\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Median\", 'FM999G999G999G999G990D0') END AS \"Median\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Mean\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Mean\", 'FM999G999G999G999G990D0') END AS \"Mean\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Std dev\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Std dev\", 'FM999G999G999G999G990D0') END AS \"Std dev\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P75\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P75\", 'FM999G999G999G999G990D0') END AS \"P75\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P95\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P95\", 'FM999G999G999G999G990D0') END AS \"P95\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Max\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Max\", 'FM999G999G999G999G990') END AS \"Max\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Total\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Total\", 'FM999G999G999G999G990') END AS \"Total\",\n       s.files AS \"Files\"\nFROM (SELECT m.pos, m.label, m.pow2,\n       min(m.v) AS \"Min\",\n       percentile_cont(0.25) WITHIN GROUP (ORDER BY m.v) AS \"P25\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY m.v) AS \"Median\",\n       avg(m.v) AS \"Mean\",\n       stddev_samp(m.v) AS \"Std dev\",\n       percentile_cont(0.75) WITHIN GROUP (ORDER BY m.v) AS \"P75\",\n       percentile_cont(0.95) WITHIN GROUP (ORDER BY m.v) AS \"P95\",\n       max(m.v) AS \"Max\",\n       sum(m.v) AS \"Total\",\n       count(m.v) AS files\n      FROM viper_metrics,\n           LATERAL (VALUES\n             (0, 'Lines of code', loc::double precision, false),\n       (1, 'Lines', lines::double precision, false),\n       (2, 'Bytes', bytes::double precision, false),\n       (3, 'Methods', methods::double precision, false),\n       (4, 'Functions', functions::double precision, false),\n       (5, 'Predicates', predicates::double precision, false),\n       (6, 'Domains', domains::double precision, false),\n       (7, 'Domain functions', domain_functions::double precision, false),\n       (8, 'Axioms', axioms::double precision, false),\n       (9, 'Fields', fields::double precision, false),\n       (10, 'ADTs', adts::double precision, false),\n       (11, 'Statements', stmts::double precision, false),\n       (12, 'Expressions', exps::double precision, false),\n       (13, 'Folds', folds::double precision, false),\n       (14, 'Unfolds', unfolds::double precision, false),\n       (15, 'Unfolding expressions', heap_update_exps::double precision, false),\n       (16, 'Inhales', inhales::double precision, false),\n       (17, 'Exhales', exhales::double precision, false),\n       (18, 'Asserts', asserts::double precision, false),\n       (19, 'Assumes', assumes::double precision, false),\n       (20, 'acc(...)', accs::double precision, false),\n       (21, 'Quantifiers', quantifiers::double precision, false),\n       (22, 'Labels', labels::double precision, false),\n       (23, 'Gotos', gotos::double precision, false),\n       (24, 'Ifs', ifs::double precision, false),\n       (25, 'Whiles', whiles::double precision, false),\n       (26, 'Assignments', assigns::double precision, false),\n       (27, 'Method calls', method_calls::double precision, false),\n       (28, 'Function applications', function_apps::double precision, false),\n       (29, 'old(...)', old_exps::double precision, false),\n       (30, 'Contract clauses', contract_clauses::double precision, false)\n           ) AS m(pos, label, v, pow2)\n      WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\n      GROUP BY m.pos, m.label, m.pow2) s\nORDER BY s.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "right"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Metric"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Median"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 10,
+      "title": "Viper file size",
+      "description": "Files per size bucket. Bucket 2\u1d4f holds the files with 2\u1d4f to 2\u1d4f\u207a\u00b9 - 1 lines of code (0: empty files), as in the proposal's speedup histogram.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM viper_metrics WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 11,
+      "title": "Viper statements by kind",
+      "description": "Statements of each kind over all Viper files (log scale).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'Inhale', inhales), (1, 'Exhale', exhales), (2, 'Assert', asserts), (3, 'Assume', assumes), (4, 'Fold', folds), (5, 'Unfold', unfolds), (6, 'Label', labels), (7, 'Goto', gotos), (8, 'If', ifs), (9, 'While', whiles), (10, 'Assignment', assigns), (11, 'Method call', method_calls)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 12,
+      "title": "Viper declarations by kind",
+      "description": "Top-level declarations of each kind over all Viper files (log scale).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'Method', methods), (1, 'Function', functions), (2, 'Predicate', predicates), (3, 'Domain', domains), (4, 'Domain function', domain_functions), (5, 'Axiom', axioms), (6, 'Field', fields), (7, 'ADT', adts)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 13,
+      "title": "Viper expressions by kind",
+      "description": "Expression constructs over all Viper files (log scale).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'acc(...)', accs), (1, 'Quantifier', quantifiers), (2, 'Function application', function_apps), (3, 'unfolding ... in', heap_update_exps), (4, 'old(...)', old_exps), (5, 'Contract clause', contract_clauses)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 31,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 14,
+      "title": "Rust files",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "id": 15,
+      "title": "Rust metrics per file",
+      "description": "Each row is one rust_metrics column, summarised over all Rust files. Per-function columns are NULL for files without functions and are left out of their row. Control-flow paths grow exponentially and are shown as powers of two (2^x).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT s.label AS \"Metric\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Min\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Min\", 'FM999G999G999G999G990') END AS \"Min\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P25\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P25\", 'FM999G999G999G999G990D0') END AS \"P25\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Median\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Median\", 'FM999G999G999G999G990D0') END AS \"Median\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Mean\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Mean\", 'FM999G999G999G999G990D0') END AS \"Mean\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Std dev\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Std dev\", 'FM999G999G999G999G990D0') END AS \"Std dev\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P75\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P75\", 'FM999G999G999G999G990D0') END AS \"P75\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P95\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P95\", 'FM999G999G999G999G990D0') END AS \"P95\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Max\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Max\", 'FM999G999G999G999G990') END AS \"Max\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Total\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Total\", 'FM999G999G999G999G990') END AS \"Total\",\n       s.files AS \"Files\"\nFROM (SELECT m.pos, m.label, m.pow2,\n       min(m.v) AS \"Min\",\n       percentile_cont(0.25) WITHIN GROUP (ORDER BY m.v) AS \"P25\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY m.v) AS \"Median\",\n       avg(m.v) AS \"Mean\",\n       stddev_samp(m.v) AS \"Std dev\",\n       percentile_cont(0.75) WITHIN GROUP (ORDER BY m.v) AS \"P75\",\n       percentile_cont(0.95) WITHIN GROUP (ORDER BY m.v) AS \"P95\",\n       max(m.v) AS \"Max\",\n       sum(m.v) AS \"Total\",\n       count(m.v) AS files\n      FROM rust_metrics,\n           LATERAL (VALUES\n             (0, 'Lines of code', loc::double precision, false),\n       (1, 'Functions', fns::double precision, false),\n       (2, 'Structs', structs::double precision, false),\n       (3, 'Enums', enums::double precision, false),\n       (4, 'Lines in functions', fn_loc::double precision, false),\n       (5, 'Control-flow paths', paths::double precision, true),\n       (6, 'Statements', stmts::double precision, false),\n       (7, 'Expressions', exprs::double precision, false),\n       (8, 'Loops', loops::double precision, false),\n       (9, 'Ifs', ifs::double precision, false),\n       (10, 'Early returns', early_returns::double precision, false),\n       (11, 'Matches', matches::double precision, false),\n       (12, 'Match arms', match_arms::double precision, false),\n       (13, 'Arguments', args::double precision, false),\n       (14, 'Calls', calls::double precision, false),\n       (15, 'Distinct callees', distinct_callees::double precision, false),\n       (16, 'Assignments', assigns::double precision, false),\n       (17, 'Writes through &mut', mut_ref_writes::double precision, false),\n       (18, 'Reborrows', reborrows::double precision, false),\n       (19, 'Arithmetic ops', arith_ops::double precision, false),\n       (20, 'Divisions', divisions::double precision, false),\n       (21, 'Indexing', indexing::double precision, false),\n       (22, 'Casts', casts::double precision, false),\n       (23, 'Unwraps', unwraps::double precision, false),\n       (24, 'Panics', panics::double precision, false),\n       (25, 'Cyclomatic', cyclomatic::double precision, false),\n       (26, 'Max loop depth', max_loop_depth::double precision, false),\n       (27, 'Max if depth', max_if_depth::double precision, false),\n       (28, 'Max branch depth', max_branch_depth::double precision, false),\n       (29, 'Max match arms', max_match_arms::double precision, false),\n       (30, 'Max call depth', max_call_depth::double precision, false),\n       (31, 'Max struct depth', max_struct_depth::double precision, false)\n           ) AS m(pos, label, v, pow2)\n      WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\n      GROUP BY m.pos, m.label, m.pow2) s\nORDER BY s.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 24,
+        "h": 16
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "right"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Metric"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Median"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Mean"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 16,
+      "title": "Rust file size",
+      "description": "Files per size bucket. Bucket 2\u1d4f holds the files with 2\u1d4f to 2\u1d4f\u207a\u00b9 - 1 lines of code (0: empty files).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 57,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#e0743f"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 17,
+      "title": "Checks Rust operations add",
+      "description": "Operations that add a verification check, over all Rust files.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM rust_metrics, LATERAL (VALUES (0, 'Arithmetic (overflow)', arith_ops), (1, 'Division (div by zero)', divisions), (2, 'Indexing (bounds)', indexing), (3, 'Cast', casts), (4, 'unwrap/expect', unwraps), (5, 'panic!/assert!', panics)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 57,
+        "w": 12,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#e0743f"
+          },
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 18,
+      "title": "Rust \u2192 Viper encoding",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 66,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "id": 19,
+      "title": "Viper lines per Rust line",
+      "description": "How much larger Prusti's encoding is: viper_metrics.loc / rust_metrics.loc over linked Rust files.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT min(v.loc::float / r.loc) AS \"Min\",\n       percentile_cont(0.25) WITHIN GROUP (ORDER BY v.loc::float / r.loc) AS \"P25\",\n       percentile_cont(0.5)  WITHIN GROUP (ORDER BY v.loc::float / r.loc) AS \"Median\",\n       avg(v.loc::float / r.loc) AS \"Mean\",\n       percentile_cont(0.75) WITHIN GROUP (ORDER BY v.loc::float / r.loc) AS \"P75\",\n       max(v.loc::float / r.loc) AS \"Max\",\n       count(*) AS \"Pairs\"\nFROM rust_metrics r JOIN viper_metrics v USING (vpr_sha256)\nWHERE r.loc > 0 AND ('__all' IN (${suite:sqlstring}) OR r.rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 67,
+        "w": 12,
+        "h": 5
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2bb3a3"
+          },
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "color-text"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pairs"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "md"
+      }
+    },
+    {
+      "type": "xychart",
+      "pluginVersion": "13.2.4",
+      "id": 20,
+      "title": "Rust size vs. Viper size",
+      "description": "One point per linked Rust file (log scales).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT r.loc AS \"Rust lines of code\", v.loc AS \"Viper lines of code\"\nFROM rust_metrics r JOIN viper_metrics v USING (vpr_sha256)\nWHERE r.loc > 0 AND v.loc > 0 AND ('__all' IN (${suite:sqlstring}) OR r.rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 67,
+        "w": 12,
+        "h": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2bb3a3"
+          },
+          "custom": {
+            "show": "points",
+            "pointSize": {
+              "fixed": 4
+            },
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mapping": "manual",
+        "series": [
+          {
+            "frame": {
+              "matcher": {
+                "id": "byIndex",
+                "options": 0
+              }
+            },
+            "x": {
+              "matcher": {
+                "id": "byName",
+                "options": "Rust lines of code"
+              }
+            },
+            "y": {
+              "matcher": {
+                "id": "byName",
+                "options": "Viper lines of code"
+              }
+            }
+          }
+        ],
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    }
+  ]
+}

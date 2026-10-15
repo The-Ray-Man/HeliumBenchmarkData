@@ -147,6 +147,28 @@ CREATE TABLE rust_metrics (
 );
 
 
+-- Benchmarks: one row per test of a suite (suite, family, test, as in the run
+-- tables) with the hashes of its current files, so metrics can be grouped by
+-- suite or family without any runs:
+--
+--   benchmarks b JOIN viper_metrics v USING (vpr_sha256) WHERE b.suite = ...
+--
+-- Rewritten when the runner records a benchmark's metrics; `recorded_at` says
+-- when. `id` is a surrogate key for the same reason as in the run tables.
+
+CREATE TABLE benchmarks (
+    id                  BIGINT        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    suite               VARCHAR       NOT NULL,
+    family              VARCHAR,                   -- NULL for suites without a family level
+    test                VARCHAR       NOT NULL,    -- path below the family dir, no extension
+    vpr_sha256          VARCHAR       REFERENCES viper_metrics,  -- NULL if the test has no .vpr
+    rs_sha256           VARCHAR       REFERENCES rust_metrics,   -- NULL if the test has no .rs
+    recorded_at         TIMESTAMPTZ   NOT NULL,
+
+    UNIQUE NULLS NOT DISTINCT (suite, family, test)
+);
+
+
 -- Runs: one table per backend, one row per execution of that backend on one
 -- file. Every timed iteration is its own row (warm-up iterations are not
 -- recorded); a backend that was not run gets a single SKIPPED row.
