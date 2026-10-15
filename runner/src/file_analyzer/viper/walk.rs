@@ -188,6 +188,7 @@ walk_enum!(
     AdtDestructor(e, i),
     AdtDiscriminator(e, i),
     HeapUpdate(kind, acc_exp, e),
+    WandUpdate(kind, w, e),
     Quantifier(kind, vars, triggers, e),
     ForPerm(vars, p, e),
     MagicWand(l, r),
@@ -293,6 +294,8 @@ walk_enum!(
     Var(vars, e),
     While(e, invs, decs, b),
     If(e, then, else_),
+    Package(w, b),
+    Apply(w),
     Assign(lhs, rhs),
     Block(b),
     Unsupported(what)

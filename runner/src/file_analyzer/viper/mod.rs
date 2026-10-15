@@ -86,6 +86,12 @@ impl From<&ViperMetrics> for viper_metrics::ActiveModel {
             function_apps: int(c.function_apps),
             old_exps: int(c.old_exps),
             contract_clauses: int(c.contract_clauses),
+            refutes: int(c.refutes),
+            var_decls: int(c.var_decls),
+            packages: int(c.packages),
+            applies: int(c.applies),
+            other_stmts: int(c.other_stmts),
+            magic_wands: int(c.magic_wands),
             ..Default::default()
         }
     }
@@ -100,12 +106,23 @@ pub struct Counts {
     pub exps: u64,
     pub folds: u64,
     pub unfolds: u64,
-    /// `unfolding ... in`, `folding ... in` and friends inside expressions.
+    /// `unfolding ... in`, `folding ... in`, `applying ... in` and
+    /// `packaging ... in` inside expressions.
     pub heap_update_exps: u64,
     pub inhales: u64,
     pub exhales: u64,
     pub asserts: u64,
+    pub refutes: u64,
     pub assumes: u64,
+    /// `var` declarations, with or without an initial value (one with a value
+    /// also counts as an assignment or method call).
+    pub var_decls: u64,
+    /// `package` and `apply` statements on magic wands.
+    pub packages: u64,
+    pub applies: u64,
+    /// Statements of no other kind: `quasihavoc`, `fresh`, `constraining`,
+    /// local `define`, multi-target assignments from expressions.
+    pub other_stmts: u64,
     /// `acc(...)` occurrences in expressions (contracts, inhale/exhale bodies).
     pub accs: u64,
     pub quantifiers: u64,
@@ -119,6 +136,8 @@ pub struct Counts {
     /// Calls in expressions: functions, domain functions, predicate instances.
     pub function_apps: u64,
     pub old_exps: u64,
+    /// `A --* B` expressions.
+    pub magic_wands: u64,
     /// Pre- and postconditions.
     pub contract_clauses: u64,
 }
@@ -193,7 +212,8 @@ impl<'a> AstWalker<'a> for Counter<'_, '_> {
         c.stmts += 1;
         match stmt {
             Statement::Assume(_) => c.assumes += 1,
-            Statement::Assert(_) | Statement::Refute(_) => c.asserts += 1,
+            Statement::Assert(_) => c.asserts += 1,
+            Statement::Refute(_) => c.refutes += 1,
             Statement::Inhale(_) => c.inhales += 1,
             Statement::Exhale(_) => c.exhales += 1,
             Statement::Fold(_) => c.folds += 1,
@@ -202,10 +222,20 @@ impl<'a> AstWalker<'a> for Counter<'_, '_> {
             Statement::Label(..) => c.labels += 1,
             Statement::While(..) => c.whiles += 1,
             Statement::If(..) => c.ifs += 1,
-            Statement::Assign(_, AssignRhs::Call(call))
-            | Statement::Var(_, Some(AssignRhs::Call(call))) => self.call_rhs(call),
-            Statement::Assign(..) | Statement::Var(_, Some(_)) => c.assigns += 1,
-            Statement::Var(_, None) | Statement::Block(_) | Statement::Unsupported(_) => {}
+            Statement::Package(..) => c.packages += 1,
+            Statement::Apply(_) => c.applies += 1,
+            Statement::Unsupported(_) => c.other_stmts += 1,
+            Statement::Assign(_, AssignRhs::Call(call)) => self.call_rhs(call),
+            Statement::Assign(..) => c.assigns += 1,
+            Statement::Var(_, rhs) => {
+                c.var_decls += 1;
+                match rhs {
+                    Some(AssignRhs::Call(call)) => self.call_rhs(call),
+                    Some(_) => c.assigns += 1,
+                    None => {}
+                }
+            }
+            Statement::Block(_) => {}
         }
         stmt.walk_children(self);
     }
@@ -217,7 +247,8 @@ impl<'a> AstWalker<'a> for Counter<'_, '_> {
             ExpKind::Acc(_) => c.accs += 1,
             ExpKind::Call(_) => c.function_apps += 1,
             ExpKind::Quantifier(..) | ExpKind::ForPerm(..) => c.quantifiers += 1,
-            ExpKind::HeapUpdate(..) => c.heap_update_exps += 1,
+            ExpKind::HeapUpdate(..) | ExpKind::WandUpdate(..) => c.heap_update_exps += 1,
+            ExpKind::MagicWand(..) => c.magic_wands += 1,
             ExpKind::Old(..) => c.old_exps += 1,
             _ => {}
         }
@@ -288,6 +319,35 @@ method n(x: Ref)
     }
 
     #[test]
+    fn counts_magic_wands_and_other_statements() {
+        let src = "field f: Int
+predicate P(x: Ref) { acc(x.f) }
+method m(x: Ref)
+  requires acc(x.f) --* P(x)
+{
+  var y: Int
+  var z: Int := 1
+  package acc(x.f) --* P(x) {
+    fold P(x)
+  }
+  apply acc(x.f) --* P(x)
+  assert applying (acc(x.f) --* P(x)) in true
+  assert folding P(x) in true
+  refute false
+  quasihavoc x.f
+}
+";
+        let c = analyze(src).unwrap().counts;
+        assert_eq!(c.magic_wands, 4);
+        assert_eq!((c.packages, c.applies, c.folds), (1, 1, 1));
+        assert_eq!(c.heap_update_exps, 2);
+        assert_eq!((c.var_decls, c.assigns), (2, 1));
+        assert_eq!((c.asserts, c.refutes, c.other_stmts), (2, 1, 1));
+        // Every statement, the `fold` inside the package block included.
+        assert_eq!(c.stmts, 9);
+    }
+
+    #[test]
     fn type_names_with_builtin_prefix() {
         let src = "domain D {\n  function f(F: Set[Ref]): Interface\n  function g(x: Integer, y: Reference): Boolean\n}\n";
         assert!(analyze(src).is_ok());
@@ -300,29 +360,13 @@ method n(x: Ref)
     }
 
     #[test]
+    fn local_define() {
+        let src = "method m(x: Int)\n{\n  define A x == 0 && true\n  assert x == x\n}\n";
+        assert!(analyze(src).is_ok());
+    }
+
+    #[test]
     fn rejects_invalid_viper() {
         assert!(analyze("method m( {").is_err());
-    }
-}
-
-#[cfg(test)]
-mod tmp_scan {
-    #[test]
-    #[ignore]
-    fn scan_all_suites() {
-        fn walk(d: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
-            for e in std::fs::read_dir(d).unwrap().flatten() {
-                let p = e.path();
-                if p.is_dir() { walk(&p, out) } else if p.extension().is_some_and(|x| x == "vpr") { out.push(p) }
-            }
-        }
-        let mut files = Vec::new();
-        walk(std::path::Path::new("../suites"), &mut files);
-        let mut bad = 0;
-        for f in &files {
-            let Ok(src) = std::fs::read_to_string(f) else { println!("UNREADABLE {}", f.display()); continue };
-            if let Err(e) = super::analyze(&src) { bad += 1; println!("FAIL {} :: {}", f.display(), e); }
-        }
-        println!("TOTAL {} FAILED {}", files.len(), bad);
     }
 }

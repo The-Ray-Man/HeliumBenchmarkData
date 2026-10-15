@@ -174,9 +174,9 @@ peg::parser! {
             / "[" _ e:exp() _ "," _ f:exp() _ "]" { ExpKind::BinOp(BinOp::InhaleExhale, e, f)}
 
             / kw(<"unfolding">) _ acc:fold_target() _ "in" _ e:exp() { ExpKind::HeapUpdate(HeapUpdateOp::Unfold, acc, e) }
-            / kw(<"folding">) _ fold_target() _ "in" _ exp() { ExpKind::Unsupported("folding") }
-            / kw(<"applying">) _ "(" _ exp() _ ")" _ "in" _ exp() { ExpKind::Unsupported("applying") }
-            / kw(<"packaging">) _ "(" _ exp() _ ")" _ "in" _ exp() { ExpKind::Unsupported("packaging") }
+            / kw(<"folding">) _ acc:fold_target() _ "in" _ e:exp() { ExpKind::HeapUpdate(HeapUpdateOp::Fold, acc, e) }
+            / kw(<"applying">) _ "(" _ w:exp() _ ")" _ "in" _ e:exp() { ExpKind::WandUpdate(HeapUpdateOp::Apply, w, e) }
+            / kw(<"packaging">) _ "(" _ w:exp() _ ")" _ "in" _ e:exp() { ExpKind::WandUpdate(HeapUpdateOp::Package, w, e) }
             / kw(<"forall">) _ args:(formal_arg() ++ comma()) _ "::" _ triggers:(trigger()**_) _ e:exp() { ExpKind::Quantifier(QuantifierKind::Forall, args, triggers, e) }
             / kw(<"exists">) _ args:(formal_arg() ++ comma()) _ "::" _ triggers:(trigger()**_) _ e:exp() { ExpKind::Quantifier(QuantifierKind::Exists, args, triggers, e) }
 
@@ -280,15 +280,16 @@ peg::parser! {
             / kw(<"var">) _ args:(formal_arg() ** comma()) _ e:(":=" _ e:assign_rhs() {e})? { Statement::Var(args, e)}
             / while_statement()
             / if_statement()
+            / kw(<"package">) _ w:exp() _ b:block()? { Statement::Package(w, b) }
+            / kw(<"apply">) _ w:exp() { Statement::Apply(w) }
             // Statements we do not implement. Each is parsed into an
             // `Unsupported` marker so the declaration containing it is reported
             // by name and the rest of the file still verifies.
-            / kw(<"package">) _ exp() _ block()? { Statement::Unsupported("package") }
-            / kw(<"apply">) _ exp() { Statement::Unsupported("apply") }
             / kw(<"quasihavocall">) _ (formal_arg() ++ comma()) _ "::" _ exp() { Statement::Unsupported("quasihavocall") }
             / kw(<"quasihavoc">) _ exp() { Statement::Unsupported("quasihavoc") }
             / kw(<"fresh">) _ (ident() ++ comma()) { Statement::Unsupported("fresh") }
             / constraining_block() { Statement::Unsupported("constraining") }
+            / define() { Statement::Unsupported("local define") }
             // `a, b := e1, e2`: Viper binds several targets only from a method
             // call, so this is reported as unsupported rather than as a parse
             // error that names the comma.

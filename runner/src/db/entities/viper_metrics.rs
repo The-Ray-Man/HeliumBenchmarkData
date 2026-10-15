@@ -40,6 +40,12 @@ pub struct Model {
     pub function_apps: Option<i32>,
     pub old_exps: Option<i32>,
     pub contract_clauses: Option<i32>,
+    pub refutes: Option<i32>,
+    pub var_decls: Option<i32>,
+    pub packages: Option<i32>,
+    pub applies: Option<i32>,
+    pub other_stmts: Option<i32>,
+    pub magic_wands: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

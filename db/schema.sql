@@ -80,6 +80,15 @@ CREATE TABLE viper_metrics (
     old_exps                INTEGER,
     contract_clauses        INTEGER,
 
+    -- added by db/migrations/001_viper_statement_kinds.sql (kept last so a
+    -- fresh and a migrated database have the same column order)
+    refutes                 INTEGER,               -- `asserts` counts only `assert`
+    var_decls               INTEGER,               -- `var` statements, initialised or not
+    packages                INTEGER,               -- `package` statements
+    applies                 INTEGER,               -- `apply` statements
+    other_stmts             INTEGER,               -- quasihavoc, fresh, constraining, local define, ...
+    magic_wands             INTEGER,               -- `A --* B` expressions
+
     PRIMARY KEY (vpr_sha256)
 );
 

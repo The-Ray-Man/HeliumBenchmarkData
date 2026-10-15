@@ -235,8 +235,11 @@ pub enum ExpKind {
     /// adt.isCons
     AdtDiscriminator(Exp, Ident),
 
-    /// unfolding(e) in E, and similarly for folding, applying, and packaging.
+    /// unfolding(e) in E, and similarly for folding.
     HeapUpdate(HeapUpdateOp, AccExp, Exp),
+    /// applying (w) in E and packaging (w) in E (`Apply` / `Package`), where
+    /// `w` is a magic wand rather than a predicate access.
+    WandUpdate(HeapUpdateOp, Exp, Exp),
     /// forall/exists x: T, y: U, ... :: { trigger } e
     Quantifier(QuantifierKind, Vec<IdnDeclTyped>, Vec<Trigger>, Exp),
     /// Quantified permissions. forperm x: T, y: U, ... [Perm] :: e1
@@ -377,13 +380,15 @@ pub enum Statement {
     Var(Vec<IdnDeclTyped>, Option<AssignRhs>),
     While(Exp, Vec<Invariant>, Vec<Decreases>, StmtBlock),
     If(Exp, StmtBlock, Option<StmtBlock>),
-    // Package(AccExp, Option<StmtBlock>),
-    // Apply(AccExp),
+    /// package w { proof script }
+    Package(Exp, Option<StmtBlock>),
+    /// apply w
+    Apply(Exp),
     Assign(Vec<AssignLhs>, AssignRhs),
     Block(StmtBlock),
-    /// A statement the verifier does not implement (`package`, `apply`,
-    /// `quasihavoc`, ...), parsed only so the enclosing declaration can be
-    /// reported as unsupported. See [`ExpKind::Unsupported`].
+    /// A statement the verifier does not implement (`quasihavoc`, `fresh`,
+    /// ...), parsed only so the enclosing declaration can be reported as
+    /// unsupported. See [`ExpKind::Unsupported`].
     Unsupported(&'static str),
 }
 

@@ -166,12 +166,19 @@ fn viper_problems(row: viper_metrics::Model) -> Vec<&'static str> {
         function_apps,
         old_exps,
         contract_clauses,
+        refutes,
+        var_decls,
+        packages,
+        applies,
+        other_stmts,
+        magic_wands,
     } = row;
     null_columns!(
         loc, lines, bytes, methods, functions, predicates, domains, domain_functions, axioms,
         fields, adts, stmts, exps, folds, unfolds, heap_update_exps, inhales, exhales, asserts,
         assumes, accs, quantifiers, labels, gotos, ifs, whiles, assigns, method_calls,
-        function_apps, old_exps, contract_clauses,
+        function_apps, old_exps, contract_clauses, refutes, var_decls, packages, applies,
+        other_stmts, magic_wands,
     )
 }
 
