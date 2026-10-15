@@ -3,6 +3,7 @@ use crate::suite_config::SuiteConfig;
 
 mod db;
 mod explorer;
+mod file_analyzer;
 mod suite_config;
 pub mod utils;
 
