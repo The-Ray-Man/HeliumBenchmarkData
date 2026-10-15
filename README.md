@@ -62,6 +62,7 @@ Relative paths are resolved against the folder of the config file (`runner/`). W
 | `silicon.warm.warmup_s` | no (`60`) | seconds of warm-up per JVM |
 | `silicon.warm.file_timeout_s` | no (`10`) | Silicon `--timeout` per warm-up file |
 | `helium` | yes | Helium's `verify` binary (`verify.exe` on Windows) |
+| `suites_dir` | yes | folder with one subfolder per suite, e.g. `../suites` |
 | `repeat_runs` | no (`5`) | measured runs per benchmark (at least 1) |
 | `timeout` | no (no limit) | seconds after which a run is killed |
 | `suites` | yes | the benchmark suites, see below |

@@ -25,6 +25,8 @@ pub struct SuiteConfig {
     pub silicon: SiliconConfig,
     /// Helium's `verify` binary.
     pub helium: PathBuf,
+    /// Directory holding one folder per suite (`<suites_dir>/<suite>/<family>/...`).
+    pub suites_dir: PathBuf,
     /// How often every benchmark is measured.
     #[serde(default = "default_repeat_runs")]
     pub repeat_runs: usize,
@@ -199,7 +201,7 @@ impl SuiteConfig {
         if self.java.is_relative() && self.java.components().count() > 1 {
             self.java = base.join(&self.java);
         }
-        let paths = [&mut self.helium, &mut self.silicon.jar]
+        let paths = [&mut self.helium, &mut self.silicon.jar, &mut self.suites_dir]
             .into_iter()
             .chain(&mut self.silicon.warm.corpus);
         for p in paths {
@@ -225,7 +227,25 @@ impl SuiteConfig {
                 return Err(format!("`silicon.warm.corpus`: {} is not a directory", dir.display()));
             }
         }
+        for suite in self.activated_suites() {
+            for dir in self.suite_dirs(suite) {
+                if !dir.is_dir() {
+                    return Err(format!("suite `{}`: {} is not a directory", suite.name, dir.display()));
+                }
+            }
+        }
         Ok(())
+    }
+
+    /// The directories holding `suite`'s benchmarks: one per family, or the
+    /// suite's own directory for a flat suite.
+    pub fn suite_dirs(&self, suite: &Suite) -> Vec<PathBuf> {
+        let root = self.suites_dir.join(&suite.name);
+        if suite.is_flat() {
+            vec![root]
+        } else {
+            suite.families.iter().map(|f| root.join(&f.name)).collect()
+        }
     }
 
     fn validate(&self) -> Result<(), String> {
@@ -350,7 +370,7 @@ mod tests {
 
     /// A minimal config with the given top-level fields (each ending in `,`) and suites.
     fn config(top: &str, suites: &str) -> Result<SuiteConfig, String> {
-        parse(&format!(r#"{{{SILICON}, "helium": "verify", {top} "suites": {suites}}}"#))
+        parse(&format!(r#"{{{SILICON}, "helium": "verify", "suites_dir": "suites", {top} "suites": {suites}}}"#))
     }
 
     fn suites(suites: &str) -> Result<SuiteConfig, String> {
@@ -433,18 +453,20 @@ mod tests {
         assert_eq!(config.helium, Path::new("cfg/../bin/verify"));
         assert_eq!(config.silicon.jar, Path::new("cfg/silicon.jar"));
         assert_eq!(config.silicon.warm.corpus, [Path::new("cfg/warmup")]);
+        assert_eq!(config.suites_dir, Path::new("cfg/suites"));
     }
 
     #[test]
     fn rejects_invalid_run_settings() {
-        assert!(parse(r#"{"helium": "verify", "suites": []}"#).is_err());
+        assert!(parse(r#"{"helium": "verify", "suites_dir": "s", "suites": []}"#).is_err());
+        assert!(parse(&format!(r#"{{{SILICON}, "helium": "verify", "suites": []}}"#)).is_err());
         assert!(parse(&format!(r#"{{{SILICON}, "suites": []}}"#)).is_err());
         assert!(config(r#""repeat_runs": 0,"#, "[]").is_err());
         assert!(config(r#""timeout": 0,"#, "[]").is_err());
         assert!(config(r#""timeout": -1,"#, "[]").is_err());
         assert!(config(r#""rustc_toolchain": "","#, "[]").is_err());
         let silicon = |warm: &str| {
-            parse(&format!(r#"{{"silicon": {{"jar": "s.jar", "warm": {warm}}}, "helium": "v", "suites": []}}"#))
+            parse(&format!(r#"{{"silicon": {{"jar": "s.jar", "warm": {warm}}}, "helium": "v", "suites_dir": "s", "suites": []}}"#))
         };
         assert!(silicon(r#"{"corpus": []}"#).is_err());
         assert!(silicon(r#"{"corpus": ["c"], "warmup_s": -1}"#).is_err());
@@ -468,6 +490,7 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("suite_config_test_{}", std::process::id()));
         fs::create_dir_all(dir.join("bin")).unwrap();
         fs::create_dir_all(dir.join("warmup")).unwrap();
+        fs::create_dir_all(dir.join("suites/flat")).unwrap();
         fs::write(dir.join("bin/verify"), "").unwrap();
         fs::write(dir.join("silicon.jar"), "").unwrap();
         let java = std::env::current_exe().unwrap();
@@ -476,7 +499,8 @@ mod tests {
                 "java": java,
                 "silicon": {"jar": "silicon.jar", "warm": {"corpus": [corpus]}},
                 "helium": helium,
-                "suites": [],
+                "suites_dir": "suites",
+                "suites": [{"name": "flat"}, {"name": "off", "activated": false}],
             });
             fs::write(dir.join("suite.json"), json.to_string()).unwrap();
             SuiteConfig::new(dir.join("suite.json"))
