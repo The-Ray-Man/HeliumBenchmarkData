@@ -1,0 +1,1297 @@
+{
+  "uid": "helium-scaling",
+  "title": "Scaling",
+  "description": "How Helium, Silicon and rustc scale on the scaling suite: one knob varies, everything else is fixed.",
+  "tags": [
+    "helium",
+    "scaling"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "templating": {
+    "list": [
+      {
+        "type": "constant",
+        "name": "knobmap",
+        "hide": 2,
+        "query": "VALUES ('depth', ARRAY['depth', 'stmts']), ('enum', ARRAY['variants', 'payload']), ('loops', ARRAY['nesting', 'body']), ('seq_if', ARRAY['branches']), ('args_value', ARRAY['args']), ('args_ref', ARRAY['args']), ('args_mut', ARRAY['args']), ('call_depth', ARRAY['depth']), ('call_fanout', ARRAY['fanout']), ('mut_writes', ARRAY['writes', 'path']), ('arith', ARRAY['ops']), ('struct_depth', ARRAY['depth']), ('struct_width', ARRAY['fields']), ('tuple_width', ARRAY['elements']), ('enum_tag', ARRAY['variants']), ('enum_fields', ARRAY['fields']), ('option_depth', ARRAY['depth']), ('nway', ARRAY['arms']), ('seqmatch', ARRAY['decisions']), ('reborrow', ARRAY['reborrows']), ('condmove', ARRAY['moves']), ('generic', ARRAY['round_trips']), ('impls', ARRAY['impls']), ('units', ARRAY['units']), ('straight', ARRAY['statements']), ('pcalias', ARRAY['chunks'])",
+        "description": "Knob names per family, in file-name order (the scaling families' `knobs` in runner/suite.example.json). Knob values are the numbers in the test name, in order."
+      },
+      {
+        "type": "query",
+        "name": "family",
+        "label": "Family",
+        "description": "Scaling family (one benchmark per knob setting).",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT DISTINCT family FROM benchmarks WHERE suite = 'scaling' AND family IS NOT NULL ORDER BY 1",
+        "definition": "SELECT DISTINCT family FROM benchmarks WHERE suite = 'scaling' AND family IS NOT NULL ORDER BY 1",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "knob",
+        "label": "Knob (x-axis)",
+        "description": "Knob on the x-axis. Families with two knobs keep the other one fixed, see Fixed.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH m(family, knobs) AS (${knobmap:raw}),\nn AS (SELECT max(cardinality(array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o))) AS n FROM benchmarks WHERE suite = 'scaling' AND family = ${family:sqlstring})\nSELECT i AS __value, coalesce((SELECT knobs[i] FROM m WHERE family = ${family:sqlstring}), 'knob ' || i) AS __text\nFROM n, generate_series(1, greatest(n.n, 1)) AS i ORDER BY i",
+        "definition": "WITH m(family, knobs) AS (${knobmap:raw}),\nn AS (SELECT max(cardinality(array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o))) AS n FROM benchmarks WHERE suite = 'scaling' AND family = ${family:sqlstring})\nSELECT i AS __value, coalesce((SELECT knobs[i] FROM m WHERE family = ${family:sqlstring}), 'knob ' || i) AS __text\nFROM n, generate_series(1, greatest(n.n, 1)) AS i ORDER BY i",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "fixed",
+        "label": "Fixed",
+        "description": "Values of the other knobs of the family; no other knobs for one-knob families.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH m(family, knobs) AS (${knobmap:raw}),\no AS (SELECT DISTINCT k[:${knob:raw} - 1] || k[${knob:raw} + 1:] AS rest\n      FROM (SELECT array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM benchmarks WHERE suite = 'scaling' AND family = ${family:sqlstring}) t)\nSELECT rest::text AS __value, coalesce((\n  SELECT string_agg(coalesce((SELECT knobs[j + (j >= ${knob:raw})::int] FROM m WHERE family = ${family:sqlstring}),\n                             'knob ' || (j + (j >= ${knob:raw})::int)) || ' = ' || v, ', ' ORDER BY j)\n  FROM unnest(rest) WITH ORDINALITY AS u(v, j)), 'no other knobs') AS __text\nFROM o ORDER BY rest",
+        "definition": "WITH m(family, knobs) AS (${knobmap:raw}),\no AS (SELECT DISTINCT k[:${knob:raw} - 1] || k[${knob:raw} + 1:] AS rest\n      FROM (SELECT array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM benchmarks WHERE suite = 'scaling' AND family = ${family:sqlstring}) t)\nSELECT rest::text AS __value, coalesce((\n  SELECT string_agg(coalesce((SELECT knobs[j + (j >= ${knob:raw})::int] FROM m WHERE family = ${family:sqlstring}),\n                             'knob ' || (j + (j >= ${knob:raw})::int)) || ' = ' || v, ', ' ORDER BY j)\n  FROM unnest(rest) WITH ORDINALITY AS u(v, j)), 'no other knobs') AS __text\nFROM o ORDER BY rest",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "helium_version",
+        "label": "Helium",
+        "description": "Helium commit; newest run first, which is the default.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM helium_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "definition": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM helium_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "silicon_version",
+        "label": "Silicon",
+        "description": "Silicon version; newest run first, which is the default.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM silicon_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "definition": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM silicon_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "rustc_version",
+        "label": "rustc",
+        "description": "rustc version; newest run first, which is the default.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM rustc_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "definition": "SELECT backend_version AS __value, backend_version || '  (' || to_char(max(started_at), 'YYYY-MM-DD') || ')' AS __text FROM rustc_runs WHERE suite = 'scaling' AND backend_version IS NOT NULL GROUP BY 1 ORDER BY max(started_at) DESC",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "custom",
+        "name": "metric",
+        "label": "Metric",
+        "description": "Median over the timed iterations of each benchmark.",
+        "query": "Wall time (s) : wall_s, Peak memory (MB) : peak_rss_mb",
+        "current": {
+          "text": "Wall time (s)",
+          "value": "wall_s"
+        },
+        "options": [
+          {
+            "text": "Wall time (s)",
+            "value": "wall_s",
+            "selected": true
+          },
+          {
+            "text": "Peak memory (MB)",
+            "value": "peak_rss_mb",
+            "selected": false
+          }
+        ],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "type": "custom",
+        "name": "status",
+        "label": "Statuses",
+        "description": "Runs with these statuses count; timeouts and crashes would only measure the timeout.",
+        "query": "VERIFIED,FAILED,INCONCLUSIVE,CRASHED,TIMED_OUT",
+        "current": {
+          "text": [
+            "VERIFIED",
+            "FAILED",
+            "INCONCLUSIVE"
+          ],
+          "value": [
+            "VERIFIED",
+            "FAILED",
+            "INCONCLUSIVE"
+          ]
+        },
+        "options": [
+          {
+            "text": "VERIFIED",
+            "value": "VERIFIED",
+            "selected": true
+          },
+          {
+            "text": "FAILED",
+            "value": "FAILED",
+            "selected": true
+          },
+          {
+            "text": "INCONCLUSIVE",
+            "value": "INCONCLUSIVE",
+            "selected": true
+          },
+          {
+            "text": "CRASHED",
+            "value": "CRASHED",
+            "selected": false
+          },
+          {
+            "text": "TIMED_OUT",
+            "value": "TIMED_OUT",
+            "selected": false
+          }
+        ],
+        "multi": true,
+        "includeAll": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "row",
+      "id": 1,
+      "title": "$family: ${metric:text} over ${knob:text} · ${fixed:text}",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "trend",
+      "id": 2,
+      "title": "Absolute",
+      "description": "Median ${metric:text} per knob value, all three backends on one axis. Dashed: the best fit from the fit table (click a legend entry to isolate a series).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, ${metric:raw} AS y FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'Silicon', test, ${metric:raw} FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'rustc', test, ${metric:raw} FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring} AND status IN (${status:sqlstring})\n),\npts AS (\n  SELECT backend, k[${knob:raw}]::float8 AS x, percentile_cont(0.5) WITHIN GROUP (ORDER BY y) AS y\n  FROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\n  WHERE y IS NOT NULL AND (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\n  GROUP BY 1, 2\n),\nst AS (\n  SELECT backend, count(*) AS n, min(x) AS x0, max(x) AS x1, min(y) AS ymin, max(y) AS ymax,\n         regr_intercept(y, x) AS la, regr_slope(y, x) AS lb, regr_syy(y, x) AS sst\n  FROM pts GROUP BY 1\n),\npoly AS (\n  SELECT DISTINCT ON (backend) backend, k, a, b, sse FROM (\n    SELECT g.backend, g.k, g.a, g.b, sum((p.y - g.a - g.b * power(p.x, g.k)) ^ 2) AS sse\n    FROM (SELECT backend, k, regr_intercept(y, power(x, k)) AS a, regr_slope(y, power(x, k)) AS b\n          FROM pts, generate_series(0.10, 6.00, 0.02) AS k GROUP BY 1, 2) g\n    JOIN pts p USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nexpo AS (\n  SELECT DISTINCT ON (backend) backend, r, a, b, sse FROM (\n    SELECT g.backend, g.r, g.a, g.b, sum((p.y - g.a - g.b * exp(g.r * (p.x - st.x0))) ^ 2) AS sse\n    FROM (SELECT backend, r, regr_intercept(y, exp(r * (x - x0))) AS a, regr_slope(y, exp(r * (x - x0))) AS b\n          FROM (SELECT pts.*, st.x0, exp(ln(0.05) + i * ln(40 / 0.05) / 199) / (st.x1 - st.x0) AS r\n                FROM pts JOIN st USING (backend), generate_series(0, 199) AS i WHERE st.x1 > st.x0) q\n          GROUP BY 1, 2) g\n    JOIN pts p USING (backend) JOIN st USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nfit AS (\n  SELECT st.*, poly.k, poly.a AS pa, poly.b AS pb, expo.r, expo.a AS ea, expo.b AS eb,\n         1 - (sum((p.y - st.la - st.lb * p.x) ^ 2) / nullif(st.n - 2, 0)) / nullif(st.sst / (st.n - 1), 0) AS lin_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (poly.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS poly_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (expo.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS exp_r2\n  FROM st JOIN pts p USING (backend) LEFT JOIN poly USING (backend) LEFT JOIN expo USING (backend)\n  GROUP BY st.backend, st.n, st.x0, st.x1, st.ymin, st.ymax, st.la, st.lb, st.sst,\n           poly.k, poly.a, poly.b, expo.r, expo.a, expo.b, poly.sse, expo.sse\n),\nbest AS (\n  SELECT fit.*, CASE\n    WHEN n < 3 THEN 'too few points'\n    WHEN ymax < 1.1 * ymin THEN 'flat'\n    WHEN n = 3 AND lin_r2 < 0.99 THEN 'unclear'\n    WHEN coalesce(lin_r2, 1) >= greatest(coalesce(poly_r2, -1e9), coalesce(exp_r2, -1e9)) - 0.01 THEN 'linear'\n    WHEN coalesce(poly_r2, -1e9) >= coalesce(exp_r2, -1e9) THEN\n      CASE WHEN k BETWEEN 0.85 AND 1.15 THEN 'linear' WHEN k < 1 THEN 'sublinear' ELSE 'polynomial' END\n    ELSE 'exponential' END AS model\n  FROM fit\n),\ngrid AS (\n  SELECT backend, x0 + (x1 - x0) * i / 60.0 AS x FROM best, generate_series(0, 60) AS i WHERE x1 > x0\n  UNION SELECT backend, x FROM pts\n),\ncurve AS (\n  SELECT g.backend, g.x, CASE\n    WHEN b.model IN ('polynomial', 'sublinear') THEN b.pa + b.pb * power(g.x, b.k)\n    WHEN b.model = 'exponential' THEN b.ea + b.eb * exp(b.r * (g.x - b.x0))\n    WHEN b.model IN ('linear', 'flat') THEN b.la + b.lb * g.x END AS f\n  FROM grid g JOIN best b USING (backend)\n),\nboth_ AS (\n  SELECT c.backend, c.x, p.y, c.f FROM curve c LEFT JOIN pts p USING (backend, x)\n)\nSELECT x,\n  max(y) FILTER (WHERE backend = 'Helium') AS \"Helium\",\n  max(y) FILTER (WHERE backend = 'Silicon') AS \"Silicon\",\n  max(y) FILTER (WHERE backend = 'rustc') AS \"rustc\",\n  max(f) FILTER (WHERE backend = 'Helium') AS \"Helium fit\",\n  max(f) FILTER (WHERE backend = 'Silicon') AS \"Silicon fit\",\n  max(f) FILTER (WHERE backend = 'rustc') AS \"rustc fit\"\nFROM both_ GROUP BY x ORDER BY x"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 12,
+        "h": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 6,
+            "spanNulls": true,
+            "fillOpacity": 0,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium fit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon fit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rustc"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rustc fit"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    6,
+                    4
+                  ]
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "never"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "x"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${knob:text}"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "${knob:text}"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "x",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "trend",
+      "id": 3,
+      "title": "Relative to each backend's smallest value",
+      "description": "Each backend divided by its own smallest median, so constant start-up cost (JVM, cargo) drops out and only the growth is compared.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, ${metric:raw} AS y FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'Silicon', test, ${metric:raw} FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'rustc', test, ${metric:raw} FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring} AND status IN (${status:sqlstring})\n),\npts AS (\n  SELECT backend, k[${knob:raw}]::float8 AS x, percentile_cont(0.5) WITHIN GROUP (ORDER BY y) AS y\n  FROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\n  WHERE y IS NOT NULL AND (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\n  GROUP BY 1, 2\n),\nrel AS (SELECT backend, x, y / nullif(min(y) OVER (PARTITION BY backend), 0) AS y FROM pts)\nSELECT x,\n  max(y) FILTER (WHERE backend = 'Helium') AS \"Helium\",\n  max(y) FILTER (WHERE backend = 'Silicon') AS \"Silicon\",\n  max(y) FILTER (WHERE backend = 'rustc') AS \"rustc\"\nFROM rel GROUP BY x ORDER BY x"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 12,
+        "h": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "showPoints": "always",
+            "pointSize": 6,
+            "spanNulls": true,
+            "fillOpacity": 0,
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "lineInterpolation": "linear",
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "rustc"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "x"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "${knob:text}"
+              },
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "${knob:text}"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "x",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "table",
+      "id": 4,
+      "title": "Best-fitting growth curve",
+      "description": "Least-squares fits of the absolute medians, each with a free offset a (start-up time): linear a + b·x, polynomial a + b·x^k (k searched in 0.1..6), exponential a + b·e^(r·(x − x0)). Ranked by adjusted R² (curved models have one parameter more); linear wins ties within 0.01, a polynomial with k in 0.85..1.15 counts as linear, and less than 10% growth is flat. Polynomial vs. exponential needs at least 4 points (3 points that are not on a line: unclear); with few points treat the verdict as a hint.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, ${metric:raw} AS y FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'Silicon', test, ${metric:raw} FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'rustc', test, ${metric:raw} FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring} AND status IN (${status:sqlstring})\n),\npts AS (\n  SELECT backend, k[${knob:raw}]::float8 AS x, percentile_cont(0.5) WITHIN GROUP (ORDER BY y) AS y\n  FROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\n  WHERE y IS NOT NULL AND (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\n  GROUP BY 1, 2\n),\nst AS (\n  SELECT backend, count(*) AS n, min(x) AS x0, max(x) AS x1, min(y) AS ymin, max(y) AS ymax,\n         regr_intercept(y, x) AS la, regr_slope(y, x) AS lb, regr_syy(y, x) AS sst\n  FROM pts GROUP BY 1\n),\npoly AS (\n  SELECT DISTINCT ON (backend) backend, k, a, b, sse FROM (\n    SELECT g.backend, g.k, g.a, g.b, sum((p.y - g.a - g.b * power(p.x, g.k)) ^ 2) AS sse\n    FROM (SELECT backend, k, regr_intercept(y, power(x, k)) AS a, regr_slope(y, power(x, k)) AS b\n          FROM pts, generate_series(0.10, 6.00, 0.02) AS k GROUP BY 1, 2) g\n    JOIN pts p USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nexpo AS (\n  SELECT DISTINCT ON (backend) backend, r, a, b, sse FROM (\n    SELECT g.backend, g.r, g.a, g.b, sum((p.y - g.a - g.b * exp(g.r * (p.x - st.x0))) ^ 2) AS sse\n    FROM (SELECT backend, r, regr_intercept(y, exp(r * (x - x0))) AS a, regr_slope(y, exp(r * (x - x0))) AS b\n          FROM (SELECT pts.*, st.x0, exp(ln(0.05) + i * ln(40 / 0.05) / 199) / (st.x1 - st.x0) AS r\n                FROM pts JOIN st USING (backend), generate_series(0, 199) AS i WHERE st.x1 > st.x0) q\n          GROUP BY 1, 2) g\n    JOIN pts p USING (backend) JOIN st USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nfit AS (\n  SELECT st.*, poly.k, poly.a AS pa, poly.b AS pb, expo.r, expo.a AS ea, expo.b AS eb,\n         1 - (sum((p.y - st.la - st.lb * p.x) ^ 2) / nullif(st.n - 2, 0)) / nullif(st.sst / (st.n - 1), 0) AS lin_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (poly.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS poly_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (expo.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS exp_r2\n  FROM st JOIN pts p USING (backend) LEFT JOIN poly USING (backend) LEFT JOIN expo USING (backend)\n  GROUP BY st.backend, st.n, st.x0, st.x1, st.ymin, st.ymax, st.la, st.lb, st.sst,\n           poly.k, poly.a, poly.b, expo.r, expo.a, expo.b, poly.sse, expo.sse\n),\nbest AS (\n  SELECT fit.*, CASE\n    WHEN n < 3 THEN 'too few points'\n    WHEN ymax < 1.1 * ymin THEN 'flat'\n    WHEN n = 3 AND lin_r2 < 0.99 THEN 'unclear'\n    WHEN coalesce(lin_r2, 1) >= greatest(coalesce(poly_r2, -1e9), coalesce(exp_r2, -1e9)) - 0.01 THEN 'linear'\n    WHEN coalesce(poly_r2, -1e9) >= coalesce(exp_r2, -1e9) THEN\n      CASE WHEN k BETWEEN 0.85 AND 1.15 THEN 'linear' WHEN k < 1 THEN 'sublinear' ELSE 'polynomial' END\n    ELSE 'exponential' END AS model\n  FROM fit\n)\nSELECT backend AS \"Backend\", model AS \"Best fit\",\n  CASE model\n    WHEN 'exponential' THEN 'a + b·e^(r·(x − ' || x0 || '))'\n    WHEN 'polynomial' THEN 'a + b·x^k' WHEN 'sublinear' THEN 'a + b·x^k'\n    WHEN 'too few points' THEN NULL WHEN 'unclear' THEN NULL ELSE 'a + b·x' END AS \"Model\",\n  CASE model WHEN 'exponential' THEN ea WHEN 'polynomial' THEN pa WHEN 'sublinear' THEN pa ELSE la END AS \"a (offset)\",\n  CASE model WHEN 'exponential' THEN eb WHEN 'polynomial' THEN pb WHEN 'sublinear' THEN pb ELSE lb END AS \"b\",\n  CASE model\n    WHEN 'exponential' THEN '×' || round(exp(r)::numeric, 3) || ' per +1 (doubles every ' || round((ln(2) / r)::numeric, 2) || ')'\n    WHEN 'polynomial' THEN 'k = ' || round(k::numeric, 2) WHEN 'sublinear' THEN 'k = ' || round(k::numeric, 2) END AS \"Growth\",\n  lin_r2 AS \"adj. R² linear\", poly_r2 AS \"adj. R² polynomial\", k AS \"best k\", exp_r2 AS \"adj. R² exponential\",\n  n AS \"Points\", ymax / nullif(ymin, 0) AS \"max / min\"\nFROM best ORDER BY array_position(ARRAY['Helium', 'Silicon', 'rustc'], backend)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "decimals": 4
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Best fit"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "flat": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "sublinear": {
+                        "color": "#73bf69",
+                        "index": 1
+                      },
+                      "linear": {
+                        "color": "#73bf69",
+                        "index": 2
+                      },
+                      "polynomial": {
+                        "color": "#e0b400",
+                        "index": 3
+                      },
+                      "exponential": {
+                        "color": "#f2495c",
+                        "index": 4
+                      },
+                      "too few points": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      },
+                      "unclear": {
+                        "color": "#8e8e8e",
+                        "index": 6
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Backend"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Helium": {
+                        "color": "#2bb3a3",
+                        "index": 0
+                      },
+                      "Silicon": {
+                        "color": "#8e8ae8",
+                        "index": 1
+                      },
+                      "rustc": {
+                        "color": "#e0743f",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "adj. R² linear"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 4
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "adj. R² polynomial"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 4
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "adj. R² exponential"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 4
+              },
+              {
+                "id": "custom.width",
+                "value": 120
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Growth"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Model"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "best k"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Points"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "max / min"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 5,
+      "title": "Log scale",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "type": "trend",
+          "id": 6,
+          "title": "Absolute (log-log)",
+          "description": "Median ${metric:text} per knob value, all three backends on one axis. Dashed: the best fit from the fit table (click a legend entry to isolate a series). Straight line: polynomial, slope = k.",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "helium-postgres"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, ${metric:raw} AS y FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'Silicon', test, ${metric:raw} FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'rustc', test, ${metric:raw} FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring} AND status IN (${status:sqlstring})\n),\npts AS (\n  SELECT backend, k[${knob:raw}]::float8 AS x, percentile_cont(0.5) WITHIN GROUP (ORDER BY y) AS y\n  FROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\n  WHERE y IS NOT NULL AND (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\n  GROUP BY 1, 2\n),\nst AS (\n  SELECT backend, count(*) AS n, min(x) AS x0, max(x) AS x1, min(y) AS ymin, max(y) AS ymax,\n         regr_intercept(y, x) AS la, regr_slope(y, x) AS lb, regr_syy(y, x) AS sst\n  FROM pts GROUP BY 1\n),\npoly AS (\n  SELECT DISTINCT ON (backend) backend, k, a, b, sse FROM (\n    SELECT g.backend, g.k, g.a, g.b, sum((p.y - g.a - g.b * power(p.x, g.k)) ^ 2) AS sse\n    FROM (SELECT backend, k, regr_intercept(y, power(x, k)) AS a, regr_slope(y, power(x, k)) AS b\n          FROM pts, generate_series(0.10, 6.00, 0.02) AS k GROUP BY 1, 2) g\n    JOIN pts p USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nexpo AS (\n  SELECT DISTINCT ON (backend) backend, r, a, b, sse FROM (\n    SELECT g.backend, g.r, g.a, g.b, sum((p.y - g.a - g.b * exp(g.r * (p.x - st.x0))) ^ 2) AS sse\n    FROM (SELECT backend, r, regr_intercept(y, exp(r * (x - x0))) AS a, regr_slope(y, exp(r * (x - x0))) AS b\n          FROM (SELECT pts.*, st.x0, exp(ln(0.05) + i * ln(40 / 0.05) / 199) / (st.x1 - st.x0) AS r\n                FROM pts JOIN st USING (backend), generate_series(0, 199) AS i WHERE st.x1 > st.x0) q\n          GROUP BY 1, 2) g\n    JOIN pts p USING (backend) JOIN st USING (backend) WHERE g.b > 0 AND g.a >= 0 GROUP BY 1, 2, 3, 4) c\n  ORDER BY backend, sse\n),\nfit AS (\n  SELECT st.*, poly.k, poly.a AS pa, poly.b AS pb, expo.r, expo.a AS ea, expo.b AS eb,\n         1 - (sum((p.y - st.la - st.lb * p.x) ^ 2) / nullif(st.n - 2, 0)) / nullif(st.sst / (st.n - 1), 0) AS lin_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (poly.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS poly_r2,\n         CASE WHEN st.n >= 4 THEN 1 - (expo.sse / (st.n - 3)) / nullif(st.sst / (st.n - 1), 0) END AS exp_r2\n  FROM st JOIN pts p USING (backend) LEFT JOIN poly USING (backend) LEFT JOIN expo USING (backend)\n  GROUP BY st.backend, st.n, st.x0, st.x1, st.ymin, st.ymax, st.la, st.lb, st.sst,\n           poly.k, poly.a, poly.b, expo.r, expo.a, expo.b, poly.sse, expo.sse\n),\nbest AS (\n  SELECT fit.*, CASE\n    WHEN n < 3 THEN 'too few points'\n    WHEN ymax < 1.1 * ymin THEN 'flat'\n    WHEN n = 3 AND lin_r2 < 0.99 THEN 'unclear'\n    WHEN coalesce(lin_r2, 1) >= greatest(coalesce(poly_r2, -1e9), coalesce(exp_r2, -1e9)) - 0.01 THEN 'linear'\n    WHEN coalesce(poly_r2, -1e9) >= coalesce(exp_r2, -1e9) THEN\n      CASE WHEN k BETWEEN 0.85 AND 1.15 THEN 'linear' WHEN k < 1 THEN 'sublinear' ELSE 'polynomial' END\n    ELSE 'exponential' END AS model\n  FROM fit\n),\ngrid AS (\n  SELECT backend, x0 + (x1 - x0) * i / 60.0 AS x FROM best, generate_series(0, 60) AS i WHERE x1 > x0\n  UNION SELECT backend, x FROM pts\n),\ncurve AS (\n  SELECT g.backend, g.x, CASE\n    WHEN b.model IN ('polynomial', 'sublinear') THEN b.pa + b.pb * power(g.x, b.k)\n    WHEN b.model = 'exponential' THEN b.ea + b.eb * exp(b.r * (g.x - b.x0))\n    WHEN b.model IN ('linear', 'flat') THEN b.la + b.lb * g.x END AS f\n  FROM grid g JOIN best b USING (backend)\n),\nboth_ AS (\n  SELECT c.backend, c.x, p.y, c.f FROM curve c LEFT JOIN pts p USING (backend, x)\n)\nSELECT x,\n  max(y) FILTER (WHERE backend = 'Helium') AS \"Helium\",\n  max(y) FILTER (WHERE backend = 'Silicon') AS \"Silicon\",\n  max(y) FILTER (WHERE backend = 'rustc') AS \"rustc\",\n  max(f) FILTER (WHERE backend = 'Helium') AS \"Helium fit\",\n  max(f) FILTER (WHERE backend = 'Silicon') AS \"Silicon fit\",\n  max(f) FILTER (WHERE backend = 'rustc') AS \"rustc fit\"\nFROM both_ GROUP BY x ORDER BY x"
+            }
+          ],
+          "gridPos": {
+            "x": 0,
+            "y": 19,
+            "w": 12,
+            "h": 11
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "showPoints": "always",
+                "pointSize": 6,
+                "spanNulls": true,
+                "fillOpacity": 0,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "lineInterpolation": "linear",
+                "scaleDistribution": {
+                  "type": "log",
+                  "log": 10
+                }
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Helium"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#2bb3a3"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Helium fit"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#2bb3a3"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        6,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.lineWidth",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.showPoints",
+                    "value": "never"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Silicon"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#8e8ae8"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Silicon fit"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#8e8ae8"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        6,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.lineWidth",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.showPoints",
+                    "value": "never"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "rustc"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#e0743f"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "rustc fit"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#e0743f"
+                    }
+                  },
+                  {
+                    "id": "custom.lineStyle",
+                    "value": {
+                      "fill": "dash",
+                      "dash": [
+                        6,
+                        4
+                      ]
+                    }
+                  },
+                  {
+                    "id": "custom.lineWidth",
+                    "value": 1
+                  },
+                  {
+                    "id": "custom.showPoints",
+                    "value": "never"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "x"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "${knob:text}"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "none"
+                  },
+                  {
+                    "id": "custom.axisLabel",
+                    "value": "${knob:text}"
+                  },
+                  {
+                    "id": "custom.scaleDistribution",
+                    "value": {
+                      "type": "log",
+                      "log": 2
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "xField": "x",
+            "legend": {
+              "showLegend": true,
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        },
+        {
+          "type": "trend",
+          "id": 7,
+          "title": "Relative (log-log)",
+          "description": "Each backend divided by its own smallest median, so constant start-up cost (JVM, cargo) drops out and only the growth is compared.",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "helium-postgres"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, ${metric:raw} AS y FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'Silicon', test, ${metric:raw} FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring} AND status IN (${status:sqlstring})\n  UNION ALL\n  SELECT 'rustc', test, ${metric:raw} FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring} AND status IN (${status:sqlstring})\n),\npts AS (\n  SELECT backend, k[${knob:raw}]::float8 AS x, percentile_cont(0.5) WITHIN GROUP (ORDER BY y) AS y\n  FROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\n  WHERE y IS NOT NULL AND (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\n  GROUP BY 1, 2\n),\nrel AS (SELECT backend, x, y / nullif(min(y) OVER (PARTITION BY backend), 0) AS y FROM pts)\nSELECT x,\n  max(y) FILTER (WHERE backend = 'Helium') AS \"Helium\",\n  max(y) FILTER (WHERE backend = 'Silicon') AS \"Silicon\",\n  max(y) FILTER (WHERE backend = 'rustc') AS \"rustc\"\nFROM rel GROUP BY x ORDER BY x"
+            }
+          ],
+          "gridPos": {
+            "x": 12,
+            "y": 19,
+            "w": 12,
+            "h": 11
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "suffix:×",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "showPoints": "always",
+                "pointSize": 6,
+                "spanNulls": true,
+                "fillOpacity": 0,
+                "axisPlacement": "auto",
+                "axisLabel": "",
+                "lineInterpolation": "linear",
+                "scaleDistribution": {
+                  "type": "log",
+                  "log": 10
+                }
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Helium"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#2bb3a3"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Silicon"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#8e8ae8"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "rustc"
+                },
+                "properties": [
+                  {
+                    "id": "color",
+                    "value": {
+                      "mode": "fixed",
+                      "fixedColor": "#e0743f"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "x"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "${knob:text}"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "none"
+                  },
+                  {
+                    "id": "custom.axisLabel",
+                    "value": "${knob:text}"
+                  },
+                  {
+                    "id": "custom.scaleDistribution",
+                    "value": {
+                      "type": "log",
+                      "log": 2
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "xField": "x",
+            "legend": {
+              "showLegend": true,
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 8,
+      "title": "Runs",
+      "collapsed": true,
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "type": "table",
+          "id": 9,
+          "title": "Runs per status",
+          "description": "All timed iterations of the selected versions, by status. Points missing from the graphs usually timed out or crashed.",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "grafana-postgresql-datasource",
+                "uid": "helium-postgres"
+              },
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "WITH runs AS (\n  SELECT 'Helium' AS backend, test, status FROM helium_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${helium_version:sqlstring}\n  UNION ALL\n  SELECT 'Silicon', test, status FROM silicon_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${silicon_version:sqlstring}\n  UNION ALL\n  SELECT 'rustc', test, status FROM rustc_runs\n  WHERE suite = 'scaling' AND family = ${family:sqlstring} AND backend_version = ${rustc_version:sqlstring}\n)\nSELECT backend AS \"Backend\", k[${knob:raw}] AS \"${knob:text}\", min(test) AS \"Test\",\n  count(*) FILTER (WHERE status = 'VERIFIED') AS \"VERIFIED\",\n  count(*) FILTER (WHERE status = 'FAILED') AS \"FAILED\",\n  count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS \"INCONCLUSIVE\",\n  count(*) FILTER (WHERE status = 'CRASHED') AS \"CRASHED\",\n  count(*) FILTER (WHERE status = 'TIMED_OUT') AS \"TIMED_OUT\",\n  count(*) FILTER (WHERE status = 'SKIPPED') AS \"SKIPPED\"\nFROM (SELECT runs.*, array(SELECT m[1]::int FROM regexp_matches(test, '(\\d+)', 'g') WITH ORDINALITY AS r(m, o) ORDER BY o) AS k FROM runs) q\nWHERE (k[:${knob:raw} - 1] || k[${knob:raw} + 1:])::text = ${fixed:sqlstring}\nGROUP BY 1, 2 ORDER BY array_position(ARRAY['Helium', 'Silicon', 'rustc'], backend), 2"
+            }
+          ],
+          "gridPos": {
+            "x": 0,
+            "y": 20,
+            "w": 24,
+            "h": 10
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

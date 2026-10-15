@@ -12,6 +12,7 @@ Benchmark suites (`suites`) for multiple backends, plus a local Postgres + Grafa
   - `runner/src/file_analyzer/` – static metrics of `.rs` and `.vpr` files.
   - `runner/src/metrics.rs` – stores those metrics in the database.
 - `grafana/` – Grafana provisioning (Postgres data source) and dashboards (`grafana/dashboards/*.json`).
+  - `scaling.json` – Helium, Silicon and rustc on one scaling family over one knob (absolute, relative to each backend's smallest value, and the best-fitting linear / polynomial / exponential curve). Knob values are the numbers in the test name; their names live in the hidden `knobmap` variable, copied from the scaling families' `knobs` in `runner/suite.example.json`, so update it when a family is added.
 
 ## Quick start
 
@@ -29,6 +30,14 @@ docker compose down -v && docker compose up -d
 cd runner
 sea-orm-cli generate entity -u postgres://helium:helium@localhost:5432/helium_bench -o src/db/entities --with-copy-enums
 ```
+
+To keep existing results, change an existing database with a script in `db/migrations/` instead (each also updates `db/schema.sql`, so a fresh database ends up the same). The scripts are idempotent; apply them in order:
+
+```bash
+docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U helium -d helium_bench < db/migrations/001_viper_statement_kinds.sql
+```
+
+A migration that adds `viper_metrics` / `rust_metrics` columns needs no backfill: the runner re-measures every file whose row has a NULL column on its next pass.
 
 The CLI's major version must match the `sea-orm` dependency (`cargo install sea-orm-cli@2.0.4`). Generation overwrites only `src/db/entities/`; the rest of the `db` module is hand-written and re-exports the entities, so both `db::rustc_runs` and `db::entities::rustc_runs` work.
 
