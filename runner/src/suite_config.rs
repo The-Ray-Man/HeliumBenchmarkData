@@ -67,7 +67,7 @@ pub struct WarmConfig {
 }
 
 fn default_activated() -> bool {
-    true
+    false
 }
 
 fn default_java() -> PathBuf {
