@@ -18,8 +18,7 @@ pub struct Model {
     pub family: Option<String>,
     #[sea_orm(unique_key = "rustc_runs_run_id_suite_family_test_iteration_key")]
     pub test: String,
-    pub vpr_sha256: String,
-    pub rs_sha256: Option<String>,
+    pub rs_sha256: String,
     pub backend_version: Option<String>,
     #[sea_orm(unique_key = "rustc_runs_run_id_suite_family_test_iteration_key")]
     pub iteration: i32,
@@ -40,6 +39,21 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::rust_metrics::Entity",
+        from = "Column::RsSha256",
+        to = "super::rust_metrics::Column::RsSha256",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    RustMetrics,
+}
+
+impl Related<super::rust_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::RustMetrics.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

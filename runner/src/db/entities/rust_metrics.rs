@@ -7,7 +7,7 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub rs_sha256: String,
-    #[sea_orm(primary_key, auto_increment = false)]
+    pub vpr_sha256: Option<String>,
     pub measured_at: DateTimeWithTimeZone,
     pub metrics_commit: Option<String>,
     pub loc: Option<i32>,
@@ -62,6 +62,37 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::helium_runs::Entity")]
+    HeliumRuns,
+    #[sea_orm(has_many = "super::rustc_runs::Entity")]
+    RustcRuns,
+    #[sea_orm(
+        belongs_to = "super::viper_metrics::Entity",
+        from = "Column::VprSha256",
+        to = "super::viper_metrics::Column::VprSha256",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    ViperMetrics,
+}
+
+impl Related<super::helium_runs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::HeliumRuns.def()
+    }
+}
+
+impl Related<super::rustc_runs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::RustcRuns.def()
+    }
+}
+
+impl Related<super::viper_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ViperMetrics.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

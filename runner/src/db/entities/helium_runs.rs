@@ -103,6 +103,35 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::rust_metrics::Entity",
+        from = "Column::RsSha256",
+        to = "super::rust_metrics::Column::RsSha256",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    RustMetrics,
+    #[sea_orm(
+        belongs_to = "super::viper_metrics::Entity",
+        from = "Column::VprSha256",
+        to = "super::viper_metrics::Column::VprSha256",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    ViperMetrics,
+}
+
+impl Related<super::rust_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::RustMetrics.def()
+    }
+}
+
+impl Related<super::viper_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ViperMetrics.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

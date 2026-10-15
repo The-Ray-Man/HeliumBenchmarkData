@@ -18,8 +18,8 @@ pub use entities::*;
 mod tests {
     use sea_orm::{ActiveModelTrait, ActiveValue::Set, EntityTrait, TransactionTrait};
 
-    use super::rustc_runs;
     use super::sea_orm_active_enums::RunStatus;
+    use super::{rust_metrics, rustc_runs};
 
     #[tokio::test]
     #[ignore = "needs a running database"]
@@ -27,12 +27,23 @@ mod tests {
         let db = super::connection::connect().await?;
         let txn = db.begin().await?;
 
+        // rustc_runs.rs_sha256 references rust_metrics.
+        let rs_sha256 = "ab".repeat(32);
+        rust_metrics::ActiveModel {
+            rs_sha256: Set(rs_sha256.clone()),
+            measured_at: Set(chrono::Utc::now().fixed_offset()),
+            loc: Set(Some(3)),
+            ..Default::default()
+        }
+        .insert(&txn)
+        .await?;
+
         let row = rustc_runs::ActiveModel {
             run_id: Set("test_run".into()),
             started_at: Set(chrono::Utc::now().fixed_offset()),
             suite: Set("crates100".into()),
             test: Set("cfg-if".into()),
-            vpr_sha256: Set("ab".repeat(32)),
+            rs_sha256: Set(rs_sha256),
             iteration: Set(0),
             status: Set(RunStatus::TimedOut),
             wall_s: Set(Some(1.25)),

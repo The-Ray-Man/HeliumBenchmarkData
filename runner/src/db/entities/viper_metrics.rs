@@ -7,7 +7,6 @@ use sea_orm::entity::prelude::*;
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub vpr_sha256: String,
-    #[sea_orm(primary_key, auto_increment = false)]
     pub measured_at: DateTimeWithTimeZone,
     pub metrics_commit: Option<String>,
     pub loc: Option<i32>,
@@ -44,6 +43,31 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(has_many = "super::helium_runs::Entity")]
+    HeliumRuns,
+    #[sea_orm(has_many = "super::rust_metrics::Entity")]
+    RustMetrics,
+    #[sea_orm(has_many = "super::silicon_runs::Entity")]
+    SiliconRuns,
+}
+
+impl Related<super::helium_runs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::HeliumRuns.def()
+    }
+}
+
+impl Related<super::rust_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::RustMetrics.def()
+    }
+}
+
+impl Related<super::silicon_runs::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SiliconRuns.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}

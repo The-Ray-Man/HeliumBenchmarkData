@@ -20,23 +20,72 @@ CREATE TYPE run_status AS ENUM
     ('VERIFIED', 'FAILED', 'INCONCLUSIVE', 'CRASHED', 'TIMED_OUT', 'SKIPPED');
 
 
--- File metrics: one table per language, one row per measured file content,
--- keyed by that file's sha256. Content keys mean a file that moves between
+-- File metrics: one table per language, one row per file content, keyed by
+-- that file's sha256. Content keys mean a file that moves between
 -- suites/families keeps its metrics, and Rust and Viper metrics stay correct
 -- when different .rs files encode to the same .vpr (e.g. the windows_* shim
--- crates and cfg-if all yield just the preamble). Join from the run tables:
+-- crates and cfg-if all yield just the preamble). A file is measured once;
+-- `measured_at` / `metrics_commit` record when and by which harness. Join from
+-- the run tables:
 --
 --   ... JOIN rust_metrics  USING (rs_sha256)
 --   ... JOIN viper_metrics USING (vpr_sha256)
 --
--- Files are re-measured in every run; `measured_at` / `metrics_commit` tell
--- measurements by a changed metrics extractor apart (the *_metrics_latest
--- views below keep the latest one per hash). Derived values such as the
--- Viper/Rust size ratio (viper_metrics.loc / rust_metrics.loc) are left to
--- queries.
+-- A .rs file points to the .vpr Prusti encoded it to (rust_metrics.vpr_sha256),
+-- so viper_metrics must hold that file first. Several .rs files can share one
+-- .vpr, so the link is stored on the Rust side only; from a Viper file:
+--
+--   viper_metrics v JOIN rust_metrics r USING (vpr_sha256)
+--
+-- Derived values such as the Viper/Rust size ratio
+-- (viper_metrics.loc / rust_metrics.loc) are left to queries.
+
+CREATE TABLE viper_metrics (
+    vpr_sha256              VARCHAR     NOT NULL,  -- sha256 of the .vpr file; its .rs files: rust_metrics.vpr_sha256
+    measured_at             TIMESTAMPTZ NOT NULL,
+    metrics_commit          VARCHAR,
+
+    -- whole file
+    loc                     INTEGER,               -- lines of code (`lines` counts every line)
+    lines                   INTEGER,
+    bytes                   BIGINT,
+    methods                 INTEGER,
+    functions               INTEGER,
+    predicates              INTEGER,
+    domains                 INTEGER,
+    domain_functions        INTEGER,
+    axioms                  INTEGER,
+    fields                  INTEGER,
+    adts                    INTEGER,
+
+    -- summed over all members
+    stmts                   INTEGER,
+    exps                    INTEGER,
+    folds                   INTEGER,
+    unfolds                 INTEGER,
+    heap_update_exps        INTEGER,
+    inhales                 INTEGER,
+    exhales                 INTEGER,
+    asserts                 INTEGER,
+    assumes                 INTEGER,
+    accs                    INTEGER,
+    quantifiers             INTEGER,
+    labels                  INTEGER,
+    gotos                   INTEGER,
+    ifs                     INTEGER,
+    whiles                  INTEGER,
+    assigns                 INTEGER,
+    method_calls            INTEGER,
+    function_apps           INTEGER,
+    old_exps                INTEGER,
+    contract_clauses        INTEGER,
+
+    PRIMARY KEY (vpr_sha256)
+);
 
 CREATE TABLE rust_metrics (
     rs_sha256               VARCHAR     NOT NULL,  -- sha256 of the .rs file
+    vpr_sha256              VARCHAR     REFERENCES viper_metrics,  -- its Prusti encoding; NULL if none
     measured_at             TIMESTAMPTZ NOT NULL,  -- when these metrics were computed
     metrics_commit          VARCHAR,               -- harness commit that computed them
 
@@ -94,50 +143,7 @@ CREATE TABLE rust_metrics (
     max_write_path          INTEGER,
     max_struct_depth        INTEGER,
 
-    PRIMARY KEY (rs_sha256, measured_at)
-);
-
-CREATE TABLE viper_metrics (
-    vpr_sha256              VARCHAR     NOT NULL,  -- sha256 of the .vpr file
-    measured_at             TIMESTAMPTZ NOT NULL,
-    metrics_commit          VARCHAR,
-
-    -- whole file
-    loc                     INTEGER,               -- lines of code (`lines` counts every line)
-    lines                   INTEGER,
-    bytes                   BIGINT,
-    methods                 INTEGER,
-    functions               INTEGER,
-    predicates              INTEGER,
-    domains                 INTEGER,
-    domain_functions        INTEGER,
-    axioms                  INTEGER,
-    fields                  INTEGER,
-    adts                    INTEGER,
-
-    -- summed over all members
-    stmts                   INTEGER,
-    exps                    INTEGER,
-    folds                   INTEGER,
-    unfolds                 INTEGER,
-    heap_update_exps        INTEGER,
-    inhales                 INTEGER,
-    exhales                 INTEGER,
-    asserts                 INTEGER,
-    assumes                 INTEGER,
-    accs                    INTEGER,
-    quantifiers             INTEGER,
-    labels                  INTEGER,
-    gotos                   INTEGER,
-    ifs                     INTEGER,
-    whiles                  INTEGER,
-    assigns                 INTEGER,
-    method_calls            INTEGER,
-    function_apps           INTEGER,
-    old_exps                INTEGER,
-    contract_clauses        INTEGER,
-
-    PRIMARY KEY (vpr_sha256, measured_at)
+    PRIMARY KEY (rs_sha256)
 );
 
 
@@ -145,7 +151,10 @@ CREATE TABLE viper_metrics (
 -- file. Every timed iteration is its own row (warm-up iterations are not
 -- recorded); a backend that was not run gets a single SKIPPED row.
 --
--- All three tables start with the same common columns, in the same order:
+-- All three tables start with the same common columns, in the same order.
+-- After `test` come the hashes of the files the backend ran on, each a key
+-- into its metrics table: helium_runs has vpr_sha256 and rs_sha256 (NULL for
+-- Viper-only files), silicon_runs vpr_sha256, rustc_runs rs_sha256.
 --
 --   run_id          VARCHAR          benchmark run, e.g. 2026-10-06_bd5a136f97a5
 --   started_at      TIMESTAMPTZ      when the benchmark run started
@@ -153,8 +162,6 @@ CREATE TABLE viper_metrics (
 --   suite           VARCHAR          location of the file as of this run
 --   family          VARCHAR          (NULL for suites without a family level)
 --   test            VARCHAR          path below the family dir, no extension (e.g. acyclic/dll)
---   vpr_sha256      VARCHAR          join viper_metrics USING (vpr_sha256)
---   rs_sha256       VARCHAR          join rust_metrics USING (rs_sha256); NULL for Viper-only files
 --   backend_version VARCHAR          Helium: commit under test; Silicon/rustc: version string
 --   iteration       INTEGER          0-based timed iteration
 --   status          run_status       outcome, see the enum above
@@ -180,8 +187,8 @@ CREATE TABLE helium_runs (
     suite               VARCHAR       NOT NULL,
     family              VARCHAR,
     test                VARCHAR       NOT NULL,
-    vpr_sha256          VARCHAR       NOT NULL,
-    rs_sha256           VARCHAR,
+    vpr_sha256          VARCHAR       NOT NULL REFERENCES viper_metrics,
+    rs_sha256           VARCHAR       REFERENCES rust_metrics,
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
@@ -261,8 +268,7 @@ CREATE TABLE silicon_runs (
     suite               VARCHAR       NOT NULL,
     family              VARCHAR,
     test                VARCHAR       NOT NULL,
-    vpr_sha256          VARCHAR       NOT NULL,
-    rs_sha256           VARCHAR,
+    vpr_sha256          VARCHAR       NOT NULL REFERENCES viper_metrics,
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
@@ -289,8 +295,7 @@ CREATE TABLE rustc_runs (
     suite               VARCHAR       NOT NULL,
     family              VARCHAR,
     test                VARCHAR       NOT NULL,
-    vpr_sha256          VARCHAR       NOT NULL,
-    rs_sha256           VARCHAR,
+    rs_sha256           VARCHAR       NOT NULL REFERENCES rust_metrics,
     backend_version     VARCHAR,
     iteration           INTEGER       NOT NULL,
     status              run_status    NOT NULL,
@@ -305,12 +310,3 @@ CREATE TABLE rustc_runs (
 
     UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );
-
-
--- Latest measurement per file (the tables keep every measurement).
-CREATE VIEW rust_metrics_latest AS
-    SELECT DISTINCT ON (rs_sha256) * FROM rust_metrics
-    ORDER BY rs_sha256, measured_at DESC;
-CREATE VIEW viper_metrics_latest AS
-    SELECT DISTINCT ON (vpr_sha256) * FROM viper_metrics
-    ORDER BY vpr_sha256, measured_at DESC;

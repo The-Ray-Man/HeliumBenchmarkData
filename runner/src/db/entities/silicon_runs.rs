@@ -19,7 +19,6 @@ pub struct Model {
     #[sea_orm(unique_key = "silicon_runs_run_id_suite_family_test_iteration_key")]
     pub test: String,
     pub vpr_sha256: String,
-    pub rs_sha256: Option<String>,
     pub backend_version: Option<String>,
     #[sea_orm(unique_key = "silicon_runs_run_id_suite_family_test_iteration_key")]
     pub iteration: i32,
@@ -43,6 +42,21 @@ pub struct Model {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::viper_metrics::Entity",
+        from = "Column::VprSha256",
+        to = "super::viper_metrics::Column::VprSha256",
+        on_update = "NoAction",
+        on_delete = "NoAction"
+    )]
+    ViperMetrics,
+}
+
+impl Related<super::viper_metrics::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ViperMetrics.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
