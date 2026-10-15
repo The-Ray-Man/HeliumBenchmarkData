@@ -16,9 +16,13 @@ mod walk;
 
 use std::collections::HashSet;
 
+use sea_orm::ActiveValue::Set;
+
 use self::ast::*;
 use self::walk::{AstWalkable, AstWalker};
+use super::db_int;
 use super::text::TextMetrics;
+use crate::db::viper_metrics;
 
 pub use peg::error::ParseError;
 pub use peg::str::LineCol;
@@ -36,6 +40,49 @@ pub struct ViperMetrics {
     pub adts: u64,
     /// Node counts summed over the whole program.
     pub counts: Counts,
+}
+
+/// The metric columns of a `viper_metrics` row. The rest is left unset for the
+/// caller: the key `vpr_sha256`, `measured_at` and `metrics_commit`.
+impl From<ViperMetrics> for viper_metrics::ActiveModel {
+    fn from(m: ViperMetrics) -> Self {
+        let int = |n: u64| Set(Some(db_int(n)));
+        let c = &m.counts;
+        viper_metrics::ActiveModel {
+            loc: int(m.text.loc),
+            lines: int(m.text.lines),
+            bytes: Set(Some(i64::try_from(m.text.bytes).unwrap_or(i64::MAX))),
+            methods: int(m.methods),
+            functions: int(m.functions),
+            predicates: int(m.predicates),
+            domains: int(m.domains),
+            domain_functions: int(m.domain_functions),
+            axioms: int(m.axioms),
+            fields: int(m.fields),
+            adts: int(m.adts),
+            stmts: int(c.stmts),
+            exps: int(c.exps),
+            folds: int(c.folds),
+            unfolds: int(c.unfolds),
+            heap_update_exps: int(c.heap_update_exps),
+            inhales: int(c.inhales),
+            exhales: int(c.exhales),
+            asserts: int(c.asserts),
+            assumes: int(c.assumes),
+            accs: int(c.accs),
+            quantifiers: int(c.quantifiers),
+            labels: int(c.labels),
+            gotos: int(c.gotos),
+            ifs: int(c.ifs),
+            whiles: int(c.whiles),
+            assigns: int(c.assigns),
+            method_calls: int(c.method_calls),
+            function_apps: int(c.function_apps),
+            old_exps: int(c.old_exps),
+            contract_clauses: int(c.contract_clauses),
+            ..Default::default()
+        }
+    }
 }
 
 /// Node counts over the whole program.

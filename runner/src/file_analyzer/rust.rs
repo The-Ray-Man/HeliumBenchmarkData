@@ -16,9 +16,12 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use proc_macro2::Span;
 use syn::spanned::Spanned;
 use syn::visit::{self, Visit};
+use sea_orm::ActiveValue::Set;
 use syn::{BinOp, Expr, Fields, Item, Pat, Stmt, Type, UnOp};
 
+use super::db_int;
 use super::text::{TextMetrics, count_loc};
+use crate::db::rust_metrics;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct RustMetrics {
@@ -32,6 +35,67 @@ pub struct RustMetrics {
     /// the `max_*` fields); `None` if it has none. Functions nested in another
     /// function's body are measured as part of that function.
     pub functions: Option<FnMetrics>,
+}
+
+/// The metric columns of a `rust_metrics` row. The rest is left unset for the
+/// caller: the key `rs_sha256`, `vpr_sha256`, `measured_at` and
+/// `metrics_commit`. Without functions, the per-function columns are NULL.
+impl From<RustMetrics> for rust_metrics::ActiveModel {
+    fn from(m: RustMetrics) -> Self {
+        let f = m.functions.as_ref();
+        let per_fn = |get: fn(&FnMetrics) -> u64| Set(f.map(|f| db_int(get(f))));
+        rust_metrics::ActiveModel {
+            loc: Set(Some(db_int(m.text.loc))),
+            fns: Set(Some(db_int(m.fns))),
+            structs: Set(Some(db_int(m.structs))),
+            enums: Set(Some(db_int(m.enums))),
+            fn_loc: per_fn(|f| f.loc),
+            paths: Set(f.map(|f| f.paths)),
+            stmts: per_fn(|f| f.stmts),
+            exprs: per_fn(|f| f.exprs),
+            loops: per_fn(|f| f.loops),
+            ifs: per_fn(|f| f.ifs),
+            early_returns: per_fn(|f| f.early_returns),
+            matches: per_fn(|f| f.matches),
+            match_arms: per_fn(|f| f.match_arms),
+            args: per_fn(|f| f.args),
+            args_by_value: per_fn(|f| f.args_by_value),
+            args_by_ref: per_fn(|f| f.args_by_ref),
+            args_by_mut_ref: per_fn(|f| f.args_by_mut_ref),
+            arg_fields: per_fn(|f| f.arg_fields),
+            ret_fields: per_fn(|f| f.ret_fields),
+            calls: per_fn(|f| f.calls),
+            distinct_callees: per_fn(|f| f.distinct_callees),
+            calls_in_loops: per_fn(|f| f.calls_in_loops),
+            calls_in_branches: per_fn(|f| f.calls_in_branches),
+            assigns: per_fn(|f| f.assigns),
+            compound_assigns: per_fn(|f| f.compound_assigns),
+            mut_ref_writes: per_fn(|f| f.mut_ref_writes),
+            reborrows: per_fn(|f| f.reborrows),
+            struct_borrows: per_fn(|f| f.struct_borrows),
+            arith_ops: per_fn(|f| f.arith_ops),
+            divisions: per_fn(|f| f.divisions),
+            indexing: per_fn(|f| f.indexing),
+            casts: per_fn(|f| f.casts),
+            unwraps: per_fn(|f| f.unwraps),
+            panics: per_fn(|f| f.panics),
+            enums_touched: per_fn(|f| f.enums_touched),
+            generic_insts: per_fn(|f| f.generic_insts),
+            cyclomatic: per_fn(|f| f.cyclomatic),
+            max_loop_depth: per_fn(|f| f.max_loop_depth),
+            max_if_depth: per_fn(|f| f.max_if_depth),
+            max_seq_branches: per_fn(|f| f.max_seq_branches),
+            max_branch_depth: per_fn(|f| f.max_branch_depth),
+            max_match_arms: per_fn(|f| f.max_match_arms),
+            max_match_depth: per_fn(|f| f.max_match_depth),
+            max_enum_variants: per_fn(|f| f.max_enum_variants),
+            max_payload_depth: per_fn(|f| f.max_payload_depth),
+            max_call_depth: per_fn(|f| f.max_call_depth),
+            max_write_path: per_fn(|f| f.max_write_path),
+            max_struct_depth: per_fn(|f| f.max_struct_depth),
+            ..Default::default()
+        }
+    }
 }
 
 /// Analyzes the source of one `.rs` file. Fails if it is not valid Rust.
