@@ -24,11 +24,15 @@ peg::parser! {
             / "Set" / "Seq" / "Map" / "Multiset" / "Int" / "Bool" / "Perm" / "Ref" / "Rational"
             / "forperm" / "let" / "in" / "if" / "else" / "elseif" / "while" / "do"
             / "assert" / "assume" / "havoc"
-            / "return" / "continue" / "skip"
+            / "continue" / "skip"
             / "forall" / "exists"
             / "inhale" / "exhale" / "unfold" / "fold" / "acc"
             / "none" / "wildcard" / "write" / "epsilon"
             / "requires" / "ensures" / "returns" / "decreases" / "result"
+            // Declaration keywords: without these, a bare `decreases` before a
+            // body-less function reads the next `function` as its measure.
+            / "function" / "method" / "predicate" / "domain" / "field" / "axiom"
+            / "import" / "define" / "adt"
 
         rule ident() -> Ident
             = quiet! { !(reserved() white_space()) n:$(start_char() char()*) { Ident::Raw(n.to_string())} }
