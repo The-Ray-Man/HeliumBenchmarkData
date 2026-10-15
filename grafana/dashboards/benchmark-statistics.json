@@ -54,8 +54,8 @@
   "panels": [
     {
       "type": "row",
-      "id": 1,
-      "title": "Overview",
+      "id": 101,
+      "title": "Where the benchmarks come from",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -64,6 +64,530 @@
         "h": 1
       },
       "panels": []
+    },
+    {
+      "type": "table",
+      "id": 102,
+      "title": "Suites",
+      "description": "Every suite in the benchmarks table, with the size of its files. A test counts its file even when another test has the same content; \"files\" count distinct contents. Click a suite to show its families. Ignores the suite filter.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT b.suite AS \"Suite\",\n       count(DISTINCT b.family) AS \"Families\",\n       count(*) AS \"Tests\",\n       count(DISTINCT b.vpr_sha256) AS \"Viper files\",\n       sum(v.loc) AS \"Viper LoC\",\n       100.0 * sum(v.loc) / nullif(sum(sum(v.loc)) OVER (), 0) AS \"Share of Viper LoC\",\n       sum(v.stmts) AS \"Viper statements\",\n       sum(v.magic_wands) AS \"Magic wands\",\n       count(DISTINCT b.rs_sha256) AS \"Rust files\",\n       sum(r.loc) AS \"Rust LoC\",\n       100.0 * sum(r.loc) / nullif(sum(sum(r.loc)) OVER (), 0) AS \"Share of Rust LoC\"\nFROM benchmarks b\nLEFT JOIN viper_metrics v ON v.vpr_sha256 = b.vpr_sha256\nLEFT JOIN rust_metrics r ON r.rs_sha256 = b.rs_sha256\nGROUP BY b.suite\nORDER BY \"Viper LoC\" DESC NULLS LAST"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "right",
+            "filterable": true
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Suite"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.width",
+                "value": 240
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show the families of ${__value.raw}",
+                    "url": "/d/helium-benchmark-stats/benchmark-statistics?var-suite=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Viper LoC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Share of Viper LoC"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rust LoC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Share of Rust LoC"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false
+        }
+      }
+    },
+    {
+      "type": "table",
+      "id": 103,
+      "title": "Families of ${suite}",
+      "description": "Families of the selected suites, largest first. Share of suite: the family's part of its suite's Viper lines of code.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT b.suite AS \"Suite\",\n       coalesce(b.family, '(flat)') AS \"Family\",\n       count(*) AS \"Tests\",\n       count(DISTINCT b.vpr_sha256) AS \"Viper files\",\n       sum(v.loc) AS \"Viper LoC\",\n       100.0 * sum(v.loc) / nullif(sum(sum(v.loc)) OVER (PARTITION BY b.suite), 0) AS \"Share of suite\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY v.loc) AS \"Median LoC / test\",\n       max(v.loc) AS \"Max LoC / test\",\n       sum(v.stmts) AS \"Viper statements\",\n       sum(v.magic_wands) AS \"Magic wands\",\n       count(DISTINCT b.rs_sha256) AS \"Rust files\",\n       sum(r.loc) AS \"Rust LoC\"\nFROM benchmarks b\nLEFT JOIN viper_metrics v ON v.vpr_sha256 = b.vpr_sha256\nLEFT JOIN rust_metrics r ON r.rs_sha256 = b.rs_sha256\nWHERE ('__all' IN (${suite:sqlstring}) OR b.suite IN (${suite:sqlstring}))\nGROUP BY b.suite, b.family\nORDER BY \"Viper LoC\" DESC NULLS LAST"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 15,
+        "h": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "right",
+            "filterable": true
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Suite"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.width",
+                "value": 200
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show the families of ${__value.raw}",
+                    "url": "/d/helium-benchmark-stats/benchmark-statistics?var-suite=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Family"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Viper LoC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Share of suite"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 100
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8ae8"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rust LoC"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0743f"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false,
+          "reducer": [
+            "sum"
+          ],
+          "countRows": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Viper LoC",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 104,
+      "title": "Viper lines of code by source",
+      "description": "With All selected: one bar per suite. With suites selected: their 25 largest families (log scale).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT CASE WHEN '__all' IN (${suite:sqlstring}) THEN b.suite\n            ELSE b.suite || ' / ' || coalesce(b.family, '(flat)') END AS \"Source\",\n       sum(v.loc) AS \"Viper LoC\"\nFROM benchmarks b\nLEFT JOIN viper_metrics v ON v.vpr_sha256 = b.vpr_sha256\nLEFT JOIN rust_metrics r ON r.rs_sha256 = b.rs_sha256\nWHERE ('__all' IN (${suite:sqlstring}) OR b.suite IN (${suite:sqlstring}))\nGROUP BY 1\nORDER BY 2 DESC NULLS LAST\nLIMIT 25"
+        }
+      ],
+      "gridPos": {
+        "x": 15,
+        "y": 7,
+        "w": 9,
+        "h": 13
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 35,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisBorderShow": false,
+            "axisPlacement": "auto",
+            "scaleDistribution": {
+              "type": "log",
+              "log": 10
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "barWidth": 0.85,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 1,
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 21,
+      "title": "Test cases",
+      "description": "Rows in the benchmarks table: one per test case of a suite.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(*) FROM benchmarks WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring}))"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#94a3b8"
+          },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
     },
     {
       "type": "stat",
@@ -88,8 +612,8 @@
         }
       ],
       "gridPos": {
-        "x": 0,
-        "y": 1,
+        "x": 4,
+        "y": 21,
         "w": 4,
         "h": 4
       },
@@ -144,7 +668,7 @@
       ],
       "gridPos": {
         "x": 4,
-        "y": 1,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -198,8 +722,8 @@
         }
       ],
       "gridPos": {
-        "x": 8,
-        "y": 1,
+        "x": 0,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -253,8 +777,8 @@
         }
       ],
       "gridPos": {
-        "x": 12,
-        "y": 1,
+        "x": 8,
+        "y": 21,
         "w": 4,
         "h": 4
       },
@@ -308,8 +832,8 @@
         }
       ],
       "gridPos": {
-        "x": 16,
-        "y": 1,
+        "x": 8,
+        "y": 25,
         "w": 4,
         "h": 4
       },
@@ -363,10 +887,10 @@
         }
       ],
       "gridPos": {
-        "x": 20,
-        "y": 1,
-        "w": 4,
-        "h": 4
+        "x": 12,
+        "y": 21,
+        "w": 7,
+        "h": 8
       },
       "fieldConfig": {
         "defaults": {
@@ -396,13 +920,69 @@
       }
     },
     {
+      "type": "gauge",
+      "id": 22,
+      "title": "Different Helium versions recorded",
+      "description": "Distinct backend_version values in helium_runs.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT count(DISTINCT backend_version) FROM helium_runs WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring}))"
+        }
+      ],
+      "gridPos": {
+        "x": 19,
+        "y": 21,
+        "w": 5,
+        "h": 8
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e8ae8"
+          },
+          "unit": "short",
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false,
+        "sizing": "auto",
+        "minVizWidth": 75,
+        "minVizHeight": 75,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
       "type": "row",
       "id": 8,
       "title": "Viper files",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 29,
         "w": 24,
         "h": 1
       },
@@ -427,14 +1007,14 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT s.label AS \"Metric\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Min\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Min\", 'FM999G999G999G999G990') END AS \"Min\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P25\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P25\", 'FM999G999G999G999G990D0') END AS \"P25\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Median\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Median\", 'FM999G999G999G999G990D0') END AS \"Median\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Mean\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Mean\", 'FM999G999G999G999G990D0') END AS \"Mean\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Std dev\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Std dev\", 'FM999G999G999G999G990D0') END AS \"Std dev\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P75\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P75\", 'FM999G999G999G999G990D0') END AS \"P75\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P95\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P95\", 'FM999G999G999G999G990D0') END AS \"P95\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Max\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Max\", 'FM999G999G999G999G990') END AS \"Max\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Total\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Total\", 'FM999G999G999G999G990') END AS \"Total\",\n       s.files AS \"Files\"\nFROM (SELECT m.pos, m.label, m.pow2,\n       min(m.v) AS \"Min\",\n       percentile_cont(0.25) WITHIN GROUP (ORDER BY m.v) AS \"P25\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY m.v) AS \"Median\",\n       avg(m.v) AS \"Mean\",\n       stddev_samp(m.v) AS \"Std dev\",\n       percentile_cont(0.75) WITHIN GROUP (ORDER BY m.v) AS \"P75\",\n       percentile_cont(0.95) WITHIN GROUP (ORDER BY m.v) AS \"P95\",\n       max(m.v) AS \"Max\",\n       sum(m.v) AS \"Total\",\n       count(m.v) AS files\n      FROM viper_metrics,\n           LATERAL (VALUES\n             (0, 'Lines of code', loc::double precision, false),\n       (1, 'Lines', lines::double precision, false),\n       (2, 'Bytes', bytes::double precision, false),\n       (3, 'Methods', methods::double precision, false),\n       (4, 'Functions', functions::double precision, false),\n       (5, 'Predicates', predicates::double precision, false),\n       (6, 'Domains', domains::double precision, false),\n       (7, 'Domain functions', domain_functions::double precision, false),\n       (8, 'Axioms', axioms::double precision, false),\n       (9, 'Fields', fields::double precision, false),\n       (10, 'ADTs', adts::double precision, false),\n       (11, 'Statements', stmts::double precision, false),\n       (12, 'Expressions', exps::double precision, false),\n       (13, 'Folds', folds::double precision, false),\n       (14, 'Unfolds', unfolds::double precision, false),\n       (15, 'Unfolding expressions', heap_update_exps::double precision, false),\n       (16, 'Inhales', inhales::double precision, false),\n       (17, 'Exhales', exhales::double precision, false),\n       (18, 'Asserts', asserts::double precision, false),\n       (19, 'Assumes', assumes::double precision, false),\n       (20, 'acc(...)', accs::double precision, false),\n       (21, 'Quantifiers', quantifiers::double precision, false),\n       (22, 'Labels', labels::double precision, false),\n       (23, 'Gotos', gotos::double precision, false),\n       (24, 'Ifs', ifs::double precision, false),\n       (25, 'Whiles', whiles::double precision, false),\n       (26, 'Assignments', assigns::double precision, false),\n       (27, 'Method calls', method_calls::double precision, false),\n       (28, 'Function applications', function_apps::double precision, false),\n       (29, 'old(...)', old_exps::double precision, false),\n       (30, 'Contract clauses', contract_clauses::double precision, false)\n           ) AS m(pos, label, v, pow2)\n      WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\n      GROUP BY m.pos, m.label, m.pow2) s\nORDER BY s.pos"
+          "rawSql": "SELECT s.label AS \"Metric\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Min\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Min\", 'FM999G999G999G999G990') END AS \"Min\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P25\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P25\", 'FM999G999G999G999G990D0') END AS \"P25\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Median\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Median\", 'FM999G999G999G999G990D0') END AS \"Median\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Mean\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Mean\", 'FM999G999G999G999G990D0') END AS \"Mean\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Std dev\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Std dev\", 'FM999G999G999G999G990D0') END AS \"Std dev\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P75\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P75\", 'FM999G999G999G999G990D0') END AS \"P75\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"P95\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"P95\", 'FM999G999G999G999G990D0') END AS \"P95\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Max\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Max\", 'FM999G999G999G999G990') END AS \"Max\",\n       CASE WHEN s.pow2 THEN '2^' || to_char(ln(greatest(s.\"Total\", 1)) / ln(2), 'FM99990D0') ELSE to_char(s.\"Total\", 'FM999G999G999G999G990') END AS \"Total\",\n       s.files AS \"Files\"\nFROM (SELECT m.pos, m.label, m.pow2,\n       min(m.v) AS \"Min\",\n       percentile_cont(0.25) WITHIN GROUP (ORDER BY m.v) AS \"P25\",\n       percentile_cont(0.5) WITHIN GROUP (ORDER BY m.v) AS \"Median\",\n       avg(m.v) AS \"Mean\",\n       stddev_samp(m.v) AS \"Std dev\",\n       percentile_cont(0.75) WITHIN GROUP (ORDER BY m.v) AS \"P75\",\n       percentile_cont(0.95) WITHIN GROUP (ORDER BY m.v) AS \"P95\",\n       max(m.v) AS \"Max\",\n       sum(m.v) AS \"Total\",\n       count(m.v) AS files\n      FROM viper_metrics,\n           LATERAL (VALUES\n             (0, 'Lines of code', loc::double precision, false),\n       (1, 'Lines', lines::double precision, false),\n       (2, 'Bytes', bytes::double precision, false),\n       (3, 'Methods', methods::double precision, false),\n       (4, 'Functions', functions::double precision, false),\n       (5, 'Predicates', predicates::double precision, false),\n       (6, 'Domains', domains::double precision, false),\n       (7, 'Domain functions', domain_functions::double precision, false),\n       (8, 'Axioms', axioms::double precision, false),\n       (9, 'Fields', fields::double precision, false),\n       (10, 'ADTs', adts::double precision, false),\n       (11, 'Statements', stmts::double precision, false),\n       (12, 'Expressions', exps::double precision, false),\n       (13, 'Folds', folds::double precision, false),\n       (14, 'Unfolds', unfolds::double precision, false),\n       (15, 'Packages', packages::double precision, false),\n       (16, 'Applies', applies::double precision, false),\n       (17, 'Unfolding/folding/applying/packaging expressions', heap_update_exps::double precision, false),\n       (18, 'Inhales', inhales::double precision, false),\n       (19, 'Exhales', exhales::double precision, false),\n       (20, 'Asserts', asserts::double precision, false),\n       (21, 'Refutes', refutes::double precision, false),\n       (22, 'Assumes', assumes::double precision, false),\n       (23, 'acc(...)', accs::double precision, false),\n       (24, 'Quantifiers', quantifiers::double precision, false),\n       (25, 'Labels', labels::double precision, false),\n       (26, 'Gotos', gotos::double precision, false),\n       (27, 'Ifs', ifs::double precision, false),\n       (28, 'Whiles', whiles::double precision, false),\n       (29, 'Variable declarations', var_decls::double precision, false),\n       (30, 'Assignments', assigns::double precision, false),\n       (31, 'Method calls', method_calls::double precision, false),\n       (32, 'Function applications', function_apps::double precision, false),\n       (33, 'old(...)', old_exps::double precision, false),\n       (34, 'Magic wands', magic_wands::double precision, false),\n       (35, 'Contract clauses', contract_clauses::double precision, false),\n       (36, 'Other statements', other_stmts::double precision, false)\n           ) AS m(pos, label, v, pow2)\n      WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\n      GROUP BY m.pos, m.label, m.pow2) s\nORDER BY s.pos"
         }
       ],
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 30,
         "w": 24,
-        "h": 16
+        "h": 19
       },
       "fieldConfig": {
         "defaults": {
@@ -519,7 +1099,7 @@
       "type": "barchart",
       "id": 10,
       "title": "Viper file size",
-      "description": "Files per size bucket. Bucket 2\u1d4f holds the files with 2\u1d4f to 2\u1d4f\u207a\u00b9 - 1 lines of code (0: empty files), as in the proposal's speedup histogram.",
+      "description": "Files per size bucket. Bucket 2ᵏ holds the files with 2ᵏ to 2ᵏ⁺¹ - 1 lines of code (0: empty files), as in the proposal's speedup histogram.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "helium-postgres"
@@ -534,12 +1114,12 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM viper_metrics WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
+          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM viper_metrics WHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
         }
       ],
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 49,
         "w": 12,
         "h": 9
       },
@@ -599,12 +1179,12 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'Inhale', inhales), (1, 'Exhale', exhales), (2, 'Assert', asserts), (3, 'Assume', assumes), (4, 'Fold', folds), (5, 'Unfold', unfolds), (6, 'Label', labels), (7, 'Goto', gotos), (8, 'If', ifs), (9, 'While', whiles), (10, 'Assignment', assigns), (11, 'Method call', method_calls)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'Inhale', inhales), (1, 'Exhale', exhales), (2, 'Assert', asserts), (3, 'Refute', refutes), (4, 'Assume', assumes), (5, 'Fold', folds), (6, 'Unfold', unfolds), (7, 'Package', packages), (8, 'Apply', applies), (9, 'Label', labels), (10, 'Goto', gotos), (11, 'If', ifs), (12, 'While', whiles), (13, 'Variable declaration', var_decls), (14, 'Assignment', assigns), (15, 'Method call', method_calls), (16, 'Other', other_stmts)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
         }
       ],
       "gridPos": {
         "x": 12,
-        "y": 22,
+        "y": 49,
         "w": 12,
         "h": 9
       },
@@ -670,7 +1250,7 @@
       ],
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 58,
         "w": 12,
         "h": 9
       },
@@ -731,12 +1311,12 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'acc(...)', accs), (1, 'Quantifier', quantifiers), (2, 'Function application', function_apps), (3, 'unfolding ... in', heap_update_exps), (4, 'old(...)', old_exps), (5, 'Contract clause', contract_clauses)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
+          "rawSql": "SELECT m.label AS \"Kind\", sum(m.v) AS \"Total\"\nFROM viper_metrics, LATERAL (VALUES (0, 'acc(...)', accs), (1, 'Quantifier', quantifiers), (2, 'Function application', function_apps), (3, 'unfolding/folding/applying/packaging ... in', heap_update_exps), (4, 'old(...)', old_exps), (5, 'Magic wand (--*)', magic_wands), (6, 'Contract clause', contract_clauses)) AS m(pos, label, v)\nWHERE ('__all' IN (${suite:sqlstring}) OR vpr_sha256 IN (SELECT vpr_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring})))\nGROUP BY m.pos, m.label ORDER BY m.pos"
         }
       ],
       "gridPos": {
         "x": 12,
-        "y": 31,
+        "y": 58,
         "w": 12,
         "h": 9
       },
@@ -785,7 +1365,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 40,
+        "y": 67,
         "w": 24,
         "h": 1
       },
@@ -815,7 +1395,7 @@
       ],
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 68,
         "w": 24,
         "h": 16
       },
@@ -902,7 +1482,7 @@
       "type": "barchart",
       "id": 16,
       "title": "Rust file size",
-      "description": "Files per size bucket. Bucket 2\u1d4f holds the files with 2\u1d4f to 2\u1d4f\u207a\u00b9 - 1 lines of code (0: empty files).",
+      "description": "Files per size bucket. Bucket 2ᵏ holds the files with 2ᵏ to 2ᵏ⁺¹ - 1 lines of code (0: empty files).",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "helium-postgres"
@@ -917,12 +1497,12 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
+          "rawSql": "SELECT CASE WHEN k < 0 THEN '0'\n            ELSE '2' || translate(k::text, '0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹') END AS \"Lines of code\",\n       files AS \"Files\"\nFROM (SELECT CASE WHEN loc > 0 THEN floor(log(2, loc))::int ELSE -1 END AS k,\n             count(*) AS files\n      FROM rust_metrics WHERE ('__all' IN (${suite:sqlstring}) OR rs_sha256 IN (SELECT rs_sha256 FROM benchmarks WHERE suite IN (${suite:sqlstring}))) GROUP BY 1) b\nORDER BY k"
         }
       ],
       "gridPos": {
         "x": 0,
-        "y": 57,
+        "y": 84,
         "w": 12,
         "h": 9
       },
@@ -987,7 +1567,7 @@
       ],
       "gridPos": {
         "x": 12,
-        "y": 57,
+        "y": 84,
         "w": 12,
         "h": 9
       },
@@ -1032,18 +1612,18 @@
     {
       "type": "row",
       "id": 18,
-      "title": "Rust \u2192 Viper encoding",
+      "title": "Rust → Viper encoding",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 66,
+        "y": 93,
         "w": 24,
         "h": 1
       },
       "panels": []
     },
     {
-      "type": "table",
+      "type": "stat",
       "id": 19,
       "title": "Viper lines per Rust line",
       "description": "How much larger Prusti's encoding is: viper_metrics.loc / rust_metrics.loc over linked Rust files.",
@@ -1066,9 +1646,9 @@
       ],
       "gridPos": {
         "x": 0,
-        "y": 67,
-        "w": 12,
-        "h": 5
+        "y": 94,
+        "w": 9,
+        "h": 10
       },
       "fieldConfig": {
         "defaults": {
@@ -1076,12 +1656,6 @@
           "color": {
             "mode": "fixed",
             "fixedColor": "#2bb3a3"
-          },
-          "custom": {
-            "align": "center",
-            "cellOptions": {
-              "type": "color-text"
-            }
           }
         },
         "overrides": [
@@ -1100,8 +1674,19 @@
         ]
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "md"
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
       }
     },
     {
@@ -1128,9 +1713,9 @@
         }
       ],
       "gridPos": {
-        "x": 12,
-        "y": 67,
-        "w": 12,
+        "x": 9,
+        "y": 94,
+        "w": 15,
         "h": 10
       },
       "fieldConfig": {
