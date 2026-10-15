@@ -6,7 +6,7 @@ use std::path::Path;
 use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, QueryFilter, QueryOrder};
 
 use super::entities::{rust_metrics, viper_metrics};
-use crate::file_analyzer;
+use crate::utils;
 
 /// Latest Viper metrics of the file with SHA-256 `vpr_sha256` (lowercase hex).
 pub async fn viper_metrics_by_sha256<C: ConnectionTrait>(
@@ -37,7 +37,7 @@ pub async fn viper_metrics_of_file<C: ConnectionTrait>(
     db: &C,
     path: impl AsRef<Path>,
 ) -> Result<Option<viper_metrics::Model>, DbErr> {
-    viper_metrics_by_sha256(db, &hash_file(path)?).await
+    viper_metrics_by_sha256(db, &hash_file(path.as_ref())?).await
 }
 
 /// Latest metrics of the `.rs` file at `path`, looked up by its content hash.
@@ -45,12 +45,9 @@ pub async fn rust_metrics_of_file<C: ConnectionTrait>(
     db: &C,
     path: impl AsRef<Path>,
 ) -> Result<Option<rust_metrics::Model>, DbErr> {
-    rust_metrics_by_sha256(db, &hash_file(path)?).await
+    rust_metrics_by_sha256(db, &hash_file(path.as_ref())?).await
 }
 
-fn hash_file(path: impl AsRef<Path>) -> Result<String, DbErr> {
-    let path = path.as_ref();
-    let bytes = std::fs::read(path)
-        .map_err(|e| DbErr::Custom(format!("cannot read {}: {e}", path.display())))?;
-    Ok(file_analyzer::sha256(&bytes))
+fn hash_file(path: &Path) -> Result<String, DbErr> {
+    utils::hash_file(path).map_err(|e| DbErr::Custom(format!("cannot read {}: {e}", path.display())))
 }

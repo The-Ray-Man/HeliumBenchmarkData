@@ -3,9 +3,8 @@ use crate::suite_config::SuiteConfig;
 
 mod db;
 mod explorer;
-mod file_analyzer;
-mod metrics;
 mod suite_config;
+pub mod utils;
 
 fn main() {
     let config = SuiteConfig::new("./suite.local.json").expect("a valid config. See config.example.json");
