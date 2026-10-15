@@ -1,0 +1,191 @@
+// prusti-encode: Prusti version: 0.3.0, commit ae6032113e3 2026-10-06 13:49:33 UTC, built on 2026-10-13 13:50:15 UTC
+// prusti-encode: checkout ae6032113e3, prusti-driver sha256 16a13eb208c6440e
+// prusti-encode: PRUSTI_CHECK_OVERFLOWS=false
+domain s_Int_i32  {
+  
+  function s_Int_i32_cons(arg0: Int): s_Int_i32 
+  
+  function s_Int_i32_value(arg0: s_Int_i32): Int 
+  
+  axiom s_Int_i32_ax_cons {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      s_Int_i32_cons(s_Int_i32_value(s)) == s)
+  }
+  
+  axiom s_Int_i32_ax_bounds {
+    (forall s: s_Int_i32 ::
+      { s_Int_i32_value(s) }
+      -2147483648 <= s_Int_i32_value(s) && s_Int_i32_value(s) <= 2147483647)
+  }
+  
+  axiom s_Int_i32_ax_value {
+    (forall value: Int ::
+      { s_Int_i32_cons(value) }
+      -2147483648 <= value && value <= 2147483647 ==>
+      s_Int_i32_value(s_Int_i32_cons(value)) == value)
+  }
+}
+
+domain Inhabited  {
+  
+  function inhabited(arg0: Type): Bool 
+  
+  axiom inhabited_Int_i32 {
+    inhabited(s_Int_i32_type()) == true
+  }
+  
+  axiom inhabited_Cell {
+    inhabited(s_Cell_type()) ==
+    (inhabited(s_Int_i32_type()) && inhabited(s_Int_i32_type()))
+  }
+}
+
+domain trait_std$col$$col$marker$col$$col$Sized  {
+  
+  function std$col$$col$marker$col$$col$Sized_impl(arg0: Type): Bool 
+}
+
+domain trait_std$col$$col$marker$col$$col$MetaSized  {
+  
+  function std$col$$col$marker$col$$col$MetaSized_impl(arg0: Type): Bool 
+}
+
+domain sizedness_Int_i32  {
+  
+  axiom s_Int_i32_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Int_i32_type())
+  }
+  
+  axiom s_Int_i32_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Int_i32_type())
+  }
+}
+
+domain sizedness_Cell  {
+  
+  axiom s_Cell_Sized {
+    std$col$$col$marker$col$$col$Sized_impl(s_Cell_type())
+  }
+  
+  axiom s_Cell_MetaSized {
+    std$col$$col$marker$col$$col$MetaSized_impl(s_Cell_type())
+  }
+}
+
+field p_Int_i32_val: s_Int_i32
+
+function s_Int_i32_unreachable(): s_Int_i32
+  ensures false
+
+
+function s_Cell_unreachable(): s_Cell
+  ensures false
+
+
+function s_Cell_field_0(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function s_Cell_field_1(self: Ref): Ref
+  ensures (self == null) == (result == null)
+
+
+function p_Int_i32_snap(self: Ref): s_Int_i32
+  requires acc(p_Int_i32(self), write)
+{
+  (unfolding acc(p_Int_i32(self), write) in self.p_Int_i32_val)
+}
+
+function p_Cell_snap(self: Ref): s_Cell
+  requires acc(p_Cell(self), write)
+{
+  (unfolding acc(p_Cell(self), write) in
+    s_Cell_cons(p_Int_i32_snap(s_Cell_field_0(self)), p_Int_i32_snap(s_Cell_field_1(self))))
+}
+
+predicate p_Int_i32(self: Ref) {
+  acc(self.p_Int_i32_val, write)
+}
+
+predicate p_Cell(self: Ref) {
+  inhabited(s_Int_i32_type()) &&
+  acc(p_Int_i32(s_Cell_field_0(self)), write) &&
+  (inhabited(s_Int_i32_type()) &&
+  acc(p_Int_i32(s_Cell_field_1(self)), write))
+}
+
+method m_run(_0p: Ref, _1p: Ref)
+  requires inhabited(s_Cell_type()) && acc(p_Cell(_1p), write)
+  ensures inhabited(s_Int_i32_type()) && acc(p_Int_i32(_0p), write)
+{
+  var _2p: Ref
+  var _tmp0: s_Int_i32
+  var _tmp1: s_Int_i32
+  label start
+  // var _2p
+  goto bb_0
+  label bb_0
+  label _before_0_0
+  // [MIR] bb0[0]: StorageLive(_2)
+  label _before_0_1
+  // [MIR] bb0[1]: _2 = copy (_1.0: i32)
+  // [PCG] Expand(RepackExpand { from: _1, guide: None, capability: R, _marker: PhantomData<&()> })
+  unfold acc(p_Cell(_1p), write)
+  // var _tmp0
+  _tmp0 := p_Int_i32_snap(s_Cell_field_0(_1p))
+  // (ignoring) LabelPlace(LabelPlaceAction { place: _2, location: Before(AnalysisLocation { location: bb0[1], eval_stmt_phase: PreMain }), reason: Write, _marker: PhantomData<&()> })
+  // (ignoring) LabelLifetimeProjection(LabelLifetimeProjectionAction { predicate: And([PlaceEquals(_2), InSourceNodes, EdgeType(BorrowFlow { future_edge_kind: Some(FromExpansion) })]), label: None })
+  p_Int_i32_assign(_2p, _tmp0)
+  label _before_0_2
+  // [MIR] bb0[2]: FakeRead(ForLet(None), _2)
+  // [PCG] Collapse(RepackCollapse { to: _1, capability: R, guide: None, _marker: PhantomData<&()> })
+  fold acc(p_Cell(_1p), write)
+  label _before_0_3
+  // [MIR] bb0[3]: _0 = copy _2
+  // var _tmp1
+  _tmp1 := p_Int_i32_snap(_2p)
+  // (ignoring) LabelPlace(LabelPlaceAction { place: _0, location: Before(AnalysisLocation { location: bb0[3], eval_stmt_phase: PreMain }), reason: Write, _marker: PhantomData<&()> })
+  // (ignoring) LabelLifetimeProjection(LabelLifetimeProjectionAction { predicate: And([PlaceEquals(_0), InSourceNodes, EdgeType(BorrowFlow { future_edge_kind: Some(FromExpansion) })]), label: None })
+  p_Int_i32_assign(_0p, _tmp1)
+  label _before_0_4
+  // [MIR] bb0[4]: StorageDead(_2)
+  // (ignoring) LabelPlace(LabelPlaceAction { place: _2, location: Before(AnalysisLocation { location: bb0[4], eval_stmt_phase: PreMain }), reason: Write, _marker: PhantomData<&()> })
+  // (ignoring) LabelLifetimeProjection(LabelLifetimeProjectionAction { predicate: And([PlaceEquals(_2), InSourceNodes, EdgeType(BorrowFlow { future_edge_kind: Some(FromExpansion) })]), label: None })
+  // [PCG] Weaken(Weaken { place: _2, from: E, to: W, for_storage_dead: true, _marker: PhantomData<&()> })
+  // Weaken to Write for _2 (skipped exhale: StorageDead)
+  // (ignoring) LabelPlace(LabelPlaceAction { place: _2, location: Before(AnalysisLocation { location: bb0[4], eval_stmt_phase: PreMain }), reason: StorageDead, _marker: PhantomData<&()> })
+  label _before_0_5
+  // [MIR] bb0[5]: return
+  // PCG (T) pre_operands
+  // PCG (T) post_operands
+  // PCG (T) pre_main
+  label package_post0
+  goto end
+  label end
+  // return
+}
+
+method p_Int_i32_assign(self: Ref, value: s_Int_i32)
+  ensures acc(p_Int_i32(self), write)
+  ensures p_Int_i32_snap(self) == value
+
+
+method p_Cell_assign(self: Ref, value: s_Cell)
+  ensures acc(p_Cell(self), write)
+  ensures p_Cell_snap(self) == value
+
+
+adt s_Param {
+  s_Param_Unknown(s_Param_Unknown_id: Int)
+}
+
+adt s_Cell {
+  s_Cell_cons(s_Cell_0: s_Int_i32, s_Cell_1: s_Int_i32)
+}
+
+adt Type {
+  s_Int_i32_type()
+  s_Cell_type()
+  Unknown_type(id: Int)
+}
