@@ -2,7 +2,7 @@
 --
 -- Applied by the postgres container on first start (mounted into
 -- /docker-entrypoint-initdb.d, see compose.yaml). The Rust structs in
--- runner/db-generated are generated from the live database with sea-orm-cli,
+-- runner/src/db/entities are generated from the live database with sea-orm-cli,
 -- so regenerate them after changing this file (see README).
 
 

@@ -7,7 +7,10 @@ Benchmark suites (`suites`) for multiple backends, plus a local Postgres + Grafa
 - `suites/<suite>/<family>/<test>.vpr` – benchmark programs.
 - `generation/` – generators for the `scaling` suite.
 - `db/schema.sql` – results schema: `rust_metrics` and `viper_metrics` (metrics per file, keyed by the file's sha256), and `helium_runs`, `silicon_runs`, `rustc_runs` (one row per execution of that backend on a file, with backend-specific metric columns).
-- `runner/` – Rust workspace of the benchmark runner; `runner/db-generated` holds the SeaORM entities for `db/schema.sql`. `runner/suite.example.json` describes every suite and family and how to run them (see [Suite configuration](#suite-configuration)).
+- `runner/` – the benchmark runner (a single Rust crate). `runner/suite.example.json` describes every suite and family and how to run them (see [Suite configuration](#suite-configuration)).
+  - `runner/src/db/` – database access: the SeaORM entities for `db/schema.sql` (`entities/`, generated), connecting (`connection.rs`, reads `DATABASE_URL`, defaulting to the compose Postgres), and metric lookups (`queries.rs`).
+  - `runner/src/file_analyzer/` – static metrics of `.rs` and `.vpr` files.
+  - `runner/src/metrics.rs` – stores those metrics in the database.
 - `grafana/` – Grafana provisioning (Postgres data source) and dashboards (`grafana/dashboards/*.json`).
 
 ## Quick start
@@ -24,10 +27,10 @@ docker compose up -d
 ```bash
 docker compose down -v && docker compose up -d
 cd runner
-sea-orm-cli generate entity -u postgres://helium:helium@localhost:5432/helium_bench -o db-generated/src --lib --with-copy-enums
+sea-orm-cli generate entity -u postgres://helium:helium@localhost:5432/helium_bench -o src/db/entities --with-copy-enums
 ```
 
-The CLI's major version must match the `sea-orm` dependency (`cargo install sea-orm-cli@2.0.4`).
+The CLI's major version must match the `sea-orm` dependency (`cargo install sea-orm-cli@2.0.4`). Generation overwrites only `src/db/entities/`; the rest of the `db` module is hand-written and re-exports the entities, so both `db::rustc_runs` and `db::entities::rustc_runs` work.
 
 Example query:
 
