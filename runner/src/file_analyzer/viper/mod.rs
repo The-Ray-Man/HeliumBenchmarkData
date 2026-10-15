@@ -42,10 +42,16 @@ pub struct ViperMetrics {
     pub counts: Counts,
 }
 
-/// The metric columns of a `viper_metrics` row. The rest is left unset for the
-/// caller: the key `vpr_sha256`, `measured_at` and `metrics_commit`.
 impl From<ViperMetrics> for viper_metrics::ActiveModel {
     fn from(m: ViperMetrics) -> Self {
+        (&m).into()
+    }
+}
+
+/// The metric columns of a `viper_metrics` row. The rest is left unset for the
+/// caller: the key `vpr_sha256`, `measured_at` and `metrics_commit`.
+impl From<&ViperMetrics> for viper_metrics::ActiveModel {
+    fn from(m: &ViperMetrics) -> Self {
         let int = |n: u64| Set(Some(db_int(n)));
         let c = &m.counts;
         viper_metrics::ActiveModel {

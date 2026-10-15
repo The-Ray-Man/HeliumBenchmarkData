@@ -12,11 +12,66 @@ mod viper;
 
 use std::fmt;
 use std::path::{Path, PathBuf};
-
+use log::info;
+use sea_orm::ActiveValue::Set;
+use sea_orm::{ActiveModelTrait, ConnectionTrait};
 pub use rust::{FnMetrics, RustMetrics};
 pub use text::TextMetrics;
 pub use viper::{Counts, ViperMetrics};
+use crate::db;
+use crate::db::queries::{FileMetricsStatus, MetricsAction};
+use crate::explorer::Benchmark;
 
+pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark) -> Result<(), Error> {
+    info!("attempting {:?}", benchmark);
+    let status = db::queries::benchmark_metrics_status(con, &benchmark).await?;
+    // The Rust row links to the Viper file; taken before `status.viper` moves.
+    let vpr_sha256 = status.viper.as_ref().map(|v| v.sha256.clone());
+
+    match status.viper {
+        None => {}
+        Some(data) => match data.action {
+            MetricsAction::Insert | MetricsAction::Update(_) => {
+                let active = db::viper_metrics::ActiveModel {
+                    vpr_sha256: Set(data.sha256),
+                    measured_at: Set(chrono::Utc::now().fixed_offset()),
+                    ..(&analyze_viper(benchmark.viper.unwrap())?).into()
+                };
+                match data.action {
+                    MetricsAction::Insert => {active.insert(con).await?;}
+                    MetricsAction::Update(_) => {active.update(con).await?;}
+                    _ => {}
+                }
+                info!("viper metrics updated");
+            }
+            MetricsAction::UpToDate => {
+                info!("up to date");
+            }
+        }
+    }
+
+    match status.rust {
+        None => {}
+        Some(data) => match data.action {
+            MetricsAction::Insert | MetricsAction::Update(_) => {
+                let active = db::rust_metrics::ActiveModel {
+                    rs_sha256: Set(data.sha256),
+                    vpr_sha256: Set(vpr_sha256),
+                    measured_at: Set(chrono::Utc::now().fixed_offset()),
+                    ..(analyze_rust(benchmark.rust.unwrap())?).into()
+                };
+                if let MetricsAction::Insert = data.action {
+                    active.insert(con).await?;
+                } else if let MetricsAction::Update(_) = data.action {
+                    active.update(con).await?;
+                }
+            }
+            MetricsAction::UpToDate => {}
+        }
+    }
+
+    Ok(())
+}
 /// Analyzes the Rust file at `path`.
 pub fn analyze_rust(path: impl AsRef<Path>) -> Result<RustMetrics, Error> {
     let path = path.as_ref();
@@ -46,6 +101,14 @@ pub enum Error {
     Io(PathBuf, std::io::Error),
     /// The file is not valid Rust / Viper.
     Parse(PathBuf, String),
+    /// A database query failed.
+    Db(sea_orm::DbErr),
+}
+
+impl From<sea_orm::DbErr> for Error {
+    fn from(e: sea_orm::DbErr) -> Self {
+        Error::Db(e)
+    }
 }
 
 impl fmt::Display for Error {
@@ -53,11 +116,20 @@ impl fmt::Display for Error {
         match self {
             Error::Io(path, e) => write!(f, "cannot read {}: {e}", path.display()),
             Error::Parse(path, e) => write!(f, "cannot parse {}: {e}", path.display()),
+            Error::Db(e) => write!(f, "database error: {e}"),
         }
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::Io(_, e) => Some(e),
+            Error::Db(e) => Some(e),
+            Error::Parse(..) => None,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
