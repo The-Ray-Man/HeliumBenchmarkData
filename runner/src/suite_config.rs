@@ -228,7 +228,7 @@ impl SuiteConfig {
             }
         }
         for suite in self.activated_suites() {
-            for dir in self.suite_dirs(suite) {
+            for (_, dir) in self.suite_dirs(suite) {
                 if !dir.is_dir() {
                     return Err(format!("suite `{}`: {} is not a directory", suite.name, dir.display()));
                 }
@@ -237,14 +237,15 @@ impl SuiteConfig {
         Ok(())
     }
 
-    /// The directories holding `suite`'s benchmarks: one per family, or the
-    /// suite's own directory for a flat suite.
-    pub fn suite_dirs(&self, suite: &Suite) -> Vec<PathBuf> {
+    /// The directories holding `suite`'s benchmarks, each with its family:
+    /// `<suites_dir>/<suite>/<family>` per family, or `(None, <suites_dir>/<suite>)`
+    /// for a flat suite.
+    pub fn suite_dirs<'a>(&self, suite: &'a Suite) -> Vec<(Option<&'a Family>, PathBuf)> {
         let root = self.suites_dir.join(&suite.name);
         if suite.is_flat() {
-            vec![root]
+            vec![(None, root)]
         } else {
-            suite.families.iter().map(|f| root.join(&f.name)).collect()
+            suite.families.iter().map(|f| (Some(f), root.join(&f.name))).collect()
         }
     }
 
