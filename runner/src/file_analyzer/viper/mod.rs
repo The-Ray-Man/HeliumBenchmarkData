@@ -288,7 +288,41 @@ method n(x: Ref)
     }
 
     #[test]
+    fn type_names_with_builtin_prefix() {
+        let src = "domain D {\n  function f(F: Set[Ref]): Interface\n  function g(x: Integer, y: Reference): Boolean\n}\n";
+        assert!(analyze(src).is_ok());
+    }
+
+    #[test]
+    fn predicate_instance_measure() {
+        let src = "predicate tree(n: Ref)\nfunction f(n: Ref): Bool\n  requires acc(tree(n), write)\n  decreases @tree(n)\n";
+        assert!(analyze(src).is_ok());
+    }
+
+    #[test]
     fn rejects_invalid_viper() {
         assert!(analyze("method m( {").is_err());
+    }
+}
+
+#[cfg(test)]
+mod tmp_scan {
+    #[test]
+    #[ignore]
+    fn scan_all_suites() {
+        fn walk(d: &std::path::Path, out: &mut Vec<std::path::PathBuf>) {
+            for e in std::fs::read_dir(d).unwrap().flatten() {
+                let p = e.path();
+                if p.is_dir() { walk(&p, out) } else if p.extension().is_some_and(|x| x == "vpr") { out.push(p) }
+            }
+        }
+        let mut files = Vec::new();
+        walk(std::path::Path::new("../suites"), &mut files);
+        let mut bad = 0;
+        for f in &files {
+            let Ok(src) = std::fs::read_to_string(f) else { println!("UNREADABLE {}", f.display()); continue };
+            if let Err(e) = super::analyze(&src) { bad += 1; println!("FAIL {} :: {}", f.display(), e); }
+        }
+        println!("TOTAL {} FAILED {}", files.len(), bad);
     }
 }

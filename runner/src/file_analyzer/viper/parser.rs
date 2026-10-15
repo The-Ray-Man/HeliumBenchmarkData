@@ -63,20 +63,20 @@ peg::parser! {
 
         rule type_() -> Type
             =
-              "Int" { Type::Int }
-            / "Bool" { Type::Bool }
-            / "Perm" { Type::Real }
-            / "Ref" { Type::Ref }
-            / "Rational"   { Type::Real }
+              kw(<"Int">) { Type::Int }
+            / kw(<"Bool">) { Type::Bool }
+            / kw(<"Perm">) { Type::Real }
+            / kw(<"Ref">) { Type::Ref }
+            / kw(<"Rational">)   { Type::Real }
             // The collection types are parsed but not implemented: they are kept
             // as ordinary domain types under their own name so that
             // `scan_unsupported` can name the construct and reject only the
             // declaration that mentions one, instead of failing the whole file
             // with a parse error.
-            / "Seq" _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Seq".to_string()), vec![ty]) }
-            / "Set" _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Set".to_string()), vec![ty]) }
-            / "Multiset" _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Multiset".to_string()), vec![ty]) }
-            / "Map" _ "[" _ a:type_() _ "," _ b:type_() _ "]" { Type::Domain(Ident::Raw("Map".to_string()), vec![a, b]) }
+            / kw(<"Seq">) _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Seq".to_string()), vec![ty]) }
+            / kw(<"Set">) _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Set".to_string()), vec![ty]) }
+            / kw(<"Multiset">) _ "[" _ ty:type_() _ "]" { Type::Domain(Ident::Raw("Multiset".to_string()), vec![ty]) }
+            / kw(<"Map">) _ "[" _ a:type_() _ "," _ b:type_() _ "]" { Type::Domain(Ident::Raw("Map".to_string()), vec![a, b]) }
             / type_constr()
 
         rule type_constr() -> Type = nm:ident() _ tys:("[" _ tys:(type_() ** comma()) _ "]" { tys })?
@@ -188,6 +188,8 @@ peg::parser! {
             / a:acc_exp() { ExpKind::Acc(a) }
             / func_app()
             / i:ident() { ExpKind::Ident(i) }
+            // Predicate instance `@P(args)`, e.g. as a termination measure.
+            / "@" _ func_app() { ExpKind::Unsupported("predicate instance") }
 
 
 
