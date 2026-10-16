@@ -15,12 +15,13 @@ use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 use log::error;
 use sea_orm::{ConnectionTrait, DbErr};
+use crate::executor::helium::BenchRun;
 use crate::explorer::Benchmark;
 use crate::utils::hash_file;
 
 //pub mod carbon;
 pub mod helium;
-//pub mod rustc;
+pub mod rustc;
 
 /// A measured tool.
 pub trait Executor {
@@ -48,6 +49,16 @@ pub trait Executor {
     /// Read a finished run. Never called on a timed-out run, whose output
     /// may be incomplete.
     fn parse(&self, raw: &RawRun) -> Result<Outcome, ParseError>;
+
+    /// Stores the result in the database
+    async fn store<C: ConnectionTrait>(
+        &self,
+        conn: &C,
+        run: &BenchRun,
+        bench: &Benchmark,
+        ctx: &RunContext,
+        measurements: &[Measurement],
+    ) -> Result<(), DbErr>;
 }
 
 /// Settings shared by every run of a measurement.

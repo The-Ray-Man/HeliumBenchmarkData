@@ -50,122 +50,6 @@ impl Helium {
         };
         Ok(Helium { binary, id, commit, dirty })
     }
-
-    /// Insert the timed runs of one [`super::measure`] of `bench` into
-    /// `helium_runs`, as iterations `0..`. The benchmark's metrics rows must
-    /// exist already (foreign keys on both hashes).
-    pub async fn store<C: ConnectionTrait>(
-        &self,
-        conn: &C,
-        run: &BenchRun,
-        bench: &Benchmark,
-        ctx: &RunContext,
-        measurements: &[Measurement],
-    ) -> Result<(), DbErr> {
-        let Some(vpr) = bench.viper.as_deref() else {
-            return Ok(());
-        };
-        if measurements.is_empty() {
-            return Ok(());
-        }
-        let hash = |p: &Path| {
-            hash_file(p).map_err(|e| DbErr::Custom(format!("cannot read {}: {e}", p.display())))
-        };
-        let vpr_sha256 = hash(vpr)?;
-        let rs_sha256 = bench.rust.as_deref().map(hash).transpose()?;
-        let existing_runs = self.check_existing(conn, &vpr_sha256).await.unwrap_or(0);
-        let rows = measurements.iter().enumerate().map(|(i, m)| {
-            let json = json_line(&m.runs.stdout);
-            let mut stats = Stats::new(json.as_ref());
-            let phase = |name: &str| Set(m.outcomes.phases.get(name).copied());
-            let count = |f: fn(&Verdict) -> bool| {
-                Set(Some(m.outcomes.members.iter().filter(|x| f(&x.verdict)).count() as i32))
-            };
-            let message = match &m.outcomes.verdict {
-                Verdict::Crashed(msg) if !msg.is_empty() => Some(msg.clone()),
-                _ => None,
-            };
-            let mut row = helium_runs::ActiveModel {
-                run_id: Set(run.run_id.clone()),
-                started_at: Set(run.started_at),
-                host: Set(run.host.clone()),
-                suite: Set(bench.suite.clone()),
-                family: Set(bench.family.clone()),
-                test: Set(bench.test.clone()),
-                vpr_sha256: Set(vpr_sha256.clone()),
-                rs_sha256: Set(rs_sha256.clone()),
-                backend_version: Set(Some(self.commit.clone())),
-                dirty: Set(Some(self.dirty)),
-                iteration: Set((existing_runs + i) as i32),
-                status: Set(run_status(&m.outcomes.verdict)),
-                timeout_s: Set(ctx.timeout.map(|t| t.as_secs_f64())),
-                wall_s: Set(Some(m.runs.wall)),
-                peak_rss_mb: Set(m
-                    .runs
-                    .peak_rss_mb
-                    .or_else(|| json.as_ref()?["peak_rss_mb"].as_f64())),
-                message: Set(message),
-                self_s: Set(m.outcomes.self_time),
-                members_ok: count(|v| *v == Verdict::Verified),
-                members_fail: count(|v| *v == Verdict::Failed),
-                members_unsupported: count(|v| *v == Verdict::Inconclusive),
-                members_skip: count(|v| *v == Verdict::Skipped),
-                members_error: count(|v| matches!(v, Verdict::Crashed(_))),
-                parse_s: phase("parse"),
-                macros_s: phase("macros"),
-                idents_s: phase("idents"),
-                disambiguate_s: phase("disambiguate"),
-                globals_s: phase("globals"),
-                typecheck_s: phase("typecheck"),
-                analyze_s: phase("analyze"),
-                translate_s: phase("translate"),
-                verify_s: phase("verify"),
-                search_s: stats.seconds(&["timing", "search"]),
-                apply_s: stats.seconds(&["timing", "apply"]),
-                rebuild_s: stats.seconds(&["timing", "rebuild"]),
-                ground_s: stats.seconds(&["graph_timing", "ground"]),
-                scratch_s: stats.seconds(&["graph_timing", "scratch"]),
-                probe_s: stats.seconds(&["graph_timing", "probe"]),
-                scratch_clone_s: stats.seconds(&["graph_timing", "scratch_clone"]),
-                saturations: stats.count("saturations"),
-                sat_iterations: stats.count("sat_iterations"),
-                reduces: stats.count("reduces"),
-                rule_applications: stats.count("rule_applications"),
-                insts_processed: stats.count("insts_processed"),
-                egraph_nodes_peak: stats.count("egraph_nodes_peak"),
-                egraph_classes_peak: stats.count("egraph_classes_peak"),
-                probe_saturations: stats.count("probe_saturations"),
-                probe_iterations: stats.count("probe_iterations"),
-                probe_reduces: stats.count("probe_reduces"),
-                probe_early_stops: stats.count("probe_early_stops"),
-                block_scratch_clones: stats.count("block_scratch_clones"),
-                block_scratch_saturations: stats.count("block_scratch_saturations"),
-                block_scratch_iterations: stats.count("block_scratch_iterations"),
-                block_scratch_freehits: stats.count("block_scratch_freehits"),
-                prove_calls: stats.count("prove_calls"),
-                prove_goal_true: stats.count("prove_goal_true"),
-                prove_inconsistent: stats.count("prove_inconsistent"),
-                prove_dead_block: stats.count("prove_dead_block"),
-                prove_memo: stats.count("prove_memo"),
-                prove_saturate: stats.count("prove_saturate"),
-                prove_probe: stats.count("prove_probe"),
-                prove_ite_decompose: stats.count("prove_ite_decompose"),
-                per_rule: stats.object("per_rule"),
-                rule_timing: stats.object("rule_timing"),
-                ..Default::default()
-            };
-            // Only the stats without a column of their own (e.g. counters
-            // added to Helium after the schema) stay in `meta`.
-            let mut meta = json!({ "warmup": ctx.warmup, "exit_code": m.runs.exit_code });
-            if let Some(rest) = stats.rest() {
-                meta["stats"] = rest;
-            }
-            row.meta = Set(Some(meta));
-            row
-        });
-        helium_runs::Entity::insert_many(rows).exec(conn).await?;
-        Ok(())
-    }
 }
 
 /// What every row of one benchmark run (one start of the runner) shares.
@@ -189,7 +73,7 @@ impl BenchRun {
     }
 }
 
-fn run_status(v: &Verdict) -> RunStatus {
+pub(super) fn run_status(v: &Verdict) -> RunStatus {
     match v {
         Verdict::Verified => RunStatus::Verified,
         Verdict::Failed => RunStatus::Failed,
@@ -305,6 +189,122 @@ impl Executor for Helium {
             .count(conn)
             .await
             .map(|n| n as usize)
+    }
+
+    /// Insert the timed runs of one [`super::measure`] of `bench` into
+    /// `helium_runs`, numbered on from the runs already stored. The benchmark's metrics rows must
+    /// exist already (foreign keys on both hashes).
+    async fn store<C: ConnectionTrait>(
+        &self,
+        conn: &C,
+        run: &BenchRun,
+        bench: &Benchmark,
+        ctx: &RunContext,
+        measurements: &[Measurement],
+    ) -> Result<(), DbErr> {
+        let Some(vpr) = bench.viper.as_deref() else {
+            return Ok(());
+        };
+        if measurements.is_empty() {
+            return Ok(());
+        }
+        let hash = |p: &Path| {
+            hash_file(p).map_err(|e| DbErr::Custom(format!("cannot read {}: {e}", p.display())))
+        };
+        let vpr_sha256 = hash(vpr)?;
+        let rs_sha256 = bench.rust.as_deref().map(hash).transpose()?;
+        let existing_runs = self.check_existing(conn, &vpr_sha256).await.unwrap_or(0);
+        let rows = measurements.iter().enumerate().map(|(i, m)| {
+            let json = json_line(&m.runs.stdout);
+            let mut stats = Stats::new(json.as_ref());
+            let phase = |name: &str| Set(m.outcomes.phases.get(name).copied());
+            let count = |f: fn(&Verdict) -> bool| {
+                Set(Some(m.outcomes.members.iter().filter(|x| f(&x.verdict)).count() as i32))
+            };
+            let message = match &m.outcomes.verdict {
+                Verdict::Crashed(msg) if !msg.is_empty() => Some(msg.clone()),
+                _ => None,
+            };
+            let mut row = helium_runs::ActiveModel {
+                run_id: Set(run.run_id.clone()),
+                started_at: Set(run.started_at),
+                host: Set(run.host.clone()),
+                suite: Set(bench.suite.clone()),
+                family: Set(bench.family.clone()),
+                test: Set(bench.test.clone()),
+                vpr_sha256: Set(vpr_sha256.clone()),
+                rs_sha256: Set(rs_sha256.clone()),
+                backend_version: Set(Some(self.commit.clone())),
+                dirty: Set(Some(self.dirty)),
+                iteration: Set((existing_runs + i) as i32),
+                status: Set(run_status(&m.outcomes.verdict)),
+                timeout_s: Set(ctx.timeout.map(|t| t.as_secs_f64())),
+                wall_s: Set(Some(m.runs.wall)),
+                peak_rss_mb: Set(m
+                    .runs
+                    .peak_rss_mb
+                    .or_else(|| json.as_ref()?["peak_rss_mb"].as_f64())),
+                message: Set(message),
+                self_s: Set(m.outcomes.self_time),
+                members_ok: count(|v| *v == Verdict::Verified),
+                members_fail: count(|v| *v == Verdict::Failed),
+                members_unsupported: count(|v| *v == Verdict::Inconclusive),
+                members_skip: count(|v| *v == Verdict::Skipped),
+                members_error: count(|v| matches!(v, Verdict::Crashed(_))),
+                parse_s: phase("parse"),
+                macros_s: phase("macros"),
+                idents_s: phase("idents"),
+                disambiguate_s: phase("disambiguate"),
+                globals_s: phase("globals"),
+                typecheck_s: phase("typecheck"),
+                analyze_s: phase("analyze"),
+                translate_s: phase("translate"),
+                verify_s: phase("verify"),
+                search_s: stats.seconds(&["timing", "search"]),
+                apply_s: stats.seconds(&["timing", "apply"]),
+                rebuild_s: stats.seconds(&["timing", "rebuild"]),
+                ground_s: stats.seconds(&["graph_timing", "ground"]),
+                scratch_s: stats.seconds(&["graph_timing", "scratch"]),
+                probe_s: stats.seconds(&["graph_timing", "probe"]),
+                scratch_clone_s: stats.seconds(&["graph_timing", "scratch_clone"]),
+                saturations: stats.count("saturations"),
+                sat_iterations: stats.count("sat_iterations"),
+                reduces: stats.count("reduces"),
+                rule_applications: stats.count("rule_applications"),
+                insts_processed: stats.count("insts_processed"),
+                egraph_nodes_peak: stats.count("egraph_nodes_peak"),
+                egraph_classes_peak: stats.count("egraph_classes_peak"),
+                probe_saturations: stats.count("probe_saturations"),
+                probe_iterations: stats.count("probe_iterations"),
+                probe_reduces: stats.count("probe_reduces"),
+                probe_early_stops: stats.count("probe_early_stops"),
+                block_scratch_clones: stats.count("block_scratch_clones"),
+                block_scratch_saturations: stats.count("block_scratch_saturations"),
+                block_scratch_iterations: stats.count("block_scratch_iterations"),
+                block_scratch_freehits: stats.count("block_scratch_freehits"),
+                prove_calls: stats.count("prove_calls"),
+                prove_goal_true: stats.count("prove_goal_true"),
+                prove_inconsistent: stats.count("prove_inconsistent"),
+                prove_dead_block: stats.count("prove_dead_block"),
+                prove_memo: stats.count("prove_memo"),
+                prove_saturate: stats.count("prove_saturate"),
+                prove_probe: stats.count("prove_probe"),
+                prove_ite_decompose: stats.count("prove_ite_decompose"),
+                per_rule: stats.object("per_rule"),
+                rule_timing: stats.object("rule_timing"),
+                ..Default::default()
+            };
+            // Only the stats without a column of their own (e.g. counters
+            // added to Helium after the schema) stay in `meta`.
+            let mut meta = json!({ "warmup": ctx.warmup, "exit_code": m.runs.exit_code });
+            if let Some(rest) = stats.rest() {
+                meta["stats"] = rest;
+            }
+            row.meta = Set(Some(meta));
+            row
+        });
+        helium_runs::Entity::insert_many(rows).exec(conn).await?;
+        Ok(())
     }
 
     fn run(&mut self, input: &Path, ctx: &RunContext) -> std::io::Result<RawRun> {

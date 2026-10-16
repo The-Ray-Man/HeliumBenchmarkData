@@ -7,11 +7,16 @@ use std::process::Command;
 use std::sync::LazyLock;
 
 use regex::Regex;
+use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter};
 
+use serde_json::json;
+
 use crate::db::rustc_runs;
-use super::{Executor, Outcome, ParseError, RawRun, RunContext, Verdict, run_process};
+use super::helium::{BenchRun, run_status};
+use super::{Executor, Measurement, Outcome, ParseError, RawRun, RunContext, Verdict, run_process};
 use crate::explorer::Benchmark;
+use crate::utils::hash_file;
 
 pub struct Rustc {
     /// The toolchain's own `rustc`, not the rustup proxy (which adds its own
@@ -79,6 +84,67 @@ impl Executor for Rustc {
             .count(conn)
             .await
             .map(|n| n as usize)
+    }
+
+    /// Insert the timed runs of one [`super::measure`] of `bench` into
+    /// `rustc_runs`, numbered on from the runs already stored. The
+    /// benchmark's metrics row must exist already (foreign key on the hash).
+    async fn store<C: ConnectionTrait>(
+        &self,
+        conn: &C,
+        run: &BenchRun,
+        bench: &Benchmark,
+        ctx: &RunContext,
+        measurements: &[Measurement],
+    ) -> Result<(), DbErr> {
+        let Some(rs) = bench.rust.as_deref() else {
+            return Ok(());
+        };
+        if measurements.is_empty() {
+            return Ok(());
+        }
+        let rs_sha256 = hash_file(rs)
+            .map_err(|e| DbErr::Custom(format!("cannot read {}: {e}", rs.display())))?;
+        let existing_runs = self.check_existing(conn, &rs_sha256).await.unwrap_or(0);
+        let rows = measurements.iter().enumerate().map(|(i, m)| {
+            // A failed check says why in its first `error` line.
+            let message = match &m.outcomes.verdict {
+                Verdict::Crashed(msg) if !msg.is_empty() => Some(msg.clone()),
+                Verdict::Failed => m
+                    .runs
+                    .stderr
+                    .lines()
+                    .find(|l| l.starts_with("error"))
+                    .map(str::to_string),
+                _ => None,
+            };
+            rustc_runs::ActiveModel {
+                run_id: Set(run.run_id.clone()),
+                started_at: Set(run.started_at),
+                host: Set(run.host.clone()),
+                suite: Set(bench.suite.clone()),
+                family: Set(bench.family.clone()),
+                test: Set(bench.test.clone()),
+                rs_sha256: Set(rs_sha256.clone()),
+                backend_version: Set(Some(self.id.clone())),
+                iteration: Set((existing_runs + i) as i32),
+                status: Set(run_status(&m.outcomes.verdict)),
+                timeout_s: Set(ctx.timeout.map(|t| t.as_secs_f64())),
+                wall_s: Set(Some(m.runs.wall)),
+                peak_rss_mb: Set(m.runs.peak_rss_mb),
+                message: Set(message),
+                meta: Set(Some(json!({
+                    "warmup": ctx.warmup,
+                    "exit_code": m.runs.exit_code,
+                    "args": self.args,
+                }))),
+                self_s: Set(m.outcomes.self_time),
+                phases: Set((!m.outcomes.phases.is_empty()).then(|| json!(m.outcomes.phases))),
+                ..Default::default()
+            }
+        });
+        rustc_runs::Entity::insert_many(rows).exec(conn).await?;
+        Ok(())
     }
 
     fn run(&mut self, input: &Path, ctx: &RunContext) -> std::io::Result<RawRun> {
