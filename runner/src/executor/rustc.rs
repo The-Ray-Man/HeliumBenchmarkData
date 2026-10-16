@@ -31,8 +31,13 @@ pub struct Rustc {
 
 impl Rustc {
     /// `toolchain` is passed to rustup as `+toolchain`; `args` go before the
-    /// file on every run (e.g. `--edition 2021 --crate-type lib`).
-    pub fn new(toolchain: Option<&str>, args: Vec<String>) -> std::io::Result<Self> {
+    /// file on every run (e.g. `--edition 2021`). Without a `--crate-type`
+    /// in `args`, files are checked as `--crate-type lib`: most benchmarks
+    /// have no `main`.
+    pub fn new(toolchain: Option<&str>, mut args: Vec<String>) -> std::io::Result<Self> {
+        if !args.iter().any(|a| a.starts_with("--crate-type")) {
+            args.extend(["--crate-type".to_string(), "lib".to_string()]);
+        }
         let proxy = |extra: &[&str]| {
             let mut c = Command::new("rustc");
             if let Some(tc) = toolchain {
