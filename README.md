@@ -65,7 +65,7 @@ Relative paths are resolved against the folder of the config file (`runner/`). W
 
 | Field | Required | Meaning |
 |---|---|---|
-| `rustc_toolchain` | no | rustup toolchain for `rustc` (e.g. `nightly-2026-08-19`); omitted uses `rust-toolchain.toml` / rustup's default |
+| `rustc_toolchain` | no | rustup toolchain for `rustc` and for rebuilding Helium (e.g. `nightly-2026-08-19`); omitted uses `rust-toolchain.toml` / rustup's default |
 | `java` | no (`"java"`) | Java command; a bare name is looked up on `PATH` |
 | `silicon.jar` | yes | Silicon's fat jar (`sbt assembly` in the Silicon repo) |
 | `silicon.jvm_args` | no (`[]`) | JVM arguments, e.g. `["-Xss128m"]` |
@@ -76,6 +76,7 @@ Relative paths are resolved against the folder of the config file (`runner/`). W
 | `helium` | yes | Helium's `verify` binary (`verify.exe` on Windows) |
 | `suites_dir` | yes | folder with one subfolder per suite, e.g. `../suites` |
 | `repeat_runs` | no (`5`) | measured runs per benchmark (at least 1) |
+| `warmup_runs` | no (`1`) | untimed runs per benchmark before the measured ones (`0` for none) |
 | `timeout` | no (no limit) | seconds after which a run is killed |
 | `suites` | yes | the benchmark suites, see below |
 
