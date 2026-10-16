@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use chrono::{DateTime, FixedOffset};
-use sea_orm::ActiveValue::Set;
+use sea_orm::ActiveValue::{self, Set};
 use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter};
 use serde_json::{json, Value};
 use crate::db::helium_runs;
@@ -76,6 +76,7 @@ impl Helium {
         let existing_runs = self.check_existing(conn, &vpr_sha256).await.unwrap_or(0);
         let rows = measurements.iter().enumerate().map(|(i, m)| {
             let json = json_line(&m.runs.stdout);
+            let mut stats = Stats::new(json.as_ref());
             let phase = |name: &str| Set(m.outcomes.phases.get(name).copied());
             let count = |f: fn(&Verdict) -> bool| {
                 Set(Some(m.outcomes.members.iter().filter(|x| f(&x.verdict)).count() as i32))
@@ -84,7 +85,7 @@ impl Helium {
                 Verdict::Crashed(msg) if !msg.is_empty() => Some(msg.clone()),
                 _ => None,
             };
-            helium_runs::ActiveModel {
+            let mut row = helium_runs::ActiveModel {
                 run_id: Set(run.run_id.clone()),
                 started_at: Set(run.started_at),
                 host: Set(run.host.clone()),
@@ -104,11 +105,6 @@ impl Helium {
                     .peak_rss_mb
                     .or_else(|| json.as_ref()?["peak_rss_mb"].as_f64())),
                 message: Set(message),
-                meta: Set(Some(json!({
-                    "warmup": ctx.warmup,
-                    "exit_code": m.runs.exit_code,
-                    "stats": json.as_ref().map_or(Value::Null, |j| j["stats"].clone()),
-                }))),
                 self_s: Set(m.outcomes.self_time),
                 members_ok: count(|v| *v == Verdict::Verified),
                 members_fail: count(|v| *v == Verdict::Failed),
@@ -124,8 +120,48 @@ impl Helium {
                 analyze_s: phase("analyze"),
                 translate_s: phase("translate"),
                 verify_s: phase("verify"),
+                search_s: stats.seconds(&["timing", "search"]),
+                apply_s: stats.seconds(&["timing", "apply"]),
+                rebuild_s: stats.seconds(&["timing", "rebuild"]),
+                ground_s: stats.seconds(&["graph_timing", "ground"]),
+                scratch_s: stats.seconds(&["graph_timing", "scratch"]),
+                probe_s: stats.seconds(&["graph_timing", "probe"]),
+                scratch_clone_s: stats.seconds(&["graph_timing", "scratch_clone"]),
+                saturations: stats.count("saturations"),
+                sat_iterations: stats.count("sat_iterations"),
+                reduces: stats.count("reduces"),
+                rule_applications: stats.count("rule_applications"),
+                insts_processed: stats.count("insts_processed"),
+                egraph_nodes_peak: stats.count("egraph_nodes_peak"),
+                egraph_classes_peak: stats.count("egraph_classes_peak"),
+                probe_saturations: stats.count("probe_saturations"),
+                probe_iterations: stats.count("probe_iterations"),
+                probe_reduces: stats.count("probe_reduces"),
+                probe_early_stops: stats.count("probe_early_stops"),
+                block_scratch_clones: stats.count("block_scratch_clones"),
+                block_scratch_saturations: stats.count("block_scratch_saturations"),
+                block_scratch_iterations: stats.count("block_scratch_iterations"),
+                block_scratch_freehits: stats.count("block_scratch_freehits"),
+                prove_calls: stats.count("prove_calls"),
+                prove_goal_true: stats.count("prove_goal_true"),
+                prove_inconsistent: stats.count("prove_inconsistent"),
+                prove_dead_block: stats.count("prove_dead_block"),
+                prove_memo: stats.count("prove_memo"),
+                prove_saturate: stats.count("prove_saturate"),
+                prove_probe: stats.count("prove_probe"),
+                prove_ite_decompose: stats.count("prove_ite_decompose"),
+                per_rule: stats.object("per_rule"),
+                rule_timing: stats.object("rule_timing"),
                 ..Default::default()
+            };
+            // Only the stats without a column of their own (e.g. counters
+            // added to Helium after the schema) stay in `meta`.
+            let mut meta = json!({ "warmup": ctx.warmup, "exit_code": m.runs.exit_code });
+            if let Some(rest) = stats.rest() {
+                meta["stats"] = rest;
             }
+            row.meta = Set(Some(meta));
+            row
         });
         helium_runs::Entity::insert_many(rows).exec(conn).await?;
         Ok(())
@@ -161,6 +197,48 @@ fn run_status(v: &Verdict) -> RunStatus {
         Verdict::Crashed(_) => RunStatus::Crashed,
         Verdict::TimedOut => RunStatus::TimedOut,
         Verdict::Skipped => RunStatus::Skipped,
+    }
+}
+
+/// The `stats` object of `verify --json`. Each field is removed as it is
+/// moved into its column, so [`Stats::rest`] holds only the unmapped ones.
+struct Stats(serde_json::Map<String, Value>);
+
+impl Stats {
+    fn new(json: Option<&Value>) -> Self {
+        let stats = json.and_then(|j| j.get("stats")).and_then(Value::as_object);
+        Stats(stats.cloned().unwrap_or_default())
+    }
+
+    /// Remove the value at `path` if `convert` accepts it; a value of the
+    /// wrong type stays behind for `meta`.
+    fn take<T>(&mut self, path: &[&str], convert: impl FnOnce(&Value) -> Option<T>) -> Option<T> {
+        let (last, parents) = path.split_last()?;
+        let mut map = &mut self.0;
+        for p in parents {
+            map = map.get_mut(*p)?.as_object_mut()?;
+        }
+        let value = convert(map.get(*last)?)?;
+        map.remove(*last);
+        Some(value)
+    }
+
+    fn seconds(&mut self, path: &[&str]) -> ActiveValue<Option<f64>> {
+        Set(self.take(path, Value::as_f64))
+    }
+
+    fn count(&mut self, key: &str) -> ActiveValue<Option<i64>> {
+        Set(self.take(&[key], Value::as_i64))
+    }
+
+    fn object(&mut self, key: &str) -> ActiveValue<Option<Value>> {
+        Set(self.take(&[key], |v| v.is_object().then(|| v.clone())))
+    }
+
+    /// What no column took, without the groups that were emptied.
+    fn rest(mut self) -> Option<Value> {
+        self.0.retain(|_, v| v.as_object().is_none_or(|o| !o.is_empty()));
+        (!self.0.is_empty()).then(|| Value::Object(self.0))
     }
 }
 
@@ -320,5 +398,28 @@ mod tests {
     fn file_level_error() {
         let v: Value = serde_json::from_str(r#"{"results":[],"error":"parse error"}"#).unwrap();
         assert_eq!(parse_json(&v).unwrap().verdict, Verdict::Crashed("parse error".to_owned()));
+    }
+
+    #[test]
+    fn stats_move_into_columns() {
+        let v: Value = serde_json::from_str(
+            r#"{"stats":{"timing":{"search":0.5,"apply":0.25},"reduces":105,
+                "per_rule":{"eq-refl":1},"new_counter":7}}"#,
+        )
+        .unwrap();
+        let mut stats = Stats::new(Some(&v));
+        assert_eq!(stats.seconds(&["timing", "search"]), Set(Some(0.5)));
+        assert_eq!(stats.seconds(&["timing", "apply"]), Set(Some(0.25)));
+        assert_eq!(stats.seconds(&["timing", "rebuild"]), Set(None));
+        assert_eq!(stats.count("reduces"), Set(Some(105)));
+        assert_eq!(stats.object("per_rule"), Set(Some(json!({"eq-refl": 1}))));
+        assert_eq!(stats.rest(), Some(json!({"new_counter": 7})));
+    }
+
+    #[test]
+    fn no_stats_leave_nothing() {
+        let mut stats = Stats::new(None);
+        assert_eq!(stats.count("reduces"), Set(None));
+        assert_eq!(stats.rest(), None);
     }
 }
