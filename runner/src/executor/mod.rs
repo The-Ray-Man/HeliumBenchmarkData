@@ -14,12 +14,13 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 use log::error;
-use sea_orm::ConnectionTrait;
+use sea_orm::{ConnectionTrait, DbErr};
 use crate::explorer::Benchmark;
+use crate::utils::hash_file;
 
-pub mod carbon;
+//pub mod carbon;
 pub mod helium;
-pub mod rustc;
+//pub mod rustc;
 
 /// A measured tool.
 pub trait Executor {
@@ -35,8 +36,9 @@ pub trait Executor {
     /// has no such file (rustc needs the `.rs`, the verifiers the `.vpr`).
     fn input<'a>(&self, bench: &'a Benchmark) -> Option<&'a Path>;
 
-    /// Checks how many runs have already been added to the Database
-    async fn check_existing<C: ConnectionTrait>(&self, conn :&C, bench: &Benchmark) -> usize;
+    /// How many runs of this exact build ([`Executor::id`]) on the input with
+    /// SHA-256 `sha256` are already in the database.
+    async fn check_existing<C: ConnectionTrait>(&self, conn: &C, sha256: &str) -> Result<usize, DbErr>;
 
     /// Run the tool once on `input`. Output goes to files under
     /// `ctx.scratch`; a run that does not finish within `ctx.timeout` is
@@ -141,9 +143,9 @@ pub struct Measurement {
 
 /// Measure `exec` on `bench`: `ctx.warmup` untimed runs, then `ctx.runs`
 /// timed ones. `None` when the benchmark has no input for this tool.
-pub async fn measure<C: ConnectionTrait>(
+pub async fn measure<C: ConnectionTrait, E: Executor>(
     conn: &C,
-    exec: &mut dyn Executor,
+    exec: &mut E,
     bench: &Benchmark,
     ctx: &RunContext,
 ) -> std::io::Result<Vec<Measurement>> {
@@ -152,9 +154,14 @@ pub async fn measure<C: ConnectionTrait>(
         return Ok(vec![]);
     };
 
+    let sha256 = hash_file(input)?;
+
     // Check if we actually need to compute it or if we already have the data
-    if (!ctx.force_rerun && exec.check_existing(conn, bench).await >= ctx.runs) {
-        return Ok(vec![]);
+    if !ctx.force_rerun {
+        let existing = exec.check_existing(conn, &sha256).await.map_err(std::io::Error::other)?;
+        if existing >= ctx.runs {
+            return Ok(vec![]);
+        }
     }
 
     // warmup run
@@ -162,7 +169,7 @@ pub async fn measure<C: ConnectionTrait>(
         let _ =exec.run(input, ctx).inspect_err(|err| error!("warmup run failed for bench {:#?} with error {:#?}", bench, err));
     }
 
-    let tool_id = exec.id();
+    let tool_id = exec.id().to_string();
     let tool = exec.name();
 
     // actual runs
@@ -170,61 +177,61 @@ pub async fn measure<C: ConnectionTrait>(
     for _ in 0..ctx.runs {
         let raw = exec.run(input, ctx);
         match raw {
+            Ok(raw_run) if raw_run.timed_out => {
+                // Output of a killed run may be incomplete: not parsed, and
+                // the remaining runs would time out as well.
+                measurements.push(Measurement {
+                    tool,
+                    tool_id: tool_id.clone(),
+                    runs: raw_run,
+                    outcomes: verdict_only(Verdict::TimedOut),
+                });
+                break;
+            }
             Ok(raw_run) => {
-                let outcome = exec.parse(&raw_run);
-                match outcome {
-                    Ok(outcome) => {
-                        measurements.push(Measurement {
-                            tool,
-                            tool_id: tool_id.clone().parse().unwrap(),
-                            runs: raw_run,
-                            outcomes: outcome,
-                        })
-                    }
-                    Err(err) => {
-                        measurements.push(Measurement {
-                            tool,
-                            tool_id: tool_id.clone().parse().unwrap(),
-                            runs: RawRun {
-                                wall: 0.0,
-                                peak_rss_mb: None,
-                                exit_code: Some(1),
-                                stdout: "".to_string(),
-                                stderr: err.to_string(),
-                            },
-                            outcomes: Outcome {
-                                verdict: Verdict::Crashed(err.to_string()),
-                                self_time: None,
-                                phases: Default::default(),
-                                members: vec![],
-                            },
-                        })
-                    }
-                }
+                let outcome = exec.parse(&raw_run).unwrap_or_else(|err| {
+                    // Usually a crash before the report (e.g. a stack
+                    // overflow); its last lines on stderr say why.
+                    let tail: Vec<&str> = raw_run.stderr.lines().rev().take(5).collect();
+                    let tail: Vec<&str> = tail.into_iter().rev().collect();
+                    verdict_only(Verdict::Crashed(format!("{err}\n{}", tail.join("\n"))))
+                });
+                measurements.push(Measurement {
+                    tool,
+                    tool_id: tool_id.clone(),
+                    runs: raw_run,
+                    outcomes: outcome,
+                })
             }
             Err(err) => {
                 measurements.push(Measurement {
                     tool,
-                    tool_id: tool_id.clone().parse().unwrap(),
+                    tool_id: tool_id.clone(),
                     runs: RawRun {
                         wall: 0.0,
                         peak_rss_mb: None,
                         exit_code: Some(1),
                         stdout: "".to_string(),
                         stderr: err.to_string(),
+                        timed_out: false,
                     },
-                    outcomes: Outcome {
-                        verdict: Verdict::Crashed(err.to_string())  ,
-                        self_time: None,
-                        phases: Default::default(),
-                        members: vec![],
-                    },
+                    outcomes: verdict_only(Verdict::Crashed(err.to_string())),
                 })
             }
         }
     }
 
     Ok(measurements)
+}
+
+/// An outcome with nothing but its verdict.
+fn verdict_only(verdict: Verdict) -> Outcome {
+    Outcome {
+        verdict,
+        self_time: None,
+        phases: BTreeMap::new(),
+        members: vec![],
+    }
 }
 
 /// Run `cmd` as its own process, stdout and stderr redirected to files in
