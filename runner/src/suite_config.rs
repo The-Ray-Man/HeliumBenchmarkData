@@ -15,7 +15,8 @@ use serde::{Deserialize, Deserializer};
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SuiteConfig {
-    /// Toolchain passed to rustup as `+toolchain`; `None` uses the default
+    /// Toolchain passed to rustup as `+toolchain` for `rustc` and for
+    /// rebuilding Helium; `None` uses the default
     /// resolution (`rust-toolchain.toml`, then rustup's default).
     #[serde(default)]
     pub rustc_toolchain: Option<String>,

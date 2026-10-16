@@ -27,11 +27,12 @@ pub struct Helium {
 
 impl Helium {
     /// `binary` is `<crate>/target/<profile>/verify[.exe]`. It is rebuilt
-    /// first (`cargo build --profile <profile> --bin verify` in `<crate>`),
-    /// so the measured build matches the checkout, then asked for its
-    /// version.
-    pub fn new(binary: PathBuf) -> std::io::Result<Self> {
-        rebuild(&binary)?;
+    /// first (`cargo [+toolchain] build --profile <profile> --bin verify` in
+    /// `<crate>`), so the measured build matches the checkout, then asked for
+    /// its version. `toolchain` is passed to rustup as `+toolchain`; `None`
+    /// uses the default resolution.
+    pub fn new(binary: PathBuf, toolchain: Option<&str>) -> std::io::Result<Self> {
+        rebuild(&binary, toolchain)?;
         let out = Command::new(&binary).arg("--version").output()?;
         if !out.status.success() {
             return Err(std::io::Error::other(format!(
@@ -170,8 +171,8 @@ fn json_line(stdout: &str) -> Option<Value> {
 }
 
 /// Rebuild `binary` with cargo, reading the crate and the profile from its
-/// path (`<crate>/target/<profile>/<bin>`).
-fn rebuild(binary: &Path) -> std::io::Result<()> {
+/// path (`<crate>/target/<profile>/<bin>`), with `toolchain` if given.
+fn rebuild(binary: &Path, toolchain: Option<&str>) -> std::io::Result<()> {
     let bad_path = || {
         std::io::Error::other(format!(
             "{}: expected `<crate>/target/<profile>/<binary>`",
@@ -188,7 +189,11 @@ fn rebuild(binary: &Path) -> std::io::Result<()> {
         "debug" => "dev",
         p => p,
     };
-    let status = Command::new("cargo")
+    let mut cmd = Command::new("cargo");
+    if let Some(tc) = toolchain {
+        cmd.arg(format!("+{tc}"));
+    }
+    let status = cmd
         .args(["build", "--profile", profile, "--bin", bin])
         .current_dir(crate_dir)
         .status()?;

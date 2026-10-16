@@ -39,9 +39,9 @@ fn main() {
 async fn run() {
     let config = SuiteConfig::new("./suite.local.json").expect("a valid config. See config.example.json");
     let con = db::connection::connect().await.expect("could not connect to database");
-    info!("Recompile Helium");
-    let mut helium = Helium::new(config.helium.clone()).expect("building Helium's `verify`");
-    info!("Finished compiling Helium");
+    info!("Setup Helium");
+    let mut helium = Helium::new(config.helium.clone(), config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
+    info!("Setup Helium completed");
     let bench_run = BenchRun::new(&helium);
     info!("benchmark run {}", bench_run.run_id);
     let ctx = RunContext {
