@@ -1,3 +1,5 @@
+use crate::executor::helium::{BenchRun, Helium};
+use crate::executor::{measure, RunContext};
 use crate::explorer::Explorer;
 use crate::file_analyzer::record_benchmark;
 use crate::suite_config::SuiteConfig;
@@ -37,14 +39,34 @@ fn main() {
 async fn run() {
     let config = SuiteConfig::new("./suite.local.json").expect("a valid config. See config.example.json");
     let con = db::connection::connect().await.expect("could not connect to database");
+    info!("Recompile Helium");
+    let mut helium = Helium::new(config.helium.clone()).expect("building Helium's `verify`");
+    info!("Finished compiling Helium");
+    let bench_run = BenchRun::new(&helium);
+    info!("benchmark run {}", bench_run.run_id);
+    let ctx = RunContext {
+        scratch: std::env::temp_dir().join("helium-bench"),
+        timeout: config.timeout(),
+        warmup: config.warmup_runs,
+        runs: config.repeat_runs,
+        force_rerun: false,
+    };
     let mut counter = 0;
     for test_case in Explorer::new(&config) {
         match test_case {
             Ok(test_case) => {
                 if let Err(err) = record_benchmark(&con, test_case.clone()).await {
                     error!("failed to insert bench {test_case:?}. err: {err}");
-                } else {
-                    counter += 1;
+                    continue;
+                }
+                counter += 1;
+                match measure(&con, &mut helium, &test_case, &ctx).await {
+                    Ok(measurements) => {
+                        if let Err(err) = helium.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
+                            error!("failed to store Helium runs of {test_case:?}: {err}");
+                        }
+                    }
+                    Err(err) => error!("measuring Helium on {test_case:?} failed: {err}"),
                 }
             }
             Err(error) => error!("{error}"),

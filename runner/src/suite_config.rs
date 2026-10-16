@@ -30,6 +30,9 @@ pub struct SuiteConfig {
     /// How often every benchmark is measured.
     #[serde(default = "default_repeat_runs")]
     pub repeat_runs: usize,
+    /// Untimed runs before the measured ones, per benchmark and tool.
+    #[serde(default = "default_warmup_runs")]
+    pub warmup_runs: usize,
     /// Seconds after which a single run is killed; `None` means no limit.
     #[serde(default)]
     pub timeout: Option<f64>,
@@ -72,6 +75,10 @@ fn default_activated() -> bool {
 
 fn default_java() -> PathBuf {
     "java".into()
+}
+
+fn default_warmup_runs() -> usize {
+    1
 }
 
 fn default_repeat_runs() -> usize {
@@ -414,6 +421,7 @@ mod tests {
         assert_eq!(config.rustc_toolchain, None);
         assert_eq!(config.java, Path::new("java"));
         assert_eq!(config.repeat_runs, 5);
+        assert_eq!(config.warmup_runs, 1);
         assert_eq!(config.timeout(), None);
         assert!(config.silicon.jvm_args.is_empty() && config.silicon.args.is_empty());
         assert_eq!(config.silicon.warm.warmup_s, 60.0);
@@ -435,13 +443,14 @@ mod tests {
     #[test]
     fn reads_run_settings() {
         let config = config(
-            r#""rustc_toolchain": "nightly-2026-08-19", "java": "/opt/jdk/bin/java", "repeat_runs": 3, "timeout": 2.5,"#,
+            r#""rustc_toolchain": "nightly-2026-08-19", "java": "/opt/jdk/bin/java", "repeat_runs": 3, "warmup_runs": 0, "timeout": 2.5,"#,
             "[]",
         )
         .unwrap();
         assert_eq!(config.rustc_toolchain.as_deref(), Some("nightly-2026-08-19"));
         assert_eq!(config.java, Path::new("/opt/jdk/bin/java"));
         assert_eq!(config.repeat_runs, 3);
+        assert_eq!(config.warmup_runs, 0);
         assert_eq!(config.timeout(), Some(Duration::from_millis(2500)));
     }
 
