@@ -1,5 +1,6 @@
 use crate::executor::helium::{BenchRun, Helium};
-use crate::executor::{measure, RunContext};
+use crate::executor::rustc::Rustc;
+use crate::executor::{measure, Executor, RunContext};
 use crate::explorer::Explorer;
 use crate::file_analyzer::record_benchmark;
 use crate::suite_config::SuiteConfig;
@@ -42,6 +43,11 @@ async fn run() {
     info!("Setup Helium");
     let mut helium = Helium::new(config.helium.clone(), config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
     info!("Setup Helium completed");
+
+    info!("Setup Rustc");
+    let mut rustc = Rustc::new(config.rustc_toolchain.as_deref(), vec![]).expect("finding rustc");
+    info!("Setup Rustc completed");
+
     let bench_run = BenchRun::new(&helium);
     info!("benchmark run {}", bench_run.run_id);
     let ctx = RunContext {
@@ -68,6 +74,16 @@ async fn run() {
                     }
                     Err(err) => error!("measuring Helium on {test_case:?} failed: {err}"),
                 }
+
+                match measure(&con, &mut rustc, &test_case, &ctx).await {
+                    Ok(measurements) => {
+                        if let Err(err) = rustc.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
+                            error!("failed to store Rustc runs of {test_case:?}: {err}");
+                        }
+                    }
+                    Err(err) => error!("measuring Rustc on {test_case:?} failed: {err}"),
+                }
+
             }
             Err(error) => error!("{error}"),
         }
