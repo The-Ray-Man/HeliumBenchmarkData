@@ -1,0 +1,111 @@
+{
+  "uid": "adr29dn",
+  "title": "Helium Stats",
+  "description": "Where Helium spends its time (helium_runs).",
+  "tags": [
+    "helium"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "schemaVersion": 42,
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "type": "barchart",
+      "title": "Verification time by phase",
+      "description": "Average time per phase, in pipeline order. The iterations of a test within one benchmark run are averaged first, so every test run counts once. The bar's length is the average total.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "-- Average the iterations of each test within a benchmark run first, so every test\n-- counts once however often it was repeated.\nWITH per_test AS (\n  SELECT\n    AVG(parse_s)        AS parse_s,\n    AVG(macros_s)       AS macros_s,\n    AVG(idents_s)       AS idents_s,\n    AVG(disambiguate_s) AS disambiguate_s,\n    AVG(globals_s)      AS globals_s,\n    AVG(typecheck_s)    AS typecheck_s,\n    AVG(analyze_s)      AS analyze_s,\n    AVG(translate_s)    AS translate_s,\n    AVG(verify_s)       AS verify_s\n  FROM helium_runs\n  GROUP BY run_id, suite, test\n)\n-- One row; the bar chart needs a string column for the bar and one numeric column per segment.\nSELECT\n  'all tests'         AS run,\n  AVG(parse_s)        AS parse,\n  AVG(macros_s)       AS macros,\n  AVG(idents_s)       AS idents,\n  AVG(disambiguate_s) AS disambiguate,\n  AVG(globals_s)      AS globals,\n  AVG(typecheck_s)    AS typecheck,\n  AVG(analyze_s)      AS analyze,\n  AVG(translate_s)    AS translate,\n  AVG(verify_s)       AS verify\nFROM per_test"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "run",
+        "stacking": "normal",
+        "showValue": "auto",
+        "barWidth": 1,
+        "groupWidth": 0.8,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
