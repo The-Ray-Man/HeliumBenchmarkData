@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::LazyLock;
 
+use log::debug;
 use regex::Regex;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter};
@@ -65,6 +66,11 @@ impl Rustc {
             .trim()
             .to_string();
         let time_passes = id.contains("-nightly") || id.contains("-dev");
+        debug!(
+            "rustc at {}, args {args:?}, {}",
+            rustc.display(),
+            if time_passes { "with -Z time-passes" } else { "no -Z time-passes (not nightly)" }
+        );
         Ok(Rustc { rustc, args, id, time_passes })
     }
 }
@@ -149,6 +155,7 @@ impl Executor for Rustc {
             }
         });
         rustc_runs::Entity::insert_many(rows).exec(conn).await?;
+        debug!("{bench}: stored {} rustc runs from iteration {existing_runs}", measurements.len());
         Ok(())
     }
 

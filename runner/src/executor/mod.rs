@@ -13,7 +13,7 @@ use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
-use log::error;
+use log::{debug, info, trace, warn};
 use sea_orm::{ConnectionTrait, DbErr};
 use crate::executor::helium::BenchRun;
 use crate::explorer::Benchmark;
@@ -162,6 +162,7 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
 ) -> std::io::Result<Vec<Measurement>> {
     // This benchmark does not have a file of the correct type
     let Some(input) = exec.input(bench) else {
+        debug!("{bench}: no input for {}, skipped", exec.name());
         return Ok(vec![]);
     };
 
@@ -171,13 +172,19 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
     if !ctx.force_rerun {
         let existing = exec.check_existing(conn, &sha256).await.map_err(std::io::Error::other)?;
         if existing >= ctx.runs {
+            debug!("{bench}: {} already has {existing} runs, skipped", exec.name());
             return Ok(vec![]);
         }
+        debug!("{bench}: {} has {existing} of {} runs", exec.name(), ctx.runs);
     }
+    info!("{bench}: measuring {} on {}", exec.name(), input.display());
 
     // warmup run
-    for _ in 0..ctx.warmup {
-        let _ =exec.run(input, ctx).inspect_err(|err| error!("warmup run failed for bench {:#?} with error {:#?}", bench, err));
+    for i in 0..ctx.warmup {
+        match exec.run(input, ctx) {
+            Ok(raw) => debug!("{bench}: {} warm-up {}/{}: {raw}", exec.name(), i + 1, ctx.warmup),
+            Err(err) => warn!("{bench}: {} warm-up run failed: {err}", exec.name()),
+        }
     }
 
     let tool_id = exec.id().to_string();
@@ -185,10 +192,11 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
 
     // actual runs
     let mut measurements = vec![];
-    for _ in 0..ctx.runs {
+    for i in 0..ctx.runs {
         let raw = exec.run(input, ctx);
         match raw {
             Ok(raw_run) if raw_run.timed_out => {
+                warn!("{bench}: {tool} run {}/{}: {raw_run}, remaining runs skipped", i + 1, ctx.runs);
                 // Output of a killed run may be incomplete: not parsed, and
                 // the remaining runs would time out as well.
                 measurements.push(Measurement {
@@ -201,20 +209,24 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
             }
             Ok(raw_run) => {
                 let outcome = exec.parse(&raw_run).unwrap_or_else(|err| {
+                    warn!("{bench}: {tool} run {}/{}: {err} ({raw_run})", i + 1, ctx.runs);
                     // Usually a crash before the report (e.g. a stack
                     // overflow); its last lines on stderr say why.
                     let tail: Vec<&str> = raw_run.stderr.lines().rev().take(5).collect();
                     let tail: Vec<&str> = tail.into_iter().rev().collect();
                     verdict_only(Verdict::Crashed(format!("{err}\n{}", tail.join("\n"))))
                 });
-                measurements.push(Measurement {
+                let m = Measurement {
                     tool,
                     tool_id: tool_id.clone(),
                     runs: raw_run,
                     outcomes: outcome,
-                })
+                };
+                debug!("{bench}: run {}/{}: {m}", i + 1, ctx.runs);
+                measurements.push(m)
             }
             Err(err) => {
+                warn!("{bench}: {tool} run {}/{} could not start: {err}", i + 1, ctx.runs);
                 measurements.push(Measurement {
                     tool,
                     tool_id: tool_id.clone(),
@@ -232,6 +244,10 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
         }
     }
 
+    if let Some(last) = measurements.last() {
+        let mean = measurements.iter().map(|m| m.runs.wall).sum::<f64>() / measurements.len() as f64;
+        info!("{bench}: {last}, mean wall {mean:.3}s over {} runs", measurements.len());
+    }
     Ok(measurements)
 }
 
@@ -260,6 +276,7 @@ pub fn run_process(
         .stdout(File::create(&out_path)?)
         .stderr(File::create(&err_path)?);
 
+    trace!("running {cmd:?}");
     let start = Instant::now();
     let mut child = cmd.spawn()?;
     let (status, timed_out) = loop {

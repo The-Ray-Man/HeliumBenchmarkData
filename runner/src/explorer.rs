@@ -11,6 +11,8 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use log::{debug, trace};
+
 use crate::suite_config::SuiteConfig;
 
 /// One benchmark: a Rust program, its Viper encoding, or both.
@@ -67,6 +69,7 @@ impl Explorer {
     /// Reads `next`: its benchmarks go to `ready`, its subdirectories to the
     /// front of `pending` so each family is finished depth-first before the next.
     fn read(&mut self, next: Pending) -> io::Result<()> {
+        trace!("reading {}", next.dir.display());
         let mut subdirs = Vec::new();
         let mut pairs: BTreeMap<String, (Option<PathBuf>, Option<PathBuf>)> = BTreeMap::new();
         for entry in fs::read_dir(&next.dir)? {
@@ -87,6 +90,9 @@ impl Explorer {
             }
         }
 
+        if !pairs.is_empty() {
+            debug!("{}: {} benchmarks", next.dir.display(), pairs.len());
+        }
         let prefix = test_prefix(&next.root, &next.dir);
         self.ready.extend(pairs.into_iter().map(|(stem, (rust, viper))| Benchmark {
             suite: next.suite.clone(),

@@ -12,7 +12,7 @@ mod viper;
 
 use std::fmt;
 use std::path::{Path, PathBuf};
-use log::info;
+use log::{debug, info};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ConnectionTrait};
 pub use rust::{FnMetrics, RustMetrics};
@@ -23,8 +23,8 @@ use crate::db::queries::{FileMetricsStatus, MetricsAction};
 use crate::explorer::Benchmark;
 
 pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark) -> Result<(), Error> {
-    info!("attempting {:?}", benchmark);
     let status = db::queries::benchmark_metrics_status(con, &benchmark).await?;
+    debug!("{benchmark}: metrics {status}");
     // The Rust row links to the Viper file; taken before `status.viper` moves.
     let vpr_sha256 = status.viper.as_ref().map(|v| v.sha256.clone());
     let rs_sha256 = status.rust.as_ref().map(|r| r.sha256.clone());
@@ -36,18 +36,16 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
                 let active = db::viper_metrics::ActiveModel {
                     vpr_sha256: Set(data.sha256),
                     measured_at: Set(chrono::Utc::now().fixed_offset()),
-                    ..(&analyze_viper(benchmark.viper.unwrap())?).into()
+                    ..(&analyze_viper(benchmark.viper.as_deref().unwrap())?).into()
                 };
                 match data.action {
                     MetricsAction::Insert => {active.insert(con).await?;}
                     MetricsAction::Update(_) => {active.update(con).await?;}
                     _ => {}
                 }
-                info!("viper metrics updated");
+                info!("{benchmark}: viper metrics {}", if data.action == MetricsAction::Insert { "inserted" } else { "updated" });
             }
-            MetricsAction::UpToDate => {
-                info!("up to date");
-            }
+            MetricsAction::UpToDate => {}
         }
     }
 
@@ -59,13 +57,14 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
                     rs_sha256: Set(data.sha256),
                     vpr_sha256: Set(vpr_sha256.clone()),
                     measured_at: Set(chrono::Utc::now().fixed_offset()),
-                    ..(analyze_rust(benchmark.rust.unwrap())?).into()
+                    ..(analyze_rust(benchmark.rust.as_deref().unwrap())?).into()
                 };
                 if let MetricsAction::Insert = data.action {
                     active.insert(con).await?;
                 } else if let MetricsAction::Update(_) = data.action {
                     active.update(con).await?;
                 }
+                info!("{benchmark}: rust metrics {}", if data.action == MetricsAction::Insert { "inserted" } else { "updated" });
             }
             MetricsAction::UpToDate => {}
         }

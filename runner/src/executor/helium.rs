@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use chrono::{DateTime, FixedOffset};
+use log::{debug, info, warn};
 use sea_orm::ActiveValue::{self, Set};
 use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter};
 use serde_json::{json, Value};
@@ -42,12 +43,16 @@ impl Helium {
             )));
         }
         let id = String::from_utf8_lossy(&out.stdout).trim().to_string();
+        debug!("{} --version: {id}", binary.display());
         // `helium-build silver-oxide 0.1.0 commit <hash>[-dirty]`
         let describe = id.split_whitespace().last().unwrap_or_default();
         let (commit, dirty) = match describe.strip_suffix("-dirty") {
             Some(commit) => (commit.to_string(), true),
             None => (describe.to_string(), false),
         };
+        if dirty {
+            warn!("Helium is built from uncommitted changes on top of {commit}");
+        }
         Ok(Helium { binary, id, commit, dirty })
     }
 }
@@ -155,6 +160,7 @@ fn rebuild(binary: &Path, toolchain: Option<&str>) -> std::io::Result<()> {
     if let Some(tc) = toolchain {
         cmd.arg(format!("+{tc}"));
     }
+    info!("Building `{bin}` ({profile}) in {}", crate_dir.display());
     let status = cmd
         .args(["build", "--profile", profile, "--bin", bin])
         .current_dir(crate_dir)
@@ -304,6 +310,7 @@ impl Executor for Helium {
             row
         });
         helium_runs::Entity::insert_many(rows).exec(conn).await?;
+        debug!("{bench}: stored {} Helium runs from iteration {existing_runs}", measurements.len());
         Ok(())
     }
 

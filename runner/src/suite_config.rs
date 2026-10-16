@@ -6,6 +6,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use log::{debug, info};
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
 
@@ -186,6 +187,15 @@ impl SuiteConfig {
                 path: path.to_path_buf(),
                 message,
             })?;
+        let active: Vec<&str> = config.activated_suites().map(|s| s.name.as_str()).collect();
+        info!(
+            "Loaded {}: {} of {} suites activated ({})",
+            path.display(),
+            active.len(),
+            config.suites.len(),
+            active.join(", ")
+        );
+        debug!("suites in {}", config.suites_dir.display());
         Ok(config)
     }
 

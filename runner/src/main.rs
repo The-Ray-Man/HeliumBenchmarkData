@@ -4,8 +4,9 @@ use crate::executor::{measure, Executor, RunContext};
 use crate::explorer::Explorer;
 use crate::file_analyzer::record_benchmark;
 use crate::suite_config::SuiteConfig;
-use log::{error, info, warn};
+use log::{debug, error, info};
 mod db;
+mod display;
 mod explorer;
 mod file_analyzer;
 mod suite_config;
@@ -20,7 +21,8 @@ pub mod executor;
 const STACK_SIZE: usize = 256 * 1024 * 1024;
 
 fn main() {
-    env_logger::init();
+    // `info` unless RUST_LOG says otherwise (e.g. `RUST_LOG=runner=debug`).
+    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     // `block_on` runs `run` on this thread, so the async code gets its stack.
     std::thread::Builder::new()
         .name("runner".into())
@@ -40,16 +42,15 @@ fn main() {
 async fn run() {
     let config = SuiteConfig::new("./suite.local.json").expect("a valid config. See config.example.json");
     let con = db::connection::connect().await.expect("could not connect to database");
-    info!("Setup Helium");
+    info!("Setting up Helium");
     let mut helium = Helium::new(config.helium.clone(), config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
-    info!("Setup Helium completed");
+    info!("Helium ready: {}", helium.id());
 
-    info!("Setup Rustc");
+    info!("Setting up rustc");
     let mut rustc = Rustc::new(config.rustc_toolchain.as_deref(), vec![]).expect("finding rustc");
-    info!("Setup Rustc completed");
+    info!("rustc ready: {}", rustc.id());
 
     let bench_run = BenchRun::new(&helium);
-    info!("benchmark run {}", bench_run.run_id);
     let ctx = RunContext {
         scratch: std::env::temp_dir().join("helium-bench"),
         timeout: config.timeout(),
@@ -57,39 +58,67 @@ async fn run() {
         runs: config.repeat_runs,
         force_rerun: false,
     };
-    let mut counter = 0;
+    info!("Benchmark run {bench_run}");
+    info!("Measuring with {ctx}");
+
+    let mut stats = RunStats::default();
     for test_case in Explorer::new(&config) {
         match test_case {
             Ok(test_case) => {
+                stats.benchmarks += 1;
+                debug!("benchmark {test_case}");
                 if let Err(err) = record_benchmark(&con, test_case.clone()).await {
-                    error!("failed to insert bench {test_case:?}. err: {err}");
+                    error!("{test_case}: recording metrics failed: {err}");
+                    stats.errors += 1;
                     continue;
                 }
-                counter += 1;
+
                 match measure(&con, &mut helium, &test_case, &ctx).await {
                     Ok(measurements) => {
+                        stats.runs += measurements.len();
                         if let Err(err) = helium.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
-                            error!("failed to store Helium runs of {test_case:?}: {err}");
+                            error!("{test_case}: storing Helium runs failed: {err}");
+                            stats.errors += 1;
                         }
                     }
-                    Err(err) => error!("measuring Helium on {test_case:?} failed: {err}"),
+                    Err(err) => {
+                        error!("{test_case}: measuring Helium failed: {err}");
+                        stats.errors += 1;
+                    }
                 }
 
                 match measure(&con, &mut rustc, &test_case, &ctx).await {
                     Ok(measurements) => {
+                        stats.runs += measurements.len();
                         if let Err(err) = rustc.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
-                            error!("failed to store Rustc runs of {test_case:?}: {err}");
+                            error!("{test_case}: storing rustc runs failed: {err}");
+                            stats.errors += 1;
                         }
                     }
-                    Err(err) => error!("measuring Rustc on {test_case:?} failed: {err}"),
+                    Err(err) => {
+                        error!("{test_case}: measuring rustc failed: {err}");
+                        stats.errors += 1;
+                    }
                 }
 
+                if stats.benchmarks % 1000 == 0 {
+                    info!("progress: {stats}");
+                }
             }
-            Err(error) => error!("{error}"),
-        }
-
-        if (counter % 1000 == 0) {
-            warn!("checked {} tests for being up to date with the database", counter);
+            Err(error) => {
+                error!("{error}");
+                stats.errors += 1;
+            }
         }
     }
+    info!("Benchmark run {} finished: {stats}", bench_run.run_id);
+}
+
+/// Counters for the progress and summary lines.
+#[derive(Default)]
+struct RunStats {
+    benchmarks: usize,
+    /// Timed runs stored, over all tools.
+    runs: usize,
+    errors: usize,
 }

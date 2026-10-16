@@ -13,8 +13,23 @@ pub fn database_url() -> String {
 
 /// Connects to [`database_url`].
 pub async fn connect() -> Result<DatabaseConnection, DbErr> {
-    info!("Connecting to database");
-    connect_to(&database_url()).await
+    let url = database_url();
+    info!("Connecting to database {}", redact(&url));
+    connect_to(&url).await
+}
+
+/// `url` with the password replaced by `***`, for the log.
+fn redact(url: &str) -> String {
+    let Some((scheme, rest)) = url.split_once("://") else {
+        return url.to_string();
+    };
+    match rest.split_once('@') {
+        Some((user, host)) => {
+            let user = user.split_once(':').map_or(user, |(name, _)| name);
+            format!("{scheme}://{user}:***@{host}")
+        }
+        None => url.to_string(),
+    }
 }
 
 /// Connects to `url`. sqlx's log of every statement is off: at `info` it
