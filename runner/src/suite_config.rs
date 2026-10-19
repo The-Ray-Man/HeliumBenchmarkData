@@ -44,12 +44,17 @@ pub struct SuiteConfig {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HeliumConfig {
-    /// Helium's crate (the folder with its `Cargo.toml`).
+    /// Helium's crate (the folder with its `Cargo.toml`), a git checkout of
+    /// the Helium repository.
     #[serde(rename = "crate")]
     pub crate_dir: PathBuf,
     /// Cargo target directory for the build; e.g. `<crate>/target`, or a
     /// folder outside the checkout to keep the build cache.
     pub target_dir: PathBuf,
+    /// First commit on Helium's `main` that CI benchmarks (full hash); every
+    /// main commit from it on is kept.
+    #[serde(deserialize_with = "deserialize_commit")]
+    pub start_commit: String,
 }
 
 /// How to run Silicon in a warmed-up JVM.
@@ -356,6 +361,13 @@ fn find_command(command: &Path) -> Option<PathBuf> {
     })
 }
 
+fn deserialize_commit<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    crate::ci::parse_commit(&String::deserialize(deserializer)?).map_err(serde::de::Error::custom)
+}
+
 fn deserialize_regex<'de, D>(deserializer: D) -> Result<Option<Regex>, D::Error>
 where
     D: Deserializer<'de>,
@@ -381,7 +393,11 @@ mod tests {
                 "args": [],
                 "warm": {"corpus": ["warmup"], "warmup_s": 60, "file_timeout_s": 10},
             },
-            "helium": {"crate": "helium", "target_dir": "helium/target"},
+            "helium": {
+                "crate": "helium",
+                "target_dir": "helium/target",
+                "start_commit": "b81d12363bed9fae54810183b94e353736205456",
+            },
             "suites_dir": "suites",
             "repeat_runs": 5,
             "warmup_runs": 1,
@@ -471,7 +487,7 @@ mod tests {
             let r = config(|c| _ = c["silicon"]["warm"].as_object_mut().unwrap().remove(field));
             assert!(r.is_err(), "silicon.warm.{field}");
         }
-        for field in ["crate", "target_dir"] {
+        for field in ["crate", "target_dir", "start_commit"] {
             assert!(config(|c| _ = c["helium"].as_object_mut().unwrap().remove(field)).is_err(), "helium.{field}");
         }
         assert!(suites(json!([{"name": "s"}])).is_err(), "activated");
@@ -530,6 +546,7 @@ mod tests {
         assert!(config(|c| c["silicon"]["warm"]["warmup_s"] = json!(-1)).is_err());
         assert!(config(|c| c["silicon"]["warm"]["file_timeout_s"] = json!(0)).is_err());
         assert!(config(|c| c["helium"]["profile"] = json!("dev")).is_err());
+        assert!(config(|c| c["helium"]["start_commit"] = json!("b81d123")).is_err());
     }
 
     #[test]

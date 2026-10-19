@@ -74,6 +74,7 @@ Relative paths are resolved against the folder of the config file (`runner/`). T
 | `silicon.warm.warmup_s` | yes | seconds of warm-up per JVM |
 | `silicon.warm.file_timeout_s` | yes | Silicon `--timeout` per warm-up file |
 | `helium.crate` | yes | Helium's crate; `verify` is rebuilt there with `cargo build --release` before measuring |
+| `helium.start_commit` | yes | first commit on Helium's `main` that CI benchmarks (full hash); `runner sync` keeps every main commit from it on |
 | `helium.target_dir` | yes | cargo target dir for that build, e.g. `<crate>/target`, or a folder outside the checkout to keep the build cache. Always passed as `--target-dir`, so a `CARGO_TARGET_DIR` in the environment does not redirect the build |
 | `suites_dir` | yes | folder with one subfolder per suite, e.g. `../suites` |
 | `repeat_runs` | yes | measured runs per benchmark (at least 1) |
@@ -98,3 +99,16 @@ runner bench --config suite.ci.json --ci --run-id gh-<run id>-<attempt> --helium
 - Checks out `--helium-commit` (fetched from `origin` if missing) in `helium.crate`, with its submodules, and builds it. Refuses when the checkout has local changes to tracked files, and fails unless `verify --version` then reports exactly that commit.
 - Records the run in `bench_runs`, which makes its rows CI-owned. The row is inserted as `RUNNING` (a taken `--run-id` fails), and ends as `COMPLETE` once every benchmark was gone through, whatever the verification results; `FAILED` if the runner crashes midway; `CANCELLED` on Ctrl-C / SIGTERM (what GitHub Actions sends on cancel).
 - A file is skipped only when CI-owned runs of the same commit already measured it, so a run of the same commit on another machine does not count. A re-run of a cancelled or failed commit measures only what is missing. Silicon and rustc runs are shared as before: they don't depend on Helium's commit.
+
+### Which commits CI keeps
+
+CI keeps runs for every main commit from the start commit on, and for the head of every open PR. `bench_targets` lists these commits (one row per main commit with its `main_position`, one per PR with its number); CI-owned Helium runs of any other commit are removed. Two commands maintain it:
+
+```bash
+runner sync --config suite.ci.json --pr 12=<head sha> --pr 15=<head sha>
+runner close-pr --pr 12
+```
+
+- `sync` fetches `main` from `origin` in `helium.crate` (the working tree is not touched) and takes its commits from `helium.start_commit` on, following first parents; the open PRs come from GitHub (`--pr`, one per PR). It sets the targets to exactly these main commits and PR heads, removes the runs of every commit that is no longer one (a PR's previous head, a closed PR), and prints the targeted commits without a `COMPLETE` run, one per line on stdout: main commits oldest first, then PR heads. It fails, changing nothing, if the start commit is not on `origin/main`.
+- `close-pr` (needs only `DATABASE_URL`) removes a closed (merged or not) PR's target and its runs. Merging needs nothing else: the squash commit is a new main commit, which the next `sync` lists.
+- Removing a run deletes its `helium_runs` rows and its `bench_runs` row. Runs still `RUNNING` are kept until they end, Silicon and rustc runs are kept (they don't depend on Helium's commit), and rows not owned by CI are never touched.

@@ -6,6 +6,8 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 
+use crate::ci::parse_commit;
+
 #[derive(Debug, Parser)]
 #[command(about = "Benchmarks Helium, Silicon and rustc on the suites", args_conflicts_with_subcommands = true)]
 pub struct Cli {
@@ -20,6 +22,48 @@ pub struct Cli {
 pub enum Command {
     /// Measure the configured suites and store the runs (the default).
     Bench(BenchArgs),
+    /// Set which commits CI keeps runs for, remove the runs of all others,
+    /// and print the commits that still need a complete run, one per line.
+    Sync(SyncArgs),
+    /// Remove a closed PR's target and its runs.
+    ClosePr(ClosePrArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct SyncArgs {
+    /// Suite configuration file; its `helium.crate` is fetched for the main
+    /// commits from `helium.start_commit` on.
+    #[arg(long, default_value = "./suite.local.json")]
+    pub config: PathBuf,
+
+    /// An open PR and its head commit, `<number>=<full hash>`; repeated per PR.
+    #[arg(long = "pr", value_parser = parse_pr)]
+    pub prs: Vec<(i32, String)>,
+}
+
+#[derive(Debug, Args)]
+pub struct ClosePrArgs {
+    /// Number of the closed PR.
+    #[arg(long, value_parser = clap::value_parser!(i32).range(1..))]
+    pub pr: i32,
+}
+
+impl SyncArgs {
+    /// Fails if a PR is given twice.
+    pub fn check_prs(&self) -> Result<(), String> {
+        let mut numbers: Vec<i32> = self.prs.iter().map(|(n, _)| *n).collect();
+        numbers.sort_unstable();
+        match numbers.windows(2).find(|w| w[0] == w[1]) {
+            Some(w) => Err(format!("PR #{} given twice", w[0])),
+            None => Ok(()),
+        }
+    }
+}
+
+fn parse_pr(s: &str) -> Result<(i32, String), String> {
+    let (number, commit) = s.split_once('=').ok_or("expected `<number>=<full hash>`")?;
+    let number: i32 = number.parse().ok().filter(|n| *n > 0).ok_or("expected a positive PR number")?;
+    Ok((number, parse_commit(commit)?))
 }
 
 impl Cli {
@@ -44,7 +88,7 @@ pub struct BenchArgs {
     pub run_id: Option<String>,
 
     /// Full hash of the Helium commit to measure.
-    #[arg(long, requires = "ci", value_parser = crate::ci::parse_commit)]
+    #[arg(long, requires = "ci", value_parser = parse_commit)]
     pub helium_commit: Option<String>,
 
     /// Link to the GitHub Actions run, stored with the run.
@@ -77,6 +121,7 @@ mod tests {
     fn bench(args: &[&str]) -> BenchArgs {
         match Cli::try_parse_from(args).unwrap().command() {
             Command::Bench(b) => b,
+            c => panic!("{c:?}"),
         }
     }
 
@@ -88,6 +133,37 @@ mod tests {
         assert_eq!(bench(&["runner", "--config", "suite.ci.json"]).config, PathBuf::from("suite.ci.json"));
         assert!(Cli::try_parse_from(["runner", "--tools", "helium"]).is_err());
         assert!(bench(&["runner"]).ci().is_none());
+    }
+
+    #[test]
+    fn parses_sync_and_close_pr() {
+        let a = "a".repeat(40);
+        let b = "b".repeat(40);
+        let pr = format!("12={b}");
+        match Cli::try_parse_from(["runner", "sync", "--pr", &pr, "--pr", &format!("3={a}")]).unwrap().command() {
+            Command::Sync(s) => {
+                assert_eq!(s.config, PathBuf::from("./suite.local.json"));
+                assert_eq!(s.prs, [(12, b.clone()), (3, a.clone())]);
+            }
+            c => panic!("{c:?}"),
+        }
+        match Cli::try_parse_from(["runner", "close-pr", "--pr", "12"]).unwrap().command() {
+            Command::ClosePr(c) => assert_eq!(c.pr, 12),
+            c => panic!("{c:?}"),
+        }
+        assert!(Cli::try_parse_from(["runner", "sync", "--main", "main.txt"]).is_err());
+        assert!(Cli::try_parse_from(["runner", "close-pr", "--pr", "0"]).is_err());
+        assert!(parse_pr(&format!("x={a}")).is_err());
+        assert!(parse_pr("12=abc").is_err());
+        assert!(parse_pr(&a).is_err());
+    }
+
+    #[test]
+    fn rejects_a_pr_given_twice() {
+        let (a, b) = ("a".repeat(40), "b".repeat(40));
+        let sync = |prs| SyncArgs { config: "unused".into(), prs };
+        assert!(sync(vec![(1, a.clone()), (2, b.clone())]).check_prs().is_ok());
+        assert!(sync(vec![(1, a), (1, b)]).check_prs().unwrap_err().contains("given twice"));
     }
 
     #[test]

@@ -154,7 +154,7 @@ mod tests {
                 "args": [],
                 "warm": {"corpus": ["c"], "warmup_s": 60, "file_timeout_s": 10},
             },
-            "helium": {"crate": "helium", "target_dir": "helium/target"},
+            "helium": {"crate": "helium", "target_dir": "helium/target", "start_commit": "0".repeat(40)},
             "suites_dir": "",
             "repeat_runs": 1,
             "warmup_runs": 0,

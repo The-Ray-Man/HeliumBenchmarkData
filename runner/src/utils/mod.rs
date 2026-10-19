@@ -2,7 +2,9 @@
 
 use std::fmt::Write;
 use std::path::Path;
+use std::process::{Command, Output};
 
+use log::debug;
 use sha2::{Digest, Sha256};
 
 /// Lowercase hex SHA-256 of `bytes`, the key of the metrics tables.
@@ -16,6 +18,27 @@ pub fn sha256(bytes: &[u8]) -> String {
 /// Lowercase hex SHA-256 of the contents of the file at `path`.
 pub fn hash_file(path: impl AsRef<Path>) -> std::io::Result<String> {
     Ok(sha256(&std::fs::read(path)?))
+}
+
+/// Runs `git <args>` in `dir`, whatever its exit status.
+pub fn git_output(dir: &Path, args: &[&str]) -> std::io::Result<Output> {
+    debug!("git {} in {}", args.join(" "), dir.display());
+    Command::new("git").args(args).current_dir(dir).output()
+}
+
+/// Runs `git <args>` in `dir` and returns its trimmed stdout; a non-zero exit
+/// is an error with git's stderr.
+pub fn git(dir: &Path, args: &[&str]) -> std::io::Result<String> {
+    let out = git_output(dir, args)?;
+    if !out.status.success() {
+        return Err(std::io::Error::other(format!(
+            "git {} in {}: {}",
+            args.join(" "),
+            dir.display(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        )));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
 }
 
 #[cfg(test)]

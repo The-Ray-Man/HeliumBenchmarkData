@@ -1,4 +1,4 @@
-use crate::cli::{BenchArgs, Cli, Command};
+use crate::cli::{BenchArgs, Cli, ClosePrArgs, Command, SyncArgs};
 use crate::db::sea_orm_active_enums::BenchRunStatus;
 use crate::executor::helium::{BenchRun, Helium};
 use crate::executor::rustc::Rustc;
@@ -17,6 +17,7 @@ mod display;
 mod explorer;
 mod file_analyzer;
 mod suite_config;
+mod targets;
 pub mod utils;
 pub mod executor;
 
@@ -43,6 +44,8 @@ fn main() {
                 .block_on(async {
                     match command {
                         Command::Bench(args) => bench(args).await,
+                        Command::Sync(args) => sync(args).await,
+                        Command::ClosePr(args) => close_pr(args).await,
                     }
                 })
         })
@@ -53,6 +56,25 @@ fn main() {
         ci::mark_failed();
         std::process::exit(101);
     }
+}
+
+async fn sync(args: SyncArgs) {
+    args.check_prs().unwrap_or_else(|e| panic!("{e}"));
+    let config = SuiteConfig::new(&args.config).unwrap_or_else(|e| panic!("{e}. See suite.example.json"));
+    let main = targets::main_commits(&config.helium.crate_dir, &config.helium.start_commit)
+        .expect("listing the main commits");
+    let desired = targets::Desired { main, prs: args.prs };
+    let con = db::connection::connect().await.expect("could not connect to database");
+    let missing = targets::sync(&con, &desired).await.expect("syncing the targets");
+    // The log is on stderr, so stdout is just the list.
+    for commit in missing {
+        println!("{commit}");
+    }
+}
+
+async fn close_pr(args: ClosePrArgs) {
+    let con = db::connection::connect().await.expect("could not connect to database");
+    targets::close_pr(&con, args.pr).await.expect("closing the PR");
 }
 
 async fn bench(args: BenchArgs) {

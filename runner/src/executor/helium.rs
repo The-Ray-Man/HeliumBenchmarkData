@@ -14,7 +14,7 @@ use crate::db::sea_orm_active_enums::RunStatus;
 use crate::suite_config::HeliumConfig;
 use super::{run_process, Executor, Measurement, MemberResult, Outcome, ParseError, RawRun, RunContext, Verdict};
 use crate::explorer::Benchmark;
-use crate::utils::hash_file;
+use crate::utils::{git, git_output, hash_file};
 
 pub struct Helium {
     binary: PathBuf,
@@ -82,24 +82,7 @@ impl Helium {
 /// `git checkout --detach <commit>` in `dir`, with its submodules. Refuses
 /// when tracked files have local changes, so no work is lost.
 fn checkout(dir: &Path, commit: &str) -> std::io::Result<()> {
-    let git = |args: &[&str]| -> std::io::Result<std::process::Output> {
-        debug!("git {} in {}", args.join(" "), dir.display());
-        Command::new("git").args(args).current_dir(dir).output()
-    };
-    let check = |args: &[&str]| -> std::io::Result<String> {
-        let out = git(args)?;
-        if !out.status.success() {
-            return Err(std::io::Error::other(format!(
-                "git {} in {}: {}",
-                args.join(" "),
-                dir.display(),
-                String::from_utf8_lossy(&out.stderr).trim()
-            )));
-        }
-        Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
-    };
-
-    let changes = check(&["status", "--porcelain", "--untracked-files=no"])?;
+    let changes = git(dir, &["status", "--porcelain", "--untracked-files=no"])?;
     if !changes.is_empty() {
         return Err(std::io::Error::other(format!(
             "{} has local changes, not checking out {commit}:\n{changes}",
@@ -107,13 +90,13 @@ fn checkout(dir: &Path, commit: &str) -> std::io::Result<()> {
         )));
     }
     let object = format!("{commit}^{{commit}}");
-    if !git(&["rev-parse", "--verify", "--quiet", &object])?.status.success() {
+    if !git_output(dir, &["rev-parse", "--verify", "--quiet", &object])?.status.success() {
         info!("Fetching Helium {commit}");
-        check(&["fetch", "--quiet", "origin", commit])?;
+        git(dir, &["fetch", "--quiet", "origin", commit])?;
     }
     info!("Checking out Helium {commit} in {}", dir.display());
-    check(&["checkout", "--quiet", "--detach", commit])?;
-    check(&["submodule", "update", "--init", "--recursive", "--quiet"])?;
+    git(dir, &["checkout", "--quiet", "--detach", commit])?;
+    git(dir, &["submodule", "update", "--init", "--recursive", "--quiet"])?;
     Ok(())
 }
 
