@@ -1,7 +1,7 @@
 {
   "uid": "adr29dn",
   "title": "Helium Stats",
-  "description": "Where Helium spends its time (helium_runs).",
+  "description": "How Helium develops across versions: coverage, speed on the files versions share, and agreement with Silicon (helium_runs, silicon_runs).",
   "tags": [
     "helium"
   ],
@@ -17,16 +17,151 @@
   },
   "refresh": "",
   "templating": {
-    "list": []
+    "list": [
+      {
+        "type": "query",
+        "name": "suite",
+        "label": "Suite",
+        "description": "Only runs of these suites count.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT DISTINCT suite FROM helium_runs ORDER BY 1",
+        "definition": "SELECT DISTINCT suite FROM helium_runs ORDER BY 1",
+        "multi": true,
+        "includeAll": true,
+        "allValue": "'__all'",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "refresh": 1,
+        "sort": 1,
+        "options": []
+      },
+      {
+        "type": "custom",
+        "name": "builds",
+        "label": "Builds",
+        "description": "Whether builds with uncommitted changes (dirty) count as versions of their own.",
+        "query": "All builds : true, Clean commits only : false",
+        "current": {
+          "text": "All builds",
+          "value": "true"
+        },
+        "options": [
+          {
+            "text": "All builds",
+            "value": "true",
+            "selected": true
+          },
+          {
+            "text": "Clean commits only",
+            "value": "false",
+            "selected": false
+          }
+        ],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "type": "custom",
+        "name": "metric",
+        "label": "Metric",
+        "description": "What version-to-version comparisons measure; median over the iterations of a file. Comparisons with Silicon always use wall time.",
+        "query": "Wall time (s) : wall_s, Helium self time (s) : self_s, Verify phase (s) : verify_s, Peak memory (MB) : peak_rss_mb",
+        "current": {
+          "text": "Wall time (s)",
+          "value": "wall_s"
+        },
+        "options": [
+          {
+            "text": "Wall time (s)",
+            "value": "wall_s",
+            "selected": true
+          },
+          {
+            "text": "Helium self time (s)",
+            "value": "self_s",
+            "selected": false
+          },
+          {
+            "text": "Verify phase (s)",
+            "value": "verify_s",
+            "selected": false
+          },
+          {
+            "text": "Peak memory (MB)",
+            "value": "peak_rss_mb",
+            "selected": false
+          }
+        ],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "type": "query",
+        "name": "base",
+        "label": "Base",
+        "description": "Version to compare from; by default the one before Head.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__prev' AS __value, 'version before head' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "definition": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__prev' AS __value, 'version before head' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "head",
+        "label": "Head",
+        "description": "Version to compare to; by default the newest.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__latest' AS __value, 'latest version' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "definition": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__latest' AS __value, 'latest version' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      }
+    ]
   },
   "annotations": {
     "list": []
   },
   "panels": [
     {
-      "type": "barchart",
-      "title": "Verification time by phase",
-      "description": "Average time per phase, in pipeline order. The iterations of a test within one benchmark run are averaged first, so every test run counts once. The bar's length is the average total.",
+      "type": "row",
+      "title": "Development across versions",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [],
+      "id": 1
+    },
+    {
+      "type": "table",
+      "title": "Versions",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "helium-postgres"
@@ -41,33 +176,295 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "-- Average the iterations of each test within a benchmark run first, so every test\n-- counts once however often it was repeated.\nWITH per_test AS (\n  SELECT\n    AVG(parse_s)        AS parse_s,\n    AVG(macros_s)       AS macros_s,\n    AVG(idents_s)       AS idents_s,\n    AVG(disambiguate_s) AS disambiguate_s,\n    AVG(globals_s)      AS globals_s,\n    AVG(typecheck_s)    AS typecheck_s,\n    AVG(analyze_s)      AS analyze_s,\n    AVG(translate_s)    AS translate_s,\n    AVG(verify_s)       AS verify_s\n  FROM helium_runs\n  GROUP BY run_id, suite, test\n)\n-- One row; the bar chart needs a string column for the bar and one numeric column per segment.\nSELECT\n  'all tests'         AS run,\n  AVG(parse_s)        AS parse,\n  AVG(macros_s)       AS macros,\n  AVG(idents_s)       AS idents,\n  AVG(disambiguate_s) AS disambiguate,\n  AVG(globals_s)      AS globals,\n  AVG(typecheck_s)    AS typecheck,\n  AVG(analyze_s)      AS analyze,\n  AVG(translate_s)    AS translate,\n  AVG(verify_s)       AS verify\nFROM per_test"
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nlink AS (\n  -- each version against the one before it, on the files both decided\n  SELECT cur.version, count(*) AS common, exp(avg(ln(prev.t / cur.t))) AS speedup,\n         count(*) FILTER (WHERE cur.class = 'unsound' AND prev.class <> 'unsound') AS new_unsound,\n         count(*) FILTER (WHERE cur.class <> 'unsound' AND prev.class = 'unsound') AS fixed_unsound,\n         count(*) FILTER (WHERE cur.class = 'incomplete' AND prev.class <> 'incomplete') AS new_incomplete,\n         count(*) FILTER (WHERE cur.class <> 'incomplete' AND prev.class = 'incomplete') AS fixed_incomplete\n  FROM c cur JOIN c prev ON prev.vpr_sha256 = cur.vpr_sha256 AND prev.i = cur.i - 1\n  WHERE cur.decided AND prev.decided AND cur.t > 0 AND prev.t > 0\n  GROUP BY 1\n),\nper AS (\n  SELECT version, i, label,\n         count(*) AS files,\n         count(*) FILTER (WHERE status = 'VERIFIED') AS verified,\n         count(*) FILTER (WHERE status = 'FAILED') AS failed,\n         count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS inconclusive,\n         count(*) FILTER (WHERE status = 'CRASHED') AS crashed,\n         count(*) FILTER (WHERE status = 'TIMED_OUT') AS timed_out,\n         count(*) FILTER (WHERE decided) AS decided,\n         count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')) AS judged,\n         count(*) FILTER (WHERE class = 'unsound') AS unsound,\n         count(*) FILTER (WHERE class = 'incomplete') AS incomplete,\n         count(*) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0) AS agree,\n         exp(avg(ln(s_wall / wall)) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0)) AS vs_silicon\n  FROM c GROUP BY 1, 2, 3\n)\nSELECT label AS \"Version\", files AS \"Files\", verified AS \"Verified\", failed AS \"Failed\",\n       inconclusive AS \"Inconclusive\", crashed AS \"Crashed\", timed_out AS \"Timed out\",\n       decided::float8 / nullif(files, 0) AS \"Decided\",\n       link.common AS \"Common with previous\", link.speedup AS \"× vs previous\",\n       exp(sum(ln(coalesce(link.speedup, 1))) OVER (ORDER BY i)) AS \"× vs first (chained)\",\n       judged AS \"Judged by Silicon\",\n       unsound AS \"Unsound\", '+' || coalesce(link.new_unsound, 0) || ' / −' || coalesce(link.fixed_unsound, 0) AS \"Unsound new / fixed\",\n       incomplete AS \"Incomplete\", '+' || coalesce(link.new_incomplete, 0) || ' / −' || coalesce(link.fixed_incomplete, 0) AS \"Incomplete new / fixed\",\n       vs_silicon AS \"× vs Silicon\", agree AS \"Agreeing files\"\nFROM per LEFT JOIN link USING (version)\nORDER BY i DESC"
+        }
+      ],
+      "description": "One row per Helium version, newest first. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}. The chained factor multiplies the factors against the previous version, so every link is measured on the files those two versions share. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED. New / fixed count files whose class changed against the previous version, on the files both decided. × vs Silicon: geometric mean of Silicon wall time ÷ Helium wall time on the files where they agree.",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 8
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Version"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 230
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Decided"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "× vs previous"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "× vs first (chained)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "× vs Silicon"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 2
+    },
+    {
+      "type": "barchart",
+      "title": "Outcome per version",
+      "description": "Files per Helium outcome. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE status = 'VERIFIED') AS \"Verified\",\n  count(*) FILTER (WHERE status = 'FAILED') AS \"Failed\",\n  count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS \"Inconclusive\",\n  count(*) FILTER (WHERE status = 'CRASHED') AS \"Crashed\",\n  count(*) FILTER (WHERE status = 'TIMED_OUT') AS \"Timed out\"\nFROM c GROUP BY label, i ORDER BY i"
         }
       ],
       "gridPos": {
         "x": 0,
-        "y": 0,
-        "w": 24,
-        "h": 6
+        "y": 9,
+        "w": 12,
+        "h": 9
       },
       "options": {
-        "orientation": "horizontal",
-        "xField": "run",
+        "orientation": "vertical",
+        "xField": "label",
         "stacking": "normal",
         "showValue": "auto",
-        "barWidth": 1,
-        "groupWidth": 0.8,
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
         "barRadius": 0,
         "fullHighlight": false,
-        "xTickLabelRotation": 0,
+        "xTickLabelRotation": -30,
         "xTickLabelSpacing": 0,
         "legend": {
           "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "lastNotNull"
-          ]
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
         },
         "tooltip": {
           "mode": "multi",
@@ -77,8 +474,7 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "min": 0,
+          "unit": "short",
           "color": {
             "mode": "palette-classic"
           },
@@ -102,10 +498,1399 @@
             "thresholdsStyle": {
               "mode": "off"
             }
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Verified"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73bf69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Inconclusive"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Crashed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#a352cc"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Timed out"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#e0b400"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 3
+    },
+    {
+      "type": "barchart",
+      "title": "Speed per version",
+      "description": "Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}. The chained factor is relative to the oldest version shown.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nlink AS (\n  SELECT cur.version, exp(avg(ln(prev.t / cur.t))) AS speedup\n  FROM c cur JOIN c prev ON prev.vpr_sha256 = cur.vpr_sha256 AND prev.i = cur.i - 1\n  WHERE cur.decided AND prev.decided AND cur.t > 0 AND prev.t > 0\n  GROUP BY 1\n)\nSELECT label, link.speedup AS \"vs previous version\",\n       exp(sum(ln(coalesce(link.speedup, 1))) OVER (ORDER BY i)) AS \"vs first version (chained)\"\nFROM v LEFT JOIN link USING (version) ORDER BY i"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 12,
+        "h": 9
+      },
+      "options": {
+        "orientation": "vertical",
+        "xField": "label",
+        "stacking": "none",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vs previous version"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794f2"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vs first version (chained)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 4
+    },
+    {
+      "type": "row",
+      "title": "Against Silicon",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [],
+      "description": "Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "id": 5
+    },
+    {
+      "type": "barchart",
+      "title": "Agreement with Silicon per version",
+      "description": "Files per class. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED. Files Silicon never decided are classed by its latest outcome: timed out, crashed, inconclusive, or not run.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE class = 'agree' AND status = 'VERIFIED') AS \"Agree: verified\",\n  count(*) FILTER (WHERE class = 'agree' AND status = 'FAILED') AS \"Agree: failed\",\n  count(*) FILTER (WHERE class = 'unsound') AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete') AS \"Incomplete\",\n  count(*) FILTER (WHERE class = 'undecided') AS \"Helium undecided\",\n  count(*) FILTER (WHERE class = 'silicon timed out') AS \"Silicon timed out\",\n  count(*) FILTER (WHERE class = 'silicon crashed') AS \"Silicon crashed\",\n  count(*) FILTER (WHERE class = 'silicon inconclusive') AS \"Silicon inconclusive\",\n  count(*) FILTER (WHERE class = 'silicon not run') AS \"Silicon not run\"\nFROM c GROUP BY label, i ORDER BY i"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "options": {
+        "orientation": "vertical",
+        "xField": "label",
+        "stacking": "normal",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agree: verified"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73bf69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agree: failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#37872d"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium undecided"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon timed out"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#b877d9"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon crashed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8f3bb8"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon inconclusive"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794f2"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon not run"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#464c54"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 6
+    },
+    {
+      "type": "barchart",
+      "title": "Unsound and incomplete rate",
+      "description": "Share of the files Helium decided and Silicon judged. A rate, so it does not grow just because a version decides more files; the Versions table and the comparison below show which files changed. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE class = 'unsound')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Incomplete\"\nFROM c GROUP BY label, i ORDER BY i"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "options": {
+        "orientation": "vertical",
+        "xField": "label",
+        "stacking": "none",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 7
+    },
+    {
+      "type": "barchart",
+      "title": "Speedup over Silicon where they agree",
+      "description": "Geometric mean of Silicon wall time ÷ Helium wall time, over the files where both return the same verdict. > 1: Helium is faster. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  exp(avg(ln(s_wall / wall)) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0)) AS \"Speedup over Silicon\"\nFROM c GROUP BY label, i ORDER BY i"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 19,
+        "w": 8,
+        "h": 9
+      },
+      "options": {
+        "orientation": "vertical",
+        "xField": "label",
+        "stacking": "none",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0,
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Speedup over Silicon"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 8
+    },
+    {
+      "type": "row",
+      "title": "Comparison: base → head (pick them above)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [],
+      "id": 9
+    },
+    {
+      "type": "stat",
+      "title": "Performance on common files",
+      "description": "Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT exp(avg(ln(b_t / h_t)) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0)) AS \"Speedup\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0) AS \"Common files\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0 AND h_t < b_t / 1.1) AS \"Faster > 10%\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0 AND h_t > b_t * 1.1) AS \"Slower > 10%\"\nFROM pair"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 6,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
           }
         },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Speedup"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "id": 10
+    },
+    {
+      "type": "stat",
+      "title": "Coverage",
+      "description": "Newly decided: undecided in base, decided in head. No longer decided: the reverse. Verdict flips: VERIFIED ↔ FAILED. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE h_dec AND NOT b_dec AND b_status IS NOT NULL) AS \"Newly decided\",\n       count(*) FILTER (WHERE b_dec AND h_status IS NOT NULL AND NOT h_dec) AS \"No longer decided\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_status <> h_status) AS \"Verdict flips\",\n       count(*) FILTER (WHERE h_status IS NOT NULL AND b_status IS NULL) AS \"Only run by head\"\nFROM pair"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 29,
+        "w": 6,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "No longer decided"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Verdict flips"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 11
+    },
+    {
+      "type": "stat",
+      "title": "Soundness on files judged in both",
+      "description": "Counted only over files both versions decided and Silicon judged, so the numbers are comparable. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE b_class = 'unsound') AS \"Unsound before\",\n       count(*) FILTER (WHERE h_class = 'unsound') AS \"Unsound now\",\n       count(*) FILTER (WHERE b_class = 'incomplete') AS \"Incomplete before\",\n       count(*) FILTER (WHERE h_class = 'incomplete') AS \"Incomplete now\"\nFROM pair\nWHERE b_class IN ('agree', 'unsound', 'incomplete') AND h_class IN ('agree', 'unsound', 'incomplete')"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 6,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound now"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete now"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 12
+    },
+    {
+      "type": "stat",
+      "title": "Speedup over Silicon",
+      "description": "Geometric mean of Silicon wall time ÷ Helium wall time where Helium agrees with Silicon. 'Same files' restricts both versions to the files where both agree. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT exp(avg(ln(s_wall / h_wall)) FILTER (WHERE h_class = 'agree' AND h_wall > 0 AND s_wall > 0)) AS \"Head vs Silicon\",\n       count(*) FILTER (WHERE h_class = 'agree' AND h_wall > 0 AND s_wall > 0) AS \"Agreeing files\",\n       exp(avg(ln(s_wall / b_wall)) FILTER (WHERE b_class = 'agree' AND h_class = 'agree' AND b_wall > 0 AND h_wall > 0 AND s_wall > 0)) AS \"Base vs Silicon (same files)\",\n       exp(avg(ln(s_wall / h_wall)) FILTER (WHERE b_class = 'agree' AND h_class = 'agree' AND b_wall > 0 AND h_wall > 0 AND s_wall > 0)) AS \"Head vs Silicon (same files)\"\nFROM pair"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 29,
+        "w": 6,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Head vs Silicon"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Base vs Silicon (same files)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Head vs Silicon (same files)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      "id": 13
+    },
+    {
+      "type": "table",
+      "title": "Files: base → head",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n),\nlabelled AS (\n  SELECT pair.*, CASE\n           WHEN b_status IS NULL THEN 'only in head'\n           WHEN h_status IS NULL THEN 'only in base'\n           WHEN h_dec AND NOT b_dec THEN 'newly decided'\n           WHEN b_dec AND NOT h_dec THEN 'no longer decided'\n           WHEN b_status <> h_status THEN 'verdict flip'\n           WHEN b_class IS DISTINCT FROM h_class THEN 'class changed'\n           WHEN NOT h_dec THEN 'still undecided'\n           WHEN h_t < b_t / 1.1 THEN 'faster'\n           WHEN h_t > b_t * 1.1 THEN 'slower'\n           ELSE 'same' END AS change,\n         CASE WHEN b_dec AND h_dec AND h_t > 0 THEN b_t / h_t END AS ratio\n  FROM pair\n)\nSELECT change AS \"Change\", file AS \"File\", b_status AS \"Base\", h_status AS \"Head\",\n       b_t AS \"Base ${metric:text}\", h_t AS \"Head ${metric:text}\", ratio AS \"×\",\n       b_class AS \"Base vs Silicon\", h_class AS \"Head vs Silicon\"\nFROM labelled\nORDER BY array_position(ARRAY['verdict flip', 'class changed', 'no longer decided', 'newly decided', 'slower', 'faster',\n                              'same', 'still undecided', 'only in head', 'only in base'], change),\n         ratio, file"
+        }
+      ],
+      "description": "Every file either version ran, most interesting changes first. × = base ÷ head (> 1: head is faster), only when both decided. Faster/slower means more than 10%. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Files Silicon never decided are classed by its latest outcome: timed out, crashed, inconclusive, or not run.",
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 12
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": true
+          },
+          "noValue": "–",
+          "decimals": 3
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "verdict flip": {
+                        "color": "#f2495c",
+                        "index": 0
+                      },
+                      "class changed": {
+                        "color": "#f2495c",
+                        "index": 1
+                      },
+                      "no longer decided": {
+                        "color": "#f2495c",
+                        "index": 2
+                      },
+                      "newly decided": {
+                        "color": "#73bf69",
+                        "index": 3
+                      },
+                      "slower": {
+                        "color": "#ff9830",
+                        "index": 4
+                      },
+                      "faster": {
+                        "color": "#73bf69",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "File"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 420
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "×"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Base vs Silicon"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "agree": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "unsound": {
+                        "color": "#f2495c",
+                        "index": 1
+                      },
+                      "incomplete": {
+                        "color": "#ff9830",
+                        "index": 2
+                      },
+                      "undecided": {
+                        "color": "#8e8e8e",
+                        "index": 3
+                      },
+                      "silicon timed out": {
+                        "color": "#b877d9",
+                        "index": 4
+                      },
+                      "silicon crashed": {
+                        "color": "#8f3bb8",
+                        "index": 5
+                      },
+                      "silicon inconclusive": {
+                        "color": "#5794f2",
+                        "index": 6
+                      },
+                      "silicon not run": {
+                        "color": "#8e8e8e",
+                        "index": 7
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Head vs Silicon"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "agree": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "unsound": {
+                        "color": "#f2495c",
+                        "index": 1
+                      },
+                      "incomplete": {
+                        "color": "#ff9830",
+                        "index": 2
+                      },
+                      "undecided": {
+                        "color": "#8e8e8e",
+                        "index": 3
+                      },
+                      "silicon timed out": {
+                        "color": "#b877d9",
+                        "index": 4
+                      },
+                      "silicon crashed": {
+                        "color": "#8f3bb8",
+                        "index": 5
+                      },
+                      "silicon inconclusive": {
+                        "color": "#5794f2",
+                        "index": 6
+                      },
+                      "silicon not run": {
+                        "color": "#8e8e8e",
+                        "index": 7
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 14
+    },
+    {
+      "type": "barchart",
+      "title": "Time by phase on common files",
+      "description": "Average time per phase, in pipeline order, over the files both versions decided. Iterations are averaged per file first, so every file counts once. The bar's length is the average total.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall,\n         avg(parse_s) AS parse_s,\n         avg(macros_s) AS macros_s,\n         avg(idents_s) AS idents_s,\n         avg(disambiguate_s) AS disambiguate_s,\n         avg(globals_s) AS globals_s,\n         avg(typecheck_s) AS typecheck_s,\n         avg(analyze_s) AS analyze_s,\n         avg(translate_s) AS translate_s,\n         avg(verify_s) AS verify_s\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\ncommon AS (\n  -- files both versions decided\n  SELECT b.vpr_sha256 FROM c b JOIN sel ON b.version = sel.base JOIN c hd ON hd.vpr_sha256 = b.vpr_sha256 AND hd.version = sel.head\n  WHERE b.decided AND hd.decided\n)\nSELECT CASE WHEN c.version = sel.base THEN 'base ' ELSE 'head ' END || c.label AS run,\n  avg(parse_s) AS parse,\n  avg(macros_s) AS macros,\n  avg(idents_s) AS idents,\n  avg(disambiguate_s) AS disambiguate,\n  avg(globals_s) AS globals,\n  avg(typecheck_s) AS typecheck,\n  avg(analyze_s) AS analyze,\n  avg(translate_s) AS translate,\n  avg(verify_s) AS verify\nFROM c JOIN sel ON c.version IN (sel.base, sel.head) JOIN common USING (vpr_sha256)\nGROUP BY c.version, c.label, sel.base, c.i ORDER BY c.i"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 24,
+        "h": 7
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "run",
+        "stacking": "normal",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0
+        },
         "overrides": []
-      }
+      },
+      "id": 15
     }
   ]
 }
