@@ -97,6 +97,43 @@ impl Executor for Rustc {
             .map(|n| n as usize)
     }
 
+    fn run(&mut self, input: &Path, ctx: &RunContext) -> std::io::Result<RawRun> {
+        let mut cmd = Command::new(&self.rustc);
+        cmd.args(&self.args)
+            .arg("--emit=metadata")
+            .arg("--out-dir")
+            .arg(ctx.scratch.join("rustc-out"));
+        if self.time_passes {
+            cmd.arg("-Ztime-passes");
+        }
+        cmd.arg(input);
+        run_process(&mut cmd, ctx.timeout, &ctx.scratch)
+    }
+
+    /// On nightly, `self_time` is rustc's own `total` and `phases` its
+    /// passes (nested ones included, so they do not add up to the total).
+    fn parse(&self, raw: &RawRun) -> Result<Outcome, ParseError> {
+        let verdict = match raw.exit_code {
+            Some(0) => Verdict::Verified,
+            Some(_) => Verdict::Failed,
+            None => return Err(ParseError("rustc was killed".into())),
+        };
+        let (self_time, phases) = if self.time_passes {
+            parse_time_passes(&raw.stderr)?
+        } else {
+            (None, BTreeMap::new())
+        };
+        if self.time_passes && verdict == Verdict::Verified && self_time.is_none() {
+            return Err(ParseError("no `-Z time-passes` total".into()));
+        }
+        Ok(Outcome {
+            verdict,
+            self_time,
+            phases,
+            members: Vec::new(),
+        })
+    }
+
     /// Insert the timed runs of one [`super::measure`] of `bench` into
     /// `rustc_runs`, numbered on from the runs already stored. The
     /// benchmark's metrics row must exist already (foreign key on the hash).
@@ -157,43 +194,6 @@ impl Executor for Rustc {
         rustc_runs::Entity::insert_many(rows).exec(conn).await?;
         debug!("{bench}: stored {} rustc runs from iteration {existing_runs}", measurements.len());
         Ok(())
-    }
-
-    fn run(&mut self, input: &Path, ctx: &RunContext) -> std::io::Result<RawRun> {
-        let mut cmd = Command::new(&self.rustc);
-        cmd.args(&self.args)
-            .arg("--emit=metadata")
-            .arg("--out-dir")
-            .arg(ctx.scratch.join("rustc-out"));
-        if self.time_passes {
-            cmd.arg("-Ztime-passes");
-        }
-        cmd.arg(input);
-        run_process(&mut cmd, ctx.timeout, &ctx.scratch)
-    }
-
-    /// On nightly, `self_time` is rustc's own `total` and `phases` its
-    /// passes (nested ones included, so they do not add up to the total).
-    fn parse(&self, raw: &RawRun) -> Result<Outcome, ParseError> {
-        let verdict = match raw.exit_code {
-            Some(0) => Verdict::Verified,
-            Some(_) => Verdict::Failed,
-            None => return Err(ParseError("rustc was killed".into())),
-        };
-        let (self_time, phases) = if self.time_passes {
-            parse_time_passes(&raw.stderr)?
-        } else {
-            (None, BTreeMap::new())
-        };
-        if self.time_passes && verdict == Verdict::Verified && self_time.is_none() {
-            return Err(ParseError("no `-Z time-passes` total".into()));
-        }
-        Ok(Outcome {
-            verdict,
-            self_time,
-            phases,
-            members: Vec::new(),
-        })
     }
 }
 

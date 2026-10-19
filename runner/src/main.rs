@@ -1,5 +1,6 @@
 use crate::executor::helium::{BenchRun, Helium};
 use crate::executor::rustc::Rustc;
+use crate::executor::silicon::{self, Silicon};
 use crate::executor::{measure, Executor, RunContext};
 use crate::explorer::Explorer;
 use crate::file_analyzer::record_benchmark;
@@ -50,9 +51,17 @@ async fn run() {
     let mut rustc = Rustc::new(config.rustc_toolchain.as_deref(), vec![]).expect("finding rustc");
     info!("rustc ready: {}", rustc.id());
 
+    let scratch = std::env::temp_dir().join("helium-bench");
+    info!("Setting up Silicon");
+    // Every suite's `.vpr` files, so none of them is in the warm-up set.
+    let benchmarks = silicon::vpr_files(std::slice::from_ref(&config.suites_dir));
+    let mut silicon = Silicon::new(config.java.clone(), &config.silicon, &benchmarks, &scratch)
+        .expect("collecting Silicon's warm-up files");
+    info!("Silicon ready: {}", silicon.id());
+
     let bench_run = BenchRun::new(&helium);
     let ctx = RunContext {
-        scratch: std::env::temp_dir().join("helium-bench"),
+        scratch,
         timeout: config.timeout(),
         warmup: config.warmup_runs,
         runs: config.repeat_runs,
@@ -97,6 +106,20 @@ async fn run() {
                     }
                     Err(err) => {
                         error!("{test_case}: measuring rustc failed: {err}");
+                        stats.errors += 1;
+                    }
+                }
+
+                match measure(&con, &mut silicon, &test_case, &ctx).await {
+                    Ok(measurements) => {
+                        stats.runs += measurements.len();
+                        if let Err(err) = silicon.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
+                            error!("{test_case}: storing Silicon runs failed: {err}");
+                            stats.errors += 1;
+                        }
+                    }
+                    Err(err) => {
+                        error!("{test_case}: measuring Silicon failed: {err}");
                         stats.errors += 1;
                     }
                 }

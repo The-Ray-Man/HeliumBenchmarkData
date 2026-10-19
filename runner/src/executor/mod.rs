@@ -1,11 +1,12 @@
-//! Running the measured tools (rustc, Helium, Carbon) on one benchmark.
+//! Running the measured tools (rustc, Helium, Silicon) on one benchmark.
 //!
 //! Every tool implements [`Executor`]: which input of a [`Benchmark`] it
 //! takes, how to run it once, and how to read what that run printed. Running
 //! and parsing are separate steps, so a parser can be tested on saved output
 //! and a failed parse can be redone from the raw output kept on disk.
-//! [`measure`] is the same for every tool: untimed warm-up runs, then timed
-//! runs, stopping at the first timeout or failed parse.
+//! [`measure`] is the same for every tool: untimed warm-up runs (unless the
+//! tool opts out), then timed runs, stopping at the first timeout or failed
+//! parse.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -19,14 +20,14 @@ use crate::executor::helium::BenchRun;
 use crate::explorer::Benchmark;
 use crate::utils::hash_file;
 
-//pub mod carbon;
 pub mod helium;
 pub mod rustc;
+pub mod silicon;
 
 /// A measured tool.
 pub trait Executor {
     /// Short stable name, used as the tool's key in the database (`rustc`,
-    /// `helium`, `carbon`).
+    /// `helium`, `silicon`).
     fn name(&self) -> &'static str;
 
     /// What identifies this exact build of the tool (version line, binary or
@@ -36,6 +37,13 @@ pub trait Executor {
     /// The file of `bench` this tool runs on, or `None` when the benchmark
     /// has no such file (rustc needs the `.rs`, the verifiers the `.vpr`).
     fn input<'a>(&self, bench: &'a Benchmark) -> Option<&'a Path>;
+
+    /// Whether [`measure`] does `RunContext::warmup` untimed runs of each
+    /// file before the timed ones. Silicon is warmed up on its own corpus
+    /// instead.
+    fn per_file_warmup(&self) -> bool {
+        true
+    }
 
     /// How many runs of this exact build ([`Executor::id`]) on the input with
     /// SHA-256 `sha256` are already in the database.
@@ -180,9 +188,10 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
     info!("{bench}: measuring {} on {}", exec.name(), input.display());
 
     // warmup run
-    for i in 0..ctx.warmup {
+    let warmup = if exec.per_file_warmup() { ctx.warmup } else { 0 };
+    for i in 0..warmup {
         match exec.run(input, ctx) {
-            Ok(raw) => debug!("{bench}: {} warm-up {}/{}: {raw}", exec.name(), i + 1, ctx.warmup),
+            Ok(raw) => debug!("{bench}: {} warm-up {}/{warmup}: {raw}", exec.name(), i + 1),
             Err(err) => warn!("{bench}: {} warm-up run failed: {err}", exec.name()),
         }
     }
