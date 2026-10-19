@@ -1,4 +1,5 @@
 use crate::cli::{BenchArgs, Cli, Command};
+use crate::db::sea_orm_active_enums::BenchRunStatus;
 use crate::executor::helium::{BenchRun, Helium};
 use crate::executor::rustc::Rustc;
 use crate::executor::silicon::{self, Silicon};
@@ -9,6 +10,7 @@ use crate::suite_config::SuiteConfig;
 use clap::Parser;
 use log::{debug, error, info};
 use sea_orm::ConnectionTrait;
+mod ci;
 mod cli;
 mod db;
 mod display;
@@ -30,7 +32,7 @@ fn main() {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
     let command = Cli::parse().command();
     // `block_on` runs the command on this thread, so the async code gets its stack.
-    std::thread::Builder::new()
+    let result = std::thread::Builder::new()
         .name("runner".into())
         .stack_size(STACK_SIZE)
         .spawn(|| {
@@ -45,19 +47,37 @@ fn main() {
                 })
         })
         .expect("spawning the runner thread")
-        .join()
-        .expect("the runner thread panicked");
+        .join();
+    if result.is_err() {
+        // The panic message is already printed; record the crash.
+        ci::mark_failed();
+        std::process::exit(101);
+    }
 }
 
 async fn bench(args: BenchArgs) {
     let config = SuiteConfig::new(&args.config).unwrap_or_else(|e| panic!("{e}. See suite.example.json"));
     let con = db::connection::connect().await.expect("could not connect to database");
+    let toolchain = config.rustc_toolchain.as_deref();
+
+    // In CI mode the run is recorded before anything else, so a crash from
+    // here on marks it FAILED.
+    let ci_run = args.ci().map(|ci| (BenchRun::starting_now(ci.run_id), ci));
+    if let Some((run, ci)) = &ci_run {
+        ci::start(&con, run, ci.helium_commit, ci.github_run_url).await.expect("recording the CI run");
+        ci::watch_cancel(con.clone());
+    }
+
     info!("Setting up Helium");
-    let mut helium = Helium::new(&config.helium, config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
+    let mut helium = match &ci_run {
+        Some((_, ci)) => Helium::at_commit(&config.helium, toolchain, ci.helium_commit),
+        None => Helium::new(&config.helium, toolchain),
+    }
+    .expect("building Helium's `verify`");
     info!("Helium ready: {}", helium.id());
 
     info!("Setting up rustc");
-    let mut rustc = Rustc::new(config.rustc_toolchain.as_deref(), vec![]).expect("finding rustc");
+    let mut rustc = Rustc::new(toolchain, vec![]).expect("finding rustc");
     info!("rustc ready: {}", rustc.id());
 
     let scratch = std::env::temp_dir().join("helium-bench");
@@ -68,7 +88,10 @@ async fn bench(args: BenchArgs) {
         .expect("collecting Silicon's warm-up files");
     info!("Silicon ready: {}", silicon.id());
 
-    let bench_run = BenchRun::new(&helium);
+    let bench_run = match ci_run {
+        Some((run, _)) => run,
+        None => BenchRun::new(&helium),
+    };
     let ctx = RunContext {
         scratch,
         timeout: config.timeout(),
@@ -106,6 +129,10 @@ async fn bench(args: BenchArgs) {
         }
     }
     info!("Benchmark run {} finished: {stats}", bench_run.run_id);
+    // Errors on single benchmarks do not fail the run: they are in its rows.
+    if args.ci {
+        ci::finish(&con, BenchRunStatus::Complete).await.expect("recording the CI run as complete");
+    }
 }
 
 /// Measures `tool` on `test_case` and stores the runs; failures are logged

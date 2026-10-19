@@ -7,9 +7,9 @@ use std::process::Command;
 use chrono::{DateTime, FixedOffset};
 use log::{debug, info, warn};
 use sea_orm::ActiveValue::{self, Set};
-use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter};
+use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, QueryFilter, QuerySelect, QueryTrait};
 use serde_json::{json, Value};
-use crate::db::helium_runs;
+use crate::db::{bench_runs, helium_runs};
 use crate::db::sea_orm_active_enums::RunStatus;
 use crate::suite_config::HeliumConfig;
 use super::{run_process, Executor, Measurement, MemberResult, Outcome, ParseError, RawRun, RunContext, Verdict};
@@ -25,6 +25,10 @@ pub struct Helium {
     commit: String,
     /// Built from uncommitted changes on top of `commit`.
     dirty: bool,
+    /// CI mode: [`Executor::check_existing`] counts only CI-owned runs, so a
+    /// run of the same commit elsewhere (e.g. on a laptop) does not make CI
+    /// skip a file.
+    ci_owned_only: bool,
 }
 
 impl Helium {
@@ -54,25 +58,91 @@ impl Helium {
         if dirty {
             warn!("Helium is built from uncommitted changes on top of {commit}");
         }
-        Ok(Helium { binary, id, commit, dirty })
+        Ok(Helium { binary, id, commit, dirty, ci_owned_only: false })
     }
+
+    /// CI mode: checks out `commit` (a full hash) in `config.crate_dir`,
+    /// fetching it from `origin` if needed, then builds it like [`Helium::new`].
+    /// Fails if the checkout has local changes or the binary does not report
+    /// exactly `commit`.
+    pub fn at_commit(config: &HeliumConfig, toolchain: Option<&str>, commit: &str) -> std::io::Result<Self> {
+        checkout(&config.crate_dir, commit)?;
+        let mut helium = Helium::new(config, toolchain)?;
+        if helium.commit != commit || helium.dirty {
+            return Err(std::io::Error::other(format!(
+                "checked out {commit}, but `verify --version` says {}",
+                helium.id
+            )));
+        }
+        helium.ci_owned_only = true;
+        Ok(helium)
+    }
+}
+
+/// `git checkout --detach <commit>` in `dir`, with its submodules. Refuses
+/// when tracked files have local changes, so no work is lost.
+fn checkout(dir: &Path, commit: &str) -> std::io::Result<()> {
+    let git = |args: &[&str]| -> std::io::Result<std::process::Output> {
+        debug!("git {} in {}", args.join(" "), dir.display());
+        Command::new("git").args(args).current_dir(dir).output()
+    };
+    let check = |args: &[&str]| -> std::io::Result<String> {
+        let out = git(args)?;
+        if !out.status.success() {
+            return Err(std::io::Error::other(format!(
+                "git {} in {}: {}",
+                args.join(" "),
+                dir.display(),
+                String::from_utf8_lossy(&out.stderr).trim()
+            )));
+        }
+        Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+    };
+
+    let changes = check(&["status", "--porcelain", "--untracked-files=no"])?;
+    if !changes.is_empty() {
+        return Err(std::io::Error::other(format!(
+            "{} has local changes, not checking out {commit}:\n{changes}",
+            dir.display()
+        )));
+    }
+    let object = format!("{commit}^{{commit}}");
+    if !git(&["rev-parse", "--verify", "--quiet", &object])?.status.success() {
+        info!("Fetching Helium {commit}");
+        check(&["fetch", "--quiet", "origin", commit])?;
+    }
+    info!("Checking out Helium {commit} in {}", dir.display());
+    check(&["checkout", "--quiet", "--detach", commit])?;
+    check(&["submodule", "update", "--init", "--recursive", "--quiet"])?;
+    Ok(())
 }
 
 /// What every row of one benchmark run (one start of the runner) shares.
 #[derive(Debug, Clone)]
 pub struct BenchRun {
-    /// `<date>_<first 12 characters of the commit>`, e.g. `2026-10-06_bd5a136f97a5`.
+    /// `<date>_<first 12 characters of the commit>`, e.g. `2026-10-06_bd5a136f97a5`;
+    /// in CI mode the id given on the command line.
     pub run_id: String,
     pub started_at: DateTime<FixedOffset>,
     pub host: Option<String>,
 }
 
 impl BenchRun {
+    /// A local run, named after the date and `helium`'s commit.
     pub fn new(helium: &Helium) -> Self {
         let started_at = chrono::Local::now().fixed_offset();
         let short: String = helium.commit.chars().take(12).collect();
+        Self::with_id(format!("{}_{short}", started_at.format("%Y-%m-%d")), started_at)
+    }
+
+    /// A run with the given id, starting now (CI mode).
+    pub fn starting_now(run_id: &str) -> Self {
+        Self::with_id(run_id.to_string(), chrono::Local::now().fixed_offset())
+    }
+
+    fn with_id(run_id: String, started_at: DateTime<FixedOffset>) -> Self {
         BenchRun {
-            run_id: format!("{}_{short}", started_at.format("%Y-%m-%d")),
+            run_id,
             started_at,
             host: std::env::var("COMPUTERNAME").or_else(|_| std::env::var("HOSTNAME")).ok(),
         }
@@ -183,6 +253,17 @@ impl Executor for Helium {
             .filter(helium_runs::Column::BackendVersion.eq(&self.commit))
             .filter(helium_runs::Column::Dirty.eq(self.dirty))
             .filter(helium_runs::Column::VprSha256.eq(sha256))
+            .apply_if(self.ci_owned_only.then_some(()), |q, ()| {
+                q.filter(
+                    helium_runs::Column::RunId.in_subquery(
+                        bench_runs::Entity::find()
+                            .select_only()
+                            .column(bench_runs::Column::RunId)
+                            .filter(bench_runs::Column::HeliumCommit.eq(&self.commit))
+                            .into_query(),
+                    ),
+                )
+            })
             .count(conn)
             .await
             .map(|n| n as usize)

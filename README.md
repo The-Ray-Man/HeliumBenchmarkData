@@ -87,4 +87,14 @@ Each suite has a `name` (its folder under `suites/`), `activated` (`false` skips
 
 ## Command line
 
-`runner` without a subcommand is `runner bench`, so `cargo run` in `runner/` measures with `./suite.local.json`. The only option is `--config <file>` to use another config, e.g. `cargo run --release -- bench --config suite.ci.json`.
+`runner` without a subcommand is `runner bench`, so `cargo run` in `runner/` measures with `./suite.local.json`. `--config <file>` uses another config, e.g. `cargo run --release -- bench --config suite.ci.json`.
+
+### CI mode
+
+```bash
+runner bench --config suite.ci.json --ci --run-id gh-<run id>-<attempt> --helium-commit <full sha> [--github-run-url <url>]
+```
+
+- Checks out `--helium-commit` (fetched from `origin` if missing) in `helium.crate`, with its submodules, and builds it. Refuses when the checkout has local changes to tracked files, and fails unless `verify --version` then reports exactly that commit.
+- Records the run in `bench_runs`, which makes its rows CI-owned. The row is inserted as `RUNNING` (a taken `--run-id` fails), and ends as `COMPLETE` once every benchmark was gone through, whatever the verification results; `FAILED` if the runner crashes midway; `CANCELLED` on Ctrl-C / SIGTERM (what GitHub Actions sends on cancel).
+- A file is skipped only when CI-owned runs of the same commit already measured it, so a run of the same commit on another machine does not count. A re-run of a cancelled or failed commit measures only what is missing. Silicon and rustc runs are shared as before: they don't depend on Helium's commit.

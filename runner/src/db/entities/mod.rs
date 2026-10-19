@@ -2,6 +2,8 @@
 
 pub mod prelude;
 
+pub mod bench_runs;
+pub mod bench_targets;
 pub mod benchmarks;
 pub mod helium_runs;
 pub mod rust_metrics;

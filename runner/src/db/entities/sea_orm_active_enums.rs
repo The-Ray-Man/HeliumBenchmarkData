@@ -3,6 +3,18 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Copy)]
+#[sea_orm(rs_type = "Enum", db_type = "Enum", enum_name = "bench_run_status")]
+pub enum BenchRunStatus {
+    #[sea_orm(string_value = "RUNNING")]
+    Running,
+    #[sea_orm(string_value = "COMPLETE")]
+    Complete,
+    #[sea_orm(string_value = "FAILED")]
+    Failed,
+    #[sea_orm(string_value = "CANCELLED")]
+    Cancelled,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Copy)]
 #[sea_orm(rs_type = "Enum", db_type = "Enum", enum_name = "run_status")]
 pub enum RunStatus {
     #[sea_orm(string_value = "VERIFIED")]
