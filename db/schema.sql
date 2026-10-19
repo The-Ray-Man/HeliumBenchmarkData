@@ -341,3 +341,40 @@ CREATE TABLE rustc_runs (
 
     UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );
+
+
+-- CI bookkeeping (added by db/migrations/002_ci_runs.sql).
+--
+-- A run is CI-owned when its run_id is in bench_runs. Garbage collection only
+-- ever deletes CI-owned rows, so local and manual runs are never touched.
+-- bench_targets says why a Helium commit's CI-owned rows are kept: one row per
+-- (commit, reason). A commit's CI-owned rows are kept while it has at least one
+-- target; each PR has at most one target (its current head); a target is
+-- complete when its commit has a COMPLETE bench_runs row.
+--
+-- `id` in bench_targets is a surrogate key for the same reason as in the run
+-- tables (pr_number is nullable).
+
+CREATE TYPE bench_run_status AS ENUM ('RUNNING', 'COMPLETE', 'FAILED', 'CANCELLED');
+
+CREATE TABLE bench_runs (
+    run_id              VARCHAR          PRIMARY KEY,  -- same value as in the *_runs tables
+    helium_commit       VARCHAR          NOT NULL,     -- = helium_runs.backend_version
+    host                VARCHAR,
+    github_run_url      VARCHAR,
+    status              bench_run_status NOT NULL,
+    started_at          TIMESTAMPTZ      NOT NULL,
+    finished_at         TIMESTAMPTZ
+);
+
+CREATE TABLE bench_targets (
+    id                  BIGINT        GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    helium_commit       VARCHAR       NOT NULL,
+    pr_number           INTEGER,                   -- NULL: a main commit
+    base_commit         VARCHAR,                   -- PRs: merge-base with main; main: first parent
+    main_position       INTEGER,                   -- main: index from BENCH_START_COMMIT, for ordering
+    updated_at          TIMESTAMPTZ   NOT NULL,
+
+    UNIQUE NULLS NOT DISTINCT (helium_commit, pr_number)
+);
+
