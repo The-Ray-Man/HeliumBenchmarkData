@@ -1,11 +1,15 @@
+use crate::cli::{BenchArgs, Cli, Command};
 use crate::executor::helium::{BenchRun, Helium};
 use crate::executor::rustc::Rustc;
 use crate::executor::silicon::{self, Silicon};
 use crate::executor::{measure, Executor, RunContext};
-use crate::explorer::Explorer;
+use crate::explorer::{Benchmark, Explorer};
 use crate::file_analyzer::record_benchmark;
 use crate::suite_config::SuiteConfig;
+use clap::Parser;
 use log::{debug, error, info};
+use sea_orm::ConnectionTrait;
+mod cli;
 mod db;
 mod display;
 mod explorer;
@@ -24,7 +28,8 @@ const STACK_SIZE: usize = 256 * 1024 * 1024;
 fn main() {
     // `info` unless RUST_LOG says otherwise (e.g. `RUST_LOG=runner=debug`).
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
-    // `block_on` runs `run` on this thread, so the async code gets its stack.
+    let command = Cli::parse().command();
+    // `block_on` runs the command on this thread, so the async code gets its stack.
     std::thread::Builder::new()
         .name("runner".into())
         .stack_size(STACK_SIZE)
@@ -33,18 +38,22 @@ fn main() {
                 .enable_all()
                 .build()
                 .expect("a tokio runtime")
-                .block_on(run())
+                .block_on(async {
+                    match command {
+                        Command::Bench(args) => bench(args).await,
+                    }
+                })
         })
         .expect("spawning the runner thread")
         .join()
         .expect("the runner thread panicked");
 }
 
-async fn run() {
-    let config = SuiteConfig::new("./suite.local.json").expect("a valid config. See config.example.json");
+async fn bench(args: BenchArgs) {
+    let config = SuiteConfig::new(&args.config).unwrap_or_else(|e| panic!("{e}. See suite.example.json"));
     let con = db::connection::connect().await.expect("could not connect to database");
     info!("Setting up Helium");
-    let mut helium = Helium::new(config.helium.clone(), config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
+    let mut helium = Helium::new(&config.helium, config.rustc_toolchain.as_deref()).expect("building Helium's `verify`");
     info!("Helium ready: {}", helium.id());
 
     info!("Setting up rustc");
@@ -82,47 +91,9 @@ async fn run() {
                     continue;
                 }
 
-                match measure(&con, &mut helium, &test_case, &ctx).await {
-                    Ok(measurements) => {
-                        stats.runs += measurements.len();
-                        if let Err(err) = helium.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
-                            error!("{test_case}: storing Helium runs failed: {err}");
-                            stats.errors += 1;
-                        }
-                    }
-                    Err(err) => {
-                        error!("{test_case}: measuring Helium failed: {err}");
-                        stats.errors += 1;
-                    }
-                }
-
-                match measure(&con, &mut rustc, &test_case, &ctx).await {
-                    Ok(measurements) => {
-                        stats.runs += measurements.len();
-                        if let Err(err) = rustc.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
-                            error!("{test_case}: storing rustc runs failed: {err}");
-                            stats.errors += 1;
-                        }
-                    }
-                    Err(err) => {
-                        error!("{test_case}: measuring rustc failed: {err}");
-                        stats.errors += 1;
-                    }
-                }
-
-                match measure(&con, &mut silicon, &test_case, &ctx).await {
-                    Ok(measurements) => {
-                        stats.runs += measurements.len();
-                        if let Err(err) = silicon.store(&con, &bench_run, &test_case, &ctx, &measurements).await {
-                            error!("{test_case}: storing Silicon runs failed: {err}");
-                            stats.errors += 1;
-                        }
-                    }
-                    Err(err) => {
-                        error!("{test_case}: measuring Silicon failed: {err}");
-                        stats.errors += 1;
-                    }
-                }
+                run_tool(&con, &mut helium, "Helium", &bench_run, &test_case, &ctx, &mut stats).await;
+                run_tool(&con, &mut rustc, "rustc", &bench_run, &test_case, &ctx, &mut stats).await;
+                run_tool(&con, &mut silicon, "Silicon", &bench_run, &test_case, &ctx, &mut stats).await;
 
                 if stats.benchmarks % 1000 == 0 {
                     info!("progress: {stats}");
@@ -135,6 +106,32 @@ async fn run() {
         }
     }
     info!("Benchmark run {} finished: {stats}", bench_run.run_id);
+}
+
+/// Measures `tool` on `test_case` and stores the runs; failures are logged
+/// and counted.
+async fn run_tool<C: ConnectionTrait, E: Executor>(
+    con: &C,
+    tool: &mut E,
+    label: &str,
+    bench_run: &BenchRun,
+    test_case: &Benchmark,
+    ctx: &RunContext,
+    stats: &mut RunStats,
+) {
+    match measure(con, tool, test_case, ctx).await {
+        Ok(measurements) => {
+            stats.runs += measurements.len();
+            if let Err(err) = tool.store(con, bench_run, test_case, ctx, &measurements).await {
+                error!("{test_case}: storing {label} runs failed: {err}");
+                stats.errors += 1;
+            }
+        }
+        Err(err) => {
+            error!("{test_case}: measuring {label} failed: {err}");
+            stats.errors += 1;
+        }
+    }
 }
 
 /// Counters for the progress and summary lines.

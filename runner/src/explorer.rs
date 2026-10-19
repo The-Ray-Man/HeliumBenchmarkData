@@ -147,9 +147,17 @@ mod tests {
 
     fn config(suites_dir: &Path, suites: serde_json::Value) -> SuiteConfig {
         let mut config: SuiteConfig = serde_json::from_value(serde_json::json!({
-            "silicon": {"jar": "s.jar", "warm": {"corpus": ["c"]}},
-            "helium": "verify",
+            "java": "java",
+            "silicon": {
+                "jar": "s.jar",
+                "jvm_args": [],
+                "args": [],
+                "warm": {"corpus": ["c"], "warmup_s": 60, "file_timeout_s": 10},
+            },
+            "helium": {"crate": "helium", "target_dir": "helium/target"},
             "suites_dir": "",
+            "repeat_runs": 1,
+            "warmup_runs": 0,
             "suites": suites,
         }))
         .unwrap();
@@ -187,8 +195,8 @@ mod tests {
         let config = config(
             &root,
             serde_json::json!([
-                {"name": "flat"},
-                {"name": "fam", "families": [{"name": "f1"}, {"name": "f2"}]},
+                {"name": "flat", "activated": true},
+                {"name": "fam", "activated": true, "families": [{"name": "f1"}, {"name": "f2"}]},
                 {"name": "off", "activated": false},
             ]),
         );
@@ -245,7 +253,7 @@ mod tests {
     fn missing_directory_is_an_error_then_continues() {
         let root = std::env::temp_dir().join(format!("explorer_missing_{}", std::process::id()));
         touch(&root, &["ok/a.vpr"]);
-        let config = config(&root, serde_json::json!([{"name": "gone"}, {"name": "ok"}]));
+        let config = config(&root, serde_json::json!([{"name": "gone", "activated": true}, {"name": "ok", "activated": true}]));
 
         let results: Vec<_> = Explorer::new(&config).collect();
         assert_eq!(results.len(), 2);

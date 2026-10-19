@@ -11,6 +11,7 @@ use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, 
 use serde_json::{json, Value};
 use crate::db::helium_runs;
 use crate::db::sea_orm_active_enums::RunStatus;
+use crate::suite_config::HeliumConfig;
 use super::{run_process, Executor, Measurement, MemberResult, Outcome, ParseError, RawRun, RunContext, Verdict};
 use crate::explorer::Benchmark;
 use crate::utils::hash_file;
@@ -27,13 +28,13 @@ pub struct Helium {
 }
 
 impl Helium {
-    /// `binary` is `<crate>/target/<profile>/verify[.exe]`. It is rebuilt
-    /// first (`cargo [+toolchain] build --profile <profile> --bin verify` in
-    /// `<crate>`), so the measured build matches the checkout, then asked for
-    /// its version. `toolchain` is passed to rustup as `+toolchain`; `None`
-    /// uses the default resolution.
-    pub fn new(binary: PathBuf, toolchain: Option<&str>) -> std::io::Result<Self> {
-        rebuild(&binary, toolchain)?;
+    /// Rebuilds `verify` in `config.crate_dir` with the release profile, so
+    /// the measured build matches the checkout, then asks it for its version.
+    /// `toolchain` is passed to rustup as `+toolchain`; `None` uses the
+    /// default resolution.
+    pub fn new(config: &HeliumConfig, toolchain: Option<&str>) -> std::io::Result<Self> {
+        rebuild(config, toolchain)?;
+        let binary = config.target_dir.join("release").join(format!("verify{}", std::env::consts::EXE_SUFFIX));
         let out = Command::new(&binary).arg("--version").output()?;
         if !out.status.success() {
             return Err(std::io::Error::other(format!(
@@ -137,38 +138,28 @@ fn json_line(stdout: &str) -> Option<Value> {
     serde_json::from_str(line).ok()
 }
 
-/// Rebuild `binary` with cargo, reading the crate and the profile from its
-/// path (`<crate>/target/<profile>/<bin>`), with `toolchain` if given.
-fn rebuild(binary: &Path, toolchain: Option<&str>) -> std::io::Result<()> {
-    let bad_path = || {
-        std::io::Error::other(format!(
-            "{}: expected `<crate>/target/<profile>/<binary>`",
-            binary.display()
-        ))
-    };
-    let binary = std::path::absolute(binary)?;
-    let bin = binary.file_stem().and_then(|s| s.to_str()).ok_or_else(bad_path)?;
-    let profile_dir = binary.parent().ok_or_else(bad_path)?;
-    let target_dir = profile_dir.parent().filter(|t| t.ends_with("target")).ok_or_else(bad_path)?;
-    let crate_dir = target_dir.parent().ok_or_else(bad_path)?;
-    // cargo calls the `debug` output folder's profile `dev`.
-    let profile = match profile_dir.file_name().and_then(|s| s.to_str()).ok_or_else(bad_path)? {
-        "debug" => "dev",
-        p => p,
-    };
+/// `cargo [+toolchain] build --release --bin verify --target-dir <target_dir>`
+/// in the crate. The target dir is always passed, so a `CARGO_TARGET_DIR` in
+/// the environment (e.g. the runner's own) never sends the build elsewhere.
+fn rebuild(config: &HeliumConfig, toolchain: Option<&str>) -> std::io::Result<()> {
     let mut cmd = Command::new("cargo");
     if let Some(tc) = toolchain {
         cmd.arg(format!("+{tc}"));
     }
-    info!("Building `{bin}` ({profile}) in {}", crate_dir.display());
+    info!(
+        "Building `verify` in {} into {}",
+        config.crate_dir.display(),
+        config.target_dir.display()
+    );
     let status = cmd
-        .args(["build", "--profile", profile, "--bin", bin])
-        .current_dir(crate_dir)
+        .args(["build", "--release", "--bin", "verify", "--target-dir"])
+        .arg(&config.target_dir)
+        .current_dir(&config.crate_dir)
         .status()?;
     if !status.success() {
         return Err(std::io::Error::other(format!(
-            "cargo build of `{bin}` in {} failed ({status})",
-            crate_dir.display()
+            "cargo build of `verify` in {} failed ({status})",
+            config.crate_dir.display()
         )));
     }
     Ok(())

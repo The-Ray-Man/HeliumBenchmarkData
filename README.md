@@ -61,23 +61,30 @@ The runner reads a suite configuration: which tools to run, how often, and which
 cp runner/suite.example.json runner/suite.local.json
 ```
 
-Relative paths are resolved against the folder of the config file (`runner/`). When the config is loaded, every path is checked to exist, and every family `pattern` must be a valid regex.
+Relative paths are resolved against the folder of the config file (`runner/`). The config is the only source of settings: there are no defaults for required fields and no overrides. When it is loaded, before anything runs, every required field must be present, every path must exist (Helium's `target_dir` is created by cargo), and every family `pattern` must be a valid regex.
 
 | Field | Required | Meaning |
 |---|---|---|
 | `rustc_toolchain` | no | rustup toolchain for `rustc` and for rebuilding Helium (e.g. `nightly-2026-08-19`); omitted uses `rust-toolchain.toml` / rustup's default |
-| `java` | no (`"java"`) | Java command; a bare name is looked up on `PATH` |
+| `java` | yes | Java command; a bare name is looked up on `PATH` |
 | `silicon.jar` | yes | Silicon's fat jar (`sbt assembly` in the Silicon repo) |
-| `silicon.jvm_args` | no (`[]`) | JVM arguments, e.g. `["-Xss128m"]` |
-| `silicon.args` | no (`[]`) | extra Silicon arguments for every file |
+| `silicon.jvm_args` | yes | JVM arguments, e.g. `["-Xss128m"]` |
+| `silicon.args` | yes | extra Silicon arguments for every file (`[]` for none) |
 | `silicon.warm.corpus` | yes | directories whose `.vpr` files warm up each new JVM before measuring, e.g. Silicon's and Silver's `src/test/resources` |
-| `silicon.warm.warmup_s` | no (`60`) | seconds of warm-up per JVM |
-| `silicon.warm.file_timeout_s` | no (`10`) | Silicon `--timeout` per warm-up file |
-| `helium` | yes | Helium's `verify` binary (`verify.exe` on Windows) |
+| `silicon.warm.warmup_s` | yes | seconds of warm-up per JVM |
+| `silicon.warm.file_timeout_s` | yes | Silicon `--timeout` per warm-up file |
+| `helium.crate` | yes | Helium's crate; `verify` is rebuilt there with `cargo build --release` before measuring |
+| `helium.target_dir` | yes | cargo target dir for that build, e.g. `<crate>/target`, or a folder outside the checkout to keep the build cache. Always passed as `--target-dir`, so a `CARGO_TARGET_DIR` in the environment does not redirect the build |
 | `suites_dir` | yes | folder with one subfolder per suite, e.g. `../suites` |
-| `repeat_runs` | no (`5`) | measured runs per benchmark (at least 1) |
-| `warmup_runs` | no (`1`) | untimed runs per benchmark before the measured ones (`0` for none) |
+| `repeat_runs` | yes | measured runs per benchmark (at least 1) |
+| `warmup_runs` | yes | untimed runs per benchmark before the measured ones (`0` for none) |
 | `timeout` | no (no limit) | seconds after which a run is killed |
 | `suites` | yes | the benchmark suites, see below |
 
-Each suite has a `name` (its folder under `suites/`), an optional `description` and `tags`, and `activated` (default `true`; set it to `false` to skip the suite without removing it). `families` is optional; without it the suite is flat. Each family has a `name` (its subfolder), an optional `description`, and optionally a `pattern`: a regex whose named groups, listed in `knobs`, extract knob values from the file name (e.g. `depth_d(?P<depth>\d+)` for `depth_d3`).
+Each suite has a `name` (its folder under `suites/`), `activated` (`false` skips the suite without removing it), and an optional `description` and `tags`. `families` is optional; without it the suite is flat. Each family has a `name` (its subfolder), an optional `description`, and optionally a `pattern`: a regex whose named groups, listed in `knobs`, extract knob values from the file name (e.g. `depth_d(?P<depth>\d+)` for `depth_d3`).
+
+`runner/suite.ci.json` is the config of the CI benchmark machine: every suite, with that machine's fixed paths (`/opt/bench/...`) and the Helium checkout next to this repository's.
+
+## Command line
+
+`runner` without a subcommand is `runner bench`, so `cargo run` in `runner/` measures with `./suite.local.json`. The only option is `--config <file>` to use another config, e.g. `cargo run --release -- bench --config suite.ci.json`.

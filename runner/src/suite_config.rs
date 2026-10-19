@@ -10,9 +10,11 @@ use log::{debug, info};
 use regex::Regex;
 use serde::{Deserialize, Deserializer};
 
-/// Top-level suite configuration file.
+/// Top-level suite configuration file, the single source of every setting.
 ///
 /// Relative paths in it are resolved against the directory of the file.
+/// Every field is required, except those that are `Option`s or lists that
+/// may be empty.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SuiteConfig {
@@ -22,23 +24,32 @@ pub struct SuiteConfig {
     #[serde(default)]
     pub rustc_toolchain: Option<String>,
     /// Command used to start the JVM. A bare name is looked up on `PATH`.
-    #[serde(default = "default_java")]
     pub java: PathBuf,
     pub silicon: SiliconConfig,
-    /// Helium's `verify` binary.
-    pub helium: PathBuf,
+    pub helium: HeliumConfig,
     /// Directory holding one folder per suite (`<suites_dir>/<suite>/<family>/...`).
     pub suites_dir: PathBuf,
     /// How often every benchmark is measured.
-    #[serde(default = "default_repeat_runs")]
     pub repeat_runs: usize,
     /// Untimed runs before the measured ones, per benchmark and tool.
-    #[serde(default = "default_warmup_runs")]
     pub warmup_runs: usize,
     /// Seconds after which a single run is killed; `None` means no limit.
     #[serde(default)]
     pub timeout: Option<f64>,
     pub suites: Vec<Suite>,
+}
+
+/// Where Helium is built: its `verify` binary is rebuilt with the release
+/// profile before measuring, so the measured build matches the checkout.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HeliumConfig {
+    /// Helium's crate (the folder with its `Cargo.toml`).
+    #[serde(rename = "crate")]
+    pub crate_dir: PathBuf,
+    /// Cargo target directory for the build; e.g. `<crate>/target`, or a
+    /// folder outside the checkout to keep the build cache.
+    pub target_dir: PathBuf,
 }
 
 /// How to run Silicon in a warmed-up JVM.
@@ -48,10 +59,8 @@ pub struct SiliconConfig {
     /// Silicon's fat jar, used as the class path of the warm driver.
     pub jar: PathBuf,
     /// Arguments for the JVM, e.g. `-Xss128m`.
-    #[serde(default)]
     pub jvm_args: Vec<String>,
     /// Extra arguments passed to Silicon for every file.
-    #[serde(default)]
     pub args: Vec<String>,
     pub warm: WarmConfig,
 }
@@ -63,36 +72,10 @@ pub struct WarmConfig {
     /// Directories searched recursively for warm-up `.vpr` files.
     pub corpus: Vec<PathBuf>,
     /// Seconds spent warming up each new JVM.
-    #[serde(default = "default_warmup_s")]
     pub warmup_s: f64,
     /// Silicon's own `--timeout` for each warm-up file, so one slow file
     /// cannot take the whole budget.
-    #[serde(default = "default_file_timeout_s")]
     pub file_timeout_s: u64,
-}
-
-fn default_activated() -> bool {
-    false
-}
-
-fn default_java() -> PathBuf {
-    "java".into()
-}
-
-fn default_warmup_runs() -> usize {
-    1
-}
-
-fn default_repeat_runs() -> usize {
-    5
-}
-
-fn default_warmup_s() -> f64 {
-    60.0
-}
-
-fn default_file_timeout_s() -> u64 {
-    10
 }
 
 /// A benchmark suite, corresponding to a directory under `suites/`.
@@ -101,7 +84,6 @@ fn default_file_timeout_s() -> u64 {
 pub struct Suite {
     pub name: String,
     /// Whether the suite is run; lets a suite stay in the file while skipped.
-    #[serde(default = "default_activated")]
     pub activated: bool,
     #[serde(default)]
     pub description: Option<String>,
@@ -162,7 +144,8 @@ impl std::error::Error for SuiteConfigError {
 }
 
 impl SuiteConfig {
-    /// Reads, parses and validates the suite configuration at `path`.
+    /// Reads, parses and validates the suite configuration at `path`, and
+    /// checks that every path in it exists.
     pub fn new(path: impl AsRef<Path>) -> Result<Self, SuiteConfigError> {
         let path = path.as_ref();
         let content = fs::read_to_string(path).map_err(|source| SuiteConfigError::Io {
@@ -219,9 +202,14 @@ impl SuiteConfig {
         if self.java.is_relative() && self.java.components().count() > 1 {
             self.java = base.join(&self.java);
         }
-        let paths = [&mut self.helium, &mut self.silicon.jar, &mut self.suites_dir]
-            .into_iter()
-            .chain(&mut self.silicon.warm.corpus);
+        let paths = [
+            &mut self.helium.crate_dir,
+            &mut self.helium.target_dir,
+            &mut self.silicon.jar,
+            &mut self.suites_dir,
+        ]
+        .into_iter()
+        .chain(&mut self.silicon.warm.corpus);
         for p in paths {
             if p.is_relative() {
                 *p = base.join(&*p);
@@ -230,12 +218,14 @@ impl SuiteConfig {
     }
 
     /// Checks that every configured executable, jar and directory exists.
+    /// Helium's target dir is created by cargo if needed.
     fn check_paths(&self) -> Result<(), String> {
         if find_command(&self.java).is_none() {
             return Err(format!("`java`: {} not found", self.java.display()));
         }
-        if !self.helium.is_file() {
-            return Err(format!("`helium`: {} is not a file", self.helium.display()));
+        let manifest = self.helium.crate_dir.join("Cargo.toml");
+        if !manifest.is_file() {
+            return Err(format!("`helium.crate`: {} is not a file", manifest.display()));
         }
         if !self.silicon.jar.is_file() {
             return Err(format!("`silicon.jar`: {} is not a file", self.silicon.jar.display()));
@@ -379,28 +369,48 @@ where
 mod tests {
     use super::*;
 
-    const SILICON: &str = r#""silicon": {"jar": "silicon.jar", "warm": {"corpus": ["warmup"]}}"#;
+    use serde_json::{json, Value};
 
-    fn parse(json: &str) -> Result<SuiteConfig, String> {
-        let config: SuiteConfig = serde_json::from_str(json).map_err(|e| e.to_string())?;
+    /// A complete config: every required field set.
+    fn base() -> Value {
+        json!({
+            "java": "java",
+            "silicon": {
+                "jar": "silicon.jar",
+                "jvm_args": [],
+                "args": [],
+                "warm": {"corpus": ["warmup"], "warmup_s": 60, "file_timeout_s": 10},
+            },
+            "helium": {"crate": "helium", "target_dir": "helium/target"},
+            "suites_dir": "suites",
+            "repeat_runs": 5,
+            "warmup_runs": 1,
+            "suites": [],
+        })
+    }
+
+    fn parse(json: Value) -> Result<SuiteConfig, String> {
+        let config: SuiteConfig = serde_json::from_value(json).map_err(|e| e.to_string())?;
         config.validate()?;
         Ok(config)
     }
 
-    /// A minimal config with the given top-level fields (each ending in `,`) and suites.
-    fn config(top: &str, suites: &str) -> Result<SuiteConfig, String> {
-        parse(&format!(r#"{{{SILICON}, "helium": "verify", "suites_dir": "suites", {top} "suites": {suites}}}"#))
+    /// [`base`] with `edit` applied.
+    fn config(edit: impl FnOnce(&mut Value)) -> Result<SuiteConfig, String> {
+        let mut json = base();
+        edit(&mut json);
+        parse(json)
     }
 
-    fn suites(suites: &str) -> Result<SuiteConfig, String> {
-        config("", suites)
+    fn suites(suites: Value) -> Result<SuiteConfig, String> {
+        config(|c| c["suites"] = suites)
     }
 
     #[test]
     fn parses_example_suite_file() {
         // Parsed without `check_paths`: the example's paths need not exist here.
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("suite.example.json");
-        let config = parse(&fs::read_to_string(path).unwrap()).unwrap();
+        let config = parse(serde_json::from_str(&fs::read_to_string(path).unwrap()).unwrap()).unwrap();
 
         assert!(config.repeat_runs >= 1);
         assert!(!config.silicon.warm.corpus.is_empty());
@@ -420,6 +430,14 @@ mod tests {
     }
 
     #[test]
+    fn parses_ci_suite_file() {
+        // Parsed without `check_paths`: the CI machine's paths need not exist here.
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("suite.ci.json");
+        let config = parse(serde_json::from_str(&fs::read_to_string(path).unwrap()).unwrap()).unwrap();
+        assert!(config.activated_suites().count() > 0);
+    }
+
+    #[test]
     #[ignore = "needs runner/suite.local.json and the tools it names"]
     fn loads_local_suite_file() {
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("suite.local.json");
@@ -428,24 +446,45 @@ mod tests {
 
     #[test]
     fn optional_fields_default() {
-        let config = suites(r#"[{"name": "s", "families": [{"name": "f"}]}, {"name": "t"}]"#).unwrap();
+        let config = suites(json!([
+            {"name": "s", "activated": true, "families": [{"name": "f"}]},
+            {"name": "t", "activated": true},
+        ]))
+        .unwrap();
         assert_eq!(config.rustc_toolchain, None);
-        assert_eq!(config.java, Path::new("java"));
-        assert_eq!(config.repeat_runs, 5);
-        assert_eq!(config.warmup_runs, 1);
         assert_eq!(config.timeout(), None);
-        assert!(config.silicon.jvm_args.is_empty() && config.silicon.args.is_empty());
-        assert_eq!(config.silicon.warm.warmup_s, 60.0);
-        assert_eq!(config.silicon.warm.file_timeout_s, 10);
         assert_eq!(config.suites[0].description, None);
         assert!(config.suites[0].tags.is_empty());
+        assert!(config.suites[0].families[0].pattern.is_none());
         assert!(config.suites[1].is_flat());
-        assert!(config.suites.iter().all(|s| s.activated));
+    }
+
+    #[test]
+    fn required_fields_have_no_default() {
+        for field in ["java", "silicon", "helium", "suites_dir", "repeat_runs", "warmup_runs", "suites"] {
+            assert!(config(|c| _ = c.as_object_mut().unwrap().remove(field)).is_err(), "{field}");
+        }
+        for field in ["jar", "jvm_args", "args", "warm"] {
+            assert!(config(|c| _ = c["silicon"].as_object_mut().unwrap().remove(field)).is_err(), "silicon.{field}");
+        }
+        for field in ["corpus", "warmup_s", "file_timeout_s"] {
+            let r = config(|c| _ = c["silicon"]["warm"].as_object_mut().unwrap().remove(field));
+            assert!(r.is_err(), "silicon.warm.{field}");
+        }
+        for field in ["crate", "target_dir"] {
+            assert!(config(|c| _ = c["helium"].as_object_mut().unwrap().remove(field)).is_err(), "helium.{field}");
+        }
+        assert!(suites(json!([{"name": "s"}])).is_err(), "activated");
     }
 
     #[test]
     fn filters_deactivated_suites() {
-        let config = suites(r#"[{"name": "a"}, {"name": "b", "activated": false}, {"name": "c", "activated": true}]"#).unwrap();
+        let config = suites(json!([
+            {"name": "a", "activated": true},
+            {"name": "b", "activated": false},
+            {"name": "c", "activated": true},
+        ]))
+        .unwrap();
         let names: Vec<_> = config.activated_suites().map(|s| s.name.as_str()).collect();
         assert_eq!(names, ["a", "c"]);
         assert!(config.suite("b").is_some());
@@ -453,10 +492,13 @@ mod tests {
 
     #[test]
     fn reads_run_settings() {
-        let config = config(
-            r#""rustc_toolchain": "nightly-2026-08-19", "java": "/opt/jdk/bin/java", "repeat_runs": 3, "warmup_runs": 0, "timeout": 2.5,"#,
-            "[]",
-        )
+        let config = config(|c| {
+            c["rustc_toolchain"] = json!("nightly-2026-08-19");
+            c["java"] = json!("/opt/jdk/bin/java");
+            c["repeat_runs"] = json!(3);
+            c["warmup_runs"] = json!(0);
+            c["timeout"] = json!(2.5);
+        })
         .unwrap();
         assert_eq!(config.rustc_toolchain.as_deref(), Some("nightly-2026-08-19"));
         assert_eq!(config.java, Path::new("/opt/jdk/bin/java"));
@@ -467,11 +509,11 @@ mod tests {
 
     #[test]
     fn resolves_relative_paths_against_config_dir() {
-        let mut config = config(r#""java": "java","#, "[]").unwrap();
-        config.helium = "../bin/verify".into();
+        let mut config = config(|c| c["helium"]["target_dir"] = json!("../cache")).unwrap();
         config.resolve_paths(Path::new("cfg"));
         assert_eq!(config.java, Path::new("java"));
-        assert_eq!(config.helium, Path::new("cfg/../bin/verify"));
+        assert_eq!(config.helium.crate_dir, Path::new("cfg/helium"));
+        assert_eq!(config.helium.target_dir, Path::new("cfg/../cache"));
         assert_eq!(config.silicon.jar, Path::new("cfg/silicon.jar"));
         assert_eq!(config.silicon.warm.corpus, [Path::new("cfg/warmup")]);
         assert_eq!(config.suites_dir, Path::new("cfg/suites"));
@@ -479,58 +521,57 @@ mod tests {
 
     #[test]
     fn rejects_invalid_run_settings() {
-        assert!(parse(r#"{"helium": "verify", "suites_dir": "s", "suites": []}"#).is_err());
-        assert!(parse(&format!(r#"{{{SILICON}, "helium": "verify", "suites": []}}"#)).is_err());
-        assert!(parse(&format!(r#"{{{SILICON}, "suites": []}}"#)).is_err());
-        assert!(config(r#""repeat_runs": 0,"#, "[]").is_err());
-        assert!(config(r#""timeout": 0,"#, "[]").is_err());
-        assert!(config(r#""timeout": -1,"#, "[]").is_err());
-        assert!(config(r#""rustc_toolchain": "","#, "[]").is_err());
-        let silicon = |warm: &str| {
-            parse(&format!(r#"{{"silicon": {{"jar": "s.jar", "warm": {warm}}}, "helium": "v", "suites_dir": "s", "suites": []}}"#))
-        };
-        assert!(silicon(r#"{"corpus": []}"#).is_err());
-        assert!(silicon(r#"{"corpus": ["c"], "warmup_s": -1}"#).is_err());
-        assert!(silicon(r#"{"corpus": ["c"], "file_timeout_s": 0}"#).is_err());
-        assert!(silicon(r#"{"corpus": ["c"]}"#).is_ok());
+        assert!(config(|_| {}).is_ok());
+        assert!(config(|c| c["repeat_runs"] = json!(0)).is_err());
+        assert!(config(|c| c["timeout"] = json!(0)).is_err());
+        assert!(config(|c| c["timeout"] = json!(-1)).is_err());
+        assert!(config(|c| c["rustc_toolchain"] = json!("")).is_err());
+        assert!(config(|c| c["silicon"]["warm"]["corpus"] = json!([])).is_err());
+        assert!(config(|c| c["silicon"]["warm"]["warmup_s"] = json!(-1)).is_err());
+        assert!(config(|c| c["silicon"]["warm"]["file_timeout_s"] = json!(0)).is_err());
+        assert!(config(|c| c["helium"]["profile"] = json!("dev")).is_err());
     }
 
     #[test]
     fn rejects_invalid_suites() {
-        assert!(suites(r#"[{"description": "no name"}]"#).is_err());
-        assert!(suites(r#"[{"name": "s"}, {"name": "s"}]"#).is_err());
-        assert!(suites(r#"[{"name": "s", "families": [{"name": "f"}, {"name": "f"}]}]"#).is_err());
-        assert!(suites(r#"[{"name": "s", "families": [{"name": "f", "knobs": ["k"]}]}]"#).is_err());
-        assert!(suites(r#"[{"name": "s", "families": [{"name": "f", "pattern": "x(?P<a>\d+)", "knobs": ["b"]}]}]"#).is_err());
-        assert!(suites(r#"[{"name": "s", "typo": 1}]"#).is_err());
-        assert!(suites(r#"[{"name": "s", "families": [{"name": "f", "pattern": "x(?P<a>[0-9]+"}]}]"#).is_err());
+        assert!(suites(json!([{"description": "no name", "activated": true}])).is_err());
+        assert!(suites(json!([{"name": "s", "activated": true}, {"name": "s", "activated": true}])).is_err());
+        let family = |families: Value| suites(json!([{"name": "s", "activated": true, "families": families}]));
+        assert!(family(json!([{"name": "f"}, {"name": "f"}])).is_err());
+        assert!(family(json!([{"name": "f", "knobs": ["k"]}])).is_err());
+        assert!(family(json!([{"name": "f", "pattern": r"x(?P<a>\d+)", "knobs": ["b"]}])).is_err());
+        assert!(family(json!([{"name": "f", "pattern": "x(?P<a>[0-9]+"}])).is_err());
+        assert!(suites(json!([{"name": "s", "activated": true, "typo": 1}])).is_err());
     }
 
     #[test]
     fn checks_that_paths_exist() {
         let dir = std::env::temp_dir().join(format!("suite_config_test_{}", std::process::id()));
-        fs::create_dir_all(dir.join("bin")).unwrap();
+        fs::create_dir_all(dir.join("helium")).unwrap();
         fs::create_dir_all(dir.join("warmup")).unwrap();
         fs::create_dir_all(dir.join("suites/flat")).unwrap();
-        fs::write(dir.join("bin/verify"), "").unwrap();
+        fs::write(dir.join("helium/Cargo.toml"), "").unwrap();
         fs::write(dir.join("silicon.jar"), "").unwrap();
         let java = std::env::current_exe().unwrap();
-        let write = |helium: &str, corpus: &str| {
-            let json = serde_json::json!({
-                "java": java,
-                "silicon": {"jar": "silicon.jar", "warm": {"corpus": [corpus]}},
-                "helium": helium,
-                "suites_dir": "suites",
-                "suites": [{"name": "flat"}, {"name": "off", "activated": false}],
-            });
+        let write = |edit: &dyn Fn(&mut Value)| {
+            let mut json = base();
+            json["java"] = json!(java);
+            json["suites"] = json!([{"name": "flat", "activated": true}, {"name": "off", "activated": false}]);
+            edit(&mut json);
             fs::write(dir.join("suite.json"), json.to_string()).unwrap();
             SuiteConfig::new(dir.join("suite.json"))
         };
+        let invalid = |r: Result<SuiteConfig, SuiteConfigError>| matches!(r, Err(SuiteConfigError::Invalid { .. }));
 
-        let config = write("bin/verify", "warmup").unwrap();
-        assert_eq!(config.helium, dir.join("bin/verify"));
-        assert!(matches!(write("bin/missing", "warmup"), Err(SuiteConfigError::Invalid { .. })));
-        assert!(matches!(write("bin/verify", "missing"), Err(SuiteConfigError::Invalid { .. })));
+        let config = write(&|_| {}).unwrap();
+        assert_eq!(config.helium.crate_dir, dir.join("helium"));
+        assert!(invalid(write(&|c| c["helium"]["crate"] = json!("missing"))));
+        assert!(invalid(write(&|c| c["silicon"]["jar"] = json!("missing.jar"))));
+        assert!(invalid(write(&|c| c["silicon"]["warm"]["corpus"] = json!(["missing"]))));
+        assert!(invalid(write(&|c| c["java"] = json!("no/such/java"))));
+        assert!(invalid(write(&|c| c["suites"] = json!([{"name": "missing", "activated": true}]))));
+        // A deactivated suite's folder need not exist.
+        assert!(write(&|c| c["suites"] = json!([{"name": "missing", "activated": false}])).is_ok());
         fs::remove_dir_all(&dir).unwrap();
     }
 
