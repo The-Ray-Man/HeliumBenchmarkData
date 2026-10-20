@@ -90,6 +90,14 @@ Each suite has a `name` (its folder under `suites/`), `activated` (`false` skips
 
 `runner` without a subcommand is `runner bench`, so `cargo run` in `runner/` measures with `./suite.local.json`. `--config <file>` uses another config, e.g. `cargo run --release -- bench --config suite.ci.json`.
 
+### Indexing
+
+```bash
+runner index [--config <file>]
+```
+
+Stores the static metrics (`rust_metrics`, `viper_metrics`) of every benchmark file of the activated suites, like `bench` does before measuring, but sets up and runs no tool. Files whose rows are complete are skipped, so it is also the quick way to fill a column a migration added.
+
 ### CI mode
 
 ```bash

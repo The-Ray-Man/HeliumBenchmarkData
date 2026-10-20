@@ -22,11 +22,21 @@ pub struct Cli {
 pub enum Command {
     /// Measure the configured suites and store the runs (the default).
     Bench(BenchArgs),
+    /// Store the static metrics of every configured benchmark file, without
+    /// running any tool.
+    Index(IndexArgs),
     /// Set which commits CI keeps runs for, remove the runs of all others,
     /// and print the commits that still need a complete run, one per line.
     Sync(SyncArgs),
     /// Remove a closed PR's target and its runs.
     ClosePr(ClosePrArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct IndexArgs {
+    /// Suite configuration file; only its suites are read.
+    #[arg(long, default_value = "./suite.local.json")]
+    pub config: PathBuf,
 }
 
 #[derive(Debug, Args)]
@@ -136,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_sync_and_close_pr() {
+    fn parses_index_sync_and_close_pr() {
         let a = "a".repeat(40);
         let b = "b".repeat(40);
         let pr = format!("12={b}");
@@ -145,6 +155,10 @@ mod tests {
                 assert_eq!(s.config, PathBuf::from("./suite.local.json"));
                 assert_eq!(s.prs, [(12, b.clone()), (3, a.clone())]);
             }
+            c => panic!("{c:?}"),
+        }
+        match Cli::try_parse_from(["runner", "index", "--config", "suite.ci.json"]).unwrap().command() {
+            Command::Index(i) => assert_eq!(i.config, PathBuf::from("suite.ci.json")),
             c => panic!("{c:?}"),
         }
         match Cli::try_parse_from(["runner", "close-pr", "--pr", "12"]).unwrap().command() {

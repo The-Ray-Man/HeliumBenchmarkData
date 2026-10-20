@@ -1,4 +1,4 @@
-use crate::cli::{BenchArgs, Cli, ClosePrArgs, Command, SyncArgs};
+use crate::cli::{BenchArgs, Cli, ClosePrArgs, Command, IndexArgs, SyncArgs};
 use crate::db::sea_orm_active_enums::BenchRunStatus;
 use crate::executor::helium::{BenchRun, Helium};
 use crate::executor::rustc::Rustc;
@@ -44,6 +44,7 @@ fn main() {
                 .block_on(async {
                     match command {
                         Command::Bench(args) => bench(args).await,
+                        Command::Index(args) => index(args).await,
                         Command::Sync(args) => sync(args).await,
                         Command::ClosePr(args) => close_pr(args).await,
                     }
@@ -75,6 +76,34 @@ async fn sync(args: SyncArgs) {
 async fn close_pr(args: ClosePrArgs) {
     let con = db::connection::connect().await.expect("could not connect to database");
     targets::close_pr(&con, args.pr).await.expect("closing the PR");
+}
+
+/// What `bench` records before measuring, for every benchmark: no tool is
+/// set up or run. Files whose metrics are up to date are skipped.
+async fn index(args: IndexArgs) {
+    let config = SuiteConfig::new(&args.config).unwrap_or_else(|e| panic!("{e}. See suite.example.json"));
+    let con = db::connection::connect().await.expect("could not connect to database");
+    let (mut benchmarks, mut errors) = (0usize, 0usize);
+    for test_case in Explorer::new(&config) {
+        match test_case {
+            Ok(test_case) => {
+                benchmarks += 1;
+                debug!("benchmark {test_case}");
+                if let Err(err) = record_benchmark(&con, test_case.clone()).await {
+                    error!("{test_case}: recording metrics failed: {err}");
+                    errors += 1;
+                }
+                if benchmarks % 1000 == 0 {
+                    info!("progress: {benchmarks} benchmarks, {errors} errors");
+                }
+            }
+            Err(error) => {
+                error!("{error}");
+                errors += 1;
+            }
+        }
+    }
+    info!("Indexing finished: {benchmarks} benchmarks, {errors} errors");
 }
 
 async fn bench(args: BenchArgs) {
