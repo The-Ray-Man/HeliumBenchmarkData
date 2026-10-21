@@ -115,7 +115,7 @@ async fn bench(args: BenchArgs) {
     // here on marks it FAILED.
     let ci_run = args.ci().map(|ci| (BenchRun::starting_now(ci.run_id), ci));
     if let Some((run, ci)) = &ci_run {
-        ci::start(&con, run, ci.helium_commit, ci.github_run_url).await.expect("recording the CI run");
+        ci::start(&con, run, ci.helium_commit, ci.github_run_url, ci.pr).await.expect("recording the CI run");
         ci::watch_cancel(con.clone());
     }
 

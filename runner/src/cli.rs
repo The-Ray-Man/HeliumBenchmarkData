@@ -104,6 +104,11 @@ pub struct BenchArgs {
     /// Link to the GitHub Actions run, stored with the run.
     #[arg(long, requires = "ci")]
     pub github_run_url: Option<String>,
+
+    /// Number of the PR whose head `--helium-commit` is; without it, the
+    /// commit is a main commit. Decides which target keeps the run.
+    #[arg(long, requires = "ci", value_parser = clap::value_parser!(i32).range(1..))]
+    pub pr: Option<i32>,
 }
 
 /// The arguments of CI mode.
@@ -111,6 +116,7 @@ pub struct CiArgs<'a> {
     pub run_id: &'a str,
     pub helium_commit: &'a str,
     pub github_run_url: Option<&'a str>,
+    pub pr: Option<i32>,
 }
 
 impl BenchArgs {
@@ -120,6 +126,7 @@ impl BenchArgs {
             run_id: self.run_id.as_deref().expect("--run-id"),
             helium_commit: self.helium_commit.as_deref().expect("--helium-commit"),
             github_run_url: self.github_run_url.as_deref(),
+            pr: self.pr,
         })
     }
 }
@@ -185,12 +192,17 @@ mod tests {
         let commit = "b81d12363bed9fae54810183b94e353736205456";
         let b = bench(&["runner", "bench", "--ci", "--run-id", "gh-1-1", "--helium-commit", commit]);
         let ci = b.ci().unwrap();
-        assert_eq!((ci.run_id, ci.helium_commit, ci.github_run_url), ("gh-1-1", commit, None));
+        assert_eq!((ci.run_id, ci.helium_commit, ci.github_run_url, ci.pr), ("gh-1-1", commit, None, None));
+
+        let b = bench(&["runner", "bench", "--ci", "--run-id", "gh-1-1", "--helium-commit", commit, "--pr", "12"]);
+        assert_eq!(b.ci().unwrap().pr, Some(12));
 
         // --ci needs both, and the others need --ci.
         assert!(Cli::try_parse_from(["runner", "--ci", "--run-id", "x"]).is_err());
         assert!(Cli::try_parse_from(["runner", "--ci", "--helium-commit", commit]).is_err());
         assert!(Cli::try_parse_from(["runner", "--run-id", "x", "--helium-commit", commit]).is_err());
+        assert!(Cli::try_parse_from(["runner", "--pr", "12"]).is_err());
         assert!(Cli::try_parse_from(["runner", "--ci", "--run-id", "x", "--helium-commit", "b81d123"]).is_err());
+        assert!(Cli::try_parse_from(["runner", "--ci", "--run-id", "x", "--helium-commit", commit, "--pr", "0"]).is_err());
     }
 }

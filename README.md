@@ -22,6 +22,7 @@ docker compose up -d
 
 - Grafana: http://localhost:3000 (admin / admin unless `GRAFANA_ADMIN_USER` / `GRAFANA_ADMIN_PASSWORD` are set)
 - Postgres: `postgres://helium:helium@localhost:5432/helium_bench` (user / password from `POSTGRES_USER` / `POSTGRES_PASSWORD`)
+- pgAdmin: http://localhost:5050 (admin@example.com / admin unless `PGADMIN_EMAIL` / `PGADMIN_PASSWORD` are set); the `helium-bench` server is preconfigured, it asks for the Postgres password on first connect. From another machine, tunnel it: `ssh -L 5050:localhost:5050 <bench-host>`.
 
 `db/schema.sql` is applied when the Postgres volume is first created. After changing the schema, recreate the database (this deletes all results) and regenerate the entities:
 
@@ -101,22 +102,54 @@ Stores the static metrics (`rust_metrics`, `viper_metrics`) of every benchmark f
 ### CI mode
 
 ```bash
-runner bench --config suite.ci.json --ci --run-id gh-<run id>-<attempt> --helium-commit <full sha> [--github-run-url <url>]
+runner bench --config suite.ci.json --ci --run-id gh-<run id>-<attempt> --helium-commit <full sha> [--github-run-url <url>] [--pr <number>]
 ```
 
+- Registers `--helium-commit` in `bench_targets` (see below) before anything else, unless it already is: as a head of PR `--pr`, or as a main commit without it. So a run's rows always have a target, also when it fails or is cancelled.
 - Checks out `--helium-commit` (fetched from `origin` if missing) in `helium.crate`, with its submodules, and builds it. Refuses when the checkout has local changes to tracked files, and fails unless `verify --version` then reports exactly that commit.
 - Records the run in `bench_runs`, which makes its rows CI-owned. The row is inserted as `RUNNING` (a taken `--run-id` fails), and ends as `COMPLETE` once every benchmark was gone through, whatever the verification results; `FAILED` if the runner crashes midway; `CANCELLED` on Ctrl-C / SIGTERM (what GitHub Actions sends on cancel).
 - A file is skipped only when CI-owned runs of the same commit already measured it, so a run of the same commit on another machine does not count. A re-run of a cancelled or failed commit measures only what is missing. Silicon and rustc runs are shared as before: they don't depend on Helium's commit.
 
 ### Which commits CI keeps
 
-CI keeps runs for every main commit from the start commit on, and for the head of every open PR. `bench_targets` lists these commits (one row per main commit with its `main_position`, one per PR with its number); CI-owned Helium runs of any other commit are removed. Two commands maintain it:
+CI keeps runs for every main commit it benchmarked, and for every head of an open PR it benchmarked (a push to a PR adds a head; earlier heads keep their runs). `bench_targets` lists these commits (one row per main commit, one per PR and head with the PR's number); CI-owned Helium runs of any other commit are removed. Everything is driven by the GitHub workflow, nothing is run by hand:
+
+- `bench --ci` on a push to main registers the pushed commit as a main target; on a PR (`--pr <number>`), its head as a target of that PR. Main targets are never removed. Targets registered this way have no `main_position`.
+- When a PR is closed (merged or not), `runner close-pr --pr <number>` removes all its targets and the runs of every commit no longer targeted. Merging needs nothing else: with squash and merge the squash commit is a new main commit, which the push to main benchmarks.
 
 ```bash
-runner sync --config suite.ci.json --pr 12=<head sha> --pr 15=<head sha>
 runner close-pr --pr 12
+runner sync --config suite.ci.json --pr 12=<head sha> --pr 15=<head sha>
 ```
 
-- `sync` fetches `main` from `origin` in `helium.crate` (the working tree is not touched) and takes its commits from `helium.start_commit` on, following first parents; the open PRs come from GitHub (`--pr`, one per PR). It sets the targets to exactly these main commits and PR heads, removes the runs of every commit that is no longer one (a PR's previous head, a closed PR), and prints the targeted commits without a `COMPLETE` run, one per line on stdout: main commits oldest first, then PR heads. It fails, changing nothing, if the start commit is not on `origin/main`.
-- `close-pr` (needs only `DATABASE_URL`) removes a closed (merged or not) PR's target and its runs. Merging needs nothing else: the squash commit is a new main commit, which the next `sync` lists.
+- `close-pr` (needs only `DATABASE_URL`) removes a closed PR's targets and its runs.
+- `sync` is not part of the workflow. It replaces all targets: it is how runs from before `bench` registered targets get one, and should be run once, with the open PRs, before the first `close-pr` (which would otherwise remove every run without a target). It fetches `main` from `origin` in `helium.crate` (the working tree is not touched) and takes its commits from `helium.start_commit` on, following first parents; the open PRs come from GitHub (`--pr`, one per PR). It sets the targets to exactly these main commits and PR heads, removes the runs of every commit that is no longer one (a PR's previous head, a closed PR), and prints the targeted commits without a `COMPLETE` run, one per line on stdout: main commits oldest first, then PR heads. It fails, changing nothing, if the start commit is not on `origin/main`.
 - Removing a run deletes its `helium_runs` rows and its `bench_runs` row. Runs still `RUNNING` are kept until they end, Silicon and rustc runs are kept (they don't depend on Helium's commit), and rows not owned by CI are never touched.
+
+## Benchmark machine
+
+CI benchmarks run on a self-hosted GitHub Actions runner (label `bench`) that runs in a container next to Postgres and Grafana, so jobs see only the image and its mounts, never the host. `ci-runner/Dockerfile` is its image: Ubuntu, the GitHub runner, rustup with Helium's pinned nightly, a JDK, and Z3 for Silicon. These versions are part of what is measured; change them there deliberately. `compose.ci.yaml` adds it to `compose.yaml`. Use a Linux host: on Windows and macOS, Docker runs inside a VM, which adds noise.
+
+One-time setup:
+
+1. A Silicon checkout with its jar built (`sbt assembly`), e.g. in `/srv/silicon`. It is mounted read-only at the paths in `runner/suite.ci.json`.
+2. `.env` next to `compose.yaml` (git-ignored):
+
+   ```
+   DATABASE_URL=postgres://bench_ci:<a new password>@postgres:5432/helium_bench
+   SILICON_DIR=/srv/silicon
+   RUNNER_TOKEN=<registration token>
+   ```
+
+   The token comes from the Helium repo's Settings > Actions > Runners > New self-hosted runner, and is valid for an hour. It is only needed for the first start, which registers the runner; remove it afterwards. `RUNNER_NAME` (default `bench-1`) and `RUNNER_URL` (default the Helium repo) can be set there too.
+3. Start the database, create the role CI connects as (it can read and write rows, but not change tables), then the runner:
+
+   ```bash
+   docker compose up -d postgres
+   docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U helium -d helium_bench -v password='<the password in DATABASE_URL>' < db/bench_ci_role.sql
+   docker compose -f compose.yaml -f compose.ci.yaml up -d --build
+   ```
+
+4. Settings > Actions > Runners shows the runner as Idle.
+
+Volumes keep the registration, the job workspace and the build caches across restarts and image rebuilds. To register again, remove the `runner-home` volume and start with a new `RUNNER_TOKEN`. Register exactly one runner with the label `bench`, so measurements never run in parallel. Uncomment `cpuset` in `compose.ci.yaml` to keep the benchmarks on fixed cores.

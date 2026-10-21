@@ -12,9 +12,10 @@ use std::sync::OnceLock;
 
 use log::{error, info, warn};
 use sea_orm::ActiveValue::Set;
+use sea_orm::sea_query::OnConflict;
 use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
 
-use crate::db::bench_runs;
+use crate::db::{bench_runs, bench_targets};
 use crate::db::sea_orm_active_enums::BenchRunStatus;
 use crate::executor::helium::BenchRun;
 
@@ -22,13 +23,36 @@ use crate::executor::helium::BenchRun;
 /// cancel only ever updates the row this process inserted.
 static STARTED: OnceLock<String> = OnceLock::new();
 
-/// Inserts the `RUNNING` row of `run`. Fails if the run id is taken.
+/// Registers `helium_commit` as a target (of PR `pr`, or of main without
+/// one), unless it already is, then inserts the `RUNNING` row of `run`.
+/// The target comes first, so the run's rows are never without one: a
+/// target of PR `pr` keeps them until `close-pr`, a main target for good.
+/// Fails if the run id is taken.
 pub async fn start<C: ConnectionTrait>(
     con: &C,
     run: &BenchRun,
     helium_commit: &str,
     github_run_url: Option<&str>,
+    pr: Option<i32>,
 ) -> Result<(), DbErr> {
+    bench_targets::Entity::insert(bench_targets::ActiveModel {
+        helium_commit: Set(helium_commit.to_string()),
+        pr_number: Set(pr),
+        updated_at: Set(run.started_at),
+        ..Default::default()
+    })
+    .on_conflict(
+        OnConflict::columns([bench_targets::Column::HeliumCommit, bench_targets::Column::PrNumber])
+            .do_nothing()
+            .to_owned(),
+    )
+    .exec_without_returning(con)
+    .await?;
+    match pr {
+        Some(pr) => info!("Helium {helium_commit} is a target of PR #{pr}"),
+        None => info!("Helium {helium_commit} is a main target"),
+    }
+
     bench_runs::ActiveModel {
         run_id: Set(run.run_id.clone()),
         helium_commit: Set(helium_commit.to_string()),

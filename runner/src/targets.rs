@@ -1,8 +1,10 @@
 //! Which Helium commits CI keeps runs for (`bench_targets`), and removing
 //! the CI-owned runs of every other commit.
 //!
-//! The goal: every main commit (from the start commit on) and the head of
-//! every open PR has a complete run; nothing else has CI-owned Helium runs.
+//! `bench --ci` registers the commit it measures (`ci::start`): a main
+//! commit for good, a PR head until [`close_pr`]. [`sync`] instead sets the
+//! targets to exactly every main commit (from the start commit on) and the
+//! current head of every open PR. Nothing else keeps CI-owned Helium runs.
 
 use std::collections::HashSet;
 use std::path::Path;
@@ -126,7 +128,8 @@ pub async fn sync(con: &DatabaseConnection, desired: &Desired) -> Result<Vec<Str
     Ok(missing)
 }
 
-/// Removes PR `pr_number`'s target and the runs no longer targeted ([`gc`]).
+/// Removes PR `pr_number`'s targets (all its heads) and the runs no longer
+/// targeted ([`gc`]).
 pub async fn close_pr(con: &DatabaseConnection, pr_number: i32) -> Result<(), DbErr> {
     let txn = con.begin().await?;
     let removed = bench_targets::Entity::delete_many()
