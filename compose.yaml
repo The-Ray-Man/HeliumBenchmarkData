@@ -41,6 +41,23 @@ services:
     ports:
       - "127.0.0.1:3000:3000"
 
+  pgadmin:
+    image: dpage/pgadmin4:9.8
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      # Read only on the first start, i.e. while pgadmin-data is empty.
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "127.0.0.1:5050:80"
+
 volumes:
   postgres-data:
   grafana-data:
+  pgadmin-data:
