@@ -1,0 +1,46 @@
+# The benchmark machine's GitHub Actions runner, next to Postgres and Grafana
+# from compose.yaml. Used only on that machine:
+#
+#   docker compose -f compose.yaml -f compose.ci.yaml up -d
+#
+# Settings come from `.env` next to this file (git-ignored), see README.
+
+services:
+  gh-runner:
+    build: ./ci-runner
+    init: true
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      RUNNER_URL: ${RUNNER_URL:-https://github.com/viperproject/helium}
+      RUNNER_NAME: ${RUNNER_NAME:-bench-1}
+      RUNNER_LABELS: bench
+      # Only needed for the first start, which registers the runner.
+      RUNNER_TOKEN: ${RUNNER_TOKEN:-}
+      # The restricted role from db/bench_ci_role.sql.
+      DATABASE_URL: ${DATABASE_URL}
+      # Build cache of the runner crate (Helium's is helium.target_dir in suite.ci.json).
+      CARGO_TARGET_DIR: /opt/bench/runner-target
+    volumes:
+      - runner-home:/home/runner/actions-runner
+      - runner-work:/home/runner/_work
+      - cargo-registry:/home/runner/.cargo/registry
+      - cargo-git:/home/runner/.cargo/git
+      - helium-target:/opt/bench/helium-target
+      - runner-target:/opt/bench/runner-target
+      # A Silicon checkout with its jar built (`sbt assembly`), read-only; the
+      # paths are the ones in runner/suite.ci.json.
+      - ${SILICON_DIR:?set SILICON_DIR in .env}:/opt/bench/silicon:ro
+      - ${SILICON_DIR}/target/scala-2.13/silicon.jar:/opt/bench/silicon.jar:ro
+    # Keep the benchmarks on fixed cores, away from Postgres and the OS:
+    # cpuset: "2-7"
+
+volumes:
+  runner-home:
+  runner-work:
+  cargo-registry:
+  cargo-git:
+  helium-target:
+  runner-target:
