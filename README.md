@@ -108,7 +108,7 @@ runner bench --config suite.ci.json --ci --run-id gh-<run id>-<attempt> --helium
 - Registers `--helium-commit` in `bench_targets` (see below) before anything else, unless it already is: as a head of PR `--pr`, or as a main commit without it. So a run's rows always have a target, also when it fails or is cancelled.
 - Checks out `--helium-commit` (fetched from `origin` if missing) in `helium.crate`, with its submodules, and builds it. Refuses when the checkout has local changes to tracked files, and fails unless `verify --version` then reports exactly that commit.
 - Records the run in `bench_runs`, which makes its rows CI-owned. The row is inserted as `RUNNING` (a taken `--run-id` fails), and ends as `COMPLETE` once every benchmark was gone through, whatever the verification results; `FAILED` if the runner crashes midway; `CANCELLED` on Ctrl-C / SIGTERM (what GitHub Actions sends on cancel).
-- A file is skipped only when CI-owned runs of the same commit already measured it, so a run of the same commit on another machine does not count. A re-run of a cancelled or failed commit measures only what is missing. Silicon and rustc runs are shared as before: they don't depend on Helium's commit.
+- A file is skipped only when CI-owned runs of the same commit already measured it, so a run of the same commit on another machine does not count. A re-run of a cancelled or failed commit measures only what is missing. A timeout ends a file's measurement after one run, so a re-run measures Helium's timed-out files again. Silicon and rustc runs are shared as before: they don't depend on Helium's commit, and a file one of them timed out on (with the same build) is skipped like a measured one, here and outside CI mode.
 
 ### Which commits CI keeps
 

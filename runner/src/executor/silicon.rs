@@ -36,6 +36,7 @@ use serde_json::json;
 
 use super::helium::{BenchRun, run_status};
 use super::{Executor, Measurement, MemberResult, Outcome, ParseError, RawRun, RunContext, Verdict};
+use crate::db::sea_orm_active_enums::RunStatus;
 use crate::db::silicon_runs;
 use crate::explorer::Benchmark;
 use crate::suite_config::SiliconConfig;
@@ -369,6 +370,16 @@ impl Executor for Silicon {
             .count(conn)
             .await
             .map(|n| n as usize)
+    }
+
+    async fn timed_out_before<C: ConnectionTrait>(&self, conn: &C, sha256: &str) -> Result<bool, DbErr> {
+        silicon_runs::Entity::find()
+            .filter(silicon_runs::Column::BackendVersion.eq(&self.id))
+            .filter(silicon_runs::Column::VprSha256.eq(sha256))
+            .filter(silicon_runs::Column::Status.eq(RunStatus::TimedOut))
+            .count(conn)
+            .await
+            .map(|n| n > 0)
     }
 
     /// One `RUN` in the warm JVM, started (and warmed up) first if none is

@@ -49,6 +49,16 @@ pub trait Executor {
     /// SHA-256 `sha256` are already in the database.
     async fn check_existing<C: ConnectionTrait>(&self, conn: &C, sha256: &str) -> Result<usize, DbErr>;
 
+    /// Whether a run of this exact build on the input with SHA-256 `sha256`
+    /// already timed out, which makes [`measure`] skip the input like one
+    /// with all its runs: a timeout ends a measurement, so the input has
+    /// fewer runs, and measuring it again would most likely time out again.
+    /// Helium keeps the default (`false`): its timed-out files are measured
+    /// again, since a new commit may make them finish.
+    async fn timed_out_before<C: ConnectionTrait>(&self, _conn: &C, _sha256: &str) -> Result<bool, DbErr> {
+        Ok(false)
+    }
+
     /// Run the tool once on `input`. Output goes to files under
     /// `ctx.scratch`; a run that does not finish within `ctx.timeout` is
     /// killed and returned with `timed_out` set.
@@ -181,6 +191,10 @@ pub async fn measure<C: ConnectionTrait, E: Executor>(
         let existing = exec.check_existing(conn, &sha256).await.map_err(std::io::Error::other)?;
         if existing >= ctx.runs {
             debug!("{bench}: {} already has {existing} runs, skipped", exec.name());
+            return Ok(vec![]);
+        }
+        if exec.timed_out_before(conn, &sha256).await.map_err(std::io::Error::other)? {
+            debug!("{bench}: {} already timed out, skipped", exec.name());
             return Ok(vec![]);
         }
         debug!("{bench}: {} has {existing} of {} runs", exec.name(), ctx.runs);

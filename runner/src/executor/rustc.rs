@@ -14,6 +14,7 @@ use sea_orm::{ColumnTrait, ConnectionTrait, DbErr, EntityTrait, PaginatorTrait, 
 use serde_json::json;
 
 use crate::db::rustc_runs;
+use crate::db::sea_orm_active_enums::RunStatus;
 use super::helium::{BenchRun, run_status};
 use super::{Executor, Measurement, Outcome, ParseError, RawRun, RunContext, Verdict, run_process};
 use crate::explorer::Benchmark;
@@ -95,6 +96,16 @@ impl Executor for Rustc {
             .count(conn)
             .await
             .map(|n| n as usize)
+    }
+
+    async fn timed_out_before<C: ConnectionTrait>(&self, conn: &C, sha256: &str) -> Result<bool, DbErr> {
+        rustc_runs::Entity::find()
+            .filter(rustc_runs::Column::BackendVersion.eq(&self.id))
+            .filter(rustc_runs::Column::RsSha256.eq(sha256))
+            .filter(rustc_runs::Column::Status.eq(RunStatus::TimedOut))
+            .count(conn)
+            .await
+            .map(|n| n > 0)
     }
 
     fn run(&mut self, input: &Path, ctx: &RunContext) -> std::io::Result<RawRun> {
