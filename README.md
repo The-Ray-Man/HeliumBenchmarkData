@@ -5,7 +5,7 @@ Benchmark suites (`suites`) for multiple backends, plus a local Postgres + Grafa
 ## Layout
 
 - `suites/<suite>/<family>/<test>.vpr` – benchmark programs.
-- `generation/` – generators for the `scaling` suite.
+- `generation/` – generators for the `scaling` suite, and `sample_split.py`, which builds `cratesTop100Split2000` (a seeded random sample of 2000 `cratesTop100Split` functions).
 - `db/schema.sql` – results schema: `rust_metrics` and `viper_metrics` (metrics per file, keyed by the file's sha256), and `helium_runs`, `silicon_runs`, `rustc_runs` (one row per execution of that backend on a file, with backend-specific metric columns).
 - `runner/` – the benchmark runner (a single Rust crate). `runner/suite.example.json` describes every suite and family and how to run them (see [Suite configuration](#suite-configuration)).
   - `runner/src/db/` – database access: the SeaORM entities for `db/schema.sql` (`entities/`, generated), connecting (`connection.rs`, reads `DATABASE_URL`, defaulting to the compose Postgres), and metric lookups (`queries.rs`).
