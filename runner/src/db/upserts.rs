@@ -4,7 +4,7 @@ use sea_orm::ActiveValue::Set;
 use sea_orm::sea_query::OnConflict;
 use sea_orm::{ConnectionTrait, DbErr, EntityTrait};
 
-use super::entities::benchmarks;
+use super::entities::{benchmarks, viper_sources};
 
 /// Records which files a benchmark (`suite`, `family`, `test`) currently
 /// consists of, by hash. Overwrites the benchmark's row if it has one. The
@@ -45,6 +45,26 @@ pub async fn upsert_benchmark<C: ConnectionTrait>(
         .exec(db)
         .await?;
     Ok(())
+}
+
+/// Stores the source of the Viper file `vpr_sha256` unless it is stored
+/// already; `read` is only called then. Returns whether it stored it. The
+/// metrics row must exist already (foreign key).
+pub async fn insert_viper_source<C: ConnectionTrait, E: From<DbErr>>(
+    db: &C,
+    vpr_sha256: &str,
+    read: impl FnOnce() -> Result<String, E>,
+) -> Result<bool, E> {
+    if viper_sources::Entity::find_by_id(vpr_sha256).one(db).await?.is_some() {
+        return Ok(false);
+    }
+    let row = viper_sources::ActiveModel { vpr_sha256: Set(vpr_sha256.to_owned()), source: Set(read()?) };
+    // A concurrent writer may have stored it in between.
+    let inserted = viper_sources::Entity::insert(row)
+        .on_conflict(OnConflict::column(viper_sources::Column::VprSha256).do_nothing().to_owned())
+        .exec_without_returning(db)
+        .await?;
+    Ok(inserted > 0)
 }
 
 #[cfg(test)]

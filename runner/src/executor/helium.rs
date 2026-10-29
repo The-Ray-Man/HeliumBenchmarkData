@@ -185,6 +185,29 @@ impl Stats {
     }
 }
 
+/// `helium_runs.members`: one entry per result, in Helium's order, with the
+/// run's status names, so it reads like the `status` column.
+fn members_json(members: &[MemberResult]) -> Value {
+    members
+        .iter()
+        .map(|m| {
+            json!({
+                "name": m.name,
+                "status": match m.verdict {
+                    Verdict::Verified => "VERIFIED",
+                    Verdict::Failed => "FAILED",
+                    Verdict::Inconclusive => "INCONCLUSIVE",
+                    Verdict::Crashed(_) => "CRASHED",
+                    Verdict::TimedOut => "TIMED_OUT",
+                    Verdict::Skipped => "SKIPPED",
+                },
+                "seconds": m.seconds,
+                "message": m.message,
+            })
+        })
+        .collect()
+}
+
 /// The JSON line `verify --json` prints on stdout.
 fn json_line(stdout: &str) -> Option<Value> {
     let line = stdout.lines().find(|l| l.trim_start().starts_with('{'))?;
@@ -353,6 +376,9 @@ impl Executor for Helium {
                 prove_ite_decompose: stats.count("prove_ite_decompose"),
                 per_rule: stats.object("per_rule"),
                 rule_timing: stats.object("rule_timing"),
+                // Only when Helium printed its results: a crash before that
+                // reported none, which is not the same as a file without members.
+                members: Set(json.as_ref().map(|_| members_json(&m.outcomes.members))),
                 ..Default::default()
             };
             // Only the stats without a column of their own (e.g. counters
@@ -454,6 +480,22 @@ mod tests {
         assert_eq!(o.phases["parse"], 0.5);
         assert_eq!(o.members[0].seconds, Some(0.1));
         assert_eq!(o.members[1].verdict, Verdict::Failed);
+    }
+
+    #[test]
+    fn members_keep_order_status_and_time() {
+        let v: Value = serde_json::from_str(
+            r#"{"results":[{"name":"m_a#requires","status":"OK"},{"name":"m_a","status":"ERROR","detail":"boom"}],
+                "member_times":{"m_a":0.5}}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            members_json(&parse_json(&v).unwrap().members),
+            json!([
+                {"name": "m_a#requires", "status": "VERIFIED", "seconds": null, "message": null},
+                {"name": "m_a", "status": "CRASHED", "seconds": 0.5, "message": "boom"},
+            ])
+        );
     }
 
     #[test]

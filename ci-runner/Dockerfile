@@ -44,6 +44,11 @@ RUN version="${RUNNER_VERSION:-$(curl -fsSL https://api.github.com/repos/actions
 RUN mkdir -p /home/runner/_work /home/runner/.cargo/registry /home/runner/.cargo/git \
       /opt/bench/helium-target /opt/bench/runner-target \
  && chown -R runner:runner /home/runner /opt/bench
+# The checkouts bind-mounted from the host (compose.ci.yaml) are owned by the
+# host user, not `runner`; without this git refuses them as "dubious ownership".
+RUN git config --system --add safe.directory /opt/bench/helium \
+ && git config --system --add safe.directory '/opt/bench/helium/*' \
+ && git config --system --add safe.directory /opt/bench/silicon
 
 USER runner
 ENV PATH=/home/runner/.cargo/bin:$PATH

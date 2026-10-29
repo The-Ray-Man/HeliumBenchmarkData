@@ -11,3 +11,4 @@ pub mod rustc_runs;
 pub mod sea_orm_active_enums;
 pub mod silicon_runs;
 pub mod viper_metrics;
+pub mod viper_sources;

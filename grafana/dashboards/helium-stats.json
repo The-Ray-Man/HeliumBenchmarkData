@@ -1,7 +1,7 @@
 {
   "uid": "adr29dn",
   "title": "Helium Stats",
-  "description": "How Helium develops across versions: coverage, speed on the files versions share, and agreement with Silicon (helium_runs, silicon_runs).",
+  "description": "Helium versions against a base: coverage and soundness, speed by phase, and agreement with Silicon (helium_runs, silicon_runs, bench_targets; branches and pull requests from GitHub).",
   "tags": [
     "helium"
   ],
@@ -16,6 +16,9 @@
     "hidden": true
   },
   "refresh": "",
+  "annotations": {
+    "list": []
+  },
   "templating": {
     "list": [
       {
@@ -73,7 +76,7 @@
         "type": "custom",
         "name": "metric",
         "label": "Metric",
-        "description": "What version-to-version comparisons measure; median over the iterations of a file. Comparisons with Silicon always use wall time.",
+        "description": "What timing comparisons measure (overall speedup, speedup matrix, file tables); median over the iterations of a file. Comparisons with Silicon always use wall time.",
         "query": "Wall time (s) : wall_s, Helium self time (s) : self_s, Verify phase (s) : verify_s, Peak memory (MB) : peak_rss_mb",
         "current": {
           "text": "Wall time (s)",
@@ -108,13 +111,13 @@
         "type": "query",
         "name": "base",
         "label": "Base",
-        "description": "Version to compare from; by default the one before Head.",
+        "description": "The version everything is compared with; by default the newest commit CI benchmarked on main. Labels: commit · first benchmarked · CI target (main or pull request), and whether it is the newest commit CI benchmarked for that target.",
         "datasource": {
           "type": "grafana-postgresql-datasource",
           "uid": "helium-postgres"
         },
-        "query": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__prev' AS __value, 'version before head' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
-        "definition": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__prev' AS __value, 'version before head' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "query": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n)\nSELECT '__main' AS __value, 'newest main commit' AS __text, NULL::bigint AS i\nUNION ALL\nSELECT version, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run'), i FROM vl\nORDER BY i DESC NULLS FIRST",
+        "definition": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n)\nSELECT '__main' AS __value, 'newest main commit' AS __text, NULL::bigint AS i\nUNION ALL\nSELECT version, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run'), i FROM vl\nORDER BY i DESC NULLS FIRST",
         "refresh": 1,
         "sort": 0,
         "multi": false,
@@ -124,47 +127,246 @@
       },
       {
         "type": "query",
-        "name": "head",
-        "label": "Head",
-        "description": "Version to compare to; by default the newest.",
+        "name": "heads",
+        "label": "Heads",
+        "description": "The versions compared with the base; All: every version but the base.",
         "datasource": {
           "type": "grafana-postgresql-datasource",
           "uid": "helium-postgres"
         },
-        "query": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__latest' AS __value, 'latest version' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
-        "definition": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false)) AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1\n)\nSELECT '__latest' AS __value, 'latest version' AS __text, NULL AS first_run\nUNION ALL\nSELECT version, to_char(first_run, 'YYYY-MM-DD') || ' ' || left(version, 12) || CASE WHEN version LIKE '%+dirty' THEN ' (dirty)' ELSE '' END, first_run FROM h\nORDER BY first_run DESC NULLS FIRST",
+        "query": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run') AS __text FROM vl\nWHERE version <> (SELECT version FROM b)\nORDER BY i DESC",
+        "definition": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run') AS __text FROM vl\nWHERE version <> (SELECT version FROM b)\nORDER BY i DESC",
+        "refresh": 1,
+        "sort": 0,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "allValue": "'__all'"
+      },
+      {
+        "type": "query",
+        "name": "ver",
+        "label": "Version",
+        "description": "The version the Verdicts tables compare with the base; by default the newest head.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run') || CASE WHEN is_base THEN ' (base)' ELSE '' END AS __text FROM sel\nORDER BY is_base, i DESC",
+        "definition": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END\n         || ' · ' || to_char(first_run, 'YYYY-MM-DD')\n         || ' · ' || coalesce(target || CASE WHEN latest THEN ', newest benchmarked' ELSE ', older commit' END, 'not a CI run') || CASE WHEN is_base THEN ' (base)' ELSE '' END AS __text FROM sel\nORDER BY is_base, i DESC",
         "refresh": 1,
         "sort": 0,
         "multi": false,
         "includeAll": false,
         "current": {},
         "options": []
+      },
+      {
+        "type": "query",
+        "name": "commits",
+        "label": "Commits",
+        "description": "Hidden: base and heads with their pull request, for the GitHub lookups.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n)\nSELECT version || ':' || CASE WHEN version LIKE '%+dirty' THEN 'none' ELSE coalesce(pr_number::text, CASE WHEN target = 'main' THEN 'main' END, 'none') END\nFROM sel ORDER BY o",
+        "definition": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n)\nSELECT version || ':' || CASE WHEN version LIKE '%+dirty' THEN 'none' ELSE coalesce(pr_number::text, CASE WHEN target = 'main' THEN 'main' END, 'none') END\nFROM sel ORDER BY o",
+        "refresh": 1,
+        "sort": 0,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "hide": 2
       }
     ]
-  },
-  "annotations": {
-    "list": []
   },
   "panels": [
     {
       "type": "row",
-      "title": "Development across versions",
+      "title": "Selected commits",
       "collapsed": false,
+      "panels": [],
+      "description": "Base and heads are picked above. Every section only uses the runs of the suites picked above.",
+      "id": 1,
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
         "h": 1
-      },
-      "panels": [],
-      "id": 1
+      }
     },
     {
       "type": "table",
-      "title": "Versions",
+      "title": "Commits",
+      "description": "The selected Helium commits. CI target and 'Newest benchmarked' come from bench_targets (which commits CI keeps): whether this is the newest commit CI benchmarked for main or for its pull request. Branch, pull request and 'Newest commit of' come live from GitHub (viperproject/helium): 'Newest commit of' lists the branches whose current head is this commit, so an empty cell means the branch has moved on (or was deleted). GitHub allows 60 unauthenticated requests per hour; see grafana/provisioning/datasources/github.yaml for a token. Click a commit to open it on GitHub.",
       "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Commit"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open commit on GitHub",
+                    "url": "https://github.com/viperproject/helium/commit/${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 330
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Role"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Newest commit of"
+            },
+            "properties": [
+              {
+                "id": "noValue",
+                "value": "– (not a branch head)"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Newest benchmarked commit of target"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "yes": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "no": {
+                        "color": "#ff9830",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PR state"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "open": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "merged": {
+                        "color": "#a352cc",
+                        "index": 1
+                      },
+                      "closed": {
+                        "color": "#f2495c",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
       },
       "targets": [
         {
@@ -176,15 +378,161 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nlink AS (\n  -- each version against the one before it, on the files both decided\n  SELECT cur.version, count(*) AS common, exp(avg(ln(prev.t / cur.t))) AS speedup,\n         count(*) FILTER (WHERE cur.class = 'unsound' AND prev.class <> 'unsound') AS new_unsound,\n         count(*) FILTER (WHERE cur.class <> 'unsound' AND prev.class = 'unsound') AS fixed_unsound,\n         count(*) FILTER (WHERE cur.class = 'incomplete' AND prev.class <> 'incomplete') AS new_incomplete,\n         count(*) FILTER (WHERE cur.class <> 'incomplete' AND prev.class = 'incomplete') AS fixed_incomplete\n  FROM c cur JOIN c prev ON prev.vpr_sha256 = cur.vpr_sha256 AND prev.i = cur.i - 1\n  WHERE cur.decided AND prev.decided AND cur.t > 0 AND prev.t > 0\n  GROUP BY 1\n),\nper AS (\n  SELECT version, i, label,\n         count(*) AS files,\n         count(*) FILTER (WHERE status = 'VERIFIED') AS verified,\n         count(*) FILTER (WHERE status = 'FAILED') AS failed,\n         count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS inconclusive,\n         count(*) FILTER (WHERE status = 'CRASHED') AS crashed,\n         count(*) FILTER (WHERE status = 'TIMED_OUT') AS timed_out,\n         count(*) FILTER (WHERE decided) AS decided,\n         count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')) AS judged,\n         count(*) FILTER (WHERE class = 'unsound') AS unsound,\n         count(*) FILTER (WHERE class = 'incomplete') AS incomplete,\n         count(*) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0) AS agree,\n         exp(avg(ln(s_wall / wall)) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0)) AS vs_silicon\n  FROM c GROUP BY 1, 2, 3\n)\nSELECT label AS \"Version\", files AS \"Files\", verified AS \"Verified\", failed AS \"Failed\",\n       inconclusive AS \"Inconclusive\", crashed AS \"Crashed\", timed_out AS \"Timed out\",\n       decided::float8 / nullif(files, 0) AS \"Decided\",\n       link.common AS \"Common with previous\", link.speedup AS \"× vs previous\",\n       exp(sum(ln(coalesce(link.speedup, 1))) OVER (ORDER BY i)) AS \"× vs first (chained)\",\n       judged AS \"Judged by Silicon\",\n       unsound AS \"Unsound\", '+' || coalesce(link.new_unsound, 0) || ' / −' || coalesce(link.fixed_unsound, 0) AS \"Unsound new / fixed\",\n       incomplete AS \"Incomplete\", '+' || coalesce(link.new_incomplete, 0) || ' / −' || coalesce(link.fixed_incomplete, 0) AS \"Incomplete new / fixed\",\n       vs_silicon AS \"× vs Silicon\", agree AS \"Agreeing files\"\nFROM per LEFT JOIN link USING (version)\nORDER BY i DESC"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n)\nSELECT CASE WHEN is_base THEN 'base' ELSE 'head' END AS \"Role\", version AS \"Commit\",\n       to_char(first_run, 'YYYY-MM-DD HH24:MI') AS \"First benchmarked\",\n       coalesce(target, 'not a CI run') AS \"CI target\",\n       CASE WHEN target IS NULL THEN NULL WHEN latest THEN 'yes' ELSE 'no' END AS \"Newest benchmarked commit of target\"\nFROM sel ORDER BY o"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "helium-github"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "jq-backend",
+          "url": "https://api.github.com/repos/viperproject/helium/branches?per_page=100",
+          "url_options": {
+            "method": "GET",
+            "data": "",
+            "headers": [
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              }
+            ]
+          },
+          "root_selector": ". as $b | [${commits:doublequote}] | map(split(\":\") as [$v, $t] | ($v | sub(\"\\\\+dirty$\"; \"\")) as $c | {commit: $v, newest: ([$b[] | select(.commit.sha == $c) | .name] | if length > 0 then join(\", \") else null end)})",
+          "columns": [
+            {
+              "selector": "commit",
+              "text": "Commit",
+              "type": "string"
+            },
+            {
+              "selector": "newest",
+              "text": "Newest commit of",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "helium-github"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "jq-backend",
+          "url": "https://api.github.com/repos/viperproject/helium/pulls?state=all&sort=updated&direction=desc&per_page=100",
+          "url_options": {
+            "method": "GET",
+            "data": "",
+            "headers": [
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              }
+            ]
+          },
+          "root_selector": ". as $p | [${commits:doublequote}] | map(split(\":\") as [$v, $t] | (first($p[] | select((.number | tostring) == $t)) // {}) as $pr | {commit: $v, branch: (if $t == \"main\" then \"main\" else $pr.head.ref end), pr: $pr.title, state: (if $pr.merged_at then \"merged\" else $pr.state end)})",
+          "columns": [
+            {
+              "selector": "commit",
+              "text": "Commit",
+              "type": "string"
+            },
+            {
+              "selector": "branch",
+              "text": "Branch",
+              "type": "string"
+            },
+            {
+              "selector": "pr",
+              "text": "Pull request",
+              "type": "string"
+            },
+            {
+              "selector": "state",
+              "text": "PR state",
+              "type": "string"
+            }
+          ],
+          "filters": []
         }
       ],
-      "description": "One row per Helium version, newest first. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}. The chained factor multiplies the factors against the previous version, so every link is measured on the files those two versions share. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED. New / fixed count files whose class changed against the previous version, on the files both decided. × vs Silicon: geometric mean of Silicon wall time ÷ Helium wall time on the files where they agree.",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Commit",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "Role",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "Role": 0,
+              "Commit": 1,
+              "First benchmarked": 2,
+              "CI target": 3,
+              "Branch": 4,
+              "Pull request": 5,
+              "PR state": 6,
+              "Newest commit of": 7,
+              "Newest benchmarked commit of target": 8
+            }
+          }
+        }
+      ],
+      "id": 2,
       "gridPos": {
         "x": 0,
         "y": 1,
         "w": 24,
-        "h": 8
+        "h": 6
+      }
+    },
+    {
+      "type": "row",
+      "title": "Versions",
+      "collapsed": false,
+      "panels": [],
+      "description": "Coverage and soundness of every selected version, compared with the base. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Versions",
+      "description": "One row per selected version, base first. Judged by Silicon: files Helium decided and Silicon decided too, so they can be classed as agree / unsound / incomplete. The 'vs base' columns compare each file with the base (files both ran): +new became unsound / incomplete / decided, −fixed / −lost stopped being so. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
       },
       "options": {
         "showHeader": true,
@@ -212,14 +560,14 @@
             "properties": [
               {
                 "id": "custom.width",
-                "value": 230
+                "value": 250
               }
             ]
           },
           {
             "matcher": {
               "id": "byName",
-              "options": "Decided"
+              "options": "Decided %"
             },
             "properties": [
               {
@@ -228,151 +576,7 @@
               },
               {
                 "id": "decimals",
-                "value": 0
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "× vs previous"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#f2495c",
-                      "value": null
-                    },
-                    {
-                      "color": "text",
-                      "value": 0.9
-                    },
-                    {
-                      "color": "#73bf69",
-                      "value": 1.1
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "× vs first (chained)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#f2495c",
-                      "value": null
-                    },
-                    {
-                      "color": "text",
-                      "value": 0.9
-                    },
-                    {
-                      "color": "#73bf69",
-                      "value": 1.1
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "× vs Silicon"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              },
-              {
-                "id": "custom.cellOptions",
-                "value": {
-                  "type": "color-text"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "#f2495c",
-                      "value": null
-                    },
-                    {
-                      "color": "text",
-                      "value": 0.9
-                    },
-                    {
-                      "color": "#73bf69",
-                      "value": 1.1
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
+                "value": 1
               }
             ]
           },
@@ -417,10 +621,531 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound vs base (+new / −fixed)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete vs base (+new / −fixed)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agree"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73bf69"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
           }
         ]
       },
-      "id": 2
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\ncb AS (SELECT * FROM c WHERE is_base),\nper AS (\n  SELECT version, o, label, is_base,\n         count(*) AS files,\n         count(*) FILTER (WHERE status = 'VERIFIED') AS verified,\n         count(*) FILTER (WHERE status = 'FAILED') AS failed,\n         count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS inconclusive,\n         count(*) FILTER (WHERE status = 'CRASHED') AS crashed,\n         count(*) FILTER (WHERE status = 'TIMED_OUT') AS timed_out,\n         count(*) FILTER (WHERE decided) AS decided,\n         count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')) AS judged,\n         count(*) FILTER (WHERE class = 'agree') AS agree,\n         count(*) FILTER (WHERE class = 'unsound') AS unsound,\n         count(*) FILTER (WHERE class = 'incomplete') AS incomplete\n  FROM c GROUP BY 1, 2, 3, 4\n),\nvsb AS (\n  -- against the base, on the files both ran\n  SELECT x.version,\n         count(*) FILTER (WHERE x.decided AND NOT cb.decided) AS newly_decided,\n         count(*) FILTER (WHERE cb.decided AND NOT x.decided) AS no_longer_decided,\n         count(*) FILTER (WHERE x.class = 'unsound' AND cb.class <> 'unsound') AS new_unsound,\n         count(*) FILTER (WHERE x.class <> 'unsound' AND cb.class = 'unsound') AS fixed_unsound,\n         count(*) FILTER (WHERE x.class = 'incomplete' AND cb.class <> 'incomplete') AS new_incomplete,\n         count(*) FILTER (WHERE x.class <> 'incomplete' AND cb.class = 'incomplete') AS fixed_incomplete\n  FROM c x JOIN cb USING (vpr_sha256)\n  WHERE NOT x.is_base\n  GROUP BY 1\n)\nSELECT CASE WHEN is_base THEN 'base ' ELSE '' END || label AS \"Version\", files AS \"Files\",\n       decided AS \"Decided\", decided::float8 / nullif(files, 0) AS \"Decided %\",\n       '+' || vsb.newly_decided || ' / −' || vsb.no_longer_decided AS \"Decided vs base (+new / −lost)\",\n       judged AS \"Judged by Silicon\", agree AS \"Agree\",\n       unsound AS \"Unsound\", '+' || vsb.new_unsound || ' / −' || vsb.fixed_unsound AS \"Unsound vs base (+new / −fixed)\",\n       incomplete AS \"Incomplete\", '+' || vsb.new_incomplete || ' / −' || vsb.fixed_incomplete AS \"Incomplete vs base (+new / −fixed)\",\n       verified AS \"Verified\", failed AS \"Failed\", inconclusive AS \"Inconclusive\", crashed AS \"Crashed\", timed_out AS \"Timed out\"\nFROM per LEFT JOIN vsb USING (version)\nORDER BY o"
+        }
+      ],
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 7
+      }
+    },
+    {
+      "type": "row",
+      "title": "Speedup",
+      "collapsed": false,
+      "panels": [],
+      "description": "Only files where the compared versions agree on the verdict: all decided (VERIFIED/FAILED) with the same outcome. So files a version newly decides, loses, or flips do not make it look faster or slower.",
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Time by phase vs base",
+      "description": "Mean time per file in each phase of the pipeline, on the files every selected version decided with the same verdict (one common set, so the columns compare). (×) = base ÷ version: > 1 means the version spends less time. The Z3 rows split the verify phase (they are part of it): the Z3 timings Helium reports in meta.stats.z3_timing; versions without them show –. The first row is the geometric mean of the per-file ratios of ${metric:text}.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–",
+          "decimals": 3
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Phase"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 330
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/\\(s\\)$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "/\\(×\\)$/"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\ncmp AS (\n  -- files every selected version decided with the same verdict\n  SELECT vpr_sha256 FROM c\n  GROUP BY 1\n  HAVING count(*) = (SELECT count(*) FROM sel) AND bool_and(decided) AND count(DISTINCT status) = 1\n),\nph AS (\n  -- mean over the iterations per file, so every file counts once\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, vpr_sha256,\n         avg(wall_s) AS wall_s,\n         avg(self_s) AS self_s,\n         avg(parse_s) AS parse_s,\n         avg(macros_s) AS macros_s,\n         avg(idents_s) AS idents_s,\n         avg(disambiguate_s) AS disambiguate_s,\n         avg(globals_s) AS globals_s,\n         avg(typecheck_s) AS typecheck_s,\n         avg(analyze_s) AS analyze_s,\n         avg(translate_s) AS translate_s,\n         avg(verify_s) AS verify_s,\n         avg((meta->'stats'->'z3_timing'->>'init')::float8) AS z3_init,\n         avg((meta->'stats'->'z3_timing'->>'build')::float8) AS z3_build,\n         avg((meta->'stats'->'z3_timing'->>'assert')::float8) AS z3_assert,\n         avg((meta->'stats'->'z3_timing'->>'solve')::float8) AS z3_solve,\n         avg(verify_s - ((meta->'stats'->'z3_timing'->>'init')::float8 + (meta->'stats'->'z3_timing'->>'build')::float8 + (meta->'stats'->'z3_timing'->>'assert')::float8 + (meta->'stats'->'z3_timing'->>'solve')::float8)) AS verify_rest\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\na AS (\n  SELECT ph.version,\n         avg(wall_s) AS wall_s,\n         avg(self_s) AS self_s,\n         avg(parse_s) AS parse_s,\n         avg(macros_s) AS macros_s,\n         avg(idents_s) AS idents_s,\n         avg(disambiguate_s) AS disambiguate_s,\n         avg(globals_s) AS globals_s,\n         avg(typecheck_s) AS typecheck_s,\n         avg(analyze_s) AS analyze_s,\n         avg(translate_s) AS translate_s,\n         avg(verify_s) AS verify_s,\n         avg(z3_init) AS z3_init,\n         avg(z3_build) AS z3_build,\n         avg(z3_assert) AS z3_assert,\n         avg(z3_solve) AS z3_solve,\n         avg(verify_rest) AS verify_rest\n  FROM ph JOIN cmp USING (vpr_sha256) GROUP BY 1\n),\nlng AS (\n  SELECT a.version, x.ord, x.phase, x.val FROM a CROSS JOIN LATERAL (VALUES\n    (1, 'Wall time', a.wall_s),\n    (2, 'Helium self time', a.self_s),\n    (3, 'parse', a.parse_s),\n    (4, 'macros', a.macros_s),\n    (5, 'idents', a.idents_s),\n    (6, 'disambiguate', a.disambiguate_s),\n    (7, 'globals', a.globals_s),\n    (8, 'typecheck', a.typecheck_s),\n    (9, 'analyze', a.analyze_s),\n    (10, 'translate', a.translate_s),\n    (11, 'verify', a.verify_s),\n    (12, 'verify ↳ Z3 init', a.z3_init),\n    (13, 'verify ↳ Z3 build', a.z3_build),\n    (14, 'verify ↳ Z3 assert', a.z3_assert),\n    (15, 'verify ↳ Z3 solve', a.z3_solve),\n    (16, 'verify ↳ outside Z3', a.verify_rest)) x(ord, phase, val)\n),\ngeo AS (\n  -- geometric mean of the per-file ratios base ÷ version of the picked metric\n  SELECT c.version, exp(avg(ln(bc.t / c.t))) AS speedup\n  FROM c JOIN cmp USING (vpr_sha256) JOIN c bc ON bc.vpr_sha256 = c.vpr_sha256 AND bc.is_base\n  WHERE c.t > 0 AND bc.t > 0\n  GROUP BY 1\n),\ncells AS (\n  SELECT 0 AS ord, 'Overall: ${metric:text}, geometric mean of per-file ×' AS phase, sel.o, 1 AS k,\n         sel.label || ' (×)' AS col, geo.speedup AS value\n  FROM sel LEFT JOIN geo USING (version) WHERE NOT sel.is_base\n  UNION ALL\n  SELECT l.ord, l.phase, sel.o, 0, CASE WHEN sel.is_base THEN 'base ' ELSE '' END || sel.label || ' (s)', l.val\n  FROM lng l JOIN sel USING (version)\n  UNION ALL\n  SELECT l.ord, l.phase, sel.o, 1, sel.label || ' (×)', bl.val / nullif(l.val, 0)\n  FROM lng l JOIN sel USING (version) JOIN lng bl ON bl.ord = l.ord AND bl.version = (SELECT version FROM b)\n  WHERE NOT sel.is_base\n)\nSELECT phase AS \"Phase\", col AS \"Column\", value FROM cells ORDER BY ord, o, k"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "Column",
+            "rowField": "Phase",
+            "valueField": "value",
+            "emptyValue": "null"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Phase\\Column": "Phase"
+            }
+          }
+        }
+      ],
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 20,
+        "h": 12
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Files in the phase table",
+      "description": "Files every selected version decided with the same verdict, and the files left out of the phase table.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nf AS (\n  SELECT vpr_sha256, count(*) AS n, bool_and(decided) AS all_decided, count(DISTINCT status) AS verdicts\n  FROM c GROUP BY 1\n)\nSELECT count(*) FILTER (WHERE n = (SELECT count(*) FROM sel) AND all_decided AND verdicts = 1) AS \"Compared files\",\n       count(*) FILTER (WHERE n = (SELECT count(*) FROM sel) AND all_decided AND verdicts > 1) AS \"Verdicts differ\",\n       count(*) FILTER (WHERE n = (SELECT count(*) FROM sel) AND NOT all_decided) AS \"Undecided by some\",\n       count(*) FILTER (WHERE n < (SELECT count(*) FROM sel)) AS \"Not run by all\"\nFROM f"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "horizontal",
+        "textMode": "value_and_name",
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 20,
+        "y": 16,
+        "w": 4,
+        "h": 12
+      }
+    },
+    {
+      "type": "table",
+      "title": "Speedup between versions",
+      "description": "How much faster the column version is than the row version: geometric mean of the per-file ratios row ÷ column of ${metric:text}, over the files both decided with the same verdict (per pair, so each cell may use a different set of files). > 1: the column version is faster.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "color-text"
+            }
+          },
+          "noValue": "–",
+          "unit": "suffix:×",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#f2495c",
+                "value": null
+              },
+              {
+                "color": "text",
+                "value": 0.9
+              },
+              {
+                "color": "#73bf69",
+                "value": 1.1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Row ↓ / column →"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 250
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\npx AS (\n  SELECT r.label AS r_label, r.o AS r_o, k.label AS k_label, k.o AS k_o,\n         exp(avg(ln(r.t / k.t))) AS speedup\n  FROM c r JOIN c k USING (vpr_sha256)\n  WHERE r.decided AND k.decided AND r.status = k.status AND r.t > 0 AND k.t > 0\n  GROUP BY 1, 2, 3, 4\n)\nSELECT CASE WHEN r_o = 0 THEN 'base ' ELSE '' END || r_label AS \"Row\", CASE WHEN k_o = 0 THEN 'base ' ELSE '' END || k_label AS \"Column\", speedup\nFROM px ORDER BY r_o, k_o"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "Column",
+            "rowField": "Row",
+            "valueField": "speedup",
+            "emptyValue": "null"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Row\\Column": "Row ↓ / column →"
+            }
+          }
+        }
+      ],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 14,
+        "h": 8
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Speedup over Silicon where they agree",
+      "description": "Geometric mean of Silicon wall time ÷ Helium wall time, over the files where both return the same verdict. > 1: Helium is faster. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT CASE WHEN is_base THEN 'base ' ELSE '' END || label AS label,\n  exp(avg(ln(s_wall / wall)) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0)) AS \"Speedup over Silicon\"\nFROM c GROUP BY label, is_base, o ORDER BY o"
+        }
+      ],
+      "options": {
+        "orientation": "vertical",
+        "xField": "label",
+        "stacking": "none",
+        "showValue": "auto",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "barRadius": 0,
+        "fullHighlight": false,
+        "xTickLabelRotation": -30,
+        "xTickLabelSpacing": 0,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none",
+          "hideZeros": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "suffix:×",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "fillOpacity": 90,
+            "lineWidth": 1,
+            "gradientMode": "none",
+            "axisPlacement": "auto",
+            "axisLabel": "",
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "min": 0,
+          "decimals": 2
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Speedup over Silicon"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#2bb3a3"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 14,
+        "y": 28,
+        "w": 10,
+        "h": 8
+      }
+    },
+    {
+      "type": "row",
+      "title": "Verdicts",
+      "collapsed": false,
+      "panels": [],
+      "description": "The charts show every selected version; the tables compare the base with the version picked in 'Version' above. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 36,
+        "w": 24,
+        "h": 1
+      }
     },
     {
       "type": "barchart",
@@ -440,15 +1165,9 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE status = 'VERIFIED') AS \"Verified\",\n  count(*) FILTER (WHERE status = 'FAILED') AS \"Failed\",\n  count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS \"Inconclusive\",\n  count(*) FILTER (WHERE status = 'CRASHED') AS \"Crashed\",\n  count(*) FILTER (WHERE status = 'TIMED_OUT') AS \"Timed out\"\nFROM c GROUP BY label, i ORDER BY i"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT CASE WHEN is_base THEN 'base ' ELSE '' END || label AS label,\n  count(*) FILTER (WHERE status = 'VERIFIED') AS \"Verified\",\n  count(*) FILTER (WHERE status = 'FAILED') AS \"Failed\",\n  count(*) FILTER (WHERE status = 'INCONCLUSIVE') AS \"Inconclusive\",\n  count(*) FILTER (WHERE status = 'CRASHED') AS \"Crashed\",\n  count(*) FILTER (WHERE status = 'TIMED_OUT') AS \"Timed out\"\nFROM c GROUP BY label, is_base, o ORDER BY o"
         }
       ],
-      "gridPos": {
-        "x": 0,
-        "y": 9,
-        "w": 12,
-        "h": 9
-      },
       "options": {
         "orientation": "vertical",
         "xField": "label",
@@ -579,135 +1298,13 @@
           }
         ]
       },
-      "id": 3
-    },
-    {
-      "type": "barchart",
-      "title": "Speed per version",
-      "description": "Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}. The chained factor is relative to the oldest version shown.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "helium-postgres"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nlink AS (\n  SELECT cur.version, exp(avg(ln(prev.t / cur.t))) AS speedup\n  FROM c cur JOIN c prev ON prev.vpr_sha256 = cur.vpr_sha256 AND prev.i = cur.i - 1\n  WHERE cur.decided AND prev.decided AND cur.t > 0 AND prev.t > 0\n  GROUP BY 1\n)\nSELECT label, link.speedup AS \"vs previous version\",\n       exp(sum(ln(coalesce(link.speedup, 1))) OVER (ORDER BY i)) AS \"vs first version (chained)\"\nFROM v LEFT JOIN link USING (version) ORDER BY i"
-        }
-      ],
-      "gridPos": {
-        "x": 12,
-        "y": 9,
-        "w": 12,
-        "h": 9
-      },
-      "options": {
-        "orientation": "vertical",
-        "xField": "label",
-        "stacking": "none",
-        "showValue": "auto",
-        "barWidth": 0.8,
-        "groupWidth": 0.7,
-        "barRadius": 0,
-        "fullHighlight": false,
-        "xTickLabelRotation": -30,
-        "xTickLabelSpacing": 0,
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none",
-          "hideZeros": false
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "suffix:×",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 90,
-            "lineWidth": 1,
-            "gradientMode": "none",
-            "axisPlacement": "auto",
-            "axisLabel": "",
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "decimals": 2
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "vs previous version"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#5794f2"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "vs first version (chained)"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#2bb3a3"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "id": 4
-    },
-    {
-      "type": "row",
-      "title": "Against Silicon",
-      "collapsed": false,
+      "id": 11,
       "gridPos": {
         "x": 0,
-        "y": 18,
-        "w": 24,
-        "h": 1
-      },
-      "panels": [],
-      "description": "Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
-      "id": 5
+        "y": 37,
+        "w": 8,
+        "h": 9
+      }
     },
     {
       "type": "barchart",
@@ -727,15 +1324,9 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE class = 'agree' AND status = 'VERIFIED') AS \"Agree: verified\",\n  count(*) FILTER (WHERE class = 'agree' AND status = 'FAILED') AS \"Agree: failed\",\n  count(*) FILTER (WHERE class = 'unsound') AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete') AS \"Incomplete\",\n  count(*) FILTER (WHERE class = 'undecided') AS \"Helium undecided\",\n  count(*) FILTER (WHERE class = 'silicon timed out') AS \"Silicon timed out\",\n  count(*) FILTER (WHERE class = 'silicon crashed') AS \"Silicon crashed\",\n  count(*) FILTER (WHERE class = 'silicon inconclusive') AS \"Silicon inconclusive\",\n  count(*) FILTER (WHERE class = 'silicon not run') AS \"Silicon not run\"\nFROM c GROUP BY label, i ORDER BY i"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT CASE WHEN is_base THEN 'base ' ELSE '' END || label AS label,\n  count(*) FILTER (WHERE class = 'agree' AND status = 'VERIFIED') AS \"Agree: verified\",\n  count(*) FILTER (WHERE class = 'agree' AND status = 'FAILED') AS \"Agree: failed\",\n  count(*) FILTER (WHERE class = 'unsound') AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete') AS \"Incomplete\",\n  count(*) FILTER (WHERE class = 'undecided') AS \"Helium undecided\",\n  count(*) FILTER (WHERE class = 'silicon timed out') AS \"Silicon timed out\",\n  count(*) FILTER (WHERE class = 'silicon crashed') AS \"Silicon crashed\",\n  count(*) FILTER (WHERE class = 'silicon inconclusive') AS \"Silicon inconclusive\",\n  count(*) FILTER (WHERE class = 'silicon not run') AS \"Silicon not run\"\nFROM c GROUP BY label, is_base, o ORDER BY o"
         }
       ],
-      "gridPos": {
-        "x": 0,
-        "y": 19,
-        "w": 8,
-        "h": 9
-      },
       "options": {
         "orientation": "vertical",
         "xField": "label",
@@ -926,7 +1517,13 @@
           }
         ]
       },
-      "id": 6
+      "id": 12,
+      "gridPos": {
+        "x": 8,
+        "y": 37,
+        "w": 8,
+        "h": 9
+      }
     },
     {
       "type": "barchart",
@@ -946,15 +1543,9 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  count(*) FILTER (WHERE class = 'unsound')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Incomplete\"\nFROM c GROUP BY label, i ORDER BY i"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT CASE WHEN is_base THEN 'base ' ELSE '' END || label AS label,\n  count(*) FILTER (WHERE class = 'unsound')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Unsound\",\n  count(*) FILTER (WHERE class = 'incomplete')::float8 / nullif(count(*) FILTER (WHERE class IN ('agree', 'unsound', 'incomplete')), 0) AS \"Incomplete\"\nFROM c GROUP BY label, is_base, o ORDER BY o"
         }
       ],
-      "gridPos": {
-        "x": 8,
-        "y": 19,
-        "w": 8,
-        "h": 9
-      },
       "options": {
         "orientation": "vertical",
         "xField": "label",
@@ -1040,198 +1631,17 @@
           }
         ]
       },
-      "id": 7
-    },
-    {
-      "type": "barchart",
-      "title": "Speedup over Silicon where they agree",
-      "description": "Geometric mean of Silicon wall time ÷ Helium wall time, over the files where both return the same verdict. > 1: Helium is faster. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "helium-postgres"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n)\nSELECT label,\n  exp(avg(ln(s_wall / wall)) FILTER (WHERE class = 'agree' AND wall > 0 AND s_wall > 0)) AS \"Speedup over Silicon\"\nFROM c GROUP BY label, i ORDER BY i"
-        }
-      ],
+      "id": 13,
       "gridPos": {
         "x": 16,
-        "y": 19,
+        "y": 37,
         "w": 8,
         "h": 9
-      },
-      "options": {
-        "orientation": "vertical",
-        "xField": "label",
-        "stacking": "none",
-        "showValue": "auto",
-        "barWidth": 0.8,
-        "groupWidth": 0.7,
-        "barRadius": 0,
-        "fullHighlight": false,
-        "xTickLabelRotation": -30,
-        "xTickLabelSpacing": 0,
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none",
-          "hideZeros": false
-        }
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "suffix:×",
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "fillOpacity": 90,
-            "lineWidth": 1,
-            "gradientMode": "none",
-            "axisPlacement": "auto",
-            "axisLabel": "",
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "min": 0,
-          "decimals": 2
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Speedup over Silicon"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "fixed",
-                  "fixedColor": "#2bb3a3"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      "id": 8
-    },
-    {
-      "type": "row",
-      "title": "Comparison: base → head (pick them above)",
-      "collapsed": false,
-      "gridPos": {
-        "x": 0,
-        "y": 28,
-        "w": 24,
-        "h": 1
-      },
-      "panels": [],
-      "id": 9
+      }
     },
     {
       "type": "stat",
-      "title": "Performance on common files",
-      "description": "Speedups are geometric means of per-file ratios (old ÷ new), only over files both versions decided, so files a version newly handles do not make it look slower. > 1 means less ${metric:text}.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "helium-postgres"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT exp(avg(ln(b_t / h_t)) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0)) AS \"Speedup\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0) AS \"Common files\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0 AND h_t < b_t / 1.1) AS \"Faster > 10%\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_t > 0 AND h_t > 0 AND h_t > b_t * 1.1) AS \"Slower > 10%\"\nFROM pair"
-        }
-      ],
-      "gridPos": {
-        "x": 0,
-        "y": 29,
-        "w": 6,
-        "h": 5
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "–",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Speedup"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              }
-            ]
-          }
-        ]
-      },
-      "id": 10
-    },
-    {
-      "type": "stat",
-      "title": "Coverage",
+      "title": "Coverage: base → ${ver:text}",
       "description": "Newly decided: undecided in base, decided in head. No longer decided: the reverse. Verdict flips: VERIFIED ↔ FAILED. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1247,15 +1657,9 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE h_dec AND NOT b_dec AND b_status IS NOT NULL) AS \"Newly decided\",\n       count(*) FILTER (WHERE b_dec AND h_status IS NOT NULL AND NOT h_dec) AS \"No longer decided\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_status <> h_status) AS \"Verdict flips\",\n       count(*) FILTER (WHERE h_status IS NOT NULL AND b_status IS NULL) AS \"Only run by head\"\nFROM pair"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nvs AS (\n  SELECT coalesce((SELECT version FROM sel WHERE version = ${ver:sqlstring}),\n                  (SELECT version FROM sel WHERE NOT is_base ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM sel WHERE is_base)) AS version\n),\npair AS (\n  -- base against the picked version, per file\n  SELECT vpr_sha256, coalesce(hd.file, bs.file) AS file,\n         bs.status AS b_status, hd.status AS h_status, bs.t AS b_t, hd.t AS h_t,\n         bs.class AS b_class, hd.class AS h_class, coalesce(bs.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec\n  FROM (SELECT * FROM c WHERE is_base) bs\n  FULL JOIN (SELECT c.* FROM c JOIN vs USING (version)) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE h_dec AND NOT b_dec AND b_status IS NOT NULL) AS \"Newly decided\",\n       count(*) FILTER (WHERE b_dec AND h_status IS NOT NULL AND NOT h_dec) AS \"No longer decided\",\n       count(*) FILTER (WHERE b_dec AND h_dec AND b_status <> h_status) AS \"Verdict flips\",\n       count(*) FILTER (WHERE h_status IS NOT NULL AND b_status IS NULL) AS \"Only run by version\"\nFROM pair"
         }
       ],
-      "gridPos": {
-        "x": 6,
-        "y": 29,
-        "w": 6,
-        "h": 5
-      },
       "options": {
         "reduceOptions": {
           "values": false,
@@ -1315,11 +1719,17 @@
           }
         ]
       },
-      "id": 11
+      "id": 14,
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 5
+      }
     },
     {
       "type": "stat",
-      "title": "Soundness on files judged in both",
+      "title": "Soundness: base → ${ver:text}",
       "description": "Counted only over files both versions decided and Silicon judged, so the numbers are comparable. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
       "datasource": {
         "type": "grafana-postgresql-datasource",
@@ -1335,15 +1745,9 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE b_class = 'unsound') AS \"Unsound before\",\n       count(*) FILTER (WHERE h_class = 'unsound') AS \"Unsound now\",\n       count(*) FILTER (WHERE b_class = 'incomplete') AS \"Incomplete before\",\n       count(*) FILTER (WHERE h_class = 'incomplete') AS \"Incomplete now\"\nFROM pair\nWHERE b_class IN ('agree', 'unsound', 'incomplete') AND h_class IN ('agree', 'unsound', 'incomplete')"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nvs AS (\n  SELECT coalesce((SELECT version FROM sel WHERE version = ${ver:sqlstring}),\n                  (SELECT version FROM sel WHERE NOT is_base ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM sel WHERE is_base)) AS version\n),\npair AS (\n  -- base against the picked version, per file\n  SELECT vpr_sha256, coalesce(hd.file, bs.file) AS file,\n         bs.status AS b_status, hd.status AS h_status, bs.t AS b_t, hd.t AS h_t,\n         bs.class AS b_class, hd.class AS h_class, coalesce(bs.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec\n  FROM (SELECT * FROM c WHERE is_base) bs\n  FULL JOIN (SELECT c.* FROM c JOIN vs USING (version)) hd USING (vpr_sha256)\n)\nSELECT count(*) FILTER (WHERE b_class = 'unsound') AS \"Unsound in base\",\n       count(*) FILTER (WHERE h_class = 'unsound') AS \"Unsound now\",\n       count(*) FILTER (WHERE b_class = 'incomplete') AS \"Incomplete in base\",\n       count(*) FILTER (WHERE h_class = 'incomplete') AS \"Incomplete now\"\nFROM pair\nWHERE b_class IN ('agree', 'unsound', 'incomplete') AND h_class IN ('agree', 'unsound', 'incomplete')"
         }
       ],
-      "gridPos": {
-        "x": 12,
-        "y": 29,
-        "w": 6,
-        "h": 5
-      },
       "options": {
         "reduceOptions": {
           "values": false,
@@ -1403,140 +1807,21 @@
           }
         ]
       },
-      "id": 12
-    },
-    {
-      "type": "stat",
-      "title": "Speedup over Silicon",
-      "description": "Geometric mean of Silicon wall time ÷ Helium wall time where Helium agrees with Silicon. 'Same files' restricts both versions to the files where both agree. Silicon's verdict per file is its most recent VERIFIED/FAILED run of that file, from any suite. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "helium-postgres"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n)\nSELECT exp(avg(ln(s_wall / h_wall)) FILTER (WHERE h_class = 'agree' AND h_wall > 0 AND s_wall > 0)) AS \"Head vs Silicon\",\n       count(*) FILTER (WHERE h_class = 'agree' AND h_wall > 0 AND s_wall > 0) AS \"Agreeing files\",\n       exp(avg(ln(s_wall / b_wall)) FILTER (WHERE b_class = 'agree' AND h_class = 'agree' AND b_wall > 0 AND h_wall > 0 AND s_wall > 0)) AS \"Base vs Silicon (same files)\",\n       exp(avg(ln(s_wall / h_wall)) FILTER (WHERE b_class = 'agree' AND h_class = 'agree' AND b_wall > 0 AND h_wall > 0 AND s_wall > 0)) AS \"Head vs Silicon (same files)\"\nFROM pair"
-        }
-      ],
+      "id": 15,
       "gridPos": {
-        "x": 18,
-        "y": 29,
-        "w": 6,
+        "x": 12,
+        "y": 46,
+        "w": 12,
         "h": 5
-      },
-      "options": {
-        "reduceOptions": {
-          "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": ""
-        },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "none",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "wideLayout": true,
-        "showPercentChange": false
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "–",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "text"
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Head vs Silicon"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Base vs Silicon (same files)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Head vs Silicon (same files)"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "suffix:×"
-              },
-              {
-                "id": "decimals",
-                "value": 2
-              }
-            ]
-          }
-        ]
-      },
-      "id": 13
+      }
     },
     {
       "type": "table",
-      "title": "Files: base → head",
+      "title": "Files: base → ${ver:text}",
+      "description": "Every file either version ran. Sorted by default with the regressions first: files that became unsound, then incomplete, then files Helium now times out or crashes on, then the other changes (fixed: no longer unsound / incomplete, e.g. a FAILED that became VERIFIED where Silicon verifies). × = base ÷ version of ${metric:text} (> 1: the version is faster), only when both decided. Faster / slower means more than 10%. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Click a file to open it in HeliumBenchmarkData, or 'details' to open it in the Helium File dashboard (Helium and Silicon per member, with the code).",
       "datasource": {
         "type": "grafana-postgresql-datasource",
         "uid": "helium-postgres"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "helium-postgres"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head, hv.label AS head_label,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\npair AS (\n  SELECT coalesce(hd.file, b.file) AS file,\n         b.status AS b_status, hd.status AS h_status, b.t AS b_t, hd.t AS h_t,\n         b.class AS b_class, hd.class AS h_class, coalesce(b.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec, hd.wall AS h_wall, b.wall AS b_wall, hd.s_wall\n  FROM (SELECT c.* FROM c JOIN sel ON c.version = sel.base) b\n  FULL JOIN (SELECT c.* FROM c JOIN sel ON c.version = sel.head) hd USING (vpr_sha256)\n),\nlabelled AS (\n  SELECT pair.*, CASE\n           WHEN b_status IS NULL THEN 'only in head'\n           WHEN h_status IS NULL THEN 'only in base'\n           WHEN h_dec AND NOT b_dec THEN 'newly decided'\n           WHEN b_dec AND NOT h_dec THEN 'no longer decided'\n           WHEN b_status <> h_status THEN 'verdict flip'\n           WHEN b_class IS DISTINCT FROM h_class THEN 'class changed'\n           WHEN NOT h_dec THEN 'still undecided'\n           WHEN h_t < b_t / 1.1 THEN 'faster'\n           WHEN h_t > b_t * 1.1 THEN 'slower'\n           ELSE 'same' END AS change,\n         CASE WHEN b_dec AND h_dec AND h_t > 0 THEN b_t / h_t END AS ratio\n  FROM pair\n)\nSELECT change AS \"Change\", file AS \"File\", b_status AS \"Base\", h_status AS \"Head\",\n       b_t AS \"Base ${metric:text}\", h_t AS \"Head ${metric:text}\", ratio AS \"×\",\n       b_class AS \"Base vs Silicon\", h_class AS \"Head vs Silicon\"\nFROM labelled\nORDER BY array_position(ARRAY['verdict flip', 'class changed', 'no longer decided', 'newly decided', 'slower', 'faster',\n                              'same', 'still undecided', 'only in head', 'only in base'], change),\n         ratio, file"
-        }
-      ],
-      "description": "Every file either version ran, most interesting changes first. × = base ÷ head (> 1: head is faster), only when both decided. Faster/slower means more than 10%. Files are identified by content (vpr_sha256), so an edited benchmark counts as a new file. A file counts as decided when Helium returned VERIFIED or FAILED. Files Silicon never decided are classed by its latest outcome: timed out, crashed, inconclusive, or not run.",
-      "gridPos": {
-        "x": 0,
-        "y": 34,
-        "w": 24,
-        "h": 12
       },
       "options": {
         "showHeader": true,
@@ -1570,29 +1855,53 @@
                   {
                     "type": "value",
                     "options": {
-                      "verdict flip": {
+                      "became unsound": {
                         "color": "#f2495c",
                         "index": 0
                       },
-                      "class changed": {
-                        "color": "#f2495c",
+                      "became incomplete": {
+                        "color": "#ff9830",
                         "index": 1
+                      },
+                      "now times out": {
+                        "color": "#e0b400",
+                        "index": 2
+                      },
+                      "now crashes": {
+                        "color": "#a352cc",
+                        "index": 3
                       },
                       "no longer decided": {
                         "color": "#f2495c",
-                        "index": 2
+                        "index": 4
+                      },
+                      "verdict flip": {
+                        "color": "#f2495c",
+                        "index": 5
+                      },
+                      "class changed": {
+                        "color": "#f2495c",
+                        "index": 6
                       },
                       "newly decided": {
                         "color": "#73bf69",
-                        "index": 3
+                        "index": 7
+                      },
+                      "fixed unsound": {
+                        "color": "#73bf69",
+                        "index": 8
+                      },
+                      "fixed incomplete": {
+                        "color": "#73bf69",
+                        "index": 9
                       },
                       "slower": {
                         "color": "#ff9830",
-                        "index": 4
+                        "index": 10
                       },
                       "faster": {
                         "color": "#73bf69",
-                        "index": 5
+                        "index": 11
                       }
                     }
                   }
@@ -1613,7 +1922,7 @@
               },
               {
                 "id": "custom.width",
-                "value": 150
+                "value": 160
               }
             ]
           },
@@ -1623,6 +1932,16 @@
               "options": "File"
             },
             "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open in HeliumBenchmarkData",
+                    "url": "https://github.com/The-Ray-Man/HeliumBenchmarkData/blob/main/suites/${__value.raw}.vpr",
+                    "targetBlank": true
+                  }
+                ]
+              },
               {
                 "id": "custom.width",
                 "value": 420
@@ -1743,7 +2062,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Head vs Silicon"
+              "options": "Version vs Silicon"
             },
             "properties": [
               {
@@ -1802,18 +2121,65 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Details"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Helium vs Silicon per member (Helium File)",
+                    "url": "/d/helium-file/helium-file?var-file=${__data.fields.sha}&var-version=${__data.fields.hver}&var-base=${__data.fields.bver}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sha"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bver"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hver"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
           }
         ]
-      },
-      "id": 14
-    },
-    {
-      "type": "barchart",
-      "title": "Time by phase on common files",
-      "description": "Average time per phase, in pipeline order, over the files both versions decided. Iterations are averaged per file first, so every file counts once. The bar's length is the average total.",
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "helium-postgres"
       },
       "targets": [
         {
@@ -1825,72 +2191,252 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "WITH h AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(started_at) AS first_run,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall,\n         avg(parse_s) AS parse_s,\n         avg(macros_s) AS macros_s,\n         avg(idents_s) AS idents_s,\n         avg(disambiguate_s) AS disambiguate_s,\n         avg(globals_s) AS globals_s,\n         avg(typecheck_s) AS typecheck_s,\n         avg(analyze_s) AS analyze_s,\n         avg(translate_s) AS translate_s,\n         avg(verify_s) AS verify_s\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n  GROUP BY 1, 2\n),\nv AS (\n  SELECT version, min(first_run) AS first_run, row_number() OVER (ORDER BY min(first_run)) AS i,\n         to_char(min(first_run), 'MM-DD') || ' ' || left(version, 8)\n           || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END AS label\n  FROM h GROUP BY 1\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, v.i, v.label, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN v USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nsel AS (\n  SELECT hv.version AS head,\n         coalesce((SELECT version FROM v WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM v WHERE i = hv.i - 1)) AS base\n  FROM v hv\n  WHERE hv.version = coalesce((SELECT version FROM v WHERE version = ${head:sqlstring}),\n                              (SELECT version FROM v ORDER BY i DESC LIMIT 1))\n),\ncommon AS (\n  -- files both versions decided\n  SELECT b.vpr_sha256 FROM c b JOIN sel ON b.version = sel.base JOIN c hd ON hd.vpr_sha256 = b.vpr_sha256 AND hd.version = sel.head\n  WHERE b.decided AND hd.decided\n)\nSELECT CASE WHEN c.version = sel.base THEN 'base ' ELSE 'head ' END || c.label AS run,\n  avg(parse_s) AS parse,\n  avg(macros_s) AS macros,\n  avg(idents_s) AS idents,\n  avg(disambiguate_s) AS disambiguate,\n  avg(globals_s) AS globals,\n  avg(typecheck_s) AS typecheck,\n  avg(analyze_s) AS analyze,\n  avg(translate_s) AS translate,\n  avg(verify_s) AS verify\nFROM c JOIN sel ON c.version IN (sel.base, sel.head) JOIN common USING (vpr_sha256)\nGROUP BY c.version, c.label, sel.base, c.i ORDER BY c.i"
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nvs AS (\n  SELECT coalesce((SELECT version FROM sel WHERE version = ${ver:sqlstring}),\n                  (SELECT version FROM sel WHERE NOT is_base ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM sel WHERE is_base)) AS version\n),\npair AS (\n  -- base against the picked version, per file\n  SELECT vpr_sha256, coalesce(hd.file, bs.file) AS file,\n         bs.status AS b_status, hd.status AS h_status, bs.t AS b_t, hd.t AS h_t,\n         bs.class AS b_class, hd.class AS h_class, coalesce(bs.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec\n  FROM (SELECT * FROM c WHERE is_base) bs\n  FULL JOIN (SELECT c.* FROM c JOIN vs USING (version)) hd USING (vpr_sha256)\n),\nlabelled AS (\n  SELECT pair.*, CASE\n           WHEN b_status IS NULL THEN 'only in version'\n           WHEN h_status IS NULL THEN 'only in base'\n           WHEN h_class = 'unsound' AND b_class <> 'unsound' THEN 'became unsound'\n           WHEN h_class = 'incomplete' AND b_class <> 'incomplete' THEN 'became incomplete'\n           WHEN h_status = 'TIMED_OUT' AND b_status <> 'TIMED_OUT' THEN 'now times out'\n           WHEN h_status = 'CRASHED' AND b_status <> 'CRASHED' THEN 'now crashes'\n           WHEN b_dec AND NOT h_dec THEN 'no longer decided'\n           WHEN h_dec AND NOT b_dec THEN 'newly decided'\n           WHEN b_class = 'unsound' AND h_class <> 'unsound' THEN 'fixed unsound'\n           WHEN b_class = 'incomplete' AND h_class <> 'incomplete' THEN 'fixed incomplete'\n           WHEN b_status <> h_status THEN 'verdict flip'\n           WHEN b_class IS DISTINCT FROM h_class THEN 'class changed'\n           WHEN NOT h_dec THEN 'still undecided'\n           WHEN h_t < b_t / 1.1 THEN 'faster'\n           WHEN h_t > b_t * 1.1 THEN 'slower'\n           ELSE 'same' END AS change,\n         CASE WHEN b_dec AND h_dec AND h_t > 0 THEN b_t / h_t END AS ratio\n  FROM pair\n)\nSELECT change AS \"Change\", 'details ›' AS \"Details\", file AS \"File\", b_status AS \"Base\", h_status AS \"Version\",\n       b_t AS \"Base ${metric:text}\", h_t AS \"Version ${metric:text}\", ratio AS \"×\",\n       b_class AS \"Base vs Silicon\", h_class AS \"Version vs Silicon\",\n       vpr_sha256 AS sha, (SELECT version FROM b) AS bver, (SELECT version FROM vs) AS hver\nFROM labelled\nORDER BY array_position(ARRAY['became unsound', 'became incomplete', 'now times out', 'now crashes', 'no longer decided', 'newly decided', 'fixed unsound', 'fixed incomplete', 'verdict flip', 'class changed', 'slower', 'faster', 'same', 'still undecided', 'only in version', 'only in base'], change),\n         ratio, file"
         }
       ],
+      "id": 16,
       "gridPos": {
         "x": 0,
-        "y": 46,
+        "y": 51,
         "w": 24,
-        "h": 7
+        "h": 12
+      }
+    },
+    {
+      "type": "table",
+      "title": "Top 10 slower and faster: base → ${ver:text}",
+      "description": "The 10 files whose ${metric:text} grew the most, relative to the base, and the 10 where it shrank the most. Only files both decided with the same verdict, and where base or version takes at least 0.1 (below that, timings are mostly noise). × = base ÷ version. Click a file to open it in HeliumBenchmarkData, or 'details' to open it in the Helium File dashboard (Helium and Silicon per member, with the code).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
       },
       "options": {
-        "orientation": "horizontal",
-        "xField": "run",
-        "stacking": "normal",
-        "showValue": "auto",
-        "barWidth": 0.8,
-        "groupWidth": 0.7,
-        "barRadius": 0,
-        "fullHighlight": false,
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0,
-        "legend": {
-          "showLegend": true,
-          "displayMode": "table",
-          "placement": "right",
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none",
-          "hideZeros": false
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
         }
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "color": {
-            "mode": "palette-classic"
-          },
           "custom": {
-            "fillOpacity": 90,
-            "lineWidth": 1,
-            "gradientMode": "none",
-            "axisPlacement": "auto",
-            "axisLabel": "",
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "thresholdsStyle": {
-              "mode": "off"
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
             }
           },
-          "min": 0
+          "noValue": "–",
+          "decimals": 3
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "slower": {
+                        "color": "#ff9830",
+                        "index": 0
+                      },
+                      "faster": {
+                        "color": "#73bf69",
+                        "index": 1
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "File"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open in HeliumBenchmarkData",
+                    "url": "https://github.com/The-Ray-Man/HeliumBenchmarkData/blob/main/suites/${__value.raw}.vpr",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 420
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "×"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "suffix:×"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "text",
+                      "value": 0.9
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1.1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Details"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Helium vs Silicon per member (Helium File)",
+                    "url": "/d/helium-file/helium-file?var-file=${__data.fields.sha}&var-version=${__data.fields.hver}&var-base=${__data.fields.bver}"
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sha"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "bver"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hver"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
       },
-      "id": 15
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH v AS (\n  SELECT version, first_run, row_number() OVER (ORDER BY first_run) AS i\n  FROM (SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run\n        FROM helium_runs\n        WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n        GROUP BY 1) x\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR); latest: the newest benchmarked commit of that target\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version, pr_number,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target,\n         updated_at = max(updated_at) OVER (PARTITION BY pr_number) AS latest\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nvl AS (\n  SELECT v.*, tg.pr_number, tg.target, tg.latest,\n         to_char(v.first_run, 'MM-DD') || ' ' || left(v.version, 8)\n           || CASE WHEN v.version LIKE '%+dirty' THEN ' dirty' ELSE '' END || coalesce(' ' || tg.target, '') AS label\n  FROM v LEFT JOIN tg USING (version)\n),\nb AS (\n  -- base: the picked version, else the newest main commit, else the oldest version\n  SELECT coalesce((SELECT version FROM vl WHERE version = ${base:sqlstring}),\n                  (SELECT version FROM vl WHERE target = 'main' ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM vl ORDER BY i LIMIT 1)) AS version\n),\nsel AS (\n  -- base first, then the heads oldest first\n  SELECT vl.*, vl.version = b.version AS is_base, CASE WHEN vl.version = b.version THEN 0 ELSE vl.i END AS o\n  FROM vl, b\n  WHERE vl.version = b.version OR '__all' IN (${heads:sqlstring}) OR vl.version IN (${heads:sqlstring})\n),\nh AS (\n  -- one row per selected version and file (by content); t: median ${metric:text} over the iterations\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version,\n         vpr_sha256,\n         min(suite || '/' || coalesce(family || '/', '') || test) AS file,\n         max(status) AS status,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY ${metric:raw}) AS t,\n         percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n  FROM helium_runs\n  WHERE ('__all' IN (${suite:sqlstring}) OR suite IN (${suite:sqlstring})) AND (${builds:raw} OR NOT coalesce(dirty, false))\n    AND status <> 'SKIPPED' AND backend_version IS NOT NULL\n    AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (SELECT version FROM sel)\n  GROUP BY 1, 2\n),\ns AS (\n  SELECT DISTINCT ON (vpr_sha256) vpr_sha256, status, wall FROM (\n    SELECT run_id, vpr_sha256, max(started_at) AS started, max(status) AS status,\n           percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall\n    FROM silicon_runs WHERE status <> 'SKIPPED' GROUP BY 1, 2) r\n  -- latest verdict; files Silicon never decided keep their latest outcome instead\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started DESC\n),\nc AS (\n  SELECT h.*, sel.i, sel.o, sel.label, sel.is_base, s.status AS s_status, s.wall AS s_wall,\n         h.status IN ('VERIFIED', 'FAILED') AS decided,\n         CASE WHEN h.status NOT IN ('VERIFIED', 'FAILED') THEN 'undecided'\n              WHEN s.status IS NULL THEN 'silicon not run'\n              WHEN s.status = 'TIMED_OUT' THEN 'silicon timed out'\n              WHEN s.status = 'CRASHED' THEN 'silicon crashed'\n              WHEN s.status = 'INCONCLUSIVE' THEN 'silicon inconclusive'\n              WHEN h.status = s.status THEN 'agree'\n              WHEN h.status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class\n  FROM h JOIN sel USING (version) LEFT JOIN s USING (vpr_sha256)\n),\nvs AS (\n  SELECT coalesce((SELECT version FROM sel WHERE version = ${ver:sqlstring}),\n                  (SELECT version FROM sel WHERE NOT is_base ORDER BY i DESC LIMIT 1),\n                  (SELECT version FROM sel WHERE is_base)) AS version\n),\npair AS (\n  -- base against the picked version, per file\n  SELECT vpr_sha256, coalesce(hd.file, bs.file) AS file,\n         bs.status AS b_status, hd.status AS h_status, bs.t AS b_t, hd.t AS h_t,\n         bs.class AS b_class, hd.class AS h_class, coalesce(bs.decided, false) AS b_dec,\n         coalesce(hd.decided, false) AS h_dec\n  FROM (SELECT * FROM c WHERE is_base) bs\n  FULL JOIN (SELECT c.* FROM c JOIN vs USING (version)) hd USING (vpr_sha256)\n),\nsame AS (\n  SELECT * FROM pair\n  WHERE b_dec AND h_dec AND b_status = h_status AND b_t > 0 AND h_t > 0 AND greatest(b_t, h_t) >= 0.1\n)\n(SELECT 'slower' AS \"Change\", 'details ›' AS \"Details\", file AS \"File\", h_status AS \"Verdict\",\n        b_t AS \"Base ${metric:text}\", h_t AS \"Version ${metric:text}\", h_t - b_t AS \"Difference\", b_t / h_t AS \"×\",\n        vpr_sha256 AS sha, (SELECT version FROM b) AS bver, (SELECT version FROM vs) AS hver\n FROM same WHERE h_t > b_t ORDER BY h_t / b_t DESC LIMIT 10)\nUNION ALL\n(SELECT 'faster', 'details ›', file, h_status, b_t, h_t, h_t - b_t, b_t / h_t,\n        vpr_sha256, (SELECT version FROM b), (SELECT version FROM vs)\n FROM same WHERE h_t < b_t ORDER BY b_t / h_t DESC LIMIT 10)"
+        }
+      ],
+      "id": 17,
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 24,
+        "h": 11
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Helium on GitHub",
+      "type": "link",
+      "url": "https://github.com/viperproject/helium",
+      "targetBlank": true,
+      "icon": "external link"
+    },
+    {
+      "title": "Benchmark files",
+      "type": "link",
+      "url": "https://github.com/The-Ray-Man/HeliumBenchmarkData",
+      "targetBlank": true,
+      "icon": "external link"
     }
   ]
 }

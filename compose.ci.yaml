@@ -19,7 +19,7 @@ services:
         condition: service_healthy
     environment:
       RUNNER_URL: ${RUNNER_URL:-https://github.com/viperproject/helium}
-      RUNNER_NAME: ${RUNNER_NAME:-bench-1}
+      RUNNER_NAME: bench
       RUNNER_LABELS: bench
       # Only needed for the first start, which registers the runner.
       RUNNER_TOKEN: ${RUNNER_TOKEN:-}
@@ -32,19 +32,20 @@ services:
       - runner-work:/home/runner/_work
       - cargo-registry:/home/runner/.cargo/registry
       - cargo-git:/home/runner/.cargo/git
-      - helium-target:/opt/bench/helium-target
-      - runner-target:/opt/bench/runner-target
-      # A Silicon checkout with its jar built (`sbt assembly`), read-only; the
-      # paths are the ones in runner/suite.ci.json.
-      - ${SILICON_DIR:?set SILICON_DIR in .env}:/opt/bench/silicon:ro
-      - ${SILICON_DIR}/target/scala-2.13/silicon.jar:/opt/bench/silicon.jar:ro
-    # Keep the benchmarks on fixed cores, away from Postgres and the OS:
-    # cpuset: "2-7"
+      - /local/home/rawick/Documents/helium:/opt/bench/helium
+      - /local/home/rawick/Documents/HeliumBenchmark/runner:/opt/bench/runner
+      - /local/home/rawick/Documents/silicon:/opt/bench/silicon:ro
+      - /local/home/rawick/Documents/HeliumBenchmark/suites:/opt/bench/suites
+    cpuset: "4-20"
+    networks:
+      - net
 
 volumes:
   runner-home:
   runner-work:
   cargo-registry:
   cargo-git:
-  helium-target:
-  runner-target:
+
+networks:
+  net:
+    external: true

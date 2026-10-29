@@ -8,3 +8,4 @@ pub use super::rust_metrics::Entity as RustMetrics;
 pub use super::rustc_runs::Entity as RustcRuns;
 pub use super::silicon_runs::Entity as SiliconRuns;
 pub use super::viper_metrics::Entity as ViperMetrics;
+pub use super::viper_sources::Entity as ViperSources;

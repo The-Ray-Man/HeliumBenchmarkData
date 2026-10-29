@@ -156,6 +156,18 @@ CREATE TABLE rust_metrics (
 );
 
 
+-- Source of every benchmark .vpr file, by content (added by
+-- db/migrations/003_member_results.sql). Kept apart from viper_metrics so the
+-- metrics rows stay small; `runner index` / `bench` store it once per file. A
+-- line belongs to the last top-level declaration (method, function, predicate,
+-- domain, field, ...) starting at or before it, as for Silicon's errors.
+
+CREATE TABLE viper_sources (
+    vpr_sha256              VARCHAR     PRIMARY KEY REFERENCES viper_metrics,
+    source                  TEXT        COMPRESSION lz4 NOT NULL
+);
+
+
 -- Benchmarks: one row per test of a suite (suite, family, test, as in the run
 -- tables) with the hashes of its current files, so metrics can be grouped by
 -- suite or family without any runs:
@@ -287,6 +299,10 @@ CREATE TABLE helium_runs (
     -- keyed by rule name, so the key set changes with the rule set
     per_rule            JSONB,                     -- {"<rule>": applications, ...}
     rule_timing         JSONB,                     -- {"<rule>": {"search": s, "apply": s}, ...} (slowest rules)
+
+    -- added by db/migrations/003_member_results.sql: one entry per result
+    -- Helium reported, in its order; NULL for runs from before
+    members             JSONB,                     -- [{"name": "<member>[#requires|#ensures]", "status": <run_status>, "seconds": s, "message": ..}, ...]
 
     UNIQUE NULLS NOT DISTINCT (run_id, suite, family, test, iteration)
 );

@@ -12,6 +12,8 @@ Benchmark suites (`suites`) for multiple backends, plus a local Postgres + Grafa
   - `runner/src/file_analyzer/` – static metrics of `.rs` and `.vpr` files.
   - `runner/src/metrics.rs` – stores those metrics in the database.
 - `grafana/` – Grafana provisioning (Postgres data source) and dashboards (`grafana/dashboards/*.json`).
+  - `helium-stats.json` – one base Helium commit against several heads: coverage and soundness, speedup by phase (including the Z3 timings in `helium_runs.meta`) and between every pair, verdicts per file. Branches and pull requests come live from GitHub through the Infinity plugin (`grafana/provisioning/datasources/github.yaml`; unauthenticated GitHub allows 60 requests per hour, the file says how to add a token). File names link to this repository on GitHub.
+  - `helium-file.json` – one benchmark file: Helium's verdict per method, function and predicate next to Silicon's, with the code coloured by where they differ. Needs `db/migrations/003_member_results.sql`: Helium's per-member results (`helium_runs.members`) exist only for runs recorded after it, and the source (`viper_sources`) for files `runner index` / `bench` have stored. Opened from the "details" links in Helium Stats' file tables.
   - `scaling.json` – Helium, Silicon and rustc on one scaling family over one knob (absolute, relative to each backend's smallest value, and the best-fitting linear / polynomial / exponential curve). Knob values are the numbers in the test name; their names live in the hidden `knobmap` variable, copied from the scaling families' `knobs` in `runner/suite.example.json`, so update it when a family is added.
 
 ## Quick start

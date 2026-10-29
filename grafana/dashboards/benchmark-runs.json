@@ -1,0 +1,926 @@
+{
+  "uid": "helium-benchmark-runs",
+  "title": "Benchmark runs",
+  "description": "The Helium commits CI benchmarked, by branch: whether each is running or complete, and for the running one its progress, speed against main and an estimate of the remaining time (bench_runs, bench_targets, helium_runs; branches and pull requests from GitHub).",
+  "tags": [
+    "helium"
+  ],
+  "editable": true,
+  "graphTooltip": 0,
+  "schemaVersion": 42,
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Helium on GitHub",
+      "type": "link",
+      "url": "https://github.com/viperproject/helium",
+      "targetBlank": true,
+      "icon": "external link"
+    },
+    {
+      "title": "CI runs",
+      "type": "link",
+      "url": "https://github.com/viperproject/helium/actions",
+      "targetBlank": true,
+      "icon": "external link"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "commits",
+        "label": "Commits",
+        "hide": 2,
+        "description": "Hidden: every benchmarked commit with its pull request, for the GitHub lookup.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH att AS (\n  -- CI attempts. A host runs one job at a time, so a RUNNING attempt is live\n  -- only while no later attempt started on its host or for its commit (a killed\n  -- job leaves its row RUNNING, and a recreated runner container gets a new host)\n  SELECT r.*, r.status = 'RUNNING' AND NOT EXISTS (\n           SELECT 1 FROM bench_runs o\n           WHERE (o.host IS NOT DISTINCT FROM r.host OR o.helium_commit = r.helium_commit) AND o.started_at > r.started_at) AS live\n  FROM bench_runs r\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR)\n  SELECT DISTINCT ON (helium_commit) helium_commit, pr_number\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nc AS (\n  -- one row per benchmarked commit, over all its attempts\n  SELECT a.helium_commit, tg.pr_number,\n         bool_or(a.live) AS live, bool_or(a.status = 'COMPLETE') AS complete,\n         (array_agg(a.status::text ORDER BY a.started_at DESC))[1] AS last_status,\n         count(*) AS attempts, min(a.started_at) AS first_started, max(a.started_at) AS last_started,\n         max(a.started_at) FILTER (WHERE a.live) AS live_started,\n         max(a.finished_at) FILTER (WHERE a.status = 'COMPLETE') AS completed_at,\n         (array_agg(a.run_id ORDER BY a.started_at DESC))[1] AS run_id,\n         (array_agg(a.github_run_url ORDER BY a.started_at DESC))[1] AS run_url\n  FROM att a LEFT JOIN tg USING (helium_commit)\n  GROUP BY 1, 2\n),\ncr AS (\n  -- reference: the newest other main commit with a complete run\n  SELECT c.*, (SELECT m.helium_commit FROM c m\n               WHERE m.pr_number IS NULL AND m.complete AND m.helium_commit <> c.helium_commit\n               ORDER BY m.completed_at DESC LIMIT 1) AS ref\n  FROM c\n),\nf AS (\n  -- Helium time per commit and file (CI-owned runs; the runner skips files by\n  -- content hash): timed runs plus the untimed warm-ups, taken as long as the average timed run\n  SELECT h.backend_version AS helium_commit, h.vpr_sha256,\n         coalesce(sum(h.wall_s), 0) + coalesce(max((h.meta->>'warmup')::int), 0) * coalesce(avg(h.wall_s), 0) AS cost\n  FROM helium_runs h JOIN bench_runs b ON b.run_id = h.run_id AND b.helium_commit = h.backend_version\n  WHERE NOT coalesce(h.dirty, false)\n  GROUP BY 1, 2\n),\ne AS (\n  SELECT cr.*,\n         count(j.cv) AS done, count(j.rv) AS ref_files,\n         coalesce(sum(j.cc), 0) AS spent,\n         sum(j.cc) FILTER (WHERE j.rv IS NOT NULL) AS c_common,\n         sum(j.rc) FILTER (WHERE j.cv IS NOT NULL) AS r_common,\n         coalesce(sum(j.rc) FILTER (WHERE j.cv IS NULL), 0) AS r_left\n  FROM cr LEFT JOIN LATERAL (\n    SELECT fc.vpr_sha256 AS cv, fc.cost AS cc, fr.vpr_sha256 AS rv, fr.cost AS rc\n    FROM (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.helium_commit) fc\n    FULL JOIN (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.ref) fr ON fr.vpr_sha256 = fc.vpr_sha256\n  ) j ON true\n  GROUP BY cr.helium_commit, cr.pr_number, cr.live, cr.complete, cr.last_status, cr.attempts, cr.first_started,\n           cr.last_started, cr.live_started, cr.completed_at, cr.run_id, cr.run_url, cr.ref\n),\nx AS (\n  SELECT e.*,\n         CASE WHEN live THEN 'running' WHEN complete THEN 'complete'\n              WHEN last_status = 'RUNNING' THEN 'interrupted' ELSE lower(last_status) END AS state,\n         r_common / nullif(c_common, 0) AS speedup,\n         CASE WHEN live THEN r_left * c_common / nullif(r_common, 0) END AS remaining\n  FROM e\n)\nSELECT helium_commit || ':' || coalesce(pr_number::text, 'main') FROM x",
+        "definition": "WITH att AS (\n  -- CI attempts. A host runs one job at a time, so a RUNNING attempt is live\n  -- only while no later attempt started on its host or for its commit (a killed\n  -- job leaves its row RUNNING, and a recreated runner container gets a new host)\n  SELECT r.*, r.status = 'RUNNING' AND NOT EXISTS (\n           SELECT 1 FROM bench_runs o\n           WHERE (o.host IS NOT DISTINCT FROM r.host OR o.helium_commit = r.helium_commit) AND o.started_at > r.started_at) AS live\n  FROM bench_runs r\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR)\n  SELECT DISTINCT ON (helium_commit) helium_commit, pr_number\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nc AS (\n  -- one row per benchmarked commit, over all its attempts\n  SELECT a.helium_commit, tg.pr_number,\n         bool_or(a.live) AS live, bool_or(a.status = 'COMPLETE') AS complete,\n         (array_agg(a.status::text ORDER BY a.started_at DESC))[1] AS last_status,\n         count(*) AS attempts, min(a.started_at) AS first_started, max(a.started_at) AS last_started,\n         max(a.started_at) FILTER (WHERE a.live) AS live_started,\n         max(a.finished_at) FILTER (WHERE a.status = 'COMPLETE') AS completed_at,\n         (array_agg(a.run_id ORDER BY a.started_at DESC))[1] AS run_id,\n         (array_agg(a.github_run_url ORDER BY a.started_at DESC))[1] AS run_url\n  FROM att a LEFT JOIN tg USING (helium_commit)\n  GROUP BY 1, 2\n),\ncr AS (\n  -- reference: the newest other main commit with a complete run\n  SELECT c.*, (SELECT m.helium_commit FROM c m\n               WHERE m.pr_number IS NULL AND m.complete AND m.helium_commit <> c.helium_commit\n               ORDER BY m.completed_at DESC LIMIT 1) AS ref\n  FROM c\n),\nf AS (\n  -- Helium time per commit and file (CI-owned runs; the runner skips files by\n  -- content hash): timed runs plus the untimed warm-ups, taken as long as the average timed run\n  SELECT h.backend_version AS helium_commit, h.vpr_sha256,\n         coalesce(sum(h.wall_s), 0) + coalesce(max((h.meta->>'warmup')::int), 0) * coalesce(avg(h.wall_s), 0) AS cost\n  FROM helium_runs h JOIN bench_runs b ON b.run_id = h.run_id AND b.helium_commit = h.backend_version\n  WHERE NOT coalesce(h.dirty, false)\n  GROUP BY 1, 2\n),\ne AS (\n  SELECT cr.*,\n         count(j.cv) AS done, count(j.rv) AS ref_files,\n         coalesce(sum(j.cc), 0) AS spent,\n         sum(j.cc) FILTER (WHERE j.rv IS NOT NULL) AS c_common,\n         sum(j.rc) FILTER (WHERE j.cv IS NOT NULL) AS r_common,\n         coalesce(sum(j.rc) FILTER (WHERE j.cv IS NULL), 0) AS r_left\n  FROM cr LEFT JOIN LATERAL (\n    SELECT fc.vpr_sha256 AS cv, fc.cost AS cc, fr.vpr_sha256 AS rv, fr.cost AS rc\n    FROM (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.helium_commit) fc\n    FULL JOIN (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.ref) fr ON fr.vpr_sha256 = fc.vpr_sha256\n  ) j ON true\n  GROUP BY cr.helium_commit, cr.pr_number, cr.live, cr.complete, cr.last_status, cr.attempts, cr.first_started,\n           cr.last_started, cr.live_started, cr.completed_at, cr.run_id, cr.run_url, cr.ref\n),\nx AS (\n  SELECT e.*,\n         CASE WHEN live THEN 'running' WHEN complete THEN 'complete'\n              WHEN last_status = 'RUNNING' THEN 'interrupted' ELSE lower(last_status) END AS state,\n         r_common / nullif(c_common, 0) AS speedup,\n         CASE WHEN live THEN r_left * c_common / nullif(r_common, 0) END AS remaining\n  FROM e\n)\nSELECT helium_commit || ':' || coalesce(pr_number::text, 'main') FROM x",
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "refresh": 2,
+        "sort": 0,
+        "options": []
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Running now",
+      "description": "The CI job measuring right now. Only Helium is timed: Silicon and rustc results are reused across commits, so only the very first run measured them. Commit and CI target (main or pull request) of the job.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^Commit$/"
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "Nothing running",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH att AS (\n  -- CI attempts. A host runs one job at a time, so a RUNNING attempt is live\n  -- only while no later attempt started on its host or for its commit (a killed\n  -- job leaves its row RUNNING, and a recreated runner container gets a new host)\n  SELECT r.*, r.status = 'RUNNING' AND NOT EXISTS (\n           SELECT 1 FROM bench_runs o\n           WHERE (o.host IS NOT DISTINCT FROM r.host OR o.helium_commit = r.helium_commit) AND o.started_at > r.started_at) AS live\n  FROM bench_runs r\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR)\n  SELECT DISTINCT ON (helium_commit) helium_commit, pr_number\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nc AS (\n  -- one row per benchmarked commit, over all its attempts\n  SELECT a.helium_commit, tg.pr_number,\n         bool_or(a.live) AS live, bool_or(a.status = 'COMPLETE') AS complete,\n         (array_agg(a.status::text ORDER BY a.started_at DESC))[1] AS last_status,\n         count(*) AS attempts, min(a.started_at) AS first_started, max(a.started_at) AS last_started,\n         max(a.started_at) FILTER (WHERE a.live) AS live_started,\n         max(a.finished_at) FILTER (WHERE a.status = 'COMPLETE') AS completed_at,\n         (array_agg(a.run_id ORDER BY a.started_at DESC))[1] AS run_id,\n         (array_agg(a.github_run_url ORDER BY a.started_at DESC))[1] AS run_url\n  FROM att a LEFT JOIN tg USING (helium_commit)\n  GROUP BY 1, 2\n),\ncr AS (\n  -- reference: the newest other main commit with a complete run\n  SELECT c.*, (SELECT m.helium_commit FROM c m\n               WHERE m.pr_number IS NULL AND m.complete AND m.helium_commit <> c.helium_commit\n               ORDER BY m.completed_at DESC LIMIT 1) AS ref\n  FROM c\n),\nf AS (\n  -- Helium time per commit and file (CI-owned runs; the runner skips files by\n  -- content hash): timed runs plus the untimed warm-ups, taken as long as the average timed run\n  SELECT h.backend_version AS helium_commit, h.vpr_sha256,\n         coalesce(sum(h.wall_s), 0) + coalesce(max((h.meta->>'warmup')::int), 0) * coalesce(avg(h.wall_s), 0) AS cost\n  FROM helium_runs h JOIN bench_runs b ON b.run_id = h.run_id AND b.helium_commit = h.backend_version\n  WHERE NOT coalesce(h.dirty, false)\n  GROUP BY 1, 2\n),\ne AS (\n  SELECT cr.*,\n         count(j.cv) AS done, count(j.rv) AS ref_files,\n         coalesce(sum(j.cc), 0) AS spent,\n         sum(j.cc) FILTER (WHERE j.rv IS NOT NULL) AS c_common,\n         sum(j.rc) FILTER (WHERE j.cv IS NOT NULL) AS r_common,\n         coalesce(sum(j.rc) FILTER (WHERE j.cv IS NULL), 0) AS r_left\n  FROM cr LEFT JOIN LATERAL (\n    SELECT fc.vpr_sha256 AS cv, fc.cost AS cc, fr.vpr_sha256 AS rv, fr.cost AS rc\n    FROM (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.helium_commit) fc\n    FULL JOIN (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.ref) fr ON fr.vpr_sha256 = fc.vpr_sha256\n  ) j ON true\n  GROUP BY cr.helium_commit, cr.pr_number, cr.live, cr.complete, cr.last_status, cr.attempts, cr.first_started,\n           cr.last_started, cr.live_started, cr.completed_at, cr.run_id, cr.run_url, cr.ref\n),\nx AS (\n  SELECT e.*,\n         CASE WHEN live THEN 'running' WHEN complete THEN 'complete'\n              WHEN last_status = 'RUNNING' THEN 'interrupted' ELSE lower(last_status) END AS state,\n         r_common / nullif(c_common, 0) AS speedup,\n         CASE WHEN live THEN r_left * c_common / nullif(r_common, 0) END AS remaining\n  FROM e\n)\nSELECT left(helium_commit, 8) || ' \u00b7 ' || coalesce('PR #' || pr_number, 'main') AS \"Commit\",\n       done::float / nullif(ref_files, 0) AS \"Progress\",\n       speedup AS \"Speedup vs main\",\n       CASE WHEN round(extract(epoch FROM now() - live_started))::bigint >= 86400 THEN round(extract(epoch FROM now() - live_started))::bigint / 86400 || 'd ' || round(extract(epoch FROM now() - live_started))::bigint % 86400 / 3600 || 'h ' || round(extract(epoch FROM now() - live_started))::bigint % 3600 / 60 || 'm' WHEN round(extract(epoch FROM now() - live_started))::bigint >= 3600 THEN round(extract(epoch FROM now() - live_started))::bigint / 3600 || 'h ' || round(extract(epoch FROM now() - live_started))::bigint % 3600 / 60 || 'm ' || round(extract(epoch FROM now() - live_started))::bigint % 60 || 's' WHEN round(extract(epoch FROM now() - live_started))::bigint >= 60 THEN round(extract(epoch FROM now() - live_started))::bigint / 60 || 'm ' || round(extract(epoch FROM now() - live_started))::bigint % 60 || 's' ELSE round(extract(epoch FROM now() - live_started))::bigint || 's' END AS \"Elapsed\",\n       CASE WHEN round(remaining)::bigint >= 86400 THEN round(remaining)::bigint / 86400 || 'd ' || round(remaining)::bigint % 86400 / 3600 || 'h ' || round(remaining)::bigint % 3600 / 60 || 'm' WHEN round(remaining)::bigint >= 3600 THEN round(remaining)::bigint / 3600 || 'h ' || round(remaining)::bigint % 3600 / 60 || 'm ' || round(remaining)::bigint % 60 || 's' WHEN round(remaining)::bigint >= 60 THEN round(remaining)::bigint / 60 || 'm ' || round(remaining)::bigint % 60 || 's' ELSE round(remaining)::bigint || 's' END AS \"Remaining\",\n       extract(epoch FROM now() + remaining * interval '1 second') * 1000 AS \"ETA\"\nFROM x WHERE state = 'running'\nORDER BY live_started DESC"
+        }
+      ],
+      "id": 1
+    },
+    {
+      "type": "gauge",
+      "title": "Progress",
+      "description": "Files measured, against the files of the newest complete main commit.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 5,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^Progress$/"
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false,
+        "sizing": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#5794f2"
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "withTransforms": true
+        }
+      ],
+      "id": 2
+    },
+    {
+      "type": "stat",
+      "title": "Speedup vs main",
+      "description": "Helium time of the newest complete main commit over this commit's, on the files both have measured. Above 1: faster.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "x": 11,
+        "y": 0,
+        "w": 3,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^Speedup vs main$/"
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "color": {
+            "mode": "thresholds"
+          },
+          "unit": "suffix:\u00d7",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#f2495c",
+                "value": null
+              },
+              {
+                "color": "#73bf69",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "withTransforms": true
+        }
+      ],
+      "id": 3
+    },
+    {
+      "type": "stat",
+      "title": "Elapsed",
+      "description": "Wall-clock time since this CI attempt started.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 0,
+        "w": 3,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^Elapsed$/"
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "withTransforms": true
+        }
+      ],
+      "id": 4
+    },
+    {
+      "type": "stat",
+      "title": "Remaining",
+      "description": "The main commit's Helium time on the files still to go, scaled by the speedup so far. Leaves out the file being measured and the time between files.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "x": 17,
+        "y": 0,
+        "w": 4,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^Remaining$/"
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "withTransforms": true
+        }
+      ],
+      "id": 5
+    },
+    {
+      "type": "stat",
+      "title": "ETA",
+      "description": "Now plus the remaining time.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Dashboard --"
+      },
+      "gridPos": {
+        "x": 21,
+        "y": 0,
+        "w": 3,
+        "h": 5
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "firstNotNull"
+          ],
+          "fields": "/^ETA$/"
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2013",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "dateTimeAsLocalNoDateIfToday"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "datasource",
+            "uid": "-- Dashboard --"
+          },
+          "panelId": 1,
+          "withTransforms": true
+        }
+      ],
+      "id": 6
+    },
+    {
+      "type": "table",
+      "title": "Commits by branch",
+      "description": "Every Helium commit CI benchmarked, grouped by branch: main first, then the pull requests, newest activity first. A commit's files are spread over all its CI attempts (a re-run skips the files already measured), so Progress and the times add up every attempt. Status: running (the job measuring now), complete (an attempt went through every file), interrupted (the job was killed, its row stayed RUNNING), failed, cancelled. A RUNNING attempt counts as running only while no later attempt started on its host or for its commit. Speedup vs main compares Helium time with the newest other complete main commit on the files both have measured (above 1: faster). For the running commit, Remaining is that main commit's time on the files still to go, scaled by the ratio; Estimated total adds the time spent so far. Helium time is the time spent in Helium: the timed iterations plus the untimed warm-ups, taken as long as the average timed iteration; only Helium is timed, as Silicon and rustc results are reused across commits. Branch, pull request and PR state come live from GitHub (one request per refresh; GitHub allows 60 unauthenticated requests per hour, see grafana/provisioning/datasources/github.yaml for a token). Click a commit to open it, the CI run to open its GitHub Actions run.",
+      "datasource": {
+        "type": "datasource",
+        "uid": "-- Mixed --"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 13
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "\u2013"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Commit"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open commit on GitHub",
+                    "url": "https://github.com/viperproject/helium/commit/${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 330
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "running": {
+                        "color": "#5794f2",
+                        "index": 0
+                      },
+                      "complete": {
+                        "color": "#73bf69",
+                        "index": 1
+                      },
+                      "interrupted": {
+                        "color": "#ff9830",
+                        "index": 2
+                      },
+                      "failed": {
+                        "color": "#f2495c",
+                        "index": 3
+                      },
+                      "cancelled": {
+                        "color": "#8e8e8e",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Progress"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "min",
+                "value": 0
+              },
+              {
+                "id": "max",
+                "value": 1
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gauge",
+                  "mode": "basic",
+                  "valueDisplayMode": "text"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#5794f2"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Speedup vs main"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              },
+              {
+                "id": "unit",
+                "value": "suffix:\u00d7"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#f2495c",
+                      "value": null
+                    },
+                    {
+                      "color": "#73bf69",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PR state"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "open": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "merged": {
+                        "color": "#a352cc",
+                        "index": 1
+                      },
+                      "closed": {
+                        "color": "#f2495c",
+                        "index": 2
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Latest CI run"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the GitHub Actions run",
+                    "url": "${__data.fields.run_url}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH att AS (\n  -- CI attempts. A host runs one job at a time, so a RUNNING attempt is live\n  -- only while no later attempt started on its host or for its commit (a killed\n  -- job leaves its row RUNNING, and a recreated runner container gets a new host)\n  SELECT r.*, r.status = 'RUNNING' AND NOT EXISTS (\n           SELECT 1 FROM bench_runs o\n           WHERE (o.host IS NOT DISTINCT FROM r.host OR o.helium_commit = r.helium_commit) AND o.started_at > r.started_at) AS live\n  FROM bench_runs r\n),\ntg AS (\n  -- CI target of a commit (main wins over a PR)\n  SELECT DISTINCT ON (helium_commit) helium_commit, pr_number\n  FROM bench_targets\n  ORDER BY helium_commit, pr_number NULLS FIRST\n),\nc AS (\n  -- one row per benchmarked commit, over all its attempts\n  SELECT a.helium_commit, tg.pr_number,\n         bool_or(a.live) AS live, bool_or(a.status = 'COMPLETE') AS complete,\n         (array_agg(a.status::text ORDER BY a.started_at DESC))[1] AS last_status,\n         count(*) AS attempts, min(a.started_at) AS first_started, max(a.started_at) AS last_started,\n         max(a.started_at) FILTER (WHERE a.live) AS live_started,\n         max(a.finished_at) FILTER (WHERE a.status = 'COMPLETE') AS completed_at,\n         (array_agg(a.run_id ORDER BY a.started_at DESC))[1] AS run_id,\n         (array_agg(a.github_run_url ORDER BY a.started_at DESC))[1] AS run_url\n  FROM att a LEFT JOIN tg USING (helium_commit)\n  GROUP BY 1, 2\n),\ncr AS (\n  -- reference: the newest other main commit with a complete run\n  SELECT c.*, (SELECT m.helium_commit FROM c m\n               WHERE m.pr_number IS NULL AND m.complete AND m.helium_commit <> c.helium_commit\n               ORDER BY m.completed_at DESC LIMIT 1) AS ref\n  FROM c\n),\nf AS (\n  -- Helium time per commit and file (CI-owned runs; the runner skips files by\n  -- content hash): timed runs plus the untimed warm-ups, taken as long as the average timed run\n  SELECT h.backend_version AS helium_commit, h.vpr_sha256,\n         coalesce(sum(h.wall_s), 0) + coalesce(max((h.meta->>'warmup')::int), 0) * coalesce(avg(h.wall_s), 0) AS cost\n  FROM helium_runs h JOIN bench_runs b ON b.run_id = h.run_id AND b.helium_commit = h.backend_version\n  WHERE NOT coalesce(h.dirty, false)\n  GROUP BY 1, 2\n),\ne AS (\n  SELECT cr.*,\n         count(j.cv) AS done, count(j.rv) AS ref_files,\n         coalesce(sum(j.cc), 0) AS spent,\n         sum(j.cc) FILTER (WHERE j.rv IS NOT NULL) AS c_common,\n         sum(j.rc) FILTER (WHERE j.cv IS NOT NULL) AS r_common,\n         coalesce(sum(j.rc) FILTER (WHERE j.cv IS NULL), 0) AS r_left\n  FROM cr LEFT JOIN LATERAL (\n    SELECT fc.vpr_sha256 AS cv, fc.cost AS cc, fr.vpr_sha256 AS rv, fr.cost AS rc\n    FROM (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.helium_commit) fc\n    FULL JOIN (SELECT vpr_sha256, cost FROM f WHERE f.helium_commit = cr.ref) fr ON fr.vpr_sha256 = fc.vpr_sha256\n  ) j ON true\n  GROUP BY cr.helium_commit, cr.pr_number, cr.live, cr.complete, cr.last_status, cr.attempts, cr.first_started,\n           cr.last_started, cr.live_started, cr.completed_at, cr.run_id, cr.run_url, cr.ref\n),\nx AS (\n  SELECT e.*,\n         CASE WHEN live THEN 'running' WHEN complete THEN 'complete'\n              WHEN last_status = 'RUNNING' THEN 'interrupted' ELSE lower(last_status) END AS state,\n         r_common / nullif(c_common, 0) AS speedup,\n         CASE WHEN live THEN r_left * c_common / nullif(r_common, 0) END AS remaining\n  FROM e\n)\nSELECT coalesce('PR #' || pr_number, 'main') AS \"CI target\", helium_commit AS \"Commit\", state AS \"Status\",\n       CASE WHEN complete AND NOT live THEN 1 ELSE done::float / nullif(coalesce(nullif(ref_files, 0), done), 0) END AS \"Progress\",\n       done || CASE WHEN ref_files > 0 THEN ' / ' || ref_files ELSE '' END AS \"Files\",\n       speedup AS \"Speedup vs main\", left(ref, 8) AS \"Main commit\",\n       CASE WHEN round(spent)::bigint >= 86400 THEN round(spent)::bigint / 86400 || 'd ' || round(spent)::bigint % 86400 / 3600 || 'h ' || round(spent)::bigint % 3600 / 60 || 'm' WHEN round(spent)::bigint >= 3600 THEN round(spent)::bigint / 3600 || 'h ' || round(spent)::bigint % 3600 / 60 || 'm ' || round(spent)::bigint % 60 || 's' WHEN round(spent)::bigint >= 60 THEN round(spent)::bigint / 60 || 'm ' || round(spent)::bigint % 60 || 's' ELSE round(spent)::bigint || 's' END AS \"Helium time\", CASE WHEN round(spent + remaining)::bigint >= 86400 THEN round(spent + remaining)::bigint / 86400 || 'd ' || round(spent + remaining)::bigint % 86400 / 3600 || 'h ' || round(spent + remaining)::bigint % 3600 / 60 || 'm' WHEN round(spent + remaining)::bigint >= 3600 THEN round(spent + remaining)::bigint / 3600 || 'h ' || round(spent + remaining)::bigint % 3600 / 60 || 'm ' || round(spent + remaining)::bigint % 60 || 's' WHEN round(spent + remaining)::bigint >= 60 THEN round(spent + remaining)::bigint / 60 || 'm ' || round(spent + remaining)::bigint % 60 || 's' ELSE round(spent + remaining)::bigint || 's' END AS \"Estimated total\",\n       CASE WHEN round(remaining)::bigint >= 86400 THEN round(remaining)::bigint / 86400 || 'd ' || round(remaining)::bigint % 86400 / 3600 || 'h ' || round(remaining)::bigint % 3600 / 60 || 'm' WHEN round(remaining)::bigint >= 3600 THEN round(remaining)::bigint / 3600 || 'h ' || round(remaining)::bigint % 3600 / 60 || 'm ' || round(remaining)::bigint % 60 || 's' WHEN round(remaining)::bigint >= 60 THEN round(remaining)::bigint / 60 || 'm ' || round(remaining)::bigint % 60 || 's' ELSE round(remaining)::bigint || 's' END AS \"Remaining\",\n       now() + remaining * interval '1 second' AS \"ETA\",\n       CASE WHEN round(extract(epoch FROM now() - live_started))::bigint >= 86400 THEN round(extract(epoch FROM now() - live_started))::bigint / 86400 || 'd ' || round(extract(epoch FROM now() - live_started))::bigint % 86400 / 3600 || 'h ' || round(extract(epoch FROM now() - live_started))::bigint % 3600 / 60 || 'm' WHEN round(extract(epoch FROM now() - live_started))::bigint >= 3600 THEN round(extract(epoch FROM now() - live_started))::bigint / 3600 || 'h ' || round(extract(epoch FROM now() - live_started))::bigint % 3600 / 60 || 'm ' || round(extract(epoch FROM now() - live_started))::bigint % 60 || 's' WHEN round(extract(epoch FROM now() - live_started))::bigint >= 60 THEN round(extract(epoch FROM now() - live_started))::bigint / 60 || 'm ' || round(extract(epoch FROM now() - live_started))::bigint % 60 || 's' ELSE round(extract(epoch FROM now() - live_started))::bigint || 's' END AS \"Elapsed\", attempts AS \"Attempts\",\n       first_started AS \"First started\", completed_at AS \"Completed\",\n       run_id AS \"Latest CI run\", run_url\nFROM x\n-- main first, then the pull requests by their newest attempt; newest commits first\nORDER BY pr_number IS NOT NULL, max(last_started) OVER (PARTITION BY pr_number) DESC, last_started DESC"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "helium-github"
+          },
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "jq-backend",
+          "url": "https://api.github.com/repos/viperproject/helium/pulls?state=all&sort=updated&direction=desc&per_page=100",
+          "url_options": {
+            "method": "GET",
+            "data": "",
+            "headers": [
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              }
+            ]
+          },
+          "root_selector": ". as $p | [${commits:doublequote}] | map(split(\":\") as [$v, $t] | (first($p[] | select((.number | tostring) == $t)) // {}) as $pr | {commit: $v, branch: (if $t == \"main\" then \"main\" else $pr.head.ref end), pr: $pr.title, state: (if $pr.merged_at then \"merged\" else $pr.state end)})",
+          "columns": [
+            {
+              "selector": "commit",
+              "text": "Commit",
+              "type": "string"
+            },
+            {
+              "selector": "branch",
+              "text": "Branch",
+              "type": "string"
+            },
+            {
+              "selector": "pr",
+              "text": "Pull request",
+              "type": "string"
+            },
+            {
+              "selector": "state",
+              "text": "PR state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "Commit",
+            "mode": "outerTabular"
+          }
+        },
+        {
+          "id": "filterByValue",
+          "options": {
+            "type": "exclude",
+            "match": "any",
+            "filters": [
+              {
+                "fieldName": "Status",
+                "config": {
+                  "id": "isNull",
+                  "options": {}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "run_url": true
+            },
+            "indexByName": {
+              "Branch": 0,
+              "CI target": 1,
+              "Pull request": 2,
+              "PR state": 3,
+              "Commit": 4,
+              "Status": 5,
+              "Progress": 6,
+              "Files": 7,
+              "Speedup vs main": 8,
+              "Main commit": 9,
+              "Helium time": 10,
+              "Estimated total": 11,
+              "Remaining": 12,
+              "ETA": 13,
+              "Elapsed": 14,
+              "Attempts": 15,
+              "First started": 16,
+              "Completed": 17,
+              "Latest CI run": 18
+            }
+          }
+        }
+      ],
+      "id": 7
+    },
+    {
+      "type": "table",
+      "title": "CI attempts",
+      "description": "Every CI attempt (bench_runs), newest first. Files measured: the files this attempt added; a re-run skips the files its commit already has. Duration: finished minus started (running: so far); an interrupted attempt has no end. Click a CI run to open it on GitHub.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 10
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "\u2013"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Commit"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open commit on GitHub",
+                    "url": "https://github.com/viperproject/helium/commit/${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 330
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CI run"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open the GitHub Actions run",
+                    "url": "${__data.fields.github_run_url}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "running": {
+                        "color": "#5794f2",
+                        "index": 0
+                      },
+                      "complete": {
+                        "color": "#73bf69",
+                        "index": 1
+                      },
+                      "interrupted": {
+                        "color": "#ff9830",
+                        "index": 2
+                      },
+                      "failed": {
+                        "color": "#f2495c",
+                        "index": 3
+                      },
+                      "cancelled": {
+                        "color": "#8e8e8e",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH att AS (\n  -- see the Commits panel: a RUNNING attempt is live only while no later attempt\n  -- started on its host or for its commit\n  SELECT r.*, r.status = 'RUNNING' AND NOT EXISTS (\n           SELECT 1 FROM bench_runs o\n           WHERE (o.host IS NOT DISTINCT FROM r.host OR o.helium_commit = r.helium_commit) AND o.started_at > r.started_at) AS live\n  FROM bench_runs r\n),\nn AS (\n  SELECT run_id, count(DISTINCT vpr_sha256) AS files, sum(wall_s) AS timed_s FROM helium_runs GROUP BY 1\n)\nSELECT a.run_id AS \"CI run\", a.helium_commit AS \"Commit\",\n       CASE WHEN a.live THEN 'running' WHEN a.status = 'RUNNING' THEN 'interrupted' ELSE lower(a.status::text) END AS \"Status\",\n       a.started_at AS \"Started\", a.finished_at AS \"Finished\",\n       CASE WHEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint >= 86400 THEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint / 86400 || 'd ' || round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint % 86400 / 3600 || 'h ' || round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint % 3600 / 60 || 'm' WHEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint >= 3600 THEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint / 3600 || 'h ' || round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint % 3600 / 60 || 'm ' || round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint % 60 || 's' WHEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint >= 60 THEN round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint / 60 || 'm ' || round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint % 60 || 's' ELSE round(extract(epoch FROM coalesce(a.finished_at, CASE WHEN a.live THEN now() END) - a.started_at))::bigint || 's' END AS \"Duration\",\n       n.files AS \"Files measured\", a.host AS \"Host\", a.github_run_url\nFROM att a LEFT JOIN n USING (run_id)\nORDER BY a.started_at DESC"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "github_run_url": true
+            }
+          }
+        }
+      ],
+      "id": 8
+    }
+  ]
+}

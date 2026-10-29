@@ -100,6 +100,8 @@ pub struct Model {
     pub per_rule: Option<Json>,
     #[sea_orm(column_type = "JsonBinary", nullable)]
     pub rule_timing: Option<Json>,
+    #[sea_orm(column_type = "JsonBinary", nullable)]
+    pub members: Option<Json>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

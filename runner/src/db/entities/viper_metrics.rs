@@ -58,6 +58,8 @@ pub enum Relation {
     RustMetrics,
     #[sea_orm(has_many = "super::silicon_runs::Entity")]
     SiliconRuns,
+    #[sea_orm(has_one = "super::viper_sources::Entity")]
+    ViperSources,
 }
 
 impl Related<super::benchmarks::Entity> for Entity {
@@ -81,6 +83,12 @@ impl Related<super::rust_metrics::Entity> for Entity {
 impl Related<super::silicon_runs::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::SiliconRuns.def()
+    }
+}
+
+impl Related<super::viper_sources::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ViperSources.def()
     }
 }
 

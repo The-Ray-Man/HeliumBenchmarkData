@@ -1,0 +1,1108 @@
+{
+  "uid": "helium-file",
+  "title": "Helium File",
+  "description": "One benchmark file: Helium's and Silicon's verdicts per method, function and predicate, next to the code (helium_runs.members, silicon_runs.errors, viper_sources).",
+  "tags": [
+    "helium"
+  ],
+  "editable": true,
+  "graphTooltip": 0,
+  "schemaVersion": 42,
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {
+    "hidden": true
+  },
+  "refresh": "",
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Helium Stats",
+      "type": "dashboards",
+      "tags": [
+        "helium"
+      ],
+      "asDropdown": false,
+      "includeVars": false,
+      "keepTime": false
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "file",
+        "label": "File",
+        "description": "The benchmark file, by content: a file edited since shows once per version (@ its hash).",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT vpr_sha256 AS __value,\n       min(suite || '/' || coalesce(family || '/', '') || test)\n         || CASE WHEN count(*) OVER (PARTITION BY min(suite || '/' || coalesce(family || '/', '') || test)) > 1\n                 THEN ' @' || left(vpr_sha256, 8) ELSE '' END AS __text\nFROM helium_runs GROUP BY vpr_sha256 ORDER BY 2",
+        "definition": "SELECT vpr_sha256 AS __value,\n       min(suite || '/' || coalesce(family || '/', '') || test)\n         || CASE WHEN count(*) OVER (PARTITION BY min(suite || '/' || coalesce(family || '/', '') || test)) > 1\n                 THEN ' @' || left(vpr_sha256, 8) ELSE '' END AS __text\nFROM helium_runs GROUP BY vpr_sha256 ORDER BY 2",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "version",
+        "label": "Helium",
+        "description": "The Helium version shown; by default the newest that ran this file.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH v AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version IS NOT NULL GROUP BY 1\n),\ntg AS (\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target\n  FROM bench_targets ORDER BY helium_commit, pr_number NULLS FIRST\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END || ' · ' || to_char(first_run, 'YYYY-MM-DD') || coalesce(' · ' || target, '') AS __text FROM v LEFT JOIN tg USING (version) ORDER BY first_run DESC",
+        "definition": "WITH v AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version IS NOT NULL GROUP BY 1\n),\ntg AS (\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target\n  FROM bench_targets ORDER BY helium_commit, pr_number NULLS FIRST\n)\nSELECT version AS __value, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END || ' · ' || to_char(first_run, 'YYYY-MM-DD') || coalesce(' · ' || target, '') AS __text FROM v LEFT JOIN tg USING (version) ORDER BY first_run DESC",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "query",
+        "name": "base",
+        "label": "Base",
+        "description": "Optional: another Helium version whose verdict per member is shown next to it.",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "WITH v AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version IS NOT NULL GROUP BY 1\n),\ntg AS (\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target\n  FROM bench_targets ORDER BY helium_commit, pr_number NULLS FIRST\n)\nSELECT '__none' AS __value, 'none' AS __text, NULL::timestamptz AS first_run\nUNION ALL\nSELECT version, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END || ' · ' || to_char(first_run, 'YYYY-MM-DD') || coalesce(' · ' || target, ''), first_run FROM v LEFT JOIN tg USING (version) ORDER BY first_run DESC NULLS FIRST",
+        "definition": "WITH v AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, min(started_at) AS first_run FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version IS NOT NULL GROUP BY 1\n),\ntg AS (\n  SELECT DISTINCT ON (helium_commit) helium_commit AS version,\n         CASE WHEN pr_number IS NULL THEN 'main' ELSE 'PR #' || pr_number END AS target\n  FROM bench_targets ORDER BY helium_commit, pr_number NULLS FIRST\n)\nSELECT '__none' AS __value, 'none' AS __text, NULL::timestamptz AS first_run\nUNION ALL\nSELECT version, left(version, 8) || CASE WHEN version LIKE '%+dirty' THEN ' dirty' ELSE '' END || ' · ' || to_char(first_run, 'YYYY-MM-DD') || coalesce(' · ' || target, ''), first_run FROM v LEFT JOIN tg USING (version) ORDER BY first_run DESC NULLS FIRST",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": []
+      },
+      {
+        "type": "custom",
+        "name": "code",
+        "label": "Code",
+        "description": "Which lines the Code table shows.",
+        "query": "Members that differ : diff, All members : members, Whole file : all",
+        "current": {
+          "text": "All members",
+          "value": "members"
+        },
+        "options": [
+          {
+            "text": "Members that differ",
+            "value": "diff",
+            "selected": false
+          },
+          {
+            "text": "All members",
+            "value": "members",
+            "selected": true
+          },
+          {
+            "text": "Whole file",
+            "value": "all",
+            "selected": false
+          }
+        ],
+        "multi": false,
+        "includeAll": false
+      },
+      {
+        "type": "query",
+        "name": "path",
+        "label": "Path",
+        "description": "",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "helium-postgres"
+        },
+        "query": "SELECT min(suite || '/' || coalesce(family || '/', '') || test) FROM helium_runs WHERE vpr_sha256 = ${file:sqlstring}",
+        "definition": "SELECT min(suite || '/' || coalesce(family || '/', '') || test) FROM helium_runs WHERE vpr_sha256 = ${file:sqlstring}",
+        "refresh": 1,
+        "sort": 0,
+        "multi": false,
+        "includeAll": false,
+        "current": {},
+        "options": [],
+        "hide": 2
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "${file:text}",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Runs",
+      "description": "The newest run of each tool on this file (by content). Wall time is the median over the iterations.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Verdict"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Wall time (median)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Tool"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 260
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH hr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${version:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\nbr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${base:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\ns AS (\n  -- Silicon's latest decided run of the file; else its latest outcome\n  SELECT DISTINCT ON (vpr_sha256) status, errors, backend_version, wall_s, message\n  FROM silicon_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND status <> 'SKIPPED'\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started_at DESC, iteration\n),\nse AS (\n  SELECT (e->>'line')::int AS line, e->>'member' AS member, e->>'message' AS message\n  FROM s, jsonb_array_elements(coalesce(s.errors, '[]')) AS e\n),\nhagg AS (\n  SELECT backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END AS version, percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) AS wall, count(*) AS runs\n  FROM helium_runs WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END IN (${version:sqlstring}, ${base:sqlstring})\n  GROUP BY 1\n)\nSELECT 'Helium ' || left(${version:sqlstring}, 8) AS \"Tool\", hr.status::text AS \"Verdict\",\n       (SELECT wall FROM hagg WHERE version = ${version:sqlstring}) AS \"Wall time (median)\",\n       CASE WHEN hr.members IS NULL THEN 'not recorded for this run'\n            ELSE (SELECT count(DISTINCT split_part(m->>'name', '#', 1)) || ' members, ' || count(*) || ' results'\n                  FROM jsonb_array_elements(hr.members) m) END AS \"Members\",\n       hr.message AS \"Message\"\nFROM hr\nUNION ALL\nSELECT 'Helium base ' || left(${base:sqlstring}, 8), br.status::text,\n       (SELECT wall FROM hagg WHERE version = ${base:sqlstring}),\n       CASE WHEN br.members IS NULL THEN 'not recorded for this run'\n            ELSE (SELECT count(DISTINCT split_part(m->>'name', '#', 1)) || ' members, ' || count(*) || ' results'\n                  FROM jsonb_array_elements(br.members) m) END,\n       br.message\nFROM br\nUNION ALL\nSELECT 'Silicon', s.status::text,\n       (SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY wall_s) FROM silicon_runs\n        WHERE vpr_sha256 = ${file:sqlstring} AND status = s.status AND coalesce(backend_version, '') = coalesce(s.backend_version, '')),\n       CASE WHEN s.status IN ('VERIFIED', 'FAILED')\n            THEN (SELECT count(*) || ' errors in ' || count(DISTINCT member) || ' members' FROM se) END,\n       s.message\nFROM s"
+        }
+      ],
+      "links": [
+        {
+          "title": "Open the file in HeliumBenchmarkData",
+          "url": "https://github.com/The-Ray-Man/HeliumBenchmarkData/blob/main/suites/${path}.vpr",
+          "targetBlank": true
+        },
+        {
+          "title": "Helium commit on GitHub",
+          "url": "https://github.com/viperproject/helium/commit/${version}",
+          "targetBlank": true
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 15,
+        "h": 6
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Members: Helium vs Silicon",
+      "description": "Silicon's verdict is its most recent VERIFIED/FAILED run of the file. Silicon reports only the members with errors, so a member of a finished Silicon run without an error verified; errors belong to the declaration starting at or before their line. Helium's verdict per member is the worst of its results (requires, ensures, body), from the newest run of the version that recorded them. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "wideLayout": true,
+        "showPercentChange": false
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "–",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Agree"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#73bf69"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Unsound"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Incomplete"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#ff9830"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH hr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${version:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\nhm AS (\n  SELECT split_part(m->>'name', '#', 1) AS name,\n         CASE WHEN bool_or(m->>'status' = 'FAILED') THEN 'FAILED'\n              WHEN bool_or(m->>'status' = 'CRASHED') THEN 'CRASHED'\n              WHEN bool_or(m->>'status' = 'TIMED_OUT') THEN 'TIMED_OUT'\n              WHEN bool_or(m->>'status' = 'INCONCLUSIVE') THEN 'INCONCLUSIVE'\n              WHEN bool_and(m->>'status' = 'SKIPPED') THEN 'SKIPPED'\n              ELSE 'VERIFIED' END AS status,\n         sum((m->>'seconds')::float8) AS seconds,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ' ' || (m->>'status'), ', '\n                    ORDER BY ord) AS obligations,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ': ' || (m->>'message'), ' | '\n                    ORDER BY ord) FILTER (WHERE m->>'message' IS NOT NULL) AS message\n  FROM hr, jsonb_array_elements(members) WITH ORDINALITY AS e(m, ord)\n  GROUP BY 1\n),\ns AS (\n  -- Silicon's latest decided run of the file; else its latest outcome\n  SELECT DISTINCT ON (vpr_sha256) status, errors, backend_version, wall_s, message\n  FROM silicon_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND status <> 'SKIPPED'\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started_at DESC, iteration\n),\nse AS (\n  SELECT (e->>'line')::int AS line, e->>'member' AS member, e->>'message' AS message\n  FROM s, jsonb_array_elements(coalesce(s.errors, '[]')) AS e\n),\nsrc AS (SELECT source FROM viper_sources WHERE vpr_sha256 = ${file:sqlstring}),\nln AS (\n  SELECT n::int AS n, replace(l, E'\\t', '    ') AS l, substring(l from '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)') AS kind,\n         (regexp_match(l, '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)'))[2] AS name\n  FROM src, regexp_split_to_table(src.source, E'\\r?\\n') WITH ORDINALITY AS t(l, n)\n),\nlm AS (\n  -- a line belongs to the last declaration starting at or before it, as for Silicon's errors\n  SELECT ln.*, max(n) FILTER (WHERE kind IS NOT NULL) OVER (ORDER BY n) AS decl_line FROM ln\n),\ndecl AS (\n  SELECT d.n AS line, d.kind, d.name, coalesce(lead(d.n) OVER (ORDER BY d.n) - 1, (SELECT max(n) FROM ln)) AS last_line\n  FROM ln d WHERE d.kind IS NOT NULL\n),\nmem AS (\n  SELECT decl.name, hm.status AS h, CASE WHEN s.status IN ('VERIFIED', 'FAILED')\n                THEN CASE WHEN EXISTS (SELECT 1 FROM se WHERE se.member = decl.name) THEN 'FAILED' ELSE 'VERIFIED' END\n              ELSE s.status::text END AS s_status\n  FROM decl LEFT JOIN s ON true LEFT JOIN hm ON hm.name = decl.name\n  WHERE decl.kind IN ('method', 'function', 'predicate')\n),\nc AS (SELECT CASE WHEN (SELECT members IS NULL FROM hr) IS NOT FALSE THEN 'no Helium member results'\n              WHEN h IS NULL THEN 'not reported by Helium'\n              WHEN h NOT IN ('VERIFIED', 'FAILED') THEN 'Helium undecided'\n              WHEN s_status IS NULL OR s_status NOT IN ('VERIFIED', 'FAILED') THEN 'Silicon undecided'\n              WHEN h = s_status THEN 'agree'\n              WHEN h = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS class FROM mem)\nSELECT count(*) AS \"Members\",\n       count(*) FILTER (WHERE class = 'agree') AS \"Agree\",\n       count(*) FILTER (WHERE class = 'unsound') AS \"Unsound\",\n       count(*) FILTER (WHERE class = 'incomplete') AS \"Incomplete\",\n       count(*) FILTER (WHERE class IN ('Helium undecided', 'Silicon undecided')) AS \"Undecided\",\n       count(*) FILTER (WHERE class = 'no Helium member results') AS \"No Helium member results\"\nFROM c"
+        }
+      ],
+      "id": 3,
+      "gridPos": {
+        "x": 15,
+        "y": 1,
+        "w": 9,
+        "h": 6
+      }
+    },
+    {
+      "type": "row",
+      "title": "Members",
+      "collapsed": false,
+      "panels": [],
+      "description": "Silicon's verdict is its most recent VERIFIED/FAILED run of the file. Silicon reports only the members with errors, so a member of a finished Silicon run without an error verified; errors belong to the declaration starting at or before their line. Helium's verdict per member is the worst of its results (requires, ensures, body), from the newest run of the version that recorded them. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "id": 4,
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Members",
+      "description": "Every method, function and predicate, the ones where Helium and Silicon differ first, then in source order; plus any other declaration Helium or Silicon reported on; the rest (domains, fields, …) is the preamble row. Rows are coloured by the comparison: red unsound, orange incomplete. Base: the base version's verdict, if one is picked. Silicon's verdict is its most recent VERIFIED/FAILED run of the file. Silicon reports only the members with errors, so a member of a finished Silicon run without an error verified; errors belong to the declaration starting at or before their line. Helium's verdict per member is the worst of its results (requires, ensures, body), from the newest run of the version that recorded them. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Comparison"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "agree": {
+                        "color": "transparent",
+                        "index": 0
+                      },
+                      "unsound": {
+                        "color": "#6e1f28",
+                        "index": 1
+                      },
+                      "incomplete": {
+                        "color": "#6b4214",
+                        "index": 2
+                      },
+                      "Helium undecided": {
+                        "color": "#3d3d45",
+                        "index": 3
+                      },
+                      "Silicon undecided": {
+                        "color": "#2e3d5c",
+                        "index": 4
+                      },
+                      "no Helium member results": {
+                        "color": "transparent",
+                        "index": 5
+                      },
+                      "not reported by Helium": {
+                        "color": "#3d3d45",
+                        "index": 6
+                      },
+                      "preamble": {
+                        "color": "transparent",
+                        "index": 7
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic",
+                  "applyToRow": true
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Base"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 110
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Line"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Lines"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Kind"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Member"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium time"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 3
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon errors"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH hr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${version:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\nhm AS (\n  SELECT split_part(m->>'name', '#', 1) AS name,\n         CASE WHEN bool_or(m->>'status' = 'FAILED') THEN 'FAILED'\n              WHEN bool_or(m->>'status' = 'CRASHED') THEN 'CRASHED'\n              WHEN bool_or(m->>'status' = 'TIMED_OUT') THEN 'TIMED_OUT'\n              WHEN bool_or(m->>'status' = 'INCONCLUSIVE') THEN 'INCONCLUSIVE'\n              WHEN bool_and(m->>'status' = 'SKIPPED') THEN 'SKIPPED'\n              ELSE 'VERIFIED' END AS status,\n         sum((m->>'seconds')::float8) AS seconds,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ' ' || (m->>'status'), ', '\n                    ORDER BY ord) AS obligations,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ': ' || (m->>'message'), ' | '\n                    ORDER BY ord) FILTER (WHERE m->>'message' IS NOT NULL) AS message\n  FROM hr, jsonb_array_elements(members) WITH ORDINALITY AS e(m, ord)\n  GROUP BY 1\n),\nbr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${base:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\nbm AS (\n  SELECT split_part(m->>'name', '#', 1) AS name,\n         CASE WHEN bool_or(m->>'status' = 'FAILED') THEN 'FAILED'\n              WHEN bool_or(m->>'status' = 'CRASHED') THEN 'CRASHED'\n              WHEN bool_or(m->>'status' = 'TIMED_OUT') THEN 'TIMED_OUT'\n              WHEN bool_or(m->>'status' = 'INCONCLUSIVE') THEN 'INCONCLUSIVE'\n              WHEN bool_and(m->>'status' = 'SKIPPED') THEN 'SKIPPED'\n              ELSE 'VERIFIED' END AS status,\n         sum((m->>'seconds')::float8) AS seconds,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ' ' || (m->>'status'), ', '\n                    ORDER BY ord) AS obligations,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ': ' || (m->>'message'), ' | '\n                    ORDER BY ord) FILTER (WHERE m->>'message' IS NOT NULL) AS message\n  FROM br, jsonb_array_elements(members) WITH ORDINALITY AS e(m, ord)\n  GROUP BY 1\n),\ns AS (\n  -- Silicon's latest decided run of the file; else its latest outcome\n  SELECT DISTINCT ON (vpr_sha256) status, errors, backend_version, wall_s, message\n  FROM silicon_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND status <> 'SKIPPED'\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started_at DESC, iteration\n),\nse AS (\n  SELECT (e->>'line')::int AS line, e->>'member' AS member, e->>'message' AS message\n  FROM s, jsonb_array_elements(coalesce(s.errors, '[]')) AS e\n),\nsrc AS (SELECT source FROM viper_sources WHERE vpr_sha256 = ${file:sqlstring}),\nln AS (\n  SELECT n::int AS n, replace(l, E'\\t', '    ') AS l, substring(l from '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)') AS kind,\n         (regexp_match(l, '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)'))[2] AS name\n  FROM src, regexp_split_to_table(src.source, E'\\r?\\n') WITH ORDINALITY AS t(l, n)\n),\nlm AS (\n  -- a line belongs to the last declaration starting at or before it, as for Silicon's errors\n  SELECT ln.*, max(n) FILTER (WHERE kind IS NOT NULL) OVER (ORDER BY n) AS decl_line FROM ln\n),\ndecl AS (\n  SELECT d.n AS line, d.kind, d.name, coalesce(lead(d.n) OVER (ORDER BY d.n) - 1, (SELECT max(n) FROM ln)) AS last_line\n  FROM ln d WHERE d.kind IS NOT NULL\n),\nmem AS (\n  SELECT decl.*, hm.status AS h_status, hm.seconds, hm.obligations, hm.message AS h_message, bm.status AS b_status,\n         CASE WHEN s.status IN ('VERIFIED', 'FAILED')\n                THEN CASE WHEN EXISTS (SELECT 1 FROM se WHERE se.member = decl.name) THEN 'FAILED' ELSE 'VERIFIED' END\n              ELSE s.status::text END AS s_status,\n         (SELECT string_agg('line ' || se.line || ': ' || se.message, ' | ' ORDER BY se.line) FROM se WHERE se.member = decl.name) AS s_errors\n  FROM decl\n  LEFT JOIN s ON true\n  LEFT JOIN hm ON hm.name = decl.name\n  LEFT JOIN bm ON bm.name = decl.name\n  WHERE decl.kind IN ('method', 'function', 'predicate') OR hm.name IS NOT NULL\n     OR EXISTS (SELECT 1 FROM se WHERE se.member = decl.name)\n),\npre AS (\n  -- everything else (domains, fields, ...) as one row\n  SELECT min(line) AS line, max(last_line) AS last_line, count(*) AS n\n  FROM decl WHERE line NOT IN (SELECT line FROM mem)\n)\nSELECT * FROM (\nSELECT line AS \"Line\", last_line - line + 1 AS \"Lines\", kind AS \"Kind\", name AS \"Member\",\n       CASE WHEN (SELECT members IS NULL FROM hr) IS NOT FALSE THEN 'no Helium member results'\n              WHEN h_status IS NULL THEN 'not reported by Helium'\n              WHEN h_status NOT IN ('VERIFIED', 'FAILED') THEN 'Helium undecided'\n              WHEN s_status IS NULL OR s_status NOT IN ('VERIFIED', 'FAILED') THEN 'Silicon undecided'\n              WHEN h_status = s_status THEN 'agree'\n              WHEN h_status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END AS \"Comparison\",\n       h_status AS \"Helium\", s_status AS \"Silicon\", b_status AS \"Base\",\n       seconds AS \"Helium time\", obligations AS \"Helium obligations\", h_message AS \"Helium message\",\n       s_errors AS \"Silicon errors\"\nFROM mem\nUNION ALL\nSELECT line, last_line - line + 1, 'preamble', n || ' declarations (domains, fields, …)', 'preamble',\n       NULL, NULL, NULL, NULL, NULL, NULL,\n       (SELECT string_agg('line ' || se.line || ': ' || se.message, ' | ') FROM se\n        WHERE se.member IS NULL OR se.member NOT IN (SELECT name FROM mem))\nFROM pre WHERE n > 0\n) x\nORDER BY array_position(ARRAY['unsound', 'incomplete', 'Helium undecided', 'Silicon undecided', 'not reported by Helium'], \"Comparison\") NULLS LAST, \"Line\" "
+        }
+      ],
+      "id": 5,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "type": "row",
+      "title": "Code",
+      "collapsed": false,
+      "panels": [],
+      "description": "The file's source as benchmarked (viper_sources), one row per line, coloured by its member's comparison with Silicon. 'Code' above picks the lines: the members where Helium and Silicon differ (unsound, incomplete, undecided), all members, or the whole file with the preamble.",
+      "id": 6,
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Code: Helium ${version:text} vs Silicon",
+      "description": "Each line is coloured by the comparison of the member it belongs to: red unsound, orange incomplete. Silicon error: the errors Silicon reported on that line. Shows at most 20000 lines. Files benchmarked before their source was stored (run `runner index`) show nothing here. Silicon's verdict is its most recent VERIFIED/FAILED run of the file. Silicon reports only the members with errors, so a member of a finished Silicon run without an error verified; errors belong to the declaration starting at or before their line. Helium's verdict per member is the worst of its results (requires, ensures, body), from the newest run of the version that recorded them. Unsound: Helium VERIFIED where Silicon FAILED. Incomplete: Helium FAILED where Silicon VERIFIED.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "helium-postgres"
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          },
+          "noValue": "–"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Comparison"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "agree": {
+                        "color": "transparent",
+                        "index": 0
+                      },
+                      "unsound": {
+                        "color": "#6e1f28",
+                        "index": 1
+                      },
+                      "incomplete": {
+                        "color": "#6b4214",
+                        "index": 2
+                      },
+                      "Helium undecided": {
+                        "color": "#3d3d45",
+                        "index": 3
+                      },
+                      "Silicon undecided": {
+                        "color": "#2e3d5c",
+                        "index": 4
+                      },
+                      "no Helium member results": {
+                        "color": "transparent",
+                        "index": 5
+                      },
+                      "not reported by Helium": {
+                        "color": "#3d3d45",
+                        "index": 6
+                      },
+                      "preamble": {
+                        "color": "transparent",
+                        "index": 7
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic",
+                  "applyToRow": true
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Line"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 70
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Member"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Helium"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "VERIFIED": {
+                        "color": "#73bf69",
+                        "index": 0
+                      },
+                      "FAILED": {
+                        "color": "#ff9830",
+                        "index": 1
+                      },
+                      "INCONCLUSIVE": {
+                        "color": "#8e8e8e",
+                        "index": 2
+                      },
+                      "CRASHED": {
+                        "color": "#a352cc",
+                        "index": 3
+                      },
+                      "TIMED_OUT": {
+                        "color": "#e0b400",
+                        "index": 4
+                      },
+                      "SKIPPED": {
+                        "color": "#8e8e8e",
+                        "index": 5
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "text"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Code"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 900
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Silicon error"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#f2495c"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "helium-postgres"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH hr AS (\n  SELECT DISTINCT ON (vpr_sha256) status, members, message, wall_s\n  FROM helium_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND backend_version || CASE WHEN coalesce(dirty, false) THEN '+dirty' ELSE '' END = ${version:sqlstring}\n  ORDER BY vpr_sha256, members IS NOT NULL DESC, started_at DESC, iteration\n),\nhm AS (\n  SELECT split_part(m->>'name', '#', 1) AS name,\n         CASE WHEN bool_or(m->>'status' = 'FAILED') THEN 'FAILED'\n              WHEN bool_or(m->>'status' = 'CRASHED') THEN 'CRASHED'\n              WHEN bool_or(m->>'status' = 'TIMED_OUT') THEN 'TIMED_OUT'\n              WHEN bool_or(m->>'status' = 'INCONCLUSIVE') THEN 'INCONCLUSIVE'\n              WHEN bool_and(m->>'status' = 'SKIPPED') THEN 'SKIPPED'\n              ELSE 'VERIFIED' END AS status,\n         sum((m->>'seconds')::float8) AS seconds,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ' ' || (m->>'status'), ', '\n                    ORDER BY ord) AS obligations,\n         string_agg(coalesce(nullif(split_part(m->>'name', '#', 2), ''), 'body') || ': ' || (m->>'message'), ' | '\n                    ORDER BY ord) FILTER (WHERE m->>'message' IS NOT NULL) AS message\n  FROM hr, jsonb_array_elements(members) WITH ORDINALITY AS e(m, ord)\n  GROUP BY 1\n),\ns AS (\n  -- Silicon's latest decided run of the file; else its latest outcome\n  SELECT DISTINCT ON (vpr_sha256) status, errors, backend_version, wall_s, message\n  FROM silicon_runs\n  WHERE vpr_sha256 = ${file:sqlstring} AND status <> 'SKIPPED'\n  ORDER BY vpr_sha256, status IN ('VERIFIED', 'FAILED') DESC, started_at DESC, iteration\n),\nse AS (\n  SELECT (e->>'line')::int AS line, e->>'member' AS member, e->>'message' AS message\n  FROM s, jsonb_array_elements(coalesce(s.errors, '[]')) AS e\n),\nsrc AS (SELECT source FROM viper_sources WHERE vpr_sha256 = ${file:sqlstring}),\nln AS (\n  SELECT n::int AS n, replace(l, E'\\t', '    ') AS l, substring(l from '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)') AS kind,\n         (regexp_match(l, '^(method|function|predicate|domain|field|adt|define|import)\\s+([A-Za-z_$][A-Za-z0-9_$'']*)'))[2] AS name\n  FROM src, regexp_split_to_table(src.source, E'\\r?\\n') WITH ORDINALITY AS t(l, n)\n),\nlm AS (\n  -- a line belongs to the last declaration starting at or before it, as for Silicon's errors\n  SELECT ln.*, max(n) FILTER (WHERE kind IS NOT NULL) OVER (ORDER BY n) AS decl_line FROM ln\n),\ndecl AS (\n  SELECT d.n AS line, d.kind, d.name, coalesce(lead(d.n) OVER (ORDER BY d.n) - 1, (SELECT max(n) FROM ln)) AS last_line\n  FROM ln d WHERE d.kind IS NOT NULL\n),\ndm AS (\n  SELECT decl.line, decl.kind, decl.name, hm.status AS h_status, CASE WHEN s.status IN ('VERIFIED', 'FAILED')\n                THEN CASE WHEN EXISTS (SELECT 1 FROM se WHERE se.member = decl.name) THEN 'FAILED' ELSE 'VERIFIED' END\n              ELSE s.status::text END AS s_status\n  FROM decl LEFT JOIN s ON true LEFT JOIN hm ON hm.name = decl.name\n)\nSELECT lm.n AS \"Line\",\n       CASE WHEN dm.kind IN ('method', 'function', 'predicate') THEN CASE WHEN (SELECT members IS NULL FROM hr) IS NOT FALSE THEN 'no Helium member results'\n              WHEN dm.h_status IS NULL THEN 'not reported by Helium'\n              WHEN dm.h_status NOT IN ('VERIFIED', 'FAILED') THEN 'Helium undecided'\n              WHEN dm.s_status IS NULL OR dm.s_status NOT IN ('VERIFIED', 'FAILED') THEN 'Silicon undecided'\n              WHEN dm.h_status = dm.s_status THEN 'agree'\n              WHEN dm.h_status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END ELSE 'preamble' END AS \"Comparison\",\n       CASE WHEN lm.n = lm.decl_line THEN dm.name END AS \"Member\",\n       CASE WHEN lm.n = lm.decl_line AND dm.kind IN ('method', 'function', 'predicate') THEN dm.h_status END AS \"Helium\",\n       CASE WHEN lm.n = lm.decl_line AND dm.kind IN ('method', 'function', 'predicate') THEN dm.s_status END AS \"Silicon\",\n       -- keep the indentation: leading spaces become non-breaking\n       repeat(chr(160), length(lm.l) - length(ltrim(lm.l, ' '))) || ltrim(lm.l, ' ') AS \"Code\",\n       (SELECT string_agg(se.message, ' | ') FROM se WHERE se.line = lm.n) AS \"Silicon error\"\nFROM lm LEFT JOIN dm ON dm.line = lm.decl_line\nWHERE ${code:sqlstring} = 'all'\n   OR (dm.kind IN ('method', 'function', 'predicate') AND (${code:sqlstring} = 'members'\n       OR CASE WHEN (SELECT members IS NULL FROM hr) IS NOT FALSE THEN 'no Helium member results'\n              WHEN dm.h_status IS NULL THEN 'not reported by Helium'\n              WHEN dm.h_status NOT IN ('VERIFIED', 'FAILED') THEN 'Helium undecided'\n              WHEN dm.s_status IS NULL OR dm.s_status NOT IN ('VERIFIED', 'FAILED') THEN 'Silicon undecided'\n              WHEN dm.h_status = dm.s_status THEN 'agree'\n              WHEN dm.h_status = 'VERIFIED' THEN 'unsound'\n              ELSE 'incomplete' END IN ('unsound', 'incomplete', 'Helium undecided', 'Silicon undecided')))\nORDER BY lm.n\nLIMIT 20000"
+        }
+      ],
+      "id": 7,
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 24
+      }
+    }
+  ]
+}

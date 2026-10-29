@@ -49,6 +49,13 @@ pub async fn record_benchmark<C:  ConnectionTrait>(con: &C, benchmark: Benchmark
         }
     }
 
+    // The source, for the per-file dashboard; stored once per content.
+    if let (Some(sha256), Some(path)) = (&vpr_sha256, benchmark.viper.as_deref()) {
+        if db::upserts::insert_viper_source(con, sha256, || read(path)).await? {
+            info!("{benchmark}: viper source stored");
+        }
+    }
+
     match status.rust {
         None => {}
         Some(data) => match data.action {
